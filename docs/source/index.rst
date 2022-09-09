@@ -1,4 +1,4 @@
-Python DBus-Next Documentation
+Python DBus-Fast Documentation
 ==============================
 
 .. module:: dbus_fast
@@ -21,7 +21,7 @@ Python DBus-Next Documentation
 Overview
 ++++++++
 
-Python DBus-Next is a library for the `DBus message bus system <https://www.freedesktop.org/wiki/Software/dbus/>`_ for interprocess communcation in a Linux desktop or mobile environment.
+Python DBus-Fast is a library for the `DBus message bus system <https://www.freedesktop.org/wiki/Software/dbus/>`_ for interprocess communcation in a Linux desktop or mobile environment.
 
 Desktop application developers can use this library for integrating their applications into desktop environments by implementing common DBus standard interfaces or creating custom plugin interfaces.
 
