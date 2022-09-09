@@ -30,7 +30,7 @@
   <img src="https://img.shields.io/pypi/l/dbus-fast.svg?style=flat-square" alt="License">
 </p>
 
-A faster version of dbus-fast originally from the great next great DBus library for Python library
+A faster version of dbus-fast originally from the [great DBus next library](https://github.com/altdesktop/python-dbus-next) ❤️
 
 ## Installation
 
