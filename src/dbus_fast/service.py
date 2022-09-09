@@ -60,9 +60,9 @@ def method(name: str = None, disabled: bool = False):
 
     This class method will be called when a client calls the method on the DBus
     interface. The parameters given to the function come from the calling
-    client and will conform to the dbus-next type system. The parameters
+    client and will conform to the dbus-fast type system. The parameters
     returned will be returned to the calling client and must conform to the
-    dbus-next type system. If multiple parameters are returned, they must be
+    dbus-fast type system. If multiple parameters are returned, they must be
     contained within a :class:`list`.
 
     The decorated method may raise a :class:`DBusError <dbus_next.DBusError>`
@@ -138,7 +138,7 @@ def signal(name: str = None, disabled: bool = False):
 
     If the signal has an out argument, the class method must have a return type
     annotation with a signature string of a single complete DBus type and the
-    return value of the class method must conform to the dbus-next type system.
+    return value of the class method must conform to the dbus-fast type system.
     If the signal has multiple out arguments, they must be returned within a
     ``list``.
 
@@ -269,7 +269,7 @@ def dbus_property(
     interface, the setter will be called with the value from the calling
     client.
 
-    The parameters of the getter and the setter must conform to the dbus-next
+    The parameters of the getter and the setter must conform to the dbus-fast
     type system. The getter or the setter may raise a :class:`DBusError
     <dbus_next.DBusError>` to return an error to the client.
 

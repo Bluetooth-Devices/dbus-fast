@@ -541,7 +541,7 @@ class BaseMessageBus:
 
         if path is None:
             raise Exception(
-                "Could not find interface on bus (this is a bug in dbus-next)"
+                "Could not find interface on bus (this is a bug in dbus-fast)"
             )
 
         self.send(

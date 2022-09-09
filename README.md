@@ -30,7 +30,7 @@
   <img src="https://img.shields.io/pypi/l/dbus-fast.svg?style=flat-square" alt="License">
 </p>
 
-A faster version of dbus-next original from the great next great DBus library for Python library 
+A faster version of dbus-fast original from the great next great DBus library for Python library
 
 ## Installation
 
@@ -48,14 +48,14 @@ Desktop users can use this library to create their own scripts and utilities to 
 
 dbus-fast plans to improve over other DBus libraries for Python in the following ways:
 
-* Zero dependencies and pure Python 3.
-* Focus on performance
-* Support for multiple IO backends including asyncio and the GLib main loop.
-* Nonblocking IO suitable for GUI development.
-* Target the latest language features of Python for beautiful services and clients.
-* Complete implementation of the DBus type system without ever guessing types.
-* Integration tests for all features of the library.
-* Completely documented public API.
+- Zero dependencies and pure Python 3.
+- Focus on performance
+- Support for multiple IO backends including asyncio and the GLib main loop.
+- Nonblocking IO suitable for GUI development.
+- Target the latest language features of Python for beautiful services and clients.
+- Complete implementation of the DBus type system without ever guessing types.
+- Integration tests for all features of the library.
+- Completely documented public API.
 
 ## Installing
 
@@ -115,7 +115,7 @@ loop.run_until_complete(main())
 
 To define a service on the bus, use the `ServiceInterface` class and decorate class methods to specify DBus methods, properties, and signals with their type signatures.
 
-For more information, see the [overview for the high-level service](https://python-dbus-next.readthedocs.io/en/latest/high-level-service/index.html).
+For more information, see the [overview for the high-level service](https://python-dbus-fast.readthedocs.io/en/latest/high-level-service/index.html).
 
 ```python
 from dbus_next.service import ServiceInterface, method, dbus_property, signal, Variant
@@ -168,7 +168,7 @@ asyncio.get_event_loop().run_until_complete(main())
 
 The low-level interface works with DBus messages directly.
 
-For more information, see the [overview for the low-level interface](https://python-dbus-next.readthedocs.io/en/latest/low-level-interface/index.html).
+For more information, see the [overview for the low-level interface](https://python-dbus-fast.readthedocs.io/en/latest/low-level-interface/index.html).
 
 ```python
 from dbus_next.message import Message, MessageType
@@ -198,14 +198,14 @@ async def main():
 loop.run_until_complete(main())
 ```
 
-## Projects that use python-dbus-next
+## Projects that use python-dbus-fast
 
-* The [Playerctl](https://github.com/altdesktop/playerctl) test suite
-* [i3-dstatus](https://github.com/altdesktop/i3-dstatus)
+- The [Playerctl](https://github.com/altdesktop/playerctl) test suite
+- [i3-dstatus](https://github.com/altdesktop/i3-dstatus)
 
 ## Contributing
 
-Contributions are welcome. Development happens on [Github](https://github.com/altdesktop/python-dbus-next).
+Contributions are welcome. Development happens on [Github](https://github.com/altdesktop/python-dbus-fast).
 
 Before you commit, run `make` to run the linter, code formatter, and the test suite.
 
@@ -215,7 +215,6 @@ You can use this code under an MIT license (see LICENSE).
 
 © 2019, Tony Crisci
 © 2019, Tony Crisci
-
 
 ## Contributors ✨
 
