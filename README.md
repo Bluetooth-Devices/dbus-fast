@@ -213,8 +213,8 @@ Before you commit, run `make` to run the linter, code formatter, and the test su
 
 You can use this code under an MIT license (see LICENSE).
 
-© 2019, Tony Crisci
-© 2019, Tony Crisci
+- © 2019, Tony Crisci
+- © 2022, Bluetooth Devices authors
 
 ## Contributors ✨
 
