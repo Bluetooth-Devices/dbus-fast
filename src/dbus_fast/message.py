@@ -19,6 +19,15 @@ REQUIRED_FIELDS = {
     MessageType.METHOD_RETURN: ("reply_serial",),
 }
 
+HEADER_PATH = HeaderField.PATH.value
+HEADER_INTERFACE = HeaderField.INTERFACE.value
+HEADER_MEMBER = HeaderField.MEMBER.value
+HEADER_ERROR_NAME = HeaderField.ERROR_NAME.value
+HEADER_REPLY_SERIAL = HeaderField.REPLY_SERIAL.value
+HEADER_DESTINATION = HeaderField.DESTINATION.value
+HEADER_SIGNATURE = HeaderField.SIGNATURE.value
+HEADER_UNIX_FDS = HeaderField.UNIX_FDS.value
+
 
 class Message:
     """A class for sending and receiving messages through the
@@ -243,27 +252,21 @@ class Message:
         fields = []
 
         if self.path:
-            fields.append([HeaderField.PATH.value, Variant("o", self.path)])
+            fields.append([HEADER_PATH, Variant("o", self.path)])
         if self.interface:
-            fields.append([HeaderField.INTERFACE.value, Variant("s", self.interface)])
+            fields.append([HEADER_INTERFACE, Variant("s", self.interface)])
         if self.member:
-            fields.append([HeaderField.MEMBER.value, Variant("s", self.member)])
+            fields.append([HEADER_MEMBER, Variant("s", self.member)])
         if self.error_name:
-            fields.append([HeaderField.ERROR_NAME.value, Variant("s", self.error_name)])
+            fields.append([HEADER_ERROR_NAME, Variant("s", self.error_name)])
         if self.reply_serial:
-            fields.append(
-                [HeaderField.REPLY_SERIAL.value, Variant("u", self.reply_serial)]
-            )
+            fields.append([HEADER_REPLY_SERIAL, Variant("u", self.reply_serial)])
         if self.destination:
-            fields.append(
-                [HeaderField.DESTINATION.value, Variant("s", self.destination)]
-            )
+            fields.append([HEADER_DESTINATION, Variant("s", self.destination)])
         if self.signature:
-            fields.append([HeaderField.SIGNATURE.value, Variant("g", self.signature)])
+            fields.append([HEADER_SIGNATURE, Variant("g", self.signature)])
         if self.unix_fds and negotiate_unix_fd:
-            fields.append(
-                [HeaderField.UNIX_FDS.value, Variant("u", len(self.unix_fds))]
-            )
+            fields.append([HEADER_UNIX_FDS, Variant("u", len(self.unix_fds))])
 
         header_body = [
             LITTLE_ENDIAN,
