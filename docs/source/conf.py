@@ -16,7 +16,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + "/.."))
 
-from dbus_next.__version__ import __author__, __copyright__, __title__, __version__
+from dbus_fast.__version__ import __author__, __copyright__, __title__, __version__
 
 _project_slug = __title__.replace("_", "-")
 

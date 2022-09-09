@@ -18,12 +18,12 @@ except ImportError:
 
 class ProxyInterface(BaseProxyInterface):
     """A class representing a proxy to an interface exported on the bus by
-    another client for the GLib :class:`MessageBus <dbus_next.glib.MessageBus>`
+    another client for the GLib :class:`MessageBus <dbus_fast.glib.MessageBus>`
     implementation.
 
     This class is not meant to be constructed directly by the user. Use
     :func:`ProxyObject.get_interface()
-    <dbus_next.glib.ProxyObject.get_interface>` on a GLib proxy
+    <dbus_fast.glib.ProxyObject.get_interface>` on a GLib proxy
     object to get a proxy interface.
 
     This class exposes methods to call DBus methods, listen to signals, and get
@@ -49,7 +49,7 @@ class ProxyInterface(BaseProxyInterface):
     To *asynchronously* call a method, provide a callback that takes an error
     as the first argument and a list as the second argument. If the call
     completed successfully, ``error`` will be :class:`None`. If the service
-    returns an error, it will be a :class:`DBusError <dbus_next.DBusError>`
+    returns an error, it will be a :class:`DBusError <dbus_fast.DBusError>`
     with information about the error returned from the bus. The result will be
     a list of values that correspond to the *out args* of the introspection
     method definition.
@@ -101,11 +101,11 @@ class ProxyInterface(BaseProxyInterface):
     To asynchronously get or set a property, provide a callback that takes an
     :class:`Exception` as the first argument. If the call completed
     successfully, ``error`` will be :class:`None`. If the service returns an
-    error, it will be a :class:`DBusError <dbus_next.DBusError>` with
+    error, it will be a :class:`DBusError <dbus_fast.DBusError>` with
     information about the error returned from the bus.
 
     If the service returns an error for a synchronous DBus call, a
-    :class:`DBusError <dbus_next.DBusError>` will be raised with information
+    :class:`DBusError <dbus_fast.DBusError>` will be raised with information
     about the error.
     """
 
@@ -288,9 +288,9 @@ class ProxyInterface(BaseProxyInterface):
 
 
 class ProxyObject(BaseProxyObject):
-    """The proxy object implementation for the asyncio :class:`MessageBus <dbus_next.aio.MessageBus>`.
+    """The proxy object implementation for the asyncio :class:`MessageBus <dbus_fast.aio.MessageBus>`.
 
-    For more information, see the :class:`BaseProxyObject <dbus_next.proxy_object.BaseProxyObject>`.
+    For more information, see the :class:`BaseProxyObject <dbus_fast.proxy_object.BaseProxyObject>`.
     """
 
     def __init__(

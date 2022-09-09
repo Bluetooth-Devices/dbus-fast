@@ -14,11 +14,11 @@ from ..signature import Variant
 class ProxyInterface(BaseProxyInterface):
     """A class representing a proxy to an interface exported on the bus by
     another client for the asyncio :class:`MessageBus
-    <dbus_next.aio.MessageBus>` implementation.
+    <dbus_fast.aio.MessageBus>` implementation.
 
     This class is not meant to be constructed directly by the user. Use
     :func:`ProxyObject.get_interface()
-    <dbus_next.aio.ProxyObject.get_interface>` on a asyncio proxy object to get
+    <dbus_fast.aio.ProxyObject.get_interface>` on a asyncio proxy object to get
     a proxy interface.
 
     This class exposes methods to call DBus methods, listen to signals, and get
@@ -70,7 +70,7 @@ class ProxyInterface(BaseProxyInterface):
     must correspond to the type of the property in the interface definition.
 
     If the service returns an error for a DBus call, a :class:`DBusError
-    <dbus_next.DBusError>` will be raised with information about the error.
+    <dbus_fast.DBusError>` will be raised with information about the error.
     """
 
     def _add_method(self, intr_method):
@@ -162,9 +162,9 @@ class ProxyInterface(BaseProxyInterface):
 
 
 class ProxyObject(BaseProxyObject):
-    """The proxy object implementation for the GLib :class:`MessageBus <dbus_next.glib.MessageBus>`.
+    """The proxy object implementation for the GLib :class:`MessageBus <dbus_fast.glib.MessageBus>`.
 
-    For more information, see the :class:`BaseProxyObject <dbus_next.proxy_object.BaseProxyObject>`.
+    For more information, see the :class:`BaseProxyObject <dbus_fast.proxy_object.BaseProxyObject>`.
     """
 
     def __init__(

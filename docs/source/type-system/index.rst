@@ -51,14 +51,14 @@ below.
 | SIGNATURE   | g     | str                                  | Must be a valid signature.                                              |
 +-------------+-------+--------------------------------------+-------------------------------------------------------------------------+
 | UNIX_FD     | h     | int                                  | In the low-level interface, an index pointing to a file descriptor      |
-|             |       |                                      | in the ``unix_fds`` member of the :class:`Message <dbus_next.Message>`. |
+|             |       |                                      | in the ``unix_fds`` member of the :class:`Message <dbus_fast.Message>`. |
 |             |       |                                      | In the high-level interface, it is the file descriptor itself.          |
 +-------------+-------+--------------------------------------+-------------------------------------------------------------------------+
 | ARRAY       | a     | list                                 | Must be followed by a complete type which specifies the child type.     |
 +-------------+-------+--------------------------------------+-------------------------------------------------------------------------+
 | STRUCT      | (     | list                                 | Types in the Python ``list`` must match the types between the parens.   |
 +-------------+-------+--------------------------------------+-------------------------------------------------------------------------+
-| VARIANT     | v     | :class:`Variant <dbus_next.Variant>` | This class is provided by the library.                                  |
+| VARIANT     | v     | :class:`Variant <dbus_fast.Variant>` | This class is provided by the library.                                  |
 |             |       |                                      |                                                                         |
 +-------------+-------+--------------------------------------+-------------------------------------------------------------------------+
 | DICT_ENTRY  | {     | dict                                 | Must be included in an array to be a ``dict``.                          |

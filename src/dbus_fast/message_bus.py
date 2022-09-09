@@ -38,14 +38,14 @@ class BaseMessageBus:
 
     :param bus_type: The type of bus to connect to. Affects the search path for
         the bus address.
-    :type bus_type: :class:`BusType <dbus_next.BusType>`
+    :type bus_type: :class:`BusType <dbus_fast.BusType>`
     :param bus_address: A specific bus address to connect to. Should not be
         used under normal circumstances.
     :type bus_address: str
     :param ProxyObject: The proxy object implementation for this message bus.
         Must be passed in by an implementation that supports the high-level client.
     :type ProxyObject: Type[:class:`BaseProxyObject
-        <dbus_next.proxy_object.BaseProxyObject>`]
+        <dbus_fast.proxy_object.BaseProxyObject>`]
 
     :ivar unique_name: The unique name of the message bus connection. It will
         be :class:`None` until the message bus connects.
@@ -111,10 +111,10 @@ class BaseMessageBus:
         :type path: str
         :param interface: The service interface to export.
         :type interface: :class:`ServiceInterface
-            <dbus_next.service.ServiceInterface>`
+            <dbus_fast.service.ServiceInterface>`
 
         :raises:
-            - :class:`InvalidObjectPathError <dbus_next.InvalidObjectPathError>` - If the given object path is not valid.
+            - :class:`InvalidObjectPathError <dbus_fast.InvalidObjectPathError>` - If the given object path is not valid.
             - :class:`ValueError` - If an interface with this name is already exported on the message bus at this path
         """
         assert_object_path_valid(path)
@@ -145,10 +145,10 @@ class BaseMessageBus:
         :param interface: The interface instance or the name of the interface
             to unexport. If ``None``, unexport every interface on the path.
         :type interface: :class:`ServiceInterface
-            <dbus_next.service.ServiceInterface>` or str or None
+            <dbus_fast.service.ServiceInterface>` or str or None
 
         :raises:
-            - :class:`InvalidObjectPathError <dbus_next.InvalidObjectPathError>` - If the given object path is not valid.
+            - :class:`InvalidObjectPathError <dbus_fast.InvalidObjectPathError>` - If the given object path is not valid.
         """
         assert_object_path_valid(path)
         if type(interface) not in [str, type(None)] and not isinstance(
@@ -202,12 +202,12 @@ class BaseMessageBus:
         :param path: The path to introspect.
         :type path: str
         :param callback: A callback that will be called with the introspection
-            data as a :class:`Node <dbus_next.introspection.Node>`.
+            data as a :class:`Node <dbus_fast.introspection.Node>`.
         :type callback: :class:`Callable`
 
         :raises:
-            - :class:`InvalidObjectPathError <dbus_next.InvalidObjectPathError>` - If the given object path is not valid.
-            - :class:`InvalidBusNameError <dbus_next.InvalidBusNameError>` - If the given bus name is not valid.
+            - :class:`InvalidObjectPathError <dbus_fast.InvalidObjectPathError>` - If the given object path is not valid.
+            - :class:`InvalidBusNameError <dbus_fast.InvalidBusNameError>` - If the given bus name is not valid.
         """
         BaseMessageBus._check_callback_type(callback)
 
@@ -241,7 +241,7 @@ class BaseMessageBus:
         :type path: str
         :param interface: Exported service interface.
         :type interface: :class:`ServiceInterface
-            <dbus_next.service.ServiceInterface>`
+            <dbus_fast.service.ServiceInterface>`
         """
         if self._disconnected:
             return
@@ -309,13 +309,13 @@ class BaseMessageBus:
         :param name: The name to request.
         :type name: str
         :param flags: Name flags that affect the behavior of the name request.
-        :type flags: :class:`NameFlag <dbus_next.NameFlag>`
+        :type flags: :class:`NameFlag <dbus_fast.NameFlag>`
         :param callback: A callback that will be called with the reply of the
-            request as a :class:`RequestNameReply <dbus_next.RequestNameReply>`.
+            request as a :class:`RequestNameReply <dbus_fast.RequestNameReply>`.
         :type callback: :class:`Callable`
 
         :raises:
-            - :class:`InvalidBusNameError <dbus_next.InvalidBusNameError>` - If the given bus name is not valid.
+            - :class:`InvalidBusNameError <dbus_fast.InvalidBusNameError>` - If the given bus name is not valid.
         """
         assert_bus_name_valid(name)
 
@@ -360,11 +360,11 @@ class BaseMessageBus:
         :type name: str
         :param callback: A callback that will be called with the reply of the
             release request as a :class:`ReleaseNameReply
-            <dbus_next.ReleaseNameReply>`.
+            <dbus_fast.ReleaseNameReply>`.
         :type callback: :class:`Callable`
 
         :raises:
-            - :class:`InvalidBusNameError <dbus_next.InvalidBusNameError>` - If the given bus name is not valid.
+            - :class:`InvalidBusNameError <dbus_fast.InvalidBusNameError>` - If the given bus name is not valid.
         """
         assert_bus_name_valid(name)
 
@@ -408,15 +408,15 @@ class BaseMessageBus:
         :type path: str
         :param introspection: XML introspection data used to build the
             interfaces on the proxy object.
-        :type introspection: :class:`Node <dbus_next.introspection.Node>` or str or :class:`ElementTree`
+        :type introspection: :class:`Node <dbus_fast.introspection.Node>` or str or :class:`ElementTree`
 
         :returns: A proxy object for the given path on the given name.
-        :rtype: :class:`BaseProxyObject <dbus_next.proxy_object.BaseProxyObject>`
+        :rtype: :class:`BaseProxyObject <dbus_fast.proxy_object.BaseProxyObject>`
 
         :raises:
-            - :class:`InvalidBusNameError <dbus_next.InvalidBusNameError>` - If the given bus name is not valid.
-            - :class:`InvalidObjectPathError <dbus_next.InvalidObjectPathError>` - If the given object path is not valid.
-            - :class:`InvalidIntrospectionError <dbus_next.InvalidIntrospectionError>` - If the introspection data for the node is not valid.
+            - :class:`InvalidBusNameError <dbus_fast.InvalidBusNameError>` - If the given bus name is not valid.
+            - :class:`InvalidObjectPathError <dbus_fast.InvalidObjectPathError>` - If the given object path is not valid.
+            - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the introspection data for the node is not valid.
         """
         if self._ProxyObject is None:
             raise Exception(
@@ -440,7 +440,7 @@ class BaseMessageBus:
 
     def next_serial(self) -> int:
         """Get the next serial for this bus. This can be used as the ``serial``
-        attribute of a :class:`Message <dbus_next.Message>` to manually handle
+        attribute of a :class:`Message <dbus_fast.Message>` to manually handle
         the serial of messages.
 
         :returns: The next serial for the bus.
@@ -455,7 +455,7 @@ class BaseMessageBus:
         """Add a custom message handler for incoming messages.
 
         The handler should be a callable that takes a :class:`Message
-        <dbus_next.Message>`. If the message is a method call, you may return
+        <dbus_fast.Message>`. If the message is a method call, you may return
         another Message as a reply and it will be marked as handled. You may
         also return ``True`` to mark the message as handled without sending a
         reply.
@@ -479,7 +479,7 @@ class BaseMessageBus:
     ):
         """Remove a message handler that was previously added by
         :func:`add_message_handler()
-        <dbus_next.message_bus.BaseMessageBus.add_message_handler>`.
+        <dbus_fast.message_bus.BaseMessageBus.add_message_handler>`.
 
         :param handler: A message handler.
         :type handler: :class:`Callable`
@@ -493,7 +493,7 @@ class BaseMessageBus:
         """Asynchronously send a message on the message bus.
 
         :param msg: The message to send.
-        :type msg: :class:`Message <dbus_next.Message>`
+        :type msg: :class:`Message <dbus_fast.Message>`
         """
         raise NotImplementedError(
             'the "send" method must be implemented in the inheriting class'

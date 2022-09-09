@@ -1,10 +1,11 @@
 import pytest
-from dbus_next import Message, MessageType
-from dbus_next import introspection as intr
-from dbus_next.aio import MessageBus
-from dbus_next.constants import ErrorType
-from dbus_next.service import PropertyAccess, ServiceInterface, dbus_property
-from dbus_next.signature import Variant
+
+from dbus_fast import Message, MessageType
+from dbus_fast import introspection as intr
+from dbus_fast.aio import MessageBus
+from dbus_fast.constants import ErrorType
+from dbus_fast.service import PropertyAccess, ServiceInterface, dbus_property
+from dbus_fast.signature import Variant
 
 standard_interfaces_count = len(intr.Node.default().interfaces)
 

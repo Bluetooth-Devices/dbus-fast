@@ -1,19 +1,19 @@
 Errors
 ======
 
-.. autoclass:: dbus_next.DBusError
+.. autoclass:: dbus_fast.DBusError
     :members:
     :undoc-members:
 
-.. autoclass:: dbus_next.SignatureBodyMismatchError
-.. autoclass:: dbus_next.InvalidSignatureError
-.. autoclass:: dbus_next.InvalidAddressError
-.. autoclass:: dbus_next.AuthError
-.. autoclass:: dbus_next.InvalidMessageError
-.. autoclass:: dbus_next.InvalidIntrospectionError
-.. autoclass:: dbus_next.InterfaceNotFoundError
-.. autoclass:: dbus_next.SignalDisabledError
-.. autoclass:: dbus_next.InvalidBusNameError
-.. autoclass:: dbus_next.InvalidObjectPathError
-.. autoclass:: dbus_next.InvalidInterfaceNameError
-.. autoclass:: dbus_next.InvalidMemberNameError
+.. autoclass:: dbus_fast.SignatureBodyMismatchError
+.. autoclass:: dbus_fast.InvalidSignatureError
+.. autoclass:: dbus_fast.InvalidAddressError
+.. autoclass:: dbus_fast.AuthError
+.. autoclass:: dbus_fast.InvalidMessageError
+.. autoclass:: dbus_fast.InvalidIntrospectionError
+.. autoclass:: dbus_fast.InterfaceNotFoundError
+.. autoclass:: dbus_fast.SignalDisabledError
+.. autoclass:: dbus_fast.InvalidBusNameError
+.. autoclass:: dbus_fast.InvalidObjectPathError
+.. autoclass:: dbus_fast.InvalidInterfaceNameError
+.. autoclass:: dbus_fast.InvalidMemberNameError

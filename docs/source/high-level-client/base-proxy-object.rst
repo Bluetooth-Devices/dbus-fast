@@ -1,6 +1,6 @@
 BaseProxyObject
 ===============
 
-.. autoclass:: dbus_next.proxy_object.BaseProxyObject
+.. autoclass:: dbus_fast.proxy_object.BaseProxyObject
     :members:
     :undoc-members:

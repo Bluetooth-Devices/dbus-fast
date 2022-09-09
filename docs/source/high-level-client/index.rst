@@ -40,11 +40,11 @@ DBus interfaces are defined with an XML-based `introspection data format <https:
       <node name="another_child_of_sample_object"/>
    </node>
 
-The object at this path (a ``node``) may contain interfaces and child nodes. Nodes like this are represented in the library by a :class:`ProxyObject <dbus_next.proxy_object.BaseProxyObject>`. The interfaces contained in the nodes are represented by a :class:`ProxyInterface <dbus_next.proxy_object.BaseProxyInterface>`. The proxy interface exposes the methods, signals, and properties specified by the interface definition.
+The object at this path (a ``node``) may contain interfaces and child nodes. Nodes like this are represented in the library by a :class:`ProxyObject <dbus_fast.proxy_object.BaseProxyObject>`. The interfaces contained in the nodes are represented by a :class:`ProxyInterface <dbus_fast.proxy_object.BaseProxyInterface>`. The proxy interface exposes the methods, signals, and properties specified by the interface definition.
 
-The proxy object is obtained by the :class:`MessageBus <dbus_next.message_bus.BaseMessageBus>` through the :func:`get_proxy_object() <dbus_next.message_bus.BaseMessageBus.get_proxy_object>` method. This method takes the name of the client to send messages to, the path exported by that client that is expected to export the node, and the XML introspection data. If you can, it is recommended to include the XML in your project and pass it to that method as a string. But you may also use the :func:`introspect() <dbus_next.message_bus.BaseMessageBus.introspect>` method of the message bus to get this data dynamically at runtime.
+The proxy object is obtained by the :class:`MessageBus <dbus_fast.message_bus.BaseMessageBus>` through the :func:`get_proxy_object() <dbus_fast.message_bus.BaseMessageBus.get_proxy_object>` method. This method takes the name of the client to send messages to, the path exported by that client that is expected to export the node, and the XML introspection data. If you can, it is recommended to include the XML in your project and pass it to that method as a string. But you may also use the :func:`introspect() <dbus_fast.message_bus.BaseMessageBus.introspect>` method of the message bus to get this data dynamically at runtime.
 
-Once you have a proxy object, use the :func:`get_proxy_interface() <dbus_next.proxy_object.BaseProxyObject.get_interface>` method to create an interface passing the name of the interface to get. Each message bus has its own implementation of the proxy interface which behaves slightly differently. This is an example of how to use a proxy interface for the asyncio :class:`MessageBus <dbus_next.aio.MessageBus>`.
+Once you have a proxy object, use the :func:`get_proxy_interface() <dbus_fast.proxy_object.BaseProxyObject.get_interface>` method to create an interface passing the name of the interface to get. Each message bus has its own implementation of the proxy interface which behaves slightly differently. This is an example of how to use a proxy interface for the asyncio :class:`MessageBus <dbus_fast.aio.MessageBus>`.
 
 If any file descriptors are sent or received (DBus type ``h``), the variable refers to the file descriptor itself. You are responsible for closing any file descriptors sent or received by the bus. You must set the ``negotiate_unix_fd`` flag to ``True`` in the ``MessageBus`` constructor to use unix file descriptors.
 
@@ -52,8 +52,8 @@ If any file descriptors are sent or received (DBus type ``h``), the variable ref
 
 .. code-block:: python3
 
-    from dbus_next.aio import MessageBus
-    from dbus_next import Variant
+    from dbus_fast.aio import MessageBus
+    from dbus_fast import Variant
 
     bus = await MessageBus().connect()
 

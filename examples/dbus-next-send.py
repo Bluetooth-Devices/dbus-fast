@@ -8,9 +8,9 @@ import asyncio
 import json
 from argparse import OPTIONAL, ArgumentParser
 
-from dbus_next import BusType, Message, MessageType, Variant
-from dbus_next.aio import MessageBus
-from dbus_next.validators import (
+from dbus_fast import BusType, Message, MessageType, Variant
+from dbus_fast.aio import MessageBus
+from dbus_fast.validators import (
     is_bus_name_valid,
     is_interface_name_valid,
     is_member_name_valid,

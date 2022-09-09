@@ -1,7 +1,7 @@
 glib.MessageBus
 ===============
 
-.. autoclass:: dbus_next.glib.MessageBus
+.. autoclass:: dbus_fast.glib.MessageBus
     :members:
     :inherited-members:
     :show-inheritance:

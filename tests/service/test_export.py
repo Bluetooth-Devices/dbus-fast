@@ -1,8 +1,9 @@
 import pytest
-from dbus_next import Message, MessageType
-from dbus_next import introspection as intr
-from dbus_next.aio import MessageBus
-from dbus_next.service import ServiceInterface, method
+
+from dbus_fast import Message, MessageType
+from dbus_fast import introspection as intr
+from dbus_fast.aio import MessageBus
+from dbus_fast.service import ServiceInterface, method
 
 standard_interfaces_count = len(intr.Node.default().interfaces)
 

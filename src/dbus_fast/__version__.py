@@ -1,4 +1,4 @@
-__title__ = "dbus_next"
+__title__ = "dbus_fast"
 __description__ = "A zero-dependency DBus library for Python with asyncio support"
 __url__ = "https://github.com/altdesktop/python-dbus-fast"
 __version__ = "0.2.3"

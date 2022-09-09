@@ -1,6 +1,7 @@
 import pytest
-from dbus_next import SignatureBodyMismatchError, SignatureTree, Variant
-from dbus_next._private.util import signature_contains_type
+
+from dbus_fast import SignatureBodyMismatchError, SignatureTree, Variant
+from dbus_fast._private.util import signature_contains_type
 
 
 def assert_simple_type(signature, type_):

@@ -6,9 +6,9 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__) + "/.."))
 
 import asyncio
 
-from dbus_next import Variant
-from dbus_next.aio.message_bus import MessageBus
-from dbus_next.service import ServiceInterface, dbus_property, method, signal
+from dbus_fast import Variant
+from dbus_fast.aio.message_bus import MessageBus
+from dbus_fast.service import ServiceInterface, dbus_property, method, signal
 
 
 class ExampleInterface(ServiceInterface):

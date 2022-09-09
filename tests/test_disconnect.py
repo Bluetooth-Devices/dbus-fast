@@ -2,8 +2,9 @@ import functools
 import os
 
 import pytest
-from dbus_next import Message
-from dbus_next.aio import MessageBus
+
+from dbus_fast import Message
+from dbus_fast.aio import MessageBus
 
 
 @pytest.mark.asyncio

@@ -1,6 +1,7 @@
 import pytest
-from dbus_next import Message, MessageFlag, MessageType
-from dbus_next.aio import MessageBus
+
+from dbus_fast import Message, MessageFlag, MessageType
+from dbus_fast.aio import MessageBus
 
 
 @pytest.mark.asyncio

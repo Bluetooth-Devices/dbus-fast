@@ -16,16 +16,16 @@ class Arg:
     :ivar name: The name of this arg.
     :vartype name: str
     :ivar direction: Whether this is an input or an output argument.
-    :vartype direction: :class:`ArgDirection <dbus_next.ArgDirection>`
+    :vartype direction: :class:`ArgDirection <dbus_fast.ArgDirection>`
     :ivar type: The parsed signature type of this argument.
-    :vartype type: :class:`SignatureType <dbus_next.SignatureType>`
+    :vartype type: :class:`SignatureType <dbus_fast.SignatureType>`
     :ivar signature: The signature string of this argument.
     :vartype signature: str
 
     :raises:
-        - :class:`InvalidMemberNameError <dbus_next.InvalidMemberNameError>` - If the name of the arg is not valid.
-        - :class:`InvalidSignatureError <dbus_next.InvalidSignatureError>` - If the signature is not valid.
-        - :class:`InvalidIntrospectionError <dbus_next.InvalidIntrospectionError>` - If the signature is not a single complete type.
+        - :class:`InvalidMemberNameError <dbus_fast.InvalidMemberNameError>` - If the name of the arg is not valid.
+        - :class:`InvalidSignatureError <dbus_fast.InvalidSignatureError>` - If the signature is not valid.
+        - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the signature is not a single complete type.
     """
 
     def __init__(
@@ -63,10 +63,10 @@ class Arg:
         :param element: The parsed XML element.
         :type element: :class:`xml.etree.ElementTree.Element`
         :param direction: The direction of this arg. Must be specified because it can default to different values depending on if it's in a method or signal.
-        :type direction: :class:`ArgDirection <dbus_next.ArgDirection>`
+        :type direction: :class:`ArgDirection <dbus_fast.ArgDirection>`
 
         :raises:
-            - :class:`InvalidIntrospectionError <dbus_next.InvalidIntrospectionError>` - If the XML tree is not valid introspection data.
+            - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the XML tree is not valid introspection data.
         """
         name = element.attrib.get("name")
         signature = element.attrib.get("type")
@@ -102,7 +102,7 @@ class Signal:
     :vartype signature: str
 
     :raises:
-        - :class:`InvalidMemberNameError <dbus_next.InvalidMemberNameError>` - If the name of the signal is not a valid member name.
+        - :class:`InvalidMemberNameError <dbus_fast.InvalidMemberNameError>` - If the name of the signal is not a valid member name.
     """
 
     def __init__(self, name: str, args: List[Arg] = None):
@@ -124,7 +124,7 @@ class Signal:
         :type is_root: bool
 
         :raises:
-            - :class:`InvalidIntrospectionError <dbus_next.InvalidIntrospectionError>` - If the XML tree is not valid introspection data.
+            - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the XML tree is not valid introspection data.
         """
         name = element.attrib.get("name")
         if not name:
@@ -165,7 +165,7 @@ class Method:
     :vartype out_signature: str
 
     :raises:
-        - :class:`InvalidMemberNameError <dbus_next.InvalidMemberNameError>` - If the name of this method is not valid.
+        - :class:`InvalidMemberNameError <dbus_fast.InvalidMemberNameError>` - If the name of this method is not valid.
     """
 
     def __init__(self, name: str, in_args: List[Arg] = [], out_args: List[Arg] = []):
@@ -188,7 +188,7 @@ class Method:
         :type is_root: bool
 
         :raises:
-            - :class:`InvalidIntrospectionError <dbus_next.InvalidIntrospectionError>` - If the XML tree is not valid introspection data.
+            - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the XML tree is not valid introspection data.
         """
         name = element.attrib.get("name")
         if not name:
@@ -230,14 +230,14 @@ class Property:
     :ivar signature: The signature string for this property. Must be a single complete type.
     :vartype signature: str
     :ivar access: Whether this property is readable and writable.
-    :vartype access: :class:`PropertyAccess <dbus_next.PropertyAccess>`
+    :vartype access: :class:`PropertyAccess <dbus_fast.PropertyAccess>`
     :ivar type: The parsed type of this property.
-    :vartype type: :class:`SignatureType <dbus_next.SignatureType>`
+    :vartype type: :class:`SignatureType <dbus_fast.SignatureType>`
 
     :raises:
-        - :class:`InvalidIntrospectionError <dbus_next.InvalidIntrospectionError>` - If the property is not a single complete type.
-        - :class `InvalidSignatureError <dbus_next.InvalidSignatureError>` - If the given signature is not valid.
-        - :class: `InvalidMemberNameError <dbus_next.InvalidMemberNameError>` - If the member name is not valid.
+        - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the property is not a single complete type.
+        - :class `InvalidSignatureError <dbus_fast.InvalidSignatureError>` - If the given signature is not valid.
+        - :class: `InvalidMemberNameError <dbus_fast.InvalidMemberNameError>` - If the member name is not valid.
     """
 
     def __init__(
@@ -268,7 +268,7 @@ class Property:
         :type element: :class:`xml.etree.ElementTree.Element`
 
         :raises:
-            - :class:`InvalidIntrospectionError <dbus_next.InvalidIntrospectionError>` - If the XML tree is not valid introspection data.
+            - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the XML tree is not valid introspection data.
         """
         name = element.attrib.get("name")
         signature = element.attrib.get("type")
@@ -306,7 +306,7 @@ class Interface:
     :vartype properties: list(:class:`Property`)
 
     :raises:
-        - :class:`InvalidInterfaceNameError <dbus_next.InvalidInterfaceNameError>` - If the name is not a valid interface name.
+        - :class:`InvalidInterfaceNameError <dbus_fast.InvalidInterfaceNameError>` - If the name is not a valid interface name.
     """
 
     def __init__(
@@ -334,7 +334,7 @@ class Interface:
         :type element: :class:`xml.etree.ElementTree.Element`
 
         :raises:
-            - :class:`InvalidIntrospectionError <dbus_next.InvalidIntrospectionError>` - If the XML tree is not valid introspection data.
+            - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the XML tree is not valid introspection data.
         """
         name = element.attrib.get("name")
         if not name:
@@ -377,12 +377,12 @@ class Node:
 
     This class is an essential building block for a high-level DBus interface.
     This is the underlying data structure for the :class:`ProxyObject
-    <dbus_next.proxy_object.BaseProxyInterface>`.  A :class:`ServiceInterface
-    <dbus_next.service.ServiceInterface>` definition is converted to this class
+    <dbus_fast.proxy_object.BaseProxyInterface>`.  A :class:`ServiceInterface
+    <dbus_fast.service.ServiceInterface>` definition is converted to this class
     to expose XML on the introspectable interface.
 
     :ivar interfaces: A list of interfaces exposed on this node.
-    :vartype interfaces: list(:class:`Interface <dbus_next.introspection.Interface>`)
+    :vartype interfaces: list(:class:`Interface <dbus_fast.introspection.Interface>`)
     :ivar nodes: A list of child nodes.
     :vartype nodes: list(:class:`Node`)
     :ivar name: The object path of this node.
@@ -391,7 +391,7 @@ class Node:
     :vartype is_root: bool
 
     :raises:
-        - :class:`InvalidIntrospectionError <dbus_next.InvalidIntrospectionError>` - If the name is not a valid node name.
+        - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the name is not a valid node name.
     """
 
     def __init__(
@@ -417,7 +417,7 @@ class Node:
         :type is_root: bool
 
         :raises:
-            - :class:`InvalidIntrospectionError <dbus_next.InvalidIntrospectionError>` - If the XML tree is not valid introspection data.
+            - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the XML tree is not valid introspection data.
         """
         node = Node(element.attrib.get("name"), is_root=is_root)
 
@@ -439,7 +439,7 @@ class Node:
         :type data: str
 
         :raises:
-            - :class:`InvalidIntrospectionError <dbus_next.InvalidIntrospectionError>` - If the string is not valid introspection data.
+            - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the string is not valid introspection data.
         """
         element = ET.fromstring(data)
         if element.tag != "node":

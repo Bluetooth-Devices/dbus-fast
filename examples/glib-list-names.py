@@ -7,9 +7,10 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__) + "/.."))
 import json
 import signal
 
-from dbus_next import Message
-from dbus_next.glib import MessageBus
 from gi.repository import GLib
+
+from dbus_fast import Message
+from dbus_fast.glib import MessageBus
 
 main = GLib.MainLoop()
 bus = MessageBus().connect_sync()

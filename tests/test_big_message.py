@@ -1,8 +1,9 @@
 from test.util import check_gi_repository, skip_reason_no_gi
 
 import pytest
-from dbus_next import Message, MessageType, aio, glib
-from dbus_next.service import ServiceInterface, method
+
+from dbus_fast import Message, MessageType, aio, glib
+from dbus_fast.service import ServiceInterface, method
 
 has_gi = check_gi_repository()
 

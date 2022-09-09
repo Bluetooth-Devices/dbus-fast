@@ -1,16 +1,17 @@
 import asyncio
 
 import pytest
-from dbus_next import Message, MessageType
-from dbus_next.aio import MessageBus
-from dbus_next.constants import PropertyAccess
-from dbus_next.service import (
+
+from dbus_fast import Message, MessageType
+from dbus_fast.aio import MessageBus
+from dbus_fast.constants import PropertyAccess
+from dbus_fast.service import (
     ServiceInterface,
     SignalDisabledError,
     dbus_property,
     signal,
 )
-from dbus_next.signature import Variant
+from dbus_fast.signature import Variant
 
 
 class ExampleInterface(ServiceInterface):

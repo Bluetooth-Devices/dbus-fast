@@ -1,7 +1,7 @@
 Python DBus-Next Documentation
 ==============================
 
-.. module:: dbus_next
+.. module:: dbus_fast
 
 .. toctree::
    :maxdepth: 3

@@ -1,5 +1,6 @@
 import pytest
-from dbus_next import (
+
+from dbus_fast import (
     DBusError,
     ErrorType,
     Message,
@@ -8,8 +9,8 @@ from dbus_next import (
     SignatureTree,
     Variant,
 )
-from dbus_next.aio import MessageBus
-from dbus_next.service import ServiceInterface, method
+from dbus_fast.aio import MessageBus
+from dbus_fast.service import ServiceInterface, method
 
 
 class ExampleInterface(ServiceInterface):

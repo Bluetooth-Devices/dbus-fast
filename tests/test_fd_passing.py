@@ -2,10 +2,11 @@
 import os
 
 import pytest
-from dbus_next import Message, MessageType
-from dbus_next.aio import MessageBus
-from dbus_next.service import ServiceInterface, dbus_property, method, signal
-from dbus_next.signature import SignatureTree, Variant
+
+from dbus_fast import Message, MessageType
+from dbus_fast.aio import MessageBus
+from dbus_fast.service import ServiceInterface, dbus_property, method, signal
+from dbus_fast.signature import SignatureTree, Variant
 
 
 def open_file():

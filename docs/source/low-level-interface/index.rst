@@ -6,22 +6,22 @@ The Low Level Interface
 
    message
 
-The low-level interface allows you to work with messages directly through the :class:`MessageBus <dbus_next.message_bus.BaseMessageBus>` with the :class:`Message <dbus_next.Message>` class. This might be useful in the following cases:
+The low-level interface allows you to work with messages directly through the :class:`MessageBus <dbus_fast.message_bus.BaseMessageBus>` with the :class:`Message <dbus_fast.Message>` class. This might be useful in the following cases:
 
 - Implementing an application that works with DBus directly like ``dbus-send(1)`` or ``dbus-monitor(1)``.
-- Creating a new implementation of the :class:`BaseMessageBus <dbus_next.message_bus.BaseMessageBus>`.
+- Creating a new implementation of the :class:`BaseMessageBus <dbus_fast.message_bus.BaseMessageBus>`.
 - Creating clients or services that use an alternative to the standard DBus interfaces.
 
 The primary methods and classes of the low-level interface are:
 
-- :class:`Message <dbus_next.Message>`
-- :func:`MessageBus.send() <dbus_next.message_bus.BaseMessageBus.send>`
-- :func:`MessageBus.add_message_handler() <dbus_next.message_bus.BaseMessageBus.add_message_handler>`
-- :func:`MessageBus.remove_message_handler() <dbus_next.message_bus.BaseMessageBus.remove_message_handler>`
-- :func:`MessageBus.next_serial() <dbus_next.message_bus.BaseMessageBus.next_serial>`
-- :func:`aio.MessageBus.call() <dbus_next.aio.MessageBus.call>`
-- :func:`glib.MessageBus.call() <dbus_next.glib.MessageBus.call>`
-- :func:`glib.MessageBus.call_sync() <dbus_next.glib.MessageBus.call_sync>`
+- :class:`Message <dbus_fast.Message>`
+- :func:`MessageBus.send() <dbus_fast.message_bus.BaseMessageBus.send>`
+- :func:`MessageBus.add_message_handler() <dbus_fast.message_bus.BaseMessageBus.add_message_handler>`
+- :func:`MessageBus.remove_message_handler() <dbus_fast.message_bus.BaseMessageBus.remove_message_handler>`
+- :func:`MessageBus.next_serial() <dbus_fast.message_bus.BaseMessageBus.next_serial>`
+- :func:`aio.MessageBus.call() <dbus_fast.aio.MessageBus.call>`
+- :func:`glib.MessageBus.call() <dbus_fast.glib.MessageBus.call>`
+- :func:`glib.MessageBus.call_sync() <dbus_fast.glib.MessageBus.call_sync>`
 
 Mixed use of the low and high level interfaces on the same bus connection is not recommended.
 

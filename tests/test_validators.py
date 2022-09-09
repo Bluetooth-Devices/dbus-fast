@@ -1,4 +1,4 @@
-from dbus_next import (
+from dbus_fast import (
     is_bus_name_valid,
     is_interface_name_valid,
     is_member_name_valid,

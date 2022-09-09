@@ -2,8 +2,8 @@ import io
 import json
 import os
 
-from dbus_next import Message, SignatureTree, Variant
-from dbus_next._private.unmarshaller import Unmarshaller
+from dbus_fast import Message, SignatureTree, Variant
+from dbus_fast._private.unmarshaller import Unmarshaller
 
 
 def print_buf(buf):

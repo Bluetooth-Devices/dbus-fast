@@ -1,7 +1,7 @@
 import os
 
-from dbus_next import ArgDirection, PropertyAccess, SignatureType
-from dbus_next import introspection as intr
+from dbus_fast import ArgDirection, PropertyAccess, SignatureType
+from dbus_fast import introspection as intr
 
 example_data = open(f"{os.path.dirname(__file__)}/data/introspection.xml").read()
 

@@ -449,6 +449,6 @@ class Variant:
             return super().__eq__(other)
 
     def __repr__(self):
-        return "<dbus_next.signature.Variant ('{}', {})>".format(
+        return "<dbus_fast.signature.Variant ('{}', {})>".format(
             self.type.signature, self.value
         )

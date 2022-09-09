@@ -7,8 +7,8 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__) + "/.."))
 import asyncio
 import json
 
-from dbus_next import Message, MessageType
-from dbus_next.aio import MessageBus
+from dbus_fast import Message, MessageType
+from dbus_fast.aio import MessageBus
 
 loop = asyncio.get_event_loop()
 

@@ -1,7 +1,7 @@
 SignatureType
 ==============
 
-.. autoclass:: dbus_next.SignatureType
+.. autoclass:: dbus_fast.SignatureType
     :members:
     :undoc-members:
     :exclude-members: signature

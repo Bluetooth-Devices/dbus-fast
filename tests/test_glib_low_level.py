@@ -1,8 +1,9 @@
 from test.util import check_gi_repository, skip_reason_no_gi
 
 import pytest
-from dbus_next import Message, MessageFlag, MessageType
-from dbus_next.glib import MessageBus
+
+from dbus_fast import Message, MessageFlag, MessageType
+from dbus_fast.glib import MessageBus
 
 has_gi = check_gi_repository()
 

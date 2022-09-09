@@ -1,9 +1,10 @@
 import pytest
-from dbus_next import Message
-from dbus_next.aio import MessageBus
-from dbus_next.constants import RequestNameReply
-from dbus_next.introspection import Node
-from dbus_next.service import ServiceInterface, signal
+
+from dbus_fast import Message
+from dbus_fast.aio import MessageBus
+from dbus_fast.constants import RequestNameReply
+from dbus_fast.introspection import Node
+from dbus_fast.service import ServiceInterface, signal
 
 
 class ExampleInterface(ServiceInterface):
