@@ -1,7 +1,7 @@
 import io
 import json
 import os
-from typing import Any
+from typing import Any, Dict
 
 import pytest
 
@@ -23,7 +23,7 @@ def print_buf(buf):
 table = json.load(open(os.path.dirname(__file__) + "/data/messages.json"))
 
 
-def json_to_message(message: dict[str, Any]) -> Message:
+def json_to_message(message: Dict[str, Any]) -> Message:
     copy = dict(message)
     if "message_type" in copy:
         copy["message_type"] = MessageType(copy["message_type"])
