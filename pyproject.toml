@@ -8,7 +8,7 @@ readme = "README.md"
 repository = "https://github.com/bluetooth-devices/dbus-fast"
 documentation = "https://dbus-fast.readthedocs.io"
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Natural Language :: English",
     "Operating System :: OS Independent",
@@ -45,7 +45,7 @@ pytest-asyncio = "^0.19.0"
 [tool.semantic_release]
 branch = "main"
 version_toml = "pyproject.toml:tool.poetry.version"
-version_variable = "src/dbus_fast/__init__.py:__version__"
+version_variable = "src/dbus_fast/__version__.py:__version__"
 build_command = "pip install poetry && poetry build"
 
 [tool.pytest.ini_options]
