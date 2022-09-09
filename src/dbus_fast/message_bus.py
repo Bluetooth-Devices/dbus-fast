@@ -634,8 +634,9 @@ class BaseMessageBus:
         if err:
             raise err
 
-    def _call(self, msg, callback):
-        BaseMessageBus._check_callback_type(callback)
+    def _call(self, msg, callback, check_callback: bool = True) -> None:
+        if check_callback:
+            BaseMessageBus._check_callback_type(callback)
 
         if not msg.serial:
             msg.serial = self.next_serial()
@@ -887,6 +888,7 @@ class BaseMessageBus:
                 member="GetMachineId",
             ),
             reply_handler,
+            check_callback=False,
         )
 
     def _default_get_managed_objects_handler(self, msg, send_reply):
@@ -1109,6 +1111,7 @@ class BaseMessageBus:
                 body=[self._name_owner_match_rule],
             ),
             add_match_notify,
+            check_callback=False,
         )
 
     def _add_match_rule(self, match_rule):
@@ -1142,6 +1145,7 @@ class BaseMessageBus:
                 body=[match_rule],
             ),
             add_match_notify,
+            check_callback=False,
         )
 
     def _remove_match_rule(self, match_rule):
@@ -1180,4 +1184,5 @@ class BaseMessageBus:
                 body=[match_rule],
             ),
             remove_match_notify,
+            check_callback=False,
         )

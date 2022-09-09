@@ -332,7 +332,7 @@ class MessageBus(BaseMessageBus):
                 else:
                     _future_set_result(future, reply)
 
-        self._call(msg, reply_handler)
+        self._call(msg, reply_handler, check_callback=False)
 
         await future
 
