@@ -62,6 +62,7 @@ License
 
 This library is available under an `MIT License <https://github.com/altdesktop/python-dbus-fast/blob/master/LICENSE>`_.
 
+© 2022, Bluetooth Devices authors
 © 2019, Tony Crisci
 
 Indices and tables
