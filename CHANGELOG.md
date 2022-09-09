@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.2.0 (2022-09-09)
+### Feature
+* Improve Marshaller performance ([#15](https://github.com/Bluetooth-Devices/dbus-fast/issues/15)) ([`a9e8866`](https://github.com/Bluetooth-Devices/dbus-fast/commit/a9e8866c2a6a97227ff5f001cae5e2196260379c))
+
 ## v1.1.9 (2022-09-09)
 ### Fix
 * Readme ([#13](https://github.com/Bluetooth-Devices/dbus-fast/issues/13)) ([`6bc87e0`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6bc87e0f0717d4a4382e4bb36d064e22ff131751))
