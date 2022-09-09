@@ -30,6 +30,7 @@ Sphinx = {version = "^5.0", optional = true}
 sphinx-rtd-theme = {version = "^1.0", optional = true}
 myst-parser = {version = "^0.18", optional = true}
 sphinxcontrib-asyncio = {version = "^0.3.0", extras = ["docs"]}
+sphinxcontrib-fulltoc = {version = "^1.2.0", extras = ["docs"]}
 
 [tool.poetry.extras]
 docs = [
