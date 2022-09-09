@@ -200,15 +200,15 @@ loop.run_until_complete(main())
 
 ## Projects that use python-dbus-fast
 
-- The [Bluetooth Adapters][https://github.com/bluetooth-devices/bluetooth-adapters]
+- [Bluetooth Adapters](https://github.com/bluetooth-devices/bluetooth-adapters)
 
 ## Contributing
 
 Contributions are welcome. Development happens on [Github](https://github.com/altdesktop/python-dbus-fast).
 
-Before you commit, run `make` to run the linter, code formatter, and the test suite.
+Before you commit, run `pre-commit run --all-files` to run the linter, code formatter, and the test suite.
 
-# Copyright
+## Copyright
 
 You can use this code under an MIT license (see LICENSE).
 
