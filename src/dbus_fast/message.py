@@ -251,22 +251,37 @@ class Message:
 
         fields = []
 
+        # No verify here since the marshaller will raise an exception if the
+        # Variant is invalid.
+
         if self.path:
-            fields.append([HEADER_PATH, Variant("o", self.path)])
+            fields.append([HEADER_PATH, Variant("o", self.path, verify=False)])
         if self.interface:
-            fields.append([HEADER_INTERFACE, Variant("s", self.interface)])
+            fields.append(
+                [HEADER_INTERFACE, Variant("s", self.interface, verify=False)]
+            )
         if self.member:
-            fields.append([HEADER_MEMBER, Variant("s", self.member)])
+            fields.append([HEADER_MEMBER, Variant("s", self.member, verify=False)])
         if self.error_name:
-            fields.append([HEADER_ERROR_NAME, Variant("s", self.error_name)])
+            fields.append(
+                [HEADER_ERROR_NAME, Variant("s", self.error_name, verify=False)]
+            )
         if self.reply_serial:
-            fields.append([HEADER_REPLY_SERIAL, Variant("u", self.reply_serial)])
+            fields.append(
+                [HEADER_REPLY_SERIAL, Variant("u", self.reply_serial, verify=False)]
+            )
         if self.destination:
-            fields.append([HEADER_DESTINATION, Variant("s", self.destination)])
+            fields.append(
+                [HEADER_DESTINATION, Variant("s", self.destination, verify=False)]
+            )
         if self.signature:
-            fields.append([HEADER_SIGNATURE, Variant("g", self.signature)])
+            fields.append(
+                [HEADER_SIGNATURE, Variant("g", self.signature, verify=False)]
+            )
         if self.unix_fds and negotiate_unix_fd:
-            fields.append([HEADER_UNIX_FDS, Variant("u", len(self.unix_fds))])
+            fields.append(
+                [HEADER_UNIX_FDS, Variant("u", len(self.unix_fds, verify=False))]
+            )
 
         header_body = [
             LITTLE_ENDIAN,
