@@ -40,7 +40,7 @@ Install this via pip (or your favourite package manager):
 
 [Documentation](https://dbus-fast.readthedocs.io/en/latest/)
 
-dbus-nefastxt is a Python library for DBus that aims to be a performant fully featured high level library primarily geared towards integration of applications into Linux desktop and mobile environments.
+dbus-fast is a Python library for DBus that aims to be a performant fully featured high level library primarily geared towards integration of applications into Linux desktop and mobile environments.
 
 Desktop application developers can use this library for integrating their applications into desktop environments by implementing common DBus standard interfaces or creating custom plugin interfaces.
 
