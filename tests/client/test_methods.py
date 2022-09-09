@@ -1,11 +1,10 @@
-from test.util import check_gi_repository, skip_reason_no_gi
-
 import pytest
 
 import dbus_fast.introspection as intr
 from dbus_fast import DBusError, aio, glib
 from dbus_fast.message import MessageFlag
 from dbus_fast.service import ServiceInterface, method
+from tests.util import check_gi_repository, skip_reason_no_gi
 
 has_gi = check_gi_repository()
 

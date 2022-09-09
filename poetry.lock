@@ -290,6 +290,21 @@ tomli = ">=1.0.0"
 testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "pygments (>=2.7.2)", "requests", "xmlschema"]
 
 [[package]]
+name = "pytest-asyncio"
+version = "0.19.0"
+description = "Pytest support for asyncio"
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+pytest = ">=6.1.0"
+typing-extensions = {version = ">=3.7.2", markers = "python_version < \"3.8\""}
+
+[package.extras]
+testing = ["pytest-trio (>=0.7.0)", "mypy (>=0.931)", "flaky (>=3.5.0)", "hypothesis (>=5.7.1)", "coverage (>=6.2)"]
+
+[[package]]
 name = "pytest-cov"
 version = "3.0.0"
 description = "Pytest plugin for measuring coverage."
@@ -511,7 +526,7 @@ docs = ["myst-parser", "Sphinx", "sphinx-rtd-theme"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "6c5abe1f014019df280ea421d5d97d382c2bd65b33cef4ef14b4239c7f1eb1c4"
+content-hash = "2c9314a941f6be6f7ef96dd996650261032c8c3530abdeef4bfdfc4bca8c9fed"
 
 [metadata.files]
 alabaster = []
@@ -538,6 +553,7 @@ py = []
 pygments = []
 pyparsing = []
 pytest = []
+pytest-asyncio = []
 pytest-cov = []
 pytz = []
 pyyaml = []
