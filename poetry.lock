@@ -444,6 +444,14 @@ test = ["pytest"]
 lint = ["docutils-stubs", "mypy", "flake8"]
 
 [[package]]
+name = "sphinxcontrib-fulltoc"
+version = "1.2.0"
+description = "Include a full table of contents in your Sphinx HTML sidebar"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "sphinxcontrib-htmlhelp"
 version = "2.0.0"
 description = "sphinxcontrib-htmlhelp is a sphinx extension which renders HTML help files"
@@ -537,7 +545,7 @@ docs = ["myst-parser", "Sphinx", "sphinx-rtd-theme"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "43ff8cac973dfd191afe3253536f6cfac7e4e191e0f6a6e6fbe6a58fcc5701fc"
+content-hash = "f9a6aeaf025bd741406592d8673893f1a249d4d604e76f6c83cfcf295c0b304f"
 
 [metadata.files]
 alabaster = []
@@ -575,6 +583,7 @@ sphinx-rtd-theme = []
 sphinxcontrib-applehelp = []
 sphinxcontrib-asyncio = []
 sphinxcontrib-devhelp = []
+sphinxcontrib-fulltoc = []
 sphinxcontrib-htmlhelp = []
 sphinxcontrib-jsmath = []
 sphinxcontrib-qthelp = []
