@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.1.6 (2022-09-09)
+### Fix
+* Docs deps not needed for production ([#9](https://github.com/Bluetooth-Devices/dbus-fast/issues/9)) ([`01f8ce7`](https://github.com/Bluetooth-Devices/dbus-fast/commit/01f8ce77b945554f27723755caab550b6f246cb4))
+
 ## v1.1.5 (2022-09-09)
 ### Fix
 * Readme ([#8](https://github.com/Bluetooth-Devices/dbus-fast/issues/8)) ([`7396b5f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7396b5f475e4b9299cf96930153a01425bb5bd3b))
