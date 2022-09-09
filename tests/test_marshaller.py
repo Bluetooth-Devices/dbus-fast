@@ -1,8 +1,11 @@
 import io
 import json
 import os
+from typing import Any
 
-from dbus_fast import Message, SignatureTree, Variant
+import pytest
+
+from dbus_fast import Message, MessageFlag, MessageType, SignatureTree, Variant
 from dbus_fast._private.unmarshaller import Unmarshaller
 
 
@@ -18,6 +21,19 @@ def print_buf(buf):
 
 # these messages have been verified with another library
 table = json.load(open(os.path.dirname(__file__) + "/data/messages.json"))
+
+# these have unix_fds so we only test with unmarshalling
+bluez_table = json.load(open(os.path.dirname(__file__) + "/data/bluez_messages.json"))
+
+
+def json_to_message(message: dict[str, Any]) -> Message:
+    copy = dict(message)
+    if "message_type" in copy:
+        copy["message_type"] = MessageType(copy["message_type"])
+    if "flags" in copy:
+        copy["flags"] = MessageFlag(copy["flags"])
+
+    return Message(**copy)
 
 
 # variants are an object in the json
@@ -56,7 +72,7 @@ def json_dump(what):
 
 def test_marshalling_with_table():
     for item in table:
-        message = Message(**item["message"])
+        message = json_to_message(item["message"])
 
         body = []
         for i, type_ in enumerate(message.signature_tree.types):
@@ -79,8 +95,9 @@ def test_marshalling_with_table():
         assert buf == data
 
 
-def test_unmarshalling_with_table():
-    for item in table:
+@pytest.mark.parametrize("unmarshall_table", (table, bluez_table))
+def test_unmarshalling_with_table(unmarshall_table):
+    for item in unmarshall_table:
 
         stream = io.BytesIO(bytes.fromhex(item["data"]))
         unmarshaller = Unmarshaller(stream)
@@ -91,7 +108,7 @@ def test_unmarshalling_with_table():
             print(json_dump(item["message"]))
             raise e
 
-        message = Message(**item["message"])
+        message = json_to_message(item["message"])
 
         body = []
         for i, type_ in enumerate(message.signature_tree.types):
@@ -112,6 +129,39 @@ def test_unmarshalling_with_table():
             assert getattr(unmarshaller.message, attr) == getattr(
                 message, attr
             ), f"attr doesnt match: {attr}"
+
+
+def test_unmarshall_can_resume():
+    """Verify resume works."""
+    bluez_rssi_message = (
+        "6c04010134000000e25389019500000001016f00250000002f6f72672f626c75657a2f686369302f6465"
+        "765f30385f33415f46325f31455f32425f3631000000020173001f0000006f72672e667265656465736b"
+        "746f702e444275732e50726f7065727469657300030173001100000050726f706572746965734368616e"
+        "67656400000000000000080167000873617b73767d617300000007017300040000003a312e3400000000"
+        "110000006f72672e626c75657a2e446576696365310000000e0000000000000004000000525353490001"
+        "6e00a7ff000000000000"
+    )
+    message_bytes = bytes.fromhex(bluez_rssi_message)
+
+    class SlowStream(io.IOBase):
+        """A fake stream that will only give us one byte at a time."""
+
+        def __init__(self):
+            self.data = message_bytes
+            self.pos = 0
+
+        def read(self, n) -> bytes:
+            data = self.data[self.pos : self.pos + 1]
+            self.pos += 1
+            return data
+
+    stream = SlowStream()
+    unmarshaller = Unmarshaller(stream)
+
+    for _ in range(len(bluez_rssi_message)):
+        if unmarshaller.unmarshall():
+            break
+    assert unmarshaller.message is not None
 
 
 def test_ay_buffer():
