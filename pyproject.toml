@@ -35,6 +35,7 @@ docs = [
     "myst-parser",
     "sphinx",
     "sphinx-rtd-theme",
+    "sphinxcontrib.asyncio"
 ]
 
 [tool.poetry.dev-dependencies]
