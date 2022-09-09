@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.1.8 (2022-09-09)
+### Fix
+* Ensure the underlying socket is closed on disconnect ([#12](https://github.com/Bluetooth-Devices/dbus-fast/issues/12)) ([`6770a65`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6770a656bdddf6e090ebb6858bd046e4365ea32e))
+
 ## v1.1.7 (2022-09-09)
 ### Fix
 * Copyrights in docs ([#10](https://github.com/Bluetooth-Devices/dbus-fast/issues/10)) ([`a97701e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/a97701ec12e4049884af33abbde2b208c4e351d4))
