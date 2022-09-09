@@ -200,8 +200,7 @@ loop.run_until_complete(main())
 
 ## Projects that use python-dbus-fast
 
-- The [Playerctl](https://github.com/altdesktop/playerctl) test suite
-- [i3-dstatus](https://github.com/altdesktop/i3-dstatus)
+- The [Bluetooth Adapters][https://github.com/bluetooth-devices/bluetooth-adapters]
 
 ## Contributing
 
