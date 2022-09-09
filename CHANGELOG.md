@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.1.5 (2022-09-09)
+### Fix
+* Readme ([#8](https://github.com/Bluetooth-Devices/dbus-fast/issues/8)) ([`7396b5f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7396b5f475e4b9299cf96930153a01425bb5bd3b))
+
 ## v1.1.4 (2022-09-09)
 ### Fix
 * More rename ([#7](https://github.com/Bluetooth-Devices/dbus-fast/issues/7)) ([`116d5c6`](https://github.com/Bluetooth-Devices/dbus-fast/commit/116d5c6feb863deff95f811d79199b09c79552f9))
