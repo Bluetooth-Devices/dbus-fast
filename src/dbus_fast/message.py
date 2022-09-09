@@ -280,7 +280,7 @@ class Message:
             )
         if self.unix_fds and negotiate_unix_fd:
             fields.append(
-                [HEADER_UNIX_FDS, Variant("u", len(self.unix_fds, verify=False))]
+                [HEADER_UNIX_FDS, Variant("u", len(self.unix_fds), verify=False)]
             )
 
         header_body = [
