@@ -10,7 +10,6 @@ def test_object_path_validator():
     valid_paths = ["/", "/foo", "/foo/bar", "/foo/bar/bat"]
     invalid_paths = [
         None,
-        {},
         "",
         "foo",
         "foo/bar",
@@ -37,7 +36,6 @@ def test_bus_name_validator():
     ]
     invalid_names = [
         None,
-        {},
         "",
         "5foo.bar",
         "foo.6bar",
@@ -57,7 +55,6 @@ def test_interface_name_validator():
     valid_names = ["foo.bar", "foo.bar.bat", "_foo._bar", "foo.bar69"]
     invalid_names = [
         None,
-        {},
         "",
         "5foo.bar",
         "foo.6bar",
@@ -80,7 +77,7 @@ def test_interface_name_validator():
 
 def test_member_name_validator():
     valid_members = ["foo", "FooBar", "Bat_Baz69", "foo-bar"]
-    invalid_members = [None, {}, "", "foo.bar", "5foo", "foo$bar"]
+    invalid_members = [None, "", "foo.bar", "5foo", "foo$bar"]
 
     for member in valid_members:
         assert is_member_name_valid(member), f'member name should be valid: "{member}"'

@@ -1,4 +1,5 @@
 import re
+from functools import lru_cache
 
 from .errors import (
     InvalidBusNameError,
@@ -13,6 +14,7 @@ _element_re = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 _member_re = re.compile(r"^[A-Za-z_][A-Za-z0-9_-]*$")
 
 
+@lru_cache(maxsize=32)
 def is_bus_name_valid(name: str) -> bool:
     """Whether this is a valid bus name.
 
@@ -47,6 +49,7 @@ def is_bus_name_valid(name: str) -> bool:
     return True
 
 
+@lru_cache(maxsize=512)
 def is_object_path_valid(path: str) -> bool:
     """Whether this is a valid object path.
 
@@ -77,6 +80,7 @@ def is_object_path_valid(path: str) -> bool:
     return True
 
 
+@lru_cache(maxsize=32)
 def is_interface_name_valid(name: str) -> bool:
     """Whether this is a valid interface name.
 
@@ -107,6 +111,7 @@ def is_interface_name_valid(name: str) -> bool:
     return True
 
 
+@lru_cache(maxsize=512)
 def is_member_name_valid(member: str) -> bool:
     """Whether this is a valid member name.
 
