@@ -7,7 +7,7 @@ PACK_UINT32 = Struct("<I").pack
 
 
 class Marshaller:
-    def __init__(self, signature, body):
+    def __init__(self, signature: str, body: Any) -> None:
         self.signature_tree = SignatureTree._get(signature)
         self.buffer = bytearray()
         self.body = body
@@ -105,12 +105,12 @@ class Marshaller:
     def marshall(self):
         """Marshalls the body into a byte array"""
         try:
-            self._marshall()
+            self._construct_buffer()
         except error:
             self.signature_tree.verify(self.body)
         return self.buffer
 
-    def _marshall(self):
+    def _construct_buffer(self):
         self.buffer.clear()
         for i, type_ in enumerate(self.signature_tree.types):
             t = type_.token
