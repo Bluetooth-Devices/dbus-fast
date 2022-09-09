@@ -105,9 +105,10 @@ class Marshaller:
     def marshall(self):
         """Marshalls the body into a byte array"""
         try:
-            return self._marshall()
+            self._marshall()
         except error:
             self.signature_tree.verify(self.body)
+        return self.buffer
 
     def _marshall(self):
         self.buffer.clear()
@@ -118,13 +119,15 @@ class Marshaller:
 
             writer, packer, size = self._writers[t]
             if packer and size:
+
+                # In-line align
                 offset = size - len(self.buffer) % size
                 if offset != 0 and offset != size:
                     self.buffer.extend(bytes(offset))
+
                 self.buffer.extend(packer(self.body[i]))
             else:
                 writer(self, self.body[i], type_)
-        return self.buffer
 
     _writers: Dict[
         str,
