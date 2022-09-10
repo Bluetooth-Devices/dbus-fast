@@ -76,6 +76,23 @@ class Message:
         - :class:`InvalidInterfaceNameError` - If ``error_name`` or ``interface`` is not a valid interface name.
     """
 
+    __slots__ = (
+        "destination",
+        "path",
+        "interface",
+        "member",
+        "message_type",
+        "flags",
+        "error_name",
+        "reply_serial",
+        "sender",
+        "unix_fds",
+        "signature",
+        "signature_tree",
+        "body",
+        "serial",
+    )
+
     def __init__(
         self,
         destination: str = None,

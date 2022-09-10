@@ -398,6 +398,8 @@ class Variant:
         :class:`SignatureBodyMismatchError` if the signature does not match the body.
     """
 
+    __slots__ = ("type", "signature", "value")
+
     def __init__(
         self,
         signature: Union[str, SignatureTree, SignatureType],

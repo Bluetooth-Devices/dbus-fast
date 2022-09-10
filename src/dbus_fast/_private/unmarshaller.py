@@ -94,6 +94,24 @@ class Unmarshaller:
     unpack: Dict[str, Struct]
     readers: READER_TYPE
 
+    __slots__ = (
+        "unix_fds",
+        "can_cast",
+        "buf",
+        "view",
+        "offset",
+        "stream",
+        "sock",
+        "message",
+        "readers",
+        "body_len",
+        "serial",
+        "header_len",
+        "message_type",
+        "flag",
+        "msg_len",
+    )
+
     def __init__(self, stream: io.BufferedRWPair, sock=None):
         self.unix_fds: List[int] = []
         self.can_cast = False
@@ -109,6 +127,7 @@ class Unmarshaller:
         self.header_len: int | None = None
         self.message_type: MessageType | None = None
         self.flag: MessageFlag | None = None
+        self.msg_len = 0
 
     def read_sock(self, length: int) -> bytes:
         """reads from the socket, storing any fds sent and handling errors
@@ -220,8 +239,7 @@ class Unmarshaller:
 
     def read_argument(self, type_: SignatureType) -> Any:
         """Dispatch to an argument reader or cast/unpack a C type."""
-        token = type_.token
-        reader, ctype, size, struct = self.readers[token]
+        reader, ctype, size, struct = self.readers[type_.token]
         if reader:  # complex type
             return reader(self, type_)
         self.offset += size + (-self.offset & (size - 1))  # align
