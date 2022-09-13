@@ -2,10 +2,10 @@ import pytest
 
 from dbus_fast import Message
 from dbus_fast.aio import MessageBus
-from dbus_fast.aio.proxy_object import ProxyInterface
-from dbus_fast.constants import RequestNameReply
+from dbus_fast.constants import MessageFlag, RequestNameReply
 from dbus_fast.introspection import Node
 from dbus_fast.service import ServiceInterface, signal
+from dbus_fast.signature import Variant
 
 
 class ExampleInterface(ServiceInterface):
@@ -19,6 +19,11 @@ class ExampleInterface(ServiceInterface):
     @signal()
     def SignalMultiple(self) -> "ss":
         return ["hello", "world"]
+
+    @signal()
+    def SignalComplex(self) -> "a{sv}":
+        """Broadcast a complex signal."""
+        return {"hello": Variant("s", "world")}
 
 
 @pytest.mark.asyncio
@@ -157,6 +162,55 @@ async def test_signals():
     bus1.disconnect()
     bus2.disconnect()
     bus3.disconnect()
+
+
+@pytest.mark.asyncio
+async def test_complex_signals():
+    """Test complex signals with and without signature removal."""
+    bus1 = await MessageBus().connect()
+    bus2 = await MessageBus().connect()
+
+    await bus1.request_name("test.signals.name")
+    service_interface = ExampleInterface()
+    bus1.export("/test/path", service_interface)
+
+    obj = bus2.get_proxy_object(
+        "test.signals.name", "/test/path", bus1._introspect_export_path("/test/path")
+    )
+    interface = obj.get_interface(service_interface.name)
+
+    async def ping():
+        await bus2.call(
+            Message(
+                destination=bus1.unique_name,
+                interface="org.freedesktop.DBus.Peer",
+                path="/test/path",
+                member="Ping",
+            )
+        )
+
+    sig_handler_counter = 0
+    no_sig_handler_counter = 0
+
+    def complex_handler_with_sig(value):
+        nonlocal sig_handler_counter
+        assert value == {"hello": Variant("s", "world")}
+        sig_handler_counter += 1
+
+    def complex_handler_no_sig(value):
+        nonlocal no_sig_handler_counter
+        assert value == {"hello": "world"}
+        no_sig_handler_counter += 1
+
+    interface.on_signal_complex(complex_handler_with_sig)
+    interface.on_signal_complex(
+        complex_handler_no_sig, flags=MessageFlag.REMOVE_SIGNATURE
+    )
+
+    service_interface.SignalComplex()
+    await ping()
+    assert sig_handler_counter == 1
+    assert no_sig_handler_counter == 1
 
 
 @pytest.mark.asyncio

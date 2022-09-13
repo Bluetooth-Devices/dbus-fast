@@ -3,15 +3,26 @@ import inspect
 import logging
 import re
 import xml.etree.ElementTree as ET
-from typing import Coroutine, List, Type, Union
+from copy import deepcopy
+from dataclasses import dataclass
+from typing import Any, Callable, Coroutine, List, Type, Union
 
 from . import introspection as intr
 from . import message_bus
 from ._private.util import replace_idx_with_fds
-from .constants import ErrorType, MessageType
+from .constants import ErrorType, MessageFlag, MessageType
 from .errors import DBusError, InterfaceNotFoundError
 from .message import Message
+from .signature import Variant
 from .validators import assert_bus_name_valid, assert_object_path_valid
+
+
+@dataclass
+class SignalHandler:
+    """Signal handler."""
+
+    fn: Callable
+    flags: int = MessageFlag.NONE
 
 
 class BaseProxyInterface:
@@ -46,7 +57,7 @@ class BaseProxyInterface:
         self.path = path
         self.introspection = introspection
         self.bus = bus
-        self._signal_handlers = {}
+        self._signal_handlers: dict[str, list[SignalHandler]] = {}
         self._signal_match_rule = f"type='signal',sender={bus_name},interface={introspection.name},path={path}"
 
     _underscorer1 = re.compile(r"(.)([A-Z][a-z]+)")
@@ -71,6 +82,22 @@ class BaseProxyInterface:
                 f'method call returned unexpected signature: "{msg.signature}"',
                 msg,
             )
+
+    @staticmethod
+    def remove_signature(data: Any):
+        """Remove signature info."""
+        if isinstance(data, Variant):
+            return BaseProxyInterface.remove_signature(data.value)
+        if isinstance(data, dict):
+            for k in data:
+                data[k] = BaseProxyInterface.remove_signature(data[k])
+            return data
+        if isinstance(data, list):
+            new_list = []
+            for item in data:
+                new_list.append(BaseProxyInterface.remove_signature(item))
+            return new_list
+        return data
 
     def _add_method(self, intr_method):
         raise NotImplementedError("this must be implemented in the inheriting class")
@@ -110,13 +137,21 @@ class BaseProxyInterface:
             return
 
         body = replace_idx_with_fds(msg.signature, msg.body, msg.unix_fds)
+        no_sig = None
         for handler in self._signal_handlers[msg.member]:
-            cb_result = handler(*body)
+            if handler.flags & MessageFlag.REMOVE_SIGNATURE:
+                data = no_sig or (
+                    no_sig := BaseProxyInterface.remove_signature(deepcopy(body))
+                )
+            else:
+                data = body
+
+            cb_result = handler.fn(*data)
             if isinstance(cb_result, Coroutine):
                 asyncio.create_task(cb_result)
 
     def _add_signal(self, intr_signal, interface):
-        def on_signal_fn(fn):
+        def on_signal_fn(fn, *, flags=MessageFlag.NONE):
             fn_signature = inspect.signature(fn)
             if len(fn_signature.parameters) != len(intr_signal.args) and (
                 inspect.Parameter.VAR_POSITIONAL
@@ -134,11 +169,13 @@ class BaseProxyInterface:
             if intr_signal.name not in self._signal_handlers:
                 self._signal_handlers[intr_signal.name] = []
 
-            self._signal_handlers[intr_signal.name].append(fn)
+            self._signal_handlers[intr_signal.name].append(SignalHandler(fn, flags))
 
-        def off_signal_fn(fn):
+        def off_signal_fn(fn, *, flags=MessageFlag.NONE):
             try:
-                i = self._signal_handlers[intr_signal.name].index(fn)
+                i = self._signal_handlers[intr_signal.name].index(
+                    SignalHandler(fn, flags)
+                )
                 del self._signal_handlers[intr_signal.name][i]
                 if not self._signal_handlers[intr_signal.name]:
                     del self._signal_handlers[intr_signal.name]

@@ -87,7 +87,7 @@ class ProxyInterface(BaseProxyInterface):
                     member=intr_method.name,
                     signature=intr_method.in_signature,
                     body=input_body,
-                    flags=flags,
+                    flags=flags ^ MessageFlag.REMOVE_SIGNATURE,
                     unix_fds=unix_fds,
                 )
             )
@@ -103,15 +103,18 @@ class ProxyInterface(BaseProxyInterface):
 
             if not out_len:
                 return None
-            elif out_len == 1:
+
+            if flags & MessageFlag.REMOVE_SIGNATURE:
+                body = BaseProxyInterface.remove_signature(body)
+
+            if out_len == 1:
                 return body[0]
-            else:
-                return body
+            return body
 
         method_name = f"call_{BaseProxyInterface._to_snake_case(intr_method.name)}"
         setattr(self, method_name, method_fn)
 
-    def _add_property(self, intr_property):
+    def _add_property(self, intr_property, *, flags=MessageFlag.NONE):
         async def property_getter():
             msg = await self.bus.call(
                 Message(
@@ -133,7 +136,11 @@ class ProxyInterface(BaseProxyInterface):
                     msg,
                 )
 
-            return replace_idx_with_fds("v", msg.body, msg.unix_fds)[0].value
+            body = replace_idx_with_fds("v", msg.body, msg.unix_fds)[0].value
+
+            if flags & MessageFlag.REMOVE_SIGNATURE:
+                return BaseProxyInterface.remove_signature(body)
+            return body
 
         async def property_setter(val):
             variant = Variant(intr_property.signature, val)

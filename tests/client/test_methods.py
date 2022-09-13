@@ -4,6 +4,7 @@ import dbus_fast.introspection as intr
 from dbus_fast import DBusError, aio, glib
 from dbus_fast.message import MessageFlag
 from dbus_fast.service import ServiceInterface, method
+from dbus_fast.signature import Variant
 from tests.util import check_gi_repository, skip_reason_no_gi
 
 has_gi = check_gi_repository()
@@ -32,6 +33,11 @@ class ExampleInterface(ServiceInterface):
     @method()
     def EchoThree(self, what1: "s", what2: "s", what3: "s") -> "sss":
         return [what1, what2, what3]
+
+    @method()
+    def GetComplex(self) -> "a{sv}":
+        """Return complex output."""
+        return {"hello": Variant("s", "world")}
 
     @method()
     def ThrowsError(self):
@@ -81,6 +87,12 @@ async def test_aio_proxy_object():
     )
     assert result is None
 
+    result = await interface.call_get_complex()
+    assert result == {"hello": Variant("s", "world")}
+
+    result = await interface.call_get_complex(flags=MessageFlag.REMOVE_SIGNATURE)
+    assert result == {"hello": "world"}
+
     with pytest.raises(DBusError):
         try:
             await interface.call_throws_error()
@@ -119,6 +131,12 @@ def test_glib_proxy_object():
 
     result = interface.call_echo_three_sync("hello", "there", "world")
     assert result == ["hello", "there", "world"]
+
+    result = interface.call_get_complex_sync()
+    assert result == {"hello": Variant("s", "world")}
+
+    result = interface.call_get_complex_sync(flags=MessageFlag.REMOVE_SIGNATURE)
+    assert result == {"hello": "world"}
 
     with pytest.raises(DBusError):
         try:
