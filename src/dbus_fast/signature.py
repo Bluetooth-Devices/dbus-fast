@@ -10,7 +10,7 @@ def unpack_variants(data: Any):
     if isinstance(data, Variant):
         return unpack_variants(data.value)
     if isinstance(data, dict):
-        return {k: unpack_variants(v) for k, v in data.values()}
+        return {k: unpack_variants(v) for k, v in data.items()}
     if isinstance(data, list):
         return [unpack_variants(item) for item in data]
     return data
