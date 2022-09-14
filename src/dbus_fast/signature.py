@@ -5,6 +5,17 @@ from .errors import InvalidSignatureError, SignatureBodyMismatchError
 from .validators import is_object_path_valid
 
 
+def unpack_variants(data: Any):
+    """Unpack variants and remove signature info."""
+    if isinstance(data, Variant):
+        return unpack_variants(data.value)
+    if isinstance(data, dict):
+        return {k: unpack_variants(v) for k, v in data.values()}
+    if isinstance(data, list):
+        return [unpack_variants(item) for item in data]
+    return data
+
+
 class SignatureType:
     """A class that represents a single complete type within a signature.
 

@@ -7,7 +7,7 @@ from ..errors import DBusError
 from ..message import Message
 from ..message_bus import BaseMessageBus
 from ..proxy_object import BaseProxyInterface, BaseProxyObject
-from ..signature import Variant
+from ..signature import Variant, unpack_variants
 
 # glib is optional
 try:
@@ -136,8 +136,8 @@ class ProxyInterface(BaseProxyInterface):
                 except DBusError as e:
                     err = e
 
-                if flags & MessageFlag.REMOVE_SIGNATURE:
-                    callback(BaseProxyInterface.remove_signature(msg.body), err)
+                if flags & MessageFlag.UNPACK_VARIANTS:
+                    callback(unpack_variants(msg.body), err)
                 else:
                     callback(msg.body, err)
 
@@ -175,8 +175,8 @@ class ProxyInterface(BaseProxyInterface):
             if not out_len:
                 return None
 
-            if flags & MessageFlag.REMOVE_SIGNATURE:
-                call_body = BaseProxyInterface.remove_signature(call_body)
+            if flags & MessageFlag.UNPACK_VARIANTS:
+                call_body = unpack_variants(call_body)
 
             if out_len == 1:
                 return call_body[0]
@@ -210,8 +210,8 @@ class ProxyInterface(BaseProxyInterface):
                     )
                     callback(None, err)
                     return
-                if flags & MessageFlag.REMOVE_SIGNATURE:
-                    callback(BaseProxyInterface.remove_signature(variant.value), None)
+                if flags & MessageFlag.UNPACK_VARIANTS:
+                    callback(unpack_variants(variant.value), None)
                 else:
                     callback(variant.value, None)
 
@@ -244,8 +244,8 @@ class ProxyInterface(BaseProxyInterface):
             main.run()
             if reply_error:
                 raise reply_error
-            if flags & MessageFlag.REMOVE_SIGNATURE:
-                return BaseProxyInterface.remove_signature(property_value)
+            if flags & MessageFlag.UNPACK_VARIANTS:
+                return unpack_variants(property_value)
             return property_value
 
         def property_setter(value, callback):

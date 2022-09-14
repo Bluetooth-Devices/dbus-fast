@@ -3,9 +3,8 @@ import inspect
 import logging
 import re
 import xml.etree.ElementTree as ET
-from copy import deepcopy
 from dataclasses import dataclass
-from typing import Any, Callable, Coroutine, List, Type, Union
+from typing import Callable, Coroutine, Dict, List, Type, Union
 
 from . import introspection as intr
 from . import message_bus
@@ -13,7 +12,7 @@ from ._private.util import replace_idx_with_fds
 from .constants import ErrorType, MessageFlag, MessageType
 from .errors import DBusError, InterfaceNotFoundError
 from .message import Message
-from .signature import Variant
+from .signature import unpack_variants
 from .validators import assert_bus_name_valid, assert_object_path_valid
 
 
@@ -57,7 +56,7 @@ class BaseProxyInterface:
         self.path = path
         self.introspection = introspection
         self.bus = bus
-        self._signal_handlers: dict[str, list[SignalHandler]] = {}
+        self._signal_handlers: Dict[str, List[SignalHandler]] = {}
         self._signal_match_rule = f"type='signal',sender={bus_name},interface={introspection.name},path={path}"
 
     _underscorer1 = re.compile(r"(.)([A-Z][a-z]+)")
@@ -82,22 +81,6 @@ class BaseProxyInterface:
                 f'method call returned unexpected signature: "{msg.signature}"',
                 msg,
             )
-
-    @staticmethod
-    def remove_signature(data: Any):
-        """Remove signature info."""
-        if isinstance(data, Variant):
-            return BaseProxyInterface.remove_signature(data.value)
-        if isinstance(data, dict):
-            for k in data:
-                data[k] = BaseProxyInterface.remove_signature(data[k])
-            return data
-        if isinstance(data, list):
-            new_list = []
-            for item in data:
-                new_list.append(BaseProxyInterface.remove_signature(item))
-            return new_list
-        return data
 
     def _add_method(self, intr_method):
         raise NotImplementedError("this must be implemented in the inheriting class")
@@ -139,9 +122,9 @@ class BaseProxyInterface:
         body = replace_idx_with_fds(msg.signature, msg.body, msg.unix_fds)
         no_sig = None
         for handler in self._signal_handlers[msg.member]:
-            if handler.flags & MessageFlag.REMOVE_SIGNATURE:
+            if handler.flags & MessageFlag.UNPACK_VARIANTS:
                 if not no_sig:
-                    no_sig = BaseProxyInterface.remove_signature(deepcopy(body))
+                    no_sig = unpack_variants(body)
                 data = no_sig
             else:
                 data = body

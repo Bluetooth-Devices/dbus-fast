@@ -90,7 +90,7 @@ async def test_aio_proxy_object():
     result = await interface.call_get_complex()
     assert result == {"hello": Variant("s", "world")}
 
-    result = await interface.call_get_complex(flags=MessageFlag.REMOVE_SIGNATURE)
+    result = await interface.call_get_complex(flags=MessageFlag.UNPACK_VARIANTS)
     assert result == {"hello": "world"}
 
     with pytest.raises(DBusError):
@@ -135,7 +135,7 @@ def test_glib_proxy_object():
     result = interface.call_get_complex_sync()
     assert result == {"hello": Variant("s", "world")}
 
-    result = interface.call_get_complex_sync(flags=MessageFlag.REMOVE_SIGNATURE)
+    result = interface.call_get_complex_sync(flags=MessageFlag.UNPACK_VARIANTS)
     assert result == {"hello": "world"}
 
     with pytest.raises(DBusError):

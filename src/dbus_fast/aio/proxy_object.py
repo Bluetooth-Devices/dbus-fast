@@ -8,7 +8,7 @@ from ..errors import DBusError
 from ..message import Message, MessageFlag
 from ..message_bus import BaseMessageBus
 from ..proxy_object import BaseProxyInterface, BaseProxyObject
-from ..signature import Variant
+from ..signature import Variant, unpack_variants
 
 
 class ProxyInterface(BaseProxyInterface):
@@ -87,11 +87,7 @@ class ProxyInterface(BaseProxyInterface):
                     member=intr_method.name,
                     signature=intr_method.in_signature,
                     body=input_body,
-                    flags=(
-                        flags ^ MessageFlag.REMOVE_SIGNATURE
-                        if flags & MessageFlag.REMOVE_SIGNATURE
-                        else flags
-                    ),
+                    flags=flags & ~MessageFlag.UNPACK_VARIANTS,
                     unix_fds=unix_fds,
                 )
             )
@@ -108,8 +104,8 @@ class ProxyInterface(BaseProxyInterface):
             if not out_len:
                 return None
 
-            if flags & MessageFlag.REMOVE_SIGNATURE:
-                body = BaseProxyInterface.remove_signature(body)
+            if flags & MessageFlag.UNPACK_VARIANTS:
+                body = unpack_variants(body)
 
             if out_len == 1:
                 return body[0]
@@ -145,8 +141,8 @@ class ProxyInterface(BaseProxyInterface):
 
             body = replace_idx_with_fds("v", msg.body, msg.unix_fds)[0].value
 
-            if flags & MessageFlag.REMOVE_SIGNATURE:
-                return BaseProxyInterface.remove_signature(body)
+            if flags & MessageFlag.UNPACK_VARIANTS:
+                return unpack_variants(body)
             return body
 
         async def property_setter(val):

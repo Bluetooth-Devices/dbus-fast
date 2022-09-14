@@ -1,14 +1,13 @@
-"""Test signature removal."""
+"""Test unpack variants."""
 import pytest
 
-from dbus_fast.proxy_object import BaseProxyInterface
-from dbus_fast.signature import Variant
+from dbus_fast.signature import Variant, unpack_variants
 
 
 @pytest.mark.asyncio
 async def test_dictionary():
-    """Test signature stripped from dictionary."""
-    assert BaseProxyInterface.remove_signature(
+    """Test variants unpacked from dictionary."""
+    assert unpack_variants(
         {
             "string": Variant("s", "test"),
             "boolean": Variant("b", True),
@@ -31,16 +30,16 @@ async def test_dictionary():
 
 @pytest.mark.asyncio
 async def test_output_list():
-    """Test signature stripping handles multiple outputs."""
-    assert BaseProxyInterface.remove_signature(
+    """Test variants unpacked from multiple outputs."""
+    assert unpack_variants(
         [{"hello": Variant("s", "world")}, {"boolean": Variant("b", True)}, 1]
     ) == [{"hello": "world"}, {"boolean": True}, 1]
 
 
 @pytest.mark.asyncio
 async def test_nested_variants():
-    """Test signature stripping handles nesting."""
-    assert BaseProxyInterface.remove_signature(
+    """Test unpack variants handles nesting."""
+    assert unpack_variants(
         {
             "dict": Variant("a{sv}", {"hello": Variant("s", "world")}),
             "array": Variant(

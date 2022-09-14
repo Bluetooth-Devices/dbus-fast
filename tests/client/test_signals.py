@@ -214,7 +214,7 @@ async def test_complex_signals():
 
     interface.on_signal_complex(complex_handler_with_sig)
     interface.on_signal_complex(
-        complex_handler_no_sig, flags=MessageFlag.REMOVE_SIGNATURE
+        complex_handler_no_sig, flags=MessageFlag.UNPACK_VARIANTS
     )
     await ping()
 
