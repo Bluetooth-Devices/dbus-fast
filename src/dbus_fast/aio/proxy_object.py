@@ -118,8 +118,11 @@ class ProxyInterface(BaseProxyInterface):
         method_name = f"call_{BaseProxyInterface._to_snake_case(intr_method.name)}"
         setattr(self, method_name, method_fn)
 
-    def _add_property(self, intr_property, *, flags=MessageFlag.NONE):
-        async def property_getter():
+    def _add_property(
+        self,
+        intr_property,
+    ):
+        async def property_getter(*, flags=MessageFlag.NONE):
             msg = await self.bus.call(
                 Message(
                     destination=self.bus_name,

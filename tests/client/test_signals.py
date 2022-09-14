@@ -190,27 +190,43 @@ async def test_complex_signals():
         )
 
     sig_handler_counter = 0
+    sig_handler_err = None
     no_sig_handler_counter = 0
+    no_sig_handler_err = None
 
     def complex_handler_with_sig(value):
         nonlocal sig_handler_counter
-        assert value == {"hello": Variant("s", "world")}
-        sig_handler_counter += 1
+        nonlocal sig_handler_err
+        try:
+            assert value == {"hello": Variant("s", "world")}
+            sig_handler_counter += 1
+        except AssertionError as ex:
+            sig_handler_err = ex
 
     def complex_handler_no_sig(value):
         nonlocal no_sig_handler_counter
-        assert value == {"hello": "world"}
-        no_sig_handler_counter += 1
+        nonlocal no_sig_handler_err
+        try:
+            assert value == {"hello": "world"}
+            no_sig_handler_counter += 1
+        except AssertionError as ex:
+            no_sig_handler_err = ex
 
     interface.on_signal_complex(complex_handler_with_sig)
     interface.on_signal_complex(
         complex_handler_no_sig, flags=MessageFlag.REMOVE_SIGNATURE
     )
+    await ping()
 
     service_interface.SignalComplex()
     await ping()
+    assert sig_handler_err is None
     assert sig_handler_counter == 1
+    assert no_sig_handler_err is None
     assert no_sig_handler_counter == 1
+
+    bus1.disconnect()
+    bus2.disconnect()
 
 
 @pytest.mark.asyncio
