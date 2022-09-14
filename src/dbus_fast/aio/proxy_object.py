@@ -87,7 +87,11 @@ class ProxyInterface(BaseProxyInterface):
                     member=intr_method.name,
                     signature=intr_method.in_signature,
                     body=input_body,
-                    flags=flags ^ MessageFlag.REMOVE_SIGNATURE,
+                    flags=(
+                        flags ^ MessageFlag.REMOVE_SIGNATURE
+                        if flags & MessageFlag.REMOVE_SIGNATURE
+                        else flags
+                    ),
                     unix_fds=unix_fds,
                 )
             )
