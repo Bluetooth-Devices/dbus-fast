@@ -140,9 +140,9 @@ class BaseProxyInterface:
         no_sig = None
         for handler in self._signal_handlers[msg.member]:
             if handler.flags & MessageFlag.REMOVE_SIGNATURE:
-                data = no_sig or (
-                    no_sig := BaseProxyInterface.remove_signature(deepcopy(body))
-                )
+                if not no_sig:
+                    no_sig = BaseProxyInterface.remove_signature(deepcopy(body))
+                data = no_sig
             else:
                 data = body
 
