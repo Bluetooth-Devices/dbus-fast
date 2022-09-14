@@ -48,7 +48,7 @@ jobs:
       - name: Install libs
         run: sudo apt-get install -y dbus dbus-x11 libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
           cache: "poetry"
