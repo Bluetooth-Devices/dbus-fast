@@ -120,7 +120,7 @@ class BaseProxyInterface:
             fn_signature = inspect.signature(fn)
             if len(fn_signature.parameters) != len(intr_signal.args) and (
                 inspect.Parameter.VAR_POSITIONAL
-                not in [par.kind for par in fn_signature.parameters]
+                not in [par.kind for par in fn_signature.parameters.values()]
                 or len(fn_signature.parameters) - 1 > len(intr_signal.args)
             ):
                 raise TypeError(
