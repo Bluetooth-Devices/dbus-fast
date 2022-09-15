@@ -8,7 +8,8 @@ from ..errors import DBusError
 from ..message import Message, MessageFlag
 from ..message_bus import BaseMessageBus
 from ..proxy_object import BaseProxyInterface, BaseProxyObject
-from ..signature import Variant, unpack_variants
+from ..signature import Variant
+from ..signature import unpack_variants as unpack
 
 
 class ProxyInterface(BaseProxyInterface):
@@ -74,7 +75,9 @@ class ProxyInterface(BaseProxyInterface):
     """
 
     def _add_method(self, intr_method):
-        async def method_fn(*args, flags=MessageFlag.NONE):
+        async def method_fn(
+            *args, flags=MessageFlag.NONE, unpack_variants: bool = False
+        ):
             input_body, unix_fds = replace_fds_with_idx(
                 intr_method.in_signature, list(args)
             )
@@ -87,7 +90,7 @@ class ProxyInterface(BaseProxyInterface):
                     member=intr_method.name,
                     signature=intr_method.in_signature,
                     body=input_body,
-                    flags=flags & ~MessageFlag.UNPACK_VARIANTS,
+                    flags=flags,
                     unix_fds=unix_fds,
                 )
             )
@@ -104,8 +107,8 @@ class ProxyInterface(BaseProxyInterface):
             if not out_len:
                 return None
 
-            if flags & MessageFlag.UNPACK_VARIANTS:
-                body = unpack_variants(body)
+            if unpack_variants:
+                body = unpack(body)
 
             if out_len == 1:
                 return body[0]
@@ -118,7 +121,9 @@ class ProxyInterface(BaseProxyInterface):
         self,
         intr_property,
     ):
-        async def property_getter(*, flags=MessageFlag.NONE):
+        async def property_getter(
+            *, flags=MessageFlag.NONE, unpack_variants: bool = False
+        ):
             msg = await self.bus.call(
                 Message(
                     destination=self.bus_name,
@@ -141,8 +146,8 @@ class ProxyInterface(BaseProxyInterface):
 
             body = replace_idx_with_fds("v", msg.body, msg.unix_fds)[0].value
 
-            if flags & MessageFlag.UNPACK_VARIANTS:
-                return unpack_variants(body)
+            if unpack_variants:
+                return unpack(body)
             return body
 
         async def property_setter(val):

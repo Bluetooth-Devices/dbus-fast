@@ -69,7 +69,7 @@ async def test_aio_properties():
     prop = await interface.get_complex_property()
     assert prop == {"hello": Variant("s", "world")}
 
-    prop = await interface.get_complex_property(flags=MessageFlag.UNPACK_VARIANTS)
+    prop = await interface.get_complex_property(unpack_variants=True)
     assert prop == {"hello": "world"}
 
     with pytest.raises(DBusError):
@@ -118,7 +118,7 @@ def test_glib_properties():
     prop = interface.get_complex_property_sync()
     assert prop == {"hello": Variant("s", "world")}
 
-    prop = interface.get_complex_property_sync(flags=MessageFlag.UNPACK_VARIANTS)
+    prop = interface.get_complex_property_sync(unpack_variants=True)
     assert prop == {"hello": "world"}
 
     with pytest.raises(DBusError):

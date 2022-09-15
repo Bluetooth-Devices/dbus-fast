@@ -9,10 +9,10 @@ from typing import Callable, Coroutine, Dict, List, Type, Union
 from . import introspection as intr
 from . import message_bus
 from ._private.util import replace_idx_with_fds
-from .constants import ErrorType, MessageFlag, MessageType
+from .constants import ErrorType, MessageType
 from .errors import DBusError, InterfaceNotFoundError
 from .message import Message
-from .signature import unpack_variants
+from .signature import unpack_variants as unpack
 from .validators import assert_bus_name_valid, assert_object_path_valid
 
 
@@ -21,7 +21,7 @@ class SignalHandler:
     """Signal handler."""
 
     fn: Callable
-    flags: int = MessageFlag.NONE
+    unpack_variants: bool
 
 
 class BaseProxyInterface:
@@ -122,9 +122,9 @@ class BaseProxyInterface:
         body = replace_idx_with_fds(msg.signature, msg.body, msg.unix_fds)
         no_sig = None
         for handler in self._signal_handlers[msg.member]:
-            if handler.flags & MessageFlag.UNPACK_VARIANTS:
+            if handler.unpack_variants:
                 if not no_sig:
-                    no_sig = unpack_variants(body)
+                    no_sig = unpack(body)
                 data = no_sig
             else:
                 data = body
@@ -134,7 +134,7 @@ class BaseProxyInterface:
                 asyncio.create_task(cb_result)
 
     def _add_signal(self, intr_signal, interface):
-        def on_signal_fn(fn, *, flags=MessageFlag.NONE):
+        def on_signal_fn(fn, *, unpack_variants: bool = False):
             fn_signature = inspect.signature(fn)
             if len(fn_signature.parameters) != len(intr_signal.args) and (
                 inspect.Parameter.VAR_POSITIONAL
@@ -152,12 +152,14 @@ class BaseProxyInterface:
             if intr_signal.name not in self._signal_handlers:
                 self._signal_handlers[intr_signal.name] = []
 
-            self._signal_handlers[intr_signal.name].append(SignalHandler(fn, flags))
+            self._signal_handlers[intr_signal.name].append(
+                SignalHandler(fn, unpack_variants)
+            )
 
-        def off_signal_fn(fn, *, flags=MessageFlag.NONE):
+        def off_signal_fn(fn, *, unpack_variants: bool = False):
             try:
                 i = self._signal_handlers[intr_signal.name].index(
-                    SignalHandler(fn, flags)
+                    SignalHandler(fn, unpack_variants)
                 )
                 del self._signal_handlers[intr_signal.name][i]
                 if not self._signal_handlers[intr_signal.name]:

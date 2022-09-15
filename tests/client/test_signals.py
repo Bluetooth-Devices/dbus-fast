@@ -213,9 +213,7 @@ async def test_complex_signals():
             no_sig_handler_err = ex
 
     interface.on_signal_complex(complex_handler_with_sig)
-    interface.on_signal_complex(
-        complex_handler_no_sig, flags=MessageFlag.UNPACK_VARIANTS
-    )
+    interface.on_signal_complex(complex_handler_no_sig, unpack_variants=True)
     await ping()
 
     service_interface.SignalComplex()

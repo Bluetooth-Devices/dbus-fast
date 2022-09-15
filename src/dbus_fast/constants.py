@@ -29,7 +29,6 @@ class MessageFlag(IntFlag):
     NO_REPLY_EXPECTED = 1  #: The method call does not expect a method return.
     NO_AUTOSTART = 2
     ALLOW_INTERACTIVE_AUTHORIZATION = 4
-    UNPACK_VARIANTS = 8
 
 
 MESSAGE_FLAG_MAP = {field.value: field for field in MessageFlag}

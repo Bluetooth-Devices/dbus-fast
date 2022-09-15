@@ -2,12 +2,13 @@ import xml.etree.ElementTree as ET
 from typing import List, Union
 
 from .. import introspection as intr
-from ..constants import ErrorType, MessageFlag
+from ..constants import ErrorType
 from ..errors import DBusError
 from ..message import Message
 from ..message_bus import BaseMessageBus
 from ..proxy_object import BaseProxyInterface, BaseProxyObject
-from ..signature import Variant, unpack_variants
+from ..signature import Variant
+from ..signature import unpack_variants as unpack
 
 # glib is optional
 try:
@@ -113,7 +114,7 @@ class ProxyInterface(BaseProxyInterface):
         in_len = len(intr_method.in_args)
         out_len = len(intr_method.out_args)
 
-        def method_fn(*args, flags=MessageFlag.NONE):
+        def method_fn(*args, unpack_variants: bool = False):
             if len(args) != in_len + 1:
                 raise TypeError(
                     f"method {intr_method.name} expects {in_len} arguments and a callback (got {len(args)} args)"
@@ -136,8 +137,8 @@ class ProxyInterface(BaseProxyInterface):
                 except DBusError as e:
                     err = e
 
-                if flags & MessageFlag.UNPACK_VARIANTS:
-                    callback(unpack_variants(msg.body), err)
+                if unpack_variants:
+                    callback(unpack(msg.body), err)
                 else:
                     callback(msg.body, err)
 
@@ -153,7 +154,7 @@ class ProxyInterface(BaseProxyInterface):
                 call_notify,
             )
 
-        def method_fn_sync(*args, flags=MessageFlag.NONE):
+        def method_fn_sync(*args, unpack_variants: bool = False):
             main = GLib.MainLoop()
             call_error = None
             call_body = None
@@ -175,8 +176,8 @@ class ProxyInterface(BaseProxyInterface):
             if not out_len:
                 return None
 
-            if flags & MessageFlag.UNPACK_VARIANTS:
-                call_body = unpack_variants(call_body)
+            if unpack_variants:
+                call_body = unpack(call_body)
 
             if out_len == 1:
                 return call_body[0]
@@ -189,7 +190,7 @@ class ProxyInterface(BaseProxyInterface):
         setattr(self, method_name_sync, method_fn_sync)
 
     def _add_property(self, intr_property):
-        def property_getter(callback, *, flags=MessageFlag.NONE):
+        def property_getter(callback, *, unpack_variants: bool = False):
             def call_notify(msg, err):
                 if err:
                     callback(None, err)
@@ -210,8 +211,8 @@ class ProxyInterface(BaseProxyInterface):
                     )
                     callback(None, err)
                     return
-                if flags & MessageFlag.UNPACK_VARIANTS:
-                    callback(unpack_variants(variant.value), None)
+                if unpack_variants:
+                    callback(unpack(variant.value), None)
                 else:
                     callback(variant.value, None)
 
@@ -227,7 +228,7 @@ class ProxyInterface(BaseProxyInterface):
                 call_notify,
             )
 
-        def property_getter_sync(*, flags=MessageFlag.NONE):
+        def property_getter_sync(*, unpack_variants: bool = False):
             property_value = None
             reply_error = None
 
@@ -244,8 +245,8 @@ class ProxyInterface(BaseProxyInterface):
             main.run()
             if reply_error:
                 raise reply_error
-            if flags & MessageFlag.UNPACK_VARIANTS:
-                return unpack_variants(property_value)
+            if unpack_variants:
+                return unpack(property_value)
             return property_value
 
         def property_setter(value, callback):
