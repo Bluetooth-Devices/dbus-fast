@@ -118,8 +118,10 @@ class BaseProxyInterface:
     def _add_signal(self, intr_signal, interface):
         def on_signal_fn(fn):
             fn_signature = inspect.signature(fn)
-            if not callable(fn) or len(fn_signature.parameters) != len(
-                intr_signal.args
+            if len(fn_signature.parameters) != len(intr_signal.args) and (
+                inspect.Parameter.VAR_POSITIONAL
+                not in [par.kind for par in fn_signature.parameters.values()]
+                or len(fn_signature.parameters) - 1 > len(intr_signal.args)
             ):
                 raise TypeError(
                     f"reply_notify must be a function with {len(intr_signal.args)} parameters"

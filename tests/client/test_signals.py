@@ -2,6 +2,7 @@ import pytest
 
 from dbus_fast import Message
 from dbus_fast.aio import MessageBus
+from dbus_fast.aio.proxy_object import ProxyInterface
 from dbus_fast.constants import RequestNameReply
 from dbus_fast.introspection import Node
 from dbus_fast.service import ServiceInterface, signal
@@ -156,6 +157,100 @@ async def test_signals():
     bus1.disconnect()
     bus2.disconnect()
     bus3.disconnect()
+
+
+@pytest.mark.asyncio
+async def test_varargs_callback():
+    """Test varargs callback for signal."""
+    bus1 = await MessageBus().connect()
+    bus2 = await MessageBus().connect()
+
+    await bus1.request_name("test.signals.name")
+    service_interface = ExampleInterface()
+    bus1.export("/test/path", service_interface)
+
+    obj = bus2.get_proxy_object(
+        "test.signals.name", "/test/path", bus1._introspect_export_path("/test/path")
+    )
+    interface = obj.get_interface(service_interface.name)
+
+    async def ping():
+        await bus2.call(
+            Message(
+                destination=bus1.unique_name,
+                interface="org.freedesktop.DBus.Peer",
+                path="/test/path",
+                member="Ping",
+            )
+        )
+
+    varargs_handler_counter = 0
+    varargs_handler_err = None
+    varargs_plus_handler_counter = 0
+    varargs_plus_handler_err = None
+
+    def varargs_handler(*args):
+        nonlocal varargs_handler_counter
+        nonlocal varargs_handler_err
+        try:
+            assert args[0] == "hello"
+            varargs_handler_counter += 1
+        except AssertionError as ex:
+            varargs_handler_err = ex
+
+    def varargs_plus_handler(value, *_):
+        nonlocal varargs_plus_handler_counter
+        nonlocal varargs_plus_handler_err
+        try:
+            assert value == "hello"
+            varargs_plus_handler_counter += 1
+        except AssertionError as ex:
+            varargs_plus_handler_err = ex
+
+    interface.on_some_signal(varargs_handler)
+    interface.on_some_signal(varargs_plus_handler)
+    await ping()
+
+    service_interface.SomeSignal()
+    await ping()
+    assert varargs_handler_err is None
+    assert varargs_handler_counter == 1
+    assert varargs_plus_handler_err is None
+    assert varargs_plus_handler_counter == 1
+
+    bus1.disconnect()
+    bus2.disconnect()
+
+
+@pytest.mark.asyncio
+async def test_on_signal_type_error():
+    """Test on callback raises type errors for invalid callbacks."""
+    bus1 = await MessageBus().connect()
+    bus2 = await MessageBus().connect()
+
+    await bus1.request_name("test.signals.name")
+    service_interface = ExampleInterface()
+    bus1.export("/test/path", service_interface)
+
+    obj = bus2.get_proxy_object(
+        "test.signals.name", "/test/path", bus1._introspect_export_path("/test/path")
+    )
+    interface = obj.get_interface(service_interface.name)
+
+    with pytest.raises(TypeError):
+        interface.on_some_signal("not_a_callable")
+
+    with pytest.raises(TypeError):
+        interface.on_some_signal(lambda a, b: "Too many parameters")
+
+    with pytest.raises(TypeError):
+        interface.on_some_signal(lambda: "Too few parameters")
+
+    with pytest.raises(TypeError):
+        interface.on_some_signal(lambda a, b, *args: "Too many before varargs")
+
+    bus1.disconnect()
+    bus2.disconnect()
 
 
 @pytest.mark.asyncio
