@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.5.0 (2022-09-19)
+### Feature
+* Allow varargs callback for signals ([#22](https://github.com/Bluetooth-Devices/dbus-fast/issues/22)) ([`a3379c7`](https://github.com/Bluetooth-Devices/dbus-fast/commit/a3379c74ad8f8da1eb15b6cd941d9bea6867b5f9))
+
 ## v1.4.0 (2022-09-10)
 ### Feature
 * Improve unmarshalling performance ([#18](https://github.com/Bluetooth-Devices/dbus-fast/issues/18)) ([`4362b93`](https://github.com/Bluetooth-Devices/dbus-fast/commit/4362b93fc84406adfa026b6573bc076327c71c5b))
