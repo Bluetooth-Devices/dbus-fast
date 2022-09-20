@@ -2,7 +2,7 @@ import pytest
 
 from dbus_fast import Message
 from dbus_fast.aio import MessageBus
-from dbus_fast.constants import MessageFlag, RequestNameReply
+from dbus_fast.constants import RequestNameReply
 from dbus_fast.introspection import Node
 from dbus_fast.service import ServiceInterface, signal
 from dbus_fast.signature import Variant
