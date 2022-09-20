@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v1.6.0 (2022-09-20)
+### Feature
+* Add unpack variants option ([#20](https://github.com/Bluetooth-Devices/dbus-fast/issues/20)) ([`cfad28b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/cfad28bd2ba8dccf4c3a591461bb666871e4cbba))
+
+### Fix
+* Disconnect connected buses at end of tests ([#25](https://github.com/Bluetooth-Devices/dbus-fast/issues/25)) ([`e438890`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e43889091bf7b21f6ffd27544d74cc1d57db22d2))
+
 ## v1.5.1 (2022-09-20)
 ### Fix
 * Marshall boolean correctly ([#23](https://github.com/Bluetooth-Devices/dbus-fast/issues/23)) ([`ca2a3c1`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ca2a3c1aa86f1f0b6372929f099e8594dab2697f))
