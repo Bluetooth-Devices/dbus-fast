@@ -179,3 +179,6 @@ async def test_methods(interface_class):
 
     reply = await call("throws_dbus_error", flags=MessageFlag.NO_REPLY_EXPECTED)
     assert reply is None
+
+    bus1.disconnect()
+    bus2.disconnect()

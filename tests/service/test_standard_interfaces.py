@@ -79,6 +79,9 @@ async def test_introspectable_interface():
     assert not node.interfaces
     assert not node.nodes
 
+    bus1.disconnect()
+    bus2.disconnect()
+
 
 @pytest.mark.asyncio
 async def test_peer_interface():
@@ -109,6 +112,9 @@ async def test_peer_interface():
 
     assert reply.message_type == MessageType.METHOD_RETURN, reply.body[0]
     assert reply.signature == "s"
+
+    bus1.disconnect()
+    bus2.disconnect()
 
 
 @pytest.mark.asyncio
@@ -180,6 +186,9 @@ async def test_object_manager():
     expected_reply.update(reply_ext)
     assert reply_root.body == [expected_reply]
 
+    bus1.disconnect()
+    bus2.disconnect()
+
 
 @pytest.mark.asyncio
 async def test_standard_interface_properties():
@@ -236,3 +245,6 @@ async def test_standard_interface_properties():
         )
         assert result.message_type is MessageType.METHOD_RETURN
         assert result.body == [{}]
+
+    bus1.disconnect()
+    bus2.disconnect()

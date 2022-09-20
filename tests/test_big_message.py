@@ -39,6 +39,9 @@ async def test_aio_big_message():
     assert result.message_type == MessageType.METHOD_RETURN, result.body[0]
     assert result.body[0] == big_body[0]
 
+    bus1.disconnect()
+    bus2.disconnect()
+
 
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
 def test_glib_big_message():
@@ -62,3 +65,6 @@ def test_glib_big_message():
     )
     assert result.message_type == MessageType.METHOD_RETURN, result.body[0]
     assert result.body[0] == big_body[0]
+
+    bus1.disconnect()
+    bus2.disconnect()

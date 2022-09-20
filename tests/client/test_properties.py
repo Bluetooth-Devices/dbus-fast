@@ -140,3 +140,4 @@ def test_glib_properties():
             raise e
 
     service_bus.disconnect()
+    bus.disconnect()

@@ -41,6 +41,8 @@ async def test_standard_interfaces():
     assert reply.signature == "s"
     assert type(reply.body[0]) is str
 
+    bus.disconnect()
+
 
 @pytest.mark.asyncio
 async def test_sending_messages_between_buses():
@@ -103,6 +105,9 @@ async def test_sending_messages_between_buses():
     reply = await bus2.call(msg)
     assert reply is None
 
+    bus1.disconnect()
+    bus2.disconnect()
+
 
 @pytest.mark.asyncio
 async def test_sending_signals_between_buses(event_loop):
@@ -145,3 +150,6 @@ async def test_sending_signals_between_buses(event_loop):
     assert signal.member == "SomeSignal"
     assert signal.signature == "s"
     assert signal.body == ["a signal"]
+
+    bus1.disconnect()
+    bus2.disconnect()
