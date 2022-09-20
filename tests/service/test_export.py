@@ -65,6 +65,8 @@ async def test_export_unexport():
     assert not node.interfaces
     assert not node.nodes
 
+    bus.disconnect()
+
 
 @pytest.mark.asyncio
 async def test_export_alias():
@@ -102,6 +104,8 @@ async def test_export_alias():
     assert result.message_type is MessageType.METHOD_RETURN, result.body[0]
     assert interface._method_called
 
+    bus.disconnect()
+
 
 @pytest.mark.asyncio
 async def test_export_introspection():
@@ -117,3 +121,5 @@ async def test_export_introspection():
 
     root = bus._introspect_export_path("/")
     assert len(root.nodes) == 1
+
+    bus.disconnect()

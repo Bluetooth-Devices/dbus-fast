@@ -243,6 +243,9 @@ async def test_property_methods(interface_class):
     assert result.error_name == "test.error"
     assert result.body == ["told you so"]
 
+    bus1.disconnect()
+    bus2.disconnect()
+
 
 @pytest.mark.parametrize("interface_class", [ExampleInterface, AsyncInterface])
 @pytest.mark.asyncio
@@ -295,3 +298,6 @@ async def test_property_changed_signal(interface_class):
         {"string_prop": Variant("s", "asdf")},
         ["container_prop"],
     ]
+
+    bus1.disconnect()
+    bus2.disconnect()

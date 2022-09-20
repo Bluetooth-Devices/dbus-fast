@@ -159,6 +159,9 @@ async def test_signals():
     with pytest.raises(SignalDisabledError):
         interface.signal_disabled()
 
+    bus1.disconnect()
+    bus2.disconnect()
+
 
 @pytest.mark.asyncio
 async def test_interface_add_remove_signal():
@@ -249,3 +252,6 @@ async def test_interface_add_remove_signal():
             signature="oas",
             body=[export_path, ["test.interface.first", "test.interface.second"]],
         )
+
+    bus1.disconnect()
+    bus2.disconnect()

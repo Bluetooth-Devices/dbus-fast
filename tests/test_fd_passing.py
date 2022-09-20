@@ -278,6 +278,8 @@ async def test_sending_file_descriptor_with_proxy(event_loop):
     interface.cleanup()
     os.close(fd)
 
+    bus.disconnect()
+
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(

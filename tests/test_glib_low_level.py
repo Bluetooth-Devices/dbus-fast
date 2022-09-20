@@ -47,6 +47,8 @@ def test_standard_interfaces():
     assert reply.signature == "s"
     assert type(reply.body[0]) is str
 
+    bus.disconnect()
+
 
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
 def test_sending_messages_between_buses():
@@ -109,6 +111,9 @@ def test_sending_messages_between_buses():
     reply = bus2.call_sync(msg)
     assert reply is None
 
+    bus1.disconnect()
+    bus2.disconnect()
+
 
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
 def test_sending_signals_between_buses():
@@ -156,3 +161,6 @@ def test_sending_signals_between_buses():
     assert signal.member == "SomeSignal"
     assert signal.signature == "s"
     assert signal.body == ["a signal"]
+
+    bus1.disconnect()
+    bus2.disconnect()
