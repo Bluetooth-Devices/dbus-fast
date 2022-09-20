@@ -20,8 +20,9 @@ class Marshaller:
         return offset
 
     def write_boolean(self, boolean: bool, _=None) -> int:
+        written = self.align(4)
         self.buffer.extend(PACK_UINT32(int(boolean)))
-        return self.align(4) + 4
+        return written + 4
 
     def write_signature(self, signature: str, _=None) -> int:
         signature = signature.encode()
