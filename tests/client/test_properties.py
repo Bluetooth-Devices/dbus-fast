@@ -2,6 +2,7 @@ import pytest
 
 from dbus_fast import DBusError, Message, aio, glib
 from dbus_fast.service import PropertyAccess, ServiceInterface, dbus_property
+from dbus_fast.signature import Variant
 from tests.util import check_gi_repository, skip_reason_no_gi
 
 has_gi = check_gi_repository()
@@ -26,6 +27,11 @@ class ExampleInterface(ServiceInterface):
     @dbus_property(access=PropertyAccess.READ)
     def Int64Property(self) -> "x":
         return self._int64_property
+
+    @dbus_property(access=PropertyAccess.READ)
+    def ComplexProperty(self) -> "a{sv}":
+        """Return complex output."""
+        return {"hello": Variant("s", "world")}
 
     @dbus_property()
     def ErrorThrowingProperty(self) -> "s":
@@ -58,6 +64,12 @@ async def test_aio_properties():
 
     await interface.set_some_property("different")
     assert service_interface._some_property == "different"
+
+    prop = await interface.get_complex_property()
+    assert prop == {"hello": Variant("s", "world")}
+
+    prop = await interface.get_complex_property(unpack_variants=True)
+    assert prop == {"hello": "world"}
 
     with pytest.raises(DBusError):
         try:
@@ -101,6 +113,12 @@ def test_glib_properties():
 
     interface.set_some_property_sync("different")
     assert service_interface._some_property == "different"
+
+    prop = interface.get_complex_property_sync()
+    assert prop == {"hello": Variant("s", "world")}
+
+    prop = interface.get_complex_property_sync(unpack_variants=True)
+    assert prop == {"hello": "world"}
 
     with pytest.raises(DBusError):
         try:

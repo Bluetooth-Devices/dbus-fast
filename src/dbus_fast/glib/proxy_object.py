@@ -8,6 +8,7 @@ from ..message import Message
 from ..message_bus import BaseMessageBus
 from ..proxy_object import BaseProxyInterface, BaseProxyObject
 from ..signature import Variant
+from ..signature import unpack_variants as unpack
 
 # glib is optional
 try:
@@ -113,7 +114,7 @@ class ProxyInterface(BaseProxyInterface):
         in_len = len(intr_method.in_args)
         out_len = len(intr_method.out_args)
 
-        def method_fn(*args):
+        def method_fn(*args, unpack_variants: bool = False):
             if len(args) != in_len + 1:
                 raise TypeError(
                     f"method {intr_method.name} expects {in_len} arguments and a callback (got {len(args)} args)"
@@ -136,7 +137,10 @@ class ProxyInterface(BaseProxyInterface):
                 except DBusError as e:
                     err = e
 
-                callback(msg.body, err)
+                if unpack_variants:
+                    callback(unpack(msg.body), err)
+                else:
+                    callback(msg.body, err)
 
             self.bus.call(
                 Message(
@@ -150,7 +154,7 @@ class ProxyInterface(BaseProxyInterface):
                 call_notify,
             )
 
-        def method_fn_sync(*args):
+        def method_fn_sync(*args, unpack_variants: bool = False):
             main = GLib.MainLoop()
             call_error = None
             call_body = None
@@ -171,10 +175,13 @@ class ProxyInterface(BaseProxyInterface):
 
             if not out_len:
                 return None
-            elif out_len == 1:
+
+            if unpack_variants:
+                call_body = unpack(call_body)
+
+            if out_len == 1:
                 return call_body[0]
-            else:
-                return call_body
+            return call_body
 
         method_name = f"call_{BaseProxyInterface._to_snake_case(intr_method.name)}"
         method_name_sync = f"{method_name}_sync"
@@ -183,7 +190,7 @@ class ProxyInterface(BaseProxyInterface):
         setattr(self, method_name_sync, method_fn_sync)
 
     def _add_property(self, intr_property):
-        def property_getter(callback):
+        def property_getter(callback, *, unpack_variants: bool = False):
             def call_notify(msg, err):
                 if err:
                     callback(None, err)
@@ -204,8 +211,10 @@ class ProxyInterface(BaseProxyInterface):
                     )
                     callback(None, err)
                     return
-
-                callback(variant.value, None)
+                if unpack_variants:
+                    callback(unpack(variant.value), None)
+                else:
+                    callback(variant.value, None)
 
             self.bus.call(
                 Message(
@@ -219,7 +228,7 @@ class ProxyInterface(BaseProxyInterface):
                 call_notify,
             )
 
-        def property_getter_sync():
+        def property_getter_sync(*, unpack_variants: bool = False):
             property_value = None
             reply_error = None
 
@@ -236,6 +245,8 @@ class ProxyInterface(BaseProxyInterface):
             main.run()
             if reply_error:
                 raise reply_error
+            if unpack_variants:
+                return unpack(property_value)
             return property_value
 
         def property_setter(value, callback):

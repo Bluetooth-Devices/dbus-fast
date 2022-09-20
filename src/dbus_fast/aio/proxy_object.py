@@ -9,6 +9,7 @@ from ..message import Message, MessageFlag
 from ..message_bus import BaseMessageBus
 from ..proxy_object import BaseProxyInterface, BaseProxyObject
 from ..signature import Variant
+from ..signature import unpack_variants as unpack
 
 
 class ProxyInterface(BaseProxyInterface):
@@ -74,7 +75,9 @@ class ProxyInterface(BaseProxyInterface):
     """
 
     def _add_method(self, intr_method):
-        async def method_fn(*args, flags=MessageFlag.NONE):
+        async def method_fn(
+            *args, flags=MessageFlag.NONE, unpack_variants: bool = False
+        ):
             input_body, unix_fds = replace_fds_with_idx(
                 intr_method.in_signature, list(args)
             )
@@ -103,16 +106,24 @@ class ProxyInterface(BaseProxyInterface):
 
             if not out_len:
                 return None
-            elif out_len == 1:
+
+            if unpack_variants:
+                body = unpack(body)
+
+            if out_len == 1:
                 return body[0]
-            else:
-                return body
+            return body
 
         method_name = f"call_{BaseProxyInterface._to_snake_case(intr_method.name)}"
         setattr(self, method_name, method_fn)
 
-    def _add_property(self, intr_property):
-        async def property_getter():
+    def _add_property(
+        self,
+        intr_property,
+    ):
+        async def property_getter(
+            *, flags=MessageFlag.NONE, unpack_variants: bool = False
+        ):
             msg = await self.bus.call(
                 Message(
                     destination=self.bus_name,
@@ -133,7 +144,11 @@ class ProxyInterface(BaseProxyInterface):
                     msg,
                 )
 
-            return replace_idx_with_fds("v", msg.body, msg.unix_fds)[0].value
+            body = replace_idx_with_fds("v", msg.body, msg.unix_fds)[0].value
+
+            if unpack_variants:
+                return unpack(body)
+            return body
 
         async def property_setter(val):
             variant = Variant(intr_property.signature, val)

@@ -3,7 +3,8 @@ import inspect
 import logging
 import re
 import xml.etree.ElementTree as ET
-from typing import Coroutine, List, Type, Union
+from dataclasses import dataclass
+from typing import Callable, Coroutine, Dict, List, Type, Union
 
 from . import introspection as intr
 from . import message_bus
@@ -11,7 +12,16 @@ from ._private.util import replace_idx_with_fds
 from .constants import ErrorType, MessageType
 from .errors import DBusError, InterfaceNotFoundError
 from .message import Message
+from .signature import unpack_variants as unpack
 from .validators import assert_bus_name_valid, assert_object_path_valid
+
+
+@dataclass
+class SignalHandler:
+    """Signal handler."""
+
+    fn: Callable
+    unpack_variants: bool
 
 
 class BaseProxyInterface:
@@ -46,7 +56,7 @@ class BaseProxyInterface:
         self.path = path
         self.introspection = introspection
         self.bus = bus
-        self._signal_handlers = {}
+        self._signal_handlers: Dict[str, List[SignalHandler]] = {}
         self._signal_match_rule = f"type='signal',sender={bus_name},interface={introspection.name},path={path}"
 
     _underscorer1 = re.compile(r"(.)([A-Z][a-z]+)")
@@ -110,13 +120,21 @@ class BaseProxyInterface:
             return
 
         body = replace_idx_with_fds(msg.signature, msg.body, msg.unix_fds)
+        no_sig = None
         for handler in self._signal_handlers[msg.member]:
-            cb_result = handler(*body)
+            if handler.unpack_variants:
+                if not no_sig:
+                    no_sig = unpack(body)
+                data = no_sig
+            else:
+                data = body
+
+            cb_result = handler.fn(*data)
             if isinstance(cb_result, Coroutine):
                 asyncio.create_task(cb_result)
 
     def _add_signal(self, intr_signal, interface):
-        def on_signal_fn(fn):
+        def on_signal_fn(fn, *, unpack_variants: bool = False):
             fn_signature = inspect.signature(fn)
             if len(fn_signature.parameters) != len(intr_signal.args) and (
                 inspect.Parameter.VAR_POSITIONAL
@@ -134,11 +152,15 @@ class BaseProxyInterface:
             if intr_signal.name not in self._signal_handlers:
                 self._signal_handlers[intr_signal.name] = []
 
-            self._signal_handlers[intr_signal.name].append(fn)
+            self._signal_handlers[intr_signal.name].append(
+                SignalHandler(fn, unpack_variants)
+            )
 
-        def off_signal_fn(fn):
+        def off_signal_fn(fn, *, unpack_variants: bool = False):
             try:
-                i = self._signal_handlers[intr_signal.name].index(fn)
+                i = self._signal_handlers[intr_signal.name].index(
+                    SignalHandler(fn, unpack_variants)
+                )
                 del self._signal_handlers[intr_signal.name][i]
                 if not self._signal_handlers[intr_signal.name]:
                     del self._signal_handlers[intr_signal.name]
