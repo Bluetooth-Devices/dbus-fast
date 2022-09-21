@@ -136,13 +136,30 @@ class BaseProxyInterface:
     def _add_signal(self, intr_signal, interface):
         def on_signal_fn(fn, *, unpack_variants: bool = False):
             fn_signature = inspect.signature(fn)
-            if len(fn_signature.parameters) != len(intr_signal.args) and (
-                inspect.Parameter.VAR_POSITIONAL
-                not in [par.kind for par in fn_signature.parameters.values()]
-                or len(fn_signature.parameters) - 1 > len(intr_signal.args)
+            if 0 < len(
+                [
+                    par
+                    for par in fn_signature.parameters.values()
+                    if par.kind == inspect.Parameter.KEYWORD_ONLY
+                    and par.default == inspect.Parameter.empty
+                ]
             ):
                 raise TypeError(
-                    f"reply_notify must be a function with {len(intr_signal.args)} parameters"
+                    "reply_notify cannot have required keyword only parameters"
+                )
+
+            positional_params = [
+                par.kind
+                for par in fn_signature.parameters.values()
+                if par.kind
+                not in [inspect.Parameter.KEYWORD_ONLY, inspect.Parameter.VAR_KEYWORD]
+            ]
+            if len(positional_params) != len(intr_signal.args) and (
+                inspect.Parameter.VAR_POSITIONAL not in positional_params
+                or len(positional_params) - 1 > len(intr_signal.args)
+            ):
+                raise TypeError(
+                    f"reply_notify must be a function with {len(intr_signal.args)} positional parameters"
                 )
 
             if not self._signal_handlers:

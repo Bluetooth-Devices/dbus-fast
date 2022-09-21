@@ -291,6 +291,75 @@ async def test_varargs_callback():
 
 
 @pytest.mark.asyncio
+async def test_kwargs_callback():
+    """Test callback for signal with kwargs."""
+    bus1 = await MessageBus().connect()
+    bus2 = await MessageBus().connect()
+
+    await bus1.request_name("test.signals.name")
+    service_interface = ExampleInterface()
+    bus1.export("/test/path", service_interface)
+
+    obj = bus2.get_proxy_object(
+        "test.signals.name", "/test/path", bus1._introspect_export_path("/test/path")
+    )
+    interface = obj.get_interface(service_interface.name)
+
+    async def ping():
+        await bus2.call(
+            Message(
+                destination=bus1.unique_name,
+                interface="org.freedesktop.DBus.Peer",
+                path="/test/path",
+                member="Ping",
+            )
+        )
+
+    kwargs_handler_counter = 0
+    kwargs_handler_err = None
+    kwarg_default_handler_counter = 0
+    kwarg_default_handler_err = None
+
+    def kwargs_handler(value, **_):
+        nonlocal kwargs_handler_counter
+        nonlocal kwargs_handler_err
+        try:
+            assert value == "hello"
+            kwargs_handler_counter += 1
+        except AssertionError as ex:
+            kwargs_handler_err = ex
+
+    def kwarg_default_handler(value, *, _=True):
+        nonlocal kwarg_default_handler_counter
+        nonlocal kwarg_default_handler_err
+        try:
+            assert value == "hello"
+            kwarg_default_handler_counter += 1
+        except AssertionError as ex:
+            kwarg_default_handler_err = ex
+
+    interface.on_some_signal(kwargs_handler)
+    interface.on_some_signal(kwarg_default_handler)
+    await ping()
+
+    service_interface.SomeSignal()
+    await ping()
+    assert kwargs_handler_err is None
+    assert kwargs_handler_counter == 1
+    assert kwarg_default_handler_err is None
+    assert kwarg_default_handler_counter == 1
+
+    def kwarg_bad_handler(value, *, bad_kwarg):
+        pass
+
+    with pytest.raises(TypeError):
+        interface.on_some_signal(kwarg_bad_handler)
+
+    bus1.disconnect()
+    bus2.disconnect()
+
+
+@pytest.mark.asyncio
 async def test_on_signal_type_error():
     """Test on callback raises type errors for invalid callbacks."""
     bus1 = await MessageBus().connect()
