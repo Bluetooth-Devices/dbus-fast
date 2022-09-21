@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.7.0 (2022-09-21)
+### Feature
+* Handle kwargs in signal callback ([#26](https://github.com/Bluetooth-Devices/dbus-fast/issues/26)) ([`2e8076b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/2e8076b14abf297b83eb2c81b0cacff405845d95))
+
 ## v1.6.0 (2022-09-20)
 ### Feature
 * Add unpack variants option ([#20](https://github.com/Bluetooth-Devices/dbus-fast/issues/20)) ([`cfad28b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/cfad28bd2ba8dccf4c3a591461bb666871e4cbba))
