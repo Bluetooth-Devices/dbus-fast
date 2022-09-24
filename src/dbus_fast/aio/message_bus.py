@@ -53,7 +53,8 @@ class _MessageWriter:
                 if self.buf is None:
                     if self.messages.qsize() == 0:
                         # nothing more to write
-                        self.loop.remove_writer(self.fd)
+                        if remove_writer:
+                            self.loop.remove_writer(self.fd)
                         return
                     buf, unix_fds, fut = self.messages.get_nowait()
                     self.unix_fds = unix_fds
