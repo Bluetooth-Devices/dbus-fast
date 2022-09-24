@@ -102,13 +102,14 @@ class _MessageWriter:
         queue_is_empty = self.messages.qsize() == 0
         if msg is not None:
             self.buffer_message(msg, future)
-        if self.bus.unique_name:
-            # Optimization: try to send now.
-            if queue_is_empty:
-                self.write_callback(remove_writer=False)
-            # don't run the writer until the bus is ready to send messages
-            if self.buf is not None or self.messages.qsize() != 0:
-                self.loop.add_writer(self.fd, self.write_callback)
+        if not self.bus.unique_name:
+            return
+        # Optimization: try to send now.
+        if queue_is_empty:
+            self.write_callback(remove_writer=False)
+        # don't run the writer until the bus is ready to send messages
+        if self.buf is not None or self.messages.qsize() != 0:
+            self.loop.add_writer(self.fd, self.write_callback)
 
 
 class MessageBus(BaseMessageBus):
