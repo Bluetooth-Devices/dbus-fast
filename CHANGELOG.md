@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.9.0 (2022-09-24)
+### Feature
+* Improve asyncio write performance ([#29](https://github.com/Bluetooth-Devices/dbus-fast/issues/29)) ([`016e71e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/016e71ef6d7de4d9295f3ca170d7352ae233d74a))
+
 ## v1.8.0 (2022-09-24)
 ### Feature
 * Small speed ups to unmarshall message creation ([#27](https://github.com/Bluetooth-Devices/dbus-fast/issues/27)) ([`0bce72a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0bce72a76a6af0d7b3c731e08393652747e6c53a))
