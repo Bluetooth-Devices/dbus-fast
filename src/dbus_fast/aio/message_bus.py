@@ -2,7 +2,7 @@ import array
 import asyncio
 import logging
 import socket
-from asyncio import Queue
+from collections import deque
 from copy import copy
 from typing import Any, Optional
 
@@ -36,7 +36,7 @@ def _future_set_result(fut: asyncio.Future, result: Any) -> None:
 
 class _MessageWriter:
     def __init__(self, bus: "MessageBus") -> None:
-        self.messages = Queue()
+        self.messages = deque()
         self.negotiate_unix_fd = bus._negotiate_unix_fd
         self.bus = bus
         self.sock = bus._sock
@@ -51,12 +51,12 @@ class _MessageWriter:
         try:
             while True:
                 if self.buf is None:
-                    if self.messages.qsize() == 0:
+                    if not self.messages:
                         # nothing more to write
                         if remove_writer:
                             self.loop.remove_writer(self.fd)
                         return
-                    buf, unix_fds, fut = self.messages.get_nowait()
+                    buf, unix_fds, fut = self.messages.pop()
                     self.unix_fds = unix_fds
                     self.buf = memoryview(buf)
                     self.offset = 0
@@ -90,7 +90,7 @@ class _MessageWriter:
             self.bus._finalize(e)
 
     def buffer_message(self, msg: Message, future=None):
-        self.messages.put_nowait(
+        self.messages.append(
             (
                 msg._marshall(negotiate_unix_fd=self.negotiate_unix_fd),
                 copy(msg.unix_fds),
@@ -103,7 +103,7 @@ class _MessageWriter:
         self.write_callback(remove_writer=False)
 
     def schedule_write(self, msg: Message = None, future=None):
-        queue_is_empty = self.messages.qsize() == 0
+        queue_is_empty = not self.messages
         if msg is not None:
             self.buffer_message(msg, future)
         if self.bus.unique_name:
@@ -115,7 +115,7 @@ class _MessageWriter:
                 self._write_without_remove_writer()
             if (
                 self.buf is not None
-                or self.messages.qsize() != 0
+                or self.messages
                 or not self.fut
                 or not self.fut.done()
             ):
