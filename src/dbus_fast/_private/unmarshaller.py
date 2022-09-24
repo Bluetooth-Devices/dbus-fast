@@ -112,7 +112,6 @@ class Unmarshaller:
         "message_type",
         "flag",
         "msg_len",
-        "uint32_struct",
     )
 
     def __init__(self, stream: io.BufferedRWPair, sock=None):
@@ -130,7 +129,6 @@ class Unmarshaller:
         self.message_type: MessageType | None = None
         self.flag: MessageFlag | None = None
         self.msg_len = 0
-        self.uint32_struct: Struct | None = None
 
     def read_sock(self, length: int) -> bytes:
         """reads from the socket, storing any fds sent and handling errors
@@ -200,7 +198,10 @@ class Unmarshaller:
         str_start = self.offset
         # read terminating '\0' byte as well (str_length + 1)
         self.offset += (
-            self.uint32_struct.unpack_from(self.view, str_start - UINT32_SIZE)[0] + 1
+            self.readers[UINT32_DBUS_TYPE][3].unpack_from(
+                self.view, str_start - UINT32_SIZE
+            )[0]
+            + 1
         )
         return self.buf[str_start : self.offset - 1].decode()
 
@@ -306,12 +307,13 @@ class Unmarshaller:
         self.msg_len = (
             self.header_len + (-self.header_len & 7) + self.body_len
         )  # align 8
-        can_cast = bool(sys.byteorder == "little" and endian == LITTLE_ENDIAN) or (
-            sys.byteorder == "big" and endian == BIG_ENDIAN
-        )
-        self.readers = self._readers_by_type[(endian, can_cast)]
-        if not can_cast:
-            self.uint32_struct = self.readers[UINT32_DBUS_TYPE][3]
+        self.readers = self._readers_by_type[
+            (
+                endian,
+                bool(sys.byteorder == "little" and endian == LITTLE_ENDIAN)
+                or (sys.byteorder == "big" and endian == BIG_ENDIAN),
+            )
+        ]
 
     def _read_body(self):
         """Read the body of the message."""
