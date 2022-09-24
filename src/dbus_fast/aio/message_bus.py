@@ -106,12 +106,14 @@ class _MessageWriter:
         queue_is_empty = self.messages.qsize() == 0
         if msg is not None:
             self.buffer_message(msg, future)
-        if not self.bus.unique_name:
-            return
-        # Optimization: try to send now.
-        if queue_is_empty:
-            self._write_without_remove_writer()
-        self.loop.add_writer(self.fd, self.write_callback)
+        if self.bus.unique_name:
+            # Optimization: try to send now if the queue
+            # is empty. With bleak this usually means we
+            # can send right away 85% of the time which
+            # is a huge improvement in latency.
+            if queue_is_empty:
+                self._write_without_remove_writer()
+            self.loop.add_writer(self.fd, self.write_callback)
 
 
 class MessageBus(BaseMessageBus):
