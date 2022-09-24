@@ -113,7 +113,7 @@ class _MessageWriter:
             # is a huge improvement in latency.
             if queue_is_empty:
                 self._write_without_remove_writer()
-            if not self.fut or not self.fut.done():
+            if self.messages.qsize() != 0 or not self.fut or not self.fut.done():
                 self.loop.add_writer(self.fd, self.write_callback)
 
 
