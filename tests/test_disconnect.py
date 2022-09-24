@@ -62,5 +62,5 @@ async def test_unexpected_disconnect(event_loop):
         assert bus._disconnected
         assert not bus.connected
 
-        with pytest.raises(OSError):
-            await bus.wait_for_disconnect()
+    with pytest.raises(OSError):
+        await bus.wait_for_disconnect()
