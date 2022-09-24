@@ -1,5 +1,5 @@
 from struct import Struct, error, pack
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
 from ..signature import SignatureTree, SignatureType, Variant
 
@@ -48,7 +48,7 @@ class Marshaller:
         written += self.write_single(variant.type, variant.value)
         return written
 
-    def write_array(self, array: Any, type_: SignatureType) -> int:
+    def write_array(self, array: Iterable[Any], type_: SignatureType) -> int:
         # TODO max array size is 64MiB (67108864 bytes)
         written = self.align(4)
         # length placeholder
@@ -68,9 +68,19 @@ class Marshaller:
         elif child_type.token == "y":
             array_len = len(array)
             self.buffer.extend(array)
+        elif child_type.token in self._writers:
+            writer, packer, size = self._writers[child_type.token]
+            if not writer:
+                for value in array:
+                    array_len += self.align(size) + size
+                    self.buffer.extend(packer(value))
+            else:
+                for value in array:
+                    array_len += writer(self, value, child_type)
         else:
-            for value in array:
-                array_len += self.write_single(child_type, value)
+            raise NotImplementedError(
+                f'type is not implemented yet: "{child_type.token}"'
+            )
 
         array_len_packed = PACK_UINT32(array_len)
         for i in range(offset, offset + 4):
@@ -97,7 +107,7 @@ class Marshaller:
             raise NotImplementedError(f'type is not implemented yet: "{t}"')
 
         writer, packer, size = self._writers[t]
-        if packer and size:
+        if not writer:
             written = self.align(size)
             self.buffer.extend(packer(body))
             return written + size
@@ -119,7 +129,7 @@ class Marshaller:
                 raise NotImplementedError(f'type is not implemented yet: "{t}"')
 
             writer, packer, size = self._writers[t]
-            if packer and size:
+            if not writer:
 
                 # In-line align
                 offset = size - len(self.buffer) % size
