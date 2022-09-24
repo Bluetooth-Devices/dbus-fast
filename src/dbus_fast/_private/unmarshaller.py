@@ -17,6 +17,9 @@ from .constants import (
     HeaderField,
 )
 
+IS_LITTLE_ENDIAN = sys.byteorder == "little"
+IS_BIG_ENDIAN = sys.byteorder == "big"
+
 MAX_UNIX_FDS = 16
 
 UNPACK_SYMBOL = {LITTLE_ENDIAN: "<", BIG_ENDIAN: ">"}
@@ -310,8 +313,10 @@ class Unmarshaller:
         self.readers = self._readers_by_type[
             (
                 endian,
-                bool(sys.byteorder == "little" and endian == LITTLE_ENDIAN)
-                or (sys.byteorder == "big" and endian == BIG_ENDIAN),
+                bool(
+                    (IS_LITTLE_ENDIAN and endian == LITTLE_ENDIAN)
+                    or (IS_LITTLE_ENDIAN and endian == BIG_ENDIAN)
+                ),
             )
         ]
 
