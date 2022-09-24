@@ -57,14 +57,6 @@ READER_TYPE = Dict[
     ],
 ]
 
-# (endian, can_cast)
-READER_COMBINATIONS = (
-    (LITTLE_ENDIAN, True),
-    (LITTLE_ENDIAN, False),
-    (BIG_ENDIAN, True),
-    (BIG_ENDIAN, False),
-)
-
 
 class MarshallerStreamEndError(Exception):
     """This exception is raised when the end of the stream is reached.
@@ -369,7 +361,12 @@ class Unmarshaller:
             )
             for dbus_type, ctype_size in DBUS_TO_CTYPE.items()
         }
-        for endian_can_cast in READER_COMBINATIONS
+        for endian_can_cast in [
+            (LITTLE_ENDIAN, True),
+            (LITTLE_ENDIAN, False),
+            (BIG_ENDIAN, True),
+            (BIG_ENDIAN, False),
+        ]
     }
 
     _readers_by_type: Dict[Tuple[int, bool], READER_TYPE] = {
