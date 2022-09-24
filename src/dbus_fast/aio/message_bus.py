@@ -98,11 +98,13 @@ class _MessageWriter:
         )
 
     def schedule_write(self, msg: Message = None, future=None):
+        queue_is_empty = self.messages.qsize() == 0
         if msg is not None:
             self.buffer_message(msg, future)
         if self.bus.unique_name:
             # Optimization: try to send now.
-            self.write_callback()
+            if queue_is_empty:
+                self.write_callback()
             # don't run the writer until the bus is ready to send messages
             if self.messages.qsize() != 0:
                 self.loop.add_writer(self.fd, self.write_callback)
