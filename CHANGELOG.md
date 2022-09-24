@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.11.0 (2022-09-24)
+### Feature
+* Speed up marshalling ([#32](https://github.com/Bluetooth-Devices/dbus-fast/issues/32)) ([`afcf5fe`](https://github.com/Bluetooth-Devices/dbus-fast/commit/afcf5fe1d9c1c4a632edc60b5d48d8af32d13159))
+
 ## v1.10.0 (2022-09-24)
 ### Feature
 * Improve writer performance with a deque ([#30](https://github.com/Bluetooth-Devices/dbus-fast/issues/30)) ([`09af56e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/09af56e14397d9bdf183239c30683c76b7e34801))
