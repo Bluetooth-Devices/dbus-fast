@@ -47,7 +47,7 @@ class _MessageWriter:
         self.unix_fds = None
         self.fut = None
 
-    def write_callback(self):
+    def write_callback(self, remove_writer: bool = True) -> None:
         try:
             while True:
                 if self.buf is None:
@@ -104,7 +104,7 @@ class _MessageWriter:
         if self.bus.unique_name:
             # Optimization: try to send now.
             if queue_is_empty:
-                self.write_callback()
+                self.write_callback(remove_writer=False)
             # don't run the writer until the bus is ready to send messages
             if self.messages.qsize() != 0:
                 self.loop.add_writer(self.fd, self.write_callback)
