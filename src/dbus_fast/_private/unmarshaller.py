@@ -96,7 +96,6 @@ class Unmarshaller:
 
     __slots__ = (
         "unix_fds",
-        "can_cast",
         "buf",
         "view",
         "offset",
@@ -114,7 +113,6 @@ class Unmarshaller:
 
     def __init__(self, stream: io.BufferedRWPair, sock=None):
         self.unix_fds: List[int] = []
-        self.can_cast = False
         self.buf = bytearray()  # Actual buffer
         self.view = None  # Memory view of the buffer
         self.offset = 0
@@ -243,9 +241,9 @@ class Unmarshaller:
         if reader:  # complex type
             return reader(self, type_)
         self.offset += size + (-self.offset & (size - 1))  # align
-        if self.can_cast:
-            return self.view[self.offset - size : self.offset].cast(ctype)[0]
-        return struct.unpack_from(self.view, self.offset - size)[0]
+        if struct:  # struct only set if we cannot cast
+            return struct.unpack_from(self.view, self.offset - size)[0]
+        return self.view[self.offset - size : self.offset].cast(ctype)[0]
 
     def header_fields(self, header_length):
         """Header fields are always a(yv)."""
@@ -290,11 +288,10 @@ class Unmarshaller:
         self.msg_len = (
             self.header_len + (-self.header_len & 7) + self.body_len
         )  # align 8
-        if (sys.byteorder == "little" and endian == LITTLE_ENDIAN) or (
+        can_cast = bool(sys.byteorder == "little" and endian == LITTLE_ENDIAN) or (
             sys.byteorder == "big" and endian == BIG_ENDIAN
-        ):
-            self.can_cast = True
-        self.readers = self._readers_by_type[endian]
+        )
+        self.readers = self._readers_by_type[(endian, can_cast)]
 
     def _read_body(self):
         """Read the body of the message."""
@@ -351,19 +348,42 @@ class Unmarshaller:
         "v": (read_variant, None, None, None),
     }
 
-    _ctype_by_endian: Dict[int, Dict[str, Tuple[None, str, int, Struct]]] = {
-        endian: {
+    _ctype_by_endian: Dict[
+        Tuple[int, bool], Dict[str, Tuple[None, str, int, Struct]]
+    ] = {
+        endian_can_cast: {
             dbus_type: (
                 None,
                 *ctype_size,
-                Struct(f"{UNPACK_SYMBOL[endian]}{ctype_size[0]}"),
+                None
+                if endian_can_cast[1]
+                else Struct(f"{UNPACK_SYMBOL[endian_can_cast[0]]}{ctype_size[0]}"),
             )
             for dbus_type, ctype_size in DBUS_TO_CTYPE.items()
         }
-        for endian in (BIG_ENDIAN, LITTLE_ENDIAN)
+        for endian_can_cast in [
+            (LITTLE_ENDIAN, True),
+            (LITTLE_ENDIAN, False),
+            (BIG_ENDIAN, True),
+            (BIG_ENDIAN, False),
+        ]
     }
 
-    _readers_by_type: Dict[int, READER_TYPE] = {
-        BIG_ENDIAN: {**_ctype_by_endian[BIG_ENDIAN], **_complex_parsers},
-        LITTLE_ENDIAN: {**_ctype_by_endian[LITTLE_ENDIAN], **_complex_parsers},
+    _readers_by_type: Dict[Tuple[int, bool], READER_TYPE] = {
+        (LITTLE_ENDIAN, True): {
+            **_ctype_by_endian[(LITTLE_ENDIAN, True)],
+            **_complex_parsers,
+        },
+        (LITTLE_ENDIAN, False): {
+            **_ctype_by_endian[(LITTLE_ENDIAN, False)],
+            **_complex_parsers,
+        },
+        (BIG_ENDIAN, True): {
+            **_ctype_by_endian[(BIG_ENDIAN, True)],
+            **_complex_parsers,
+        },
+        (BIG_ENDIAN, False): {
+            **_ctype_by_endian[(BIG_ENDIAN, False)],
+            **_complex_parsers,
+        },
     }
