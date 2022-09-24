@@ -45,7 +45,7 @@ class _MessageWriter:
         self.fd = bus._fd
         self.offset = 0
         self.unix_fds = None
-        self.fut = None
+        self.fut: Optional[asyncio.Future] = None
 
     def write_callback(self, remove_writer: bool = True) -> None:
         try:
@@ -113,7 +113,8 @@ class _MessageWriter:
             # is a huge improvement in latency.
             if queue_is_empty:
                 self._write_without_remove_writer()
-            self.loop.add_writer(self.fd, self.write_callback)
+            if not self.fut or not self.fut.done():
+                self.loop.add_writer(self.fd, self.write_callback)
 
 
 class MessageBus(BaseMessageBus):
