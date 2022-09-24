@@ -108,6 +108,7 @@ class Message:
         signature: str = "",
         body: List[Any] = [],
         serial: int = 0,
+        validate: bool = True,
     ):
         self.destination = destination
         self.path = path
@@ -134,6 +135,8 @@ class Message:
         self.body = body
         self.serial = serial
 
+        if not validate:
+            return
         if self.destination is not None:
             assert_bus_name_valid(self.destination)
         if self.interface is not None:

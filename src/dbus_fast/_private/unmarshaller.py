@@ -318,6 +318,9 @@ class Unmarshaller:
             signature=tree.signature,
             body=[self.read_argument(t) for t in tree.types] if self.body_len else [],
             serial=self.serial,
+            # The D-Bus implementation already validates the message,
+            # so we don't need to do it again.
+            validate=False,
         )
 
     def unmarshall(self):
