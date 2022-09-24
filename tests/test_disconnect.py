@@ -1,5 +1,6 @@
 import functools
 import os
+from unittest.mock import patch
 
 import pytest
 
@@ -16,14 +17,15 @@ async def test_bus_disconnect_before_reply(event_loop):
     await bus.connect()
     assert bus.connected
 
-    ping = bus.call(
-        Message(
-            destination="org.freedesktop.DBus",
-            path="/org/freedesktop/DBus",
-            interface="org.freedesktop.DBus",
-            member="Ping",
+    with patch.object(bus, "write_callback"):
+        ping = bus.call(
+            Message(
+                destination="org.freedesktop.DBus",
+                path="/org/freedesktop/DBus",
+                interface="org.freedesktop.DBus",
+                member="Ping",
+            )
         )
-    )
 
     event_loop.call_soon(bus.disconnect)
 
