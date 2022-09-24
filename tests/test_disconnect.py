@@ -17,7 +17,7 @@ async def test_bus_disconnect_before_reply(event_loop):
     await bus.connect()
     assert bus.connected
 
-    with patch.object(bus, "_write_without_remove_writer"):
+    with patch.object(bus._writer, "_write_without_remove_writer"):
         ping = bus.call(
             Message(
                 destination="org.freedesktop.DBus",
