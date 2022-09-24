@@ -646,12 +646,19 @@ class BaseMessageBus:
                 self._name_owners[msg.destination] = reply.sender
             callback(reply, err)
 
+        no_reply_expected = msg.flags & MessageFlag.NO_REPLY_EXPECTED
+
+        # Make sure the return reply handler is installed
+        # before sending the message to avoid a race condition
+        # where the reply is lost in case the backend can
+        # send it right away.
+        if not no_reply_expected:
+            self._method_return_handlers[msg.serial] = reply_notify
+
         self.send(msg)
 
-        if msg.flags & MessageFlag.NO_REPLY_EXPECTED:
+        if no_reply_expected:
             callback(None, None)
-        else:
-            self._method_return_handlers[msg.serial] = reply_notify
 
     @staticmethod
     def _check_callback_type(callback):

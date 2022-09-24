@@ -1,5 +1,6 @@
 import functools
 import os
+from unittest.mock import patch
 
 import pytest
 
@@ -16,19 +17,20 @@ async def test_bus_disconnect_before_reply(event_loop):
     await bus.connect()
     assert bus.connected
 
-    ping = bus.call(
-        Message(
-            destination="org.freedesktop.DBus",
-            path="/org/freedesktop/DBus",
-            interface="org.freedesktop.DBus",
-            member="Ping",
+    with patch.object(bus._writer, "_write_without_remove_writer"):
+        ping = bus.call(
+            Message(
+                destination="org.freedesktop.DBus",
+                path="/org/freedesktop/DBus",
+                interface="org.freedesktop.DBus",
+                member="Ping",
+            )
         )
-    )
 
-    event_loop.call_soon(bus.disconnect)
+        event_loop.call_soon(bus.disconnect)
 
-    with pytest.raises((EOFError, BrokenPipeError)):
-        await ping
+        with pytest.raises((EOFError, BrokenPipeError)):
+            await ping
 
     assert bus._disconnected
     assert not bus.connected
@@ -42,22 +44,23 @@ async def test_unexpected_disconnect(event_loop):
     await bus.connect()
     assert bus.connected
 
-    ping = bus.call(
-        Message(
-            destination="org.freedesktop.DBus",
-            path="/org/freedesktop/DBus",
-            interface="org.freedesktop.DBus",
-            member="Ping",
+    with patch.object(bus._writer, "_write_without_remove_writer"):
+        ping = bus.call(
+            Message(
+                destination="org.freedesktop.DBus",
+                path="/org/freedesktop/DBus",
+                interface="org.freedesktop.DBus",
+                member="Ping",
+            )
         )
-    )
 
-    event_loop.call_soon(functools.partial(os.close, bus._fd))
+        event_loop.call_soon(functools.partial(os.close, bus._fd))
 
-    with pytest.raises(OSError):
-        await ping
+        with pytest.raises(OSError):
+            await ping
 
-    assert bus._disconnected
-    assert not bus.connected
+        assert bus._disconnected
+        assert not bus.connected
 
     with pytest.raises(OSError):
         await bus.wait_for_disconnect()

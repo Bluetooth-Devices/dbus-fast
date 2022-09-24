@@ -45,15 +45,16 @@ class _MessageWriter:
         self.fd = bus._fd
         self.offset = 0
         self.unix_fds = None
-        self.fut = None
+        self.fut: Optional[asyncio.Future] = None
 
-    def write_callback(self):
+    def write_callback(self, remove_writer: bool = True) -> None:
         try:
             while True:
                 if self.buf is None:
                     if self.messages.qsize() == 0:
                         # nothing more to write
-                        self.loop.remove_writer(self.fd)
+                        if remove_writer:
+                            self.loop.remove_writer(self.fd)
                         return
                     buf, unix_fds, fut = self.messages.get_nowait()
                     self.unix_fds = unix_fds
@@ -97,12 +98,28 @@ class _MessageWriter:
             )
         )
 
+    def _write_without_remove_writer(self):
+        """Call the write callback without removing the writer."""
+        self.write_callback(remove_writer=False)
+
     def schedule_write(self, msg: Message = None, future=None):
+        queue_is_empty = self.messages.qsize() == 0
         if msg is not None:
             self.buffer_message(msg, future)
         if self.bus.unique_name:
-            # don't run the writer until the bus is ready to send messages
-            self.loop.add_writer(self.fd, self.write_callback)
+            # Optimization: try to send now if the queue
+            # is empty. With bleak this usually means we
+            # can send right away 99% of the time which
+            # is a huge improvement in latency.
+            if queue_is_empty:
+                self._write_without_remove_writer()
+            if (
+                self.buf is not None
+                or self.messages.qsize() != 0
+                or not self.fut
+                or not self.fut.done()
+            ):
+                self.loop.add_writer(self.fd, self.write_callback)
 
 
 class MessageBus(BaseMessageBus):
