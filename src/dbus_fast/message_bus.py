@@ -765,10 +765,10 @@ class BaseMessageBus:
 
         if msg.message_type == MessageType.SIGNAL:
             if msg._matches(
+                member="NameOwnerChanged",  # least likely to match
                 sender="org.freedesktop.DBus",
                 path="/org/freedesktop/DBus",
                 interface="org.freedesktop.DBus",
-                member="NameOwnerChanged",
             ):
                 [name, old_owner, new_owner] = msg.body
                 if new_owner:
