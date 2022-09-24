@@ -101,8 +101,11 @@ class _MessageWriter:
         if msg is not None:
             self.buffer_message(msg, future)
         if self.bus.unique_name:
+            # Optimization: try to send now.
+            self.write_callback()
             # don't run the writer until the bus is ready to send messages
-            self.loop.add_writer(self.fd, self.write_callback)
+            if self.messages.qsize() != 0:
+                self.loop.add_writer(self.fd, self.write_callback)
 
 
 class MessageBus(BaseMessageBus):
