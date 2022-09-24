@@ -98,6 +98,10 @@ class _MessageWriter:
             )
         )
 
+    def _write_without_remove_writer(self):
+        """Call the write callback without removing the writer."""
+        self.write_callback(remove_writer=False)
+
     def schedule_write(self, msg: Message = None, future=None):
         queue_is_empty = self.messages.qsize() == 0
         if msg is not None:
@@ -106,7 +110,7 @@ class _MessageWriter:
             return
         # Optimization: try to send now.
         if queue_is_empty:
-            self.write_callback(remove_writer=False)
+            self._write_without_remove_writer()
         self.loop.add_writer(self.fd, self.write_callback)
 
 
