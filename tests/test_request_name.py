@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 
 from dbus_fast import (
@@ -68,6 +70,7 @@ async def test_name_requests():
     bus2.disconnect()
 
 
+@pytest.mark.skipif(sys.version_info[:3][1] == 10, reason="segfaults on py3.10")
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
 def test_request_name_glib():
     test_name = "glib.test.request.name"
