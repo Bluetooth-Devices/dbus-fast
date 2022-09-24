@@ -109,7 +109,7 @@ class _MessageWriter:
         if self.bus.unique_name:
             # Optimization: try to send now if the queue
             # is empty. With bleak this usually means we
-            # can send right away 85% of the time which
+            # can send right away 99% of the time which
             # is a huge improvement in latency.
             if queue_is_empty:
                 self._write_without_remove_writer()
