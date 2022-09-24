@@ -349,7 +349,7 @@ class Unmarshaller:
     }
 
     _ctype_by_endian: Dict[
-        tuple[int, bool], Dict[str, Tuple[None, str, int, Struct]]
+        Tuple[int, bool], Dict[str, Tuple[None, str, int, Struct]]
     ] = {
         endian_can_cast: {
             dbus_type: (
