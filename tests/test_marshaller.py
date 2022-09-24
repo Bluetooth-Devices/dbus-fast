@@ -2,6 +2,7 @@ import io
 import json
 import os
 from typing import Any, Dict
+from unittest.mock import patch
 
 import pytest
 
@@ -93,39 +94,46 @@ def test_marshalling_with_table():
 
 
 @pytest.mark.parametrize("unmarshall_table", (table,))
-def test_unmarshalling_with_table(unmarshall_table):
-    for item in unmarshall_table:
+@pytest.mark.parametrize("endians", ((True, False), (False, True)))
+def test_unmarshalling_with_table(unmarshall_table, endians):
+    from dbus_fast._private import unmarshaller
 
-        stream = io.BytesIO(bytes.fromhex(item["data"]))
-        unmarshaller = Unmarshaller(stream)
-        try:
-            unmarshaller.unmarshall()
-        except Exception as e:
-            print("message failed to unmarshall:")
-            print(json_dump(item["message"]))
-            raise e
+    with patch.object(unmarshaller, "IS_BIG_ENDIAN", endians[0]), patch.object(
+        unmarshaller, "IS_LITTLE_ENDIAN", endians[1]
+    ):
 
-        message = json_to_message(item["message"])
+        for item in unmarshall_table:
 
-        body = []
-        for i, type_ in enumerate(message.signature_tree.types):
-            body.append(replace_variants(type_, message.body[i]))
-        message.body = body
+            stream = io.BytesIO(bytes.fromhex(item["data"]))
+            unmarshaller = Unmarshaller(stream)
+            try:
+                unmarshaller.unmarshall()
+            except Exception as e:
+                print("message failed to unmarshall:")
+                print(json_dump(item["message"]))
+                raise e
 
-        for attr in [
-            "body",
-            "signature",
-            "message_type",
-            "destination",
-            "path",
-            "interface",
-            "member",
-            "flags",
-            "serial",
-        ]:
-            assert getattr(unmarshaller.message, attr) == getattr(
-                message, attr
-            ), f"attr doesnt match: {attr}"
+            message = json_to_message(item["message"])
+
+            body = []
+            for i, type_ in enumerate(message.signature_tree.types):
+                body.append(replace_variants(type_, message.body[i]))
+            message.body = body
+
+            for attr in [
+                "body",
+                "signature",
+                "message_type",
+                "destination",
+                "path",
+                "interface",
+                "member",
+                "flags",
+                "serial",
+            ]:
+                assert getattr(unmarshaller.message, attr) == getattr(
+                    message, attr
+                ), f"attr doesnt match: {attr}"
 
 
 def test_unmarshall_can_resume():

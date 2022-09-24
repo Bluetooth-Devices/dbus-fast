@@ -17,17 +17,25 @@ from .constants import (
     HeaderField,
 )
 
+IS_LITTLE_ENDIAN = sys.byteorder == "little"
+IS_BIG_ENDIAN = sys.byteorder == "big"
+
 MAX_UNIX_FDS = 16
 
 UNPACK_SYMBOL = {LITTLE_ENDIAN: "<", BIG_ENDIAN: ">"}
 UNPACK_LENGTHS = {BIG_ENDIAN: Struct(">III"), LITTLE_ENDIAN: Struct("<III")}
+
+UINT32_CAST = "I"
+UINT32_SIZE = 4
+UINT32_DBUS_TYPE = "u"
+UINT32_SIGNATURE = SignatureTree._get(UINT32_DBUS_TYPE).types[0]
 
 DBUS_TO_CTYPE = {
     "y": ("B", 1),  # byte
     "n": ("h", 2),  # int16
     "q": ("H", 2),  # uint16
     "i": ("i", 4),  # int32
-    "u": ("I", 4),  # uint32
+    UINT32_DBUS_TYPE: (UINT32_CAST, UINT32_SIZE),  # uint32
     "x": ("q", 8),  # int64
     "t": ("Q", 8),  # uint64
     "d": ("d", 8),  # double
@@ -36,8 +44,6 @@ DBUS_TO_CTYPE = {
 
 HEADER_SIGNATURE_SIZE = 16
 HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION = 12
-
-UINT32_SIGNATURE = SignatureTree._get("u").types[0]
 
 HEADER_DESTINATION = HeaderField.DESTINATION.name
 HEADER_PATH = HeaderField.PATH.name
@@ -179,12 +185,28 @@ class Unmarshaller:
     def read_boolean(self, _=None):
         return bool(self.read_argument(UINT32_SIGNATURE))
 
-    def read_string(self, _=None):
-        str_length = self.read_argument(UINT32_SIGNATURE)
+    def read_string_cast(self, _=None):
+        """Read a string using cast."""
+        self.offset += UINT32_SIZE + (-self.offset & (UINT32_SIZE - 1))  # align
         str_start = self.offset
         # read terminating '\0' byte as well (str_length + 1)
-        self.offset += str_length + 1
-        return self.buf[str_start : str_start + str_length].decode()
+        self.offset += (
+            self.view[self.offset - UINT32_SIZE : self.offset].cast(UINT32_CAST)[0] + 1
+        )
+        return self.buf[str_start : self.offset - 1].decode()
+
+    def read_string_unpack(self, _=None):
+        """Read a string using unpack."""
+        self.offset += UINT32_SIZE + (-self.offset & (UINT32_SIZE - 1))  # align
+        str_start = self.offset
+        # read terminating '\0' byte as well (str_length + 1)
+        self.offset += (
+            self.readers[UINT32_DBUS_TYPE][3].unpack_from(
+                self.view, str_start - UINT32_SIZE
+            )[0]
+            + 1
+        )
+        return self.buf[str_start : self.offset - 1].decode()
 
     def read_signature(self, _=None):
         signature_len = self.view[self.offset]  # byte
@@ -288,10 +310,15 @@ class Unmarshaller:
         self.msg_len = (
             self.header_len + (-self.header_len & 7) + self.body_len
         )  # align 8
-        can_cast = bool(sys.byteorder == "little" and endian == LITTLE_ENDIAN) or (
-            sys.byteorder == "big" and endian == BIG_ENDIAN
-        )
-        self.readers = self._readers_by_type[(endian, can_cast)]
+        self.readers = self._readers_by_type[
+            (
+                endian,
+                bool(
+                    (IS_LITTLE_ENDIAN and endian == LITTLE_ENDIAN)
+                    or (IS_BIG_ENDIAN and endian == BIG_ENDIAN)
+                ),
+            )
+        ]
 
     def _read_body(self):
         """Read the body of the message."""
@@ -335,12 +362,25 @@ class Unmarshaller:
             return None
         return self.message
 
-    _complex_parsers: Dict[
+    _complex_parsers_unpack: Dict[
         str, Tuple[Callable[["Unmarshaller", SignatureType], Any], None, None, None]
     ] = {
         "b": (read_boolean, None, None, None),
-        "o": (read_string, None, None, None),
-        "s": (read_string, None, None, None),
+        "o": (read_string_unpack, None, None, None),
+        "s": (read_string_unpack, None, None, None),
+        "g": (read_signature, None, None, None),
+        "a": (read_array, None, None, None),
+        "(": (read_struct, None, None, None),
+        "{": (read_dict_entry, None, None, None),
+        "v": (read_variant, None, None, None),
+    }
+
+    _complex_parsers_cast: Dict[
+        str, Tuple[Callable[["Unmarshaller", SignatureType], Any], None, None, None]
+    ] = {
+        "b": (read_boolean, None, None, None),
+        "o": (read_string_cast, None, None, None),
+        "s": (read_string_cast, None, None, None),
         "g": (read_signature, None, None, None),
         "a": (read_array, None, None, None),
         "(": (read_struct, None, None, None),
@@ -372,18 +412,18 @@ class Unmarshaller:
     _readers_by_type: Dict[Tuple[int, bool], READER_TYPE] = {
         (LITTLE_ENDIAN, True): {
             **_ctype_by_endian[(LITTLE_ENDIAN, True)],
-            **_complex_parsers,
+            **_complex_parsers_cast,
         },
         (LITTLE_ENDIAN, False): {
             **_ctype_by_endian[(LITTLE_ENDIAN, False)],
-            **_complex_parsers,
+            **_complex_parsers_unpack,
         },
         (BIG_ENDIAN, True): {
             **_ctype_by_endian[(BIG_ENDIAN, True)],
-            **_complex_parsers,
+            **_complex_parsers_cast,
         },
         (BIG_ENDIAN, False): {
             **_ctype_by_endian[(BIG_ENDIAN, False)],
-            **_complex_parsers,
+            **_complex_parsers_unpack,
         },
     }
