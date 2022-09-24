@@ -104,7 +104,6 @@ class Unmarshaller:
 
     __slots__ = (
         "unix_fds",
-        "can_cast",
         "buf",
         "view",
         "offset",
