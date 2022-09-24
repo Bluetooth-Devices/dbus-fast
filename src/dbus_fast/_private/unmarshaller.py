@@ -315,7 +315,7 @@ class Unmarshaller:
                 endian,
                 bool(
                     (IS_LITTLE_ENDIAN and endian == LITTLE_ENDIAN)
-                    or (IS_LITTLE_ENDIAN and endian == BIG_ENDIAN)
+                    or (IS_BIG_ENDIAN and endian == BIG_ENDIAN)
                 ),
             )
         ]
