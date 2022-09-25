@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.14.0 (2022-09-25)
+### Feature
+* Speed up unmarshaller read_array ([#37](https://github.com/Bluetooth-Devices/dbus-fast/issues/37)) ([`18ea18d`](https://github.com/Bluetooth-Devices/dbus-fast/commit/18ea18d7d224764b7f529cb6238ac524f0bd8318))
+
 ## v1.13.0 (2022-09-24)
 ### Feature
 * Improve unmarshall performance ([#35](https://github.com/Bluetooth-Devices/dbus-fast/issues/35)) ([`db436b7`](https://github.com/Bluetooth-Devices/dbus-fast/commit/db436b7a10a38438a9a7f50349ddb41b112c3312))
