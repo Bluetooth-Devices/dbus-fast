@@ -254,8 +254,9 @@ class Unmarshaller:
         if child_type.token == "{":
             result_dict = {}
             while self.pos - beginning_pos < array_length:
-                key, value = self.read_dict_entry(child_type)
-                result_dict[key] = value
+                self.pos += -self.pos & 7  # align 8
+                key = self.read_argument(child_type.children[0])
+                result_dict[key] = self.read_argument(child_type.children[1])
             return result_dict
 
         result_list = []
