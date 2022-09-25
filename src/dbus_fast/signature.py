@@ -417,15 +417,12 @@ class Variant:
         value: Any,
         verify: bool = True,
     ):
-        signature_str = ""
-        signature_tree = None
-        signature_type = None
-
         if type(signature) is SignatureTree:
             signature_tree = signature
         elif type(signature) is SignatureType:
             signature_type = signature
             signature_str = signature.signature
+            signature_tree = None
         elif type(signature) is str:
             signature_tree = SignatureTree._get(signature)
         else:
