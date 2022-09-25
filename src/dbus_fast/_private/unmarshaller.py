@@ -115,6 +115,7 @@ class Unmarshaller:
         "message_type",
         "flag",
         "msg_len",
+        "_uint32_unpack",
     )
 
     def __init__(self, stream: io.BufferedRWPair, sock=None):
@@ -132,6 +133,8 @@ class Unmarshaller:
         self.message_type: MessageType | None = None
         self.flag: MessageFlag | None = None
         self.msg_len = 0
+        # Only set if we cannot cast
+        self._uint32_unpack: Callable | None = None
 
     def read_sock(self, length: int) -> bytes:
         """reads from the socket, storing any fds sent and handling errors
@@ -200,12 +203,7 @@ class Unmarshaller:
         self.offset += UINT32_SIZE + (-self.offset & (UINT32_SIZE - 1))  # align
         str_start = self.offset
         # read terminating '\0' byte as well (str_length + 1)
-        self.offset += (
-            self.readers[UINT32_DBUS_TYPE][3].unpack_from(
-                self.view, str_start - UINT32_SIZE
-            )[0]
-            + 1
-        )
+        self.offset += self._uint32_unpack(self.view, str_start - UINT32_SIZE)[0] + 1
         return self.buf[str_start : self.offset - 1].decode()
 
     def read_signature(self, _=None):
@@ -232,7 +230,15 @@ class Unmarshaller:
 
     def read_array(self, type_: SignatureType):
         self.offset += -self.offset & 3  # align 4 for the array
-        array_length = self.read_argument(UINT32_SIGNATURE)
+        self.offset += (
+            -self.offset & (UINT32_SIZE - 1)
+        ) + UINT32_SIZE  # align for the uint32
+        if self._uint32_unpack:
+            array_length = self._uint32_unpack(self.view, self.offset - UINT32_SIZE)[0]
+        else:
+            array_length = self.view[self.offset - UINT32_SIZE : self.offset].cast(
+                UINT32_CAST
+            )[0]
 
         child_type = type_.children[0]
         if child_type.token in "xtd{(":
@@ -264,7 +270,7 @@ class Unmarshaller:
             return reader(self, type_)
         self.offset += size + (-self.offset & (size - 1))  # align
         if struct:  # struct only set if we cannot cast
-            return struct.unpack_from(self.view, self.offset - size)[0]
+            return struct(self.view, self.offset - size)[0]
         return self.view[self.offset - size : self.offset].cast(ctype)[0]
 
     def header_fields(self, header_length):
@@ -310,15 +316,13 @@ class Unmarshaller:
         self.msg_len = (
             self.header_len + (-self.header_len & 7) + self.body_len
         )  # align 8
-        self.readers = self._readers_by_type[
-            (
-                endian,
-                bool(
-                    (IS_LITTLE_ENDIAN and endian == LITTLE_ENDIAN)
-                    or (IS_BIG_ENDIAN and endian == BIG_ENDIAN)
-                ),
-            )
-        ]
+        can_cast = bool(
+            (IS_LITTLE_ENDIAN and endian == LITTLE_ENDIAN)
+            or (IS_BIG_ENDIAN and endian == BIG_ENDIAN)
+        )
+        self.readers = self._readers_by_type[(endian, can_cast)]
+        if not can_cast:
+            self._uint32_unpack = self.readers[UINT32_DBUS_TYPE][3]
 
     def _read_body(self):
         """Read the body of the message."""
@@ -389,7 +393,7 @@ class Unmarshaller:
     }
 
     _ctype_by_endian: Dict[
-        Tuple[int, bool], Dict[str, Tuple[None, str, int, Struct]]
+        Tuple[int, bool], Dict[str, Tuple[None, str, int, Callable]]
     ] = {
         endian_can_cast: {
             dbus_type: (
@@ -397,7 +401,9 @@ class Unmarshaller:
                 *ctype_size,
                 None
                 if endian_can_cast[1]
-                else Struct(f"{UNPACK_SYMBOL[endian_can_cast[0]]}{ctype_size[0]}"),
+                else Struct(
+                    f"{UNPACK_SYMBOL[endian_can_cast[0]]}{ctype_size[0]}"
+                ).unpack_from,
             )
             for dbus_type, ctype_size in DBUS_TO_CTYPE.items()
         }
