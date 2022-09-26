@@ -6,6 +6,8 @@ from collections import deque
 from copy import copy
 from typing import Any, Optional
 
+import async_timeout
+
 from .. import introspection as intr
 from .._private.unmarshaller import Unmarshaller
 from ..auth import Authenticator, AuthExternal
@@ -257,7 +259,8 @@ class MessageBus(BaseMessageBus):
 
         super().introspect(bus_name, path, reply_handler)
 
-        return await asyncio.wait_for(future, timeout=timeout)
+        async with async_timeout.timeout(timeout):
+            return await future
 
     async def request_name(
         self, name: str, flags: NameFlag = NameFlag.NONE
