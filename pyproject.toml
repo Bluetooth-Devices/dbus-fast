@@ -31,6 +31,7 @@ sphinxcontrib-fulltoc = {version = "^1.2.0", extras = ["docs"]}
 Sphinx = {version = "^5.1.1", extras = ["docs"]}
 myst-parser = {version = "^0.18.0", extras = ["docs"]}
 sphinx-rtd-theme = {version = "^1.0.0", extras = ["docs"]}
+async-timeout = ">=4.0.1"
 
 [tool.poetry.extras]
 docs = [
