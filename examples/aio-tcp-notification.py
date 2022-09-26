@@ -17,8 +17,6 @@ import asyncio
 
 from dbus_fast.aio import MessageBus
 
-loop = asyncio.get_running_loop()
-
 
 async def main():
     bus = await MessageBus(bus_address="tcp:host=127.0.0.1,port=55556").connect()
@@ -34,4 +32,4 @@ async def main():
     )
 
 
-loop.run_until_complete(main())
+asyncio.run(main())

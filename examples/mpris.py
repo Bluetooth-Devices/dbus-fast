@@ -8,8 +8,6 @@ import asyncio
 
 from dbus_fast.aio import MessageBus
 
-loop = asyncio.get_running_loop()
-
 
 async def main():
     bus = await MessageBus().connect()
@@ -45,4 +43,4 @@ async def main():
     await bus.wait_for_disconnect()
 
 
-loop.run_until_complete(main())
+asyncio.run(main())
