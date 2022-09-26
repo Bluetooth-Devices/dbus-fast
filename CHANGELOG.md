@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.15.0 (2022-09-26)
+### Feature
+* Use async_timeout instead of asyncio.wait_for ([#38](https://github.com/Bluetooth-Devices/dbus-fast/issues/38)) ([`cb31780`](https://github.com/Bluetooth-Devices/dbus-fast/commit/cb317802d654bbff7b09233b4cce6188179f1d45))
+
 ## v1.14.0 (2022-09-25)
 ### Feature
 * Speed up unmarshaller read_array ([#37](https://github.com/Bluetooth-Devices/dbus-fast/issues/37)) ([`18ea18d`](https://github.com/Bluetooth-Devices/dbus-fast/commit/18ea18d7d224764b7f529cb6238ac524f0bd8318))
