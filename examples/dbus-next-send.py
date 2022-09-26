@@ -101,7 +101,7 @@ else:
     if not signature:
         exit_error("--signature is a required argument when passing a message body")
 
-loop = asyncio.get_event_loop()
+loop = asyncio.get_running_loop()
 
 
 async def main():

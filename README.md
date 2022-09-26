@@ -78,7 +78,7 @@ from dbus_fast.aio import MessageBus
 
 import asyncio
 
-loop = asyncio.get_event_loop()
+loop = asyncio.get_running_loop()
 
 
 async def main():
@@ -159,9 +159,9 @@ async def main():
     # now that we are ready to handle requests, we can request name from D-Bus
     await bus.request_name('test.name')
     # wait indefinitely
-    await asyncio.get_event_loop().create_future()
+    await asyncio.get_running_loop().create_future()
 
-asyncio.get_event_loop().run_until_complete(main())
+asyncio.get_running_loop().run_until_complete(main())
 ```
 
 ## The Low-Level Interface
@@ -177,7 +177,7 @@ from dbus_fast.aio import MessageBus
 import asyncio
 import json
 
-loop = asyncio.get_event_loop()
+loop = asyncio.get_running_loop()
 
 
 async def main():

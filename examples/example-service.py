@@ -64,4 +64,4 @@ async def main():
     await bus.wait_for_disconnect()
 
 
-asyncio.get_event_loop().run_until_complete(main())
+asyncio.get_running_loop().run_until_complete(main())

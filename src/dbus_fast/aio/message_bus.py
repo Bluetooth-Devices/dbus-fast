@@ -161,7 +161,7 @@ class MessageBus(BaseMessageBus):
     ):
         super().__init__(bus_address, bus_type, ProxyObject)
         self._negotiate_unix_fd = negotiate_unix_fd
-        self._loop = asyncio.get_event_loop()
+        self._loop = asyncio.get_running_loop()
         self._unmarshaller = self._create_unmarshaller()
 
         self._writer = _MessageWriter(self)

@@ -60,7 +60,7 @@ class SecondExampleInterface(ServiceInterface):
 
 class ExpectMessage:
     def __init__(self, bus1, bus2, interface_name, timeout=1):
-        self.future = asyncio.get_event_loop().create_future()
+        self.future = asyncio.get_running_loop().create_future()
         self.bus1 = bus1
         self.bus2 = bus2
         self.interface_name = interface_name
@@ -78,7 +78,7 @@ class ExpectMessage:
 
     async def __aenter__(self):
         self.bus2.add_message_handler(self.message_handler)
-        self.timeout_task = asyncio.get_event_loop().call_later(
+        self.timeout_task = asyncio.get_running_loop().call_later(
             self.timeout, self.timeout_cb
         )
 

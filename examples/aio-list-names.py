@@ -10,7 +10,7 @@ import json
 from dbus_fast import Message, MessageType
 from dbus_fast.aio import MessageBus
 
-loop = asyncio.get_event_loop()
+loop = asyncio.get_running_loop()
 
 
 async def main():
