@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.15.1 (2022-09-26)
+### Fix
+* Loosen async-timeout pin to 3.0.0 ([#39](https://github.com/Bluetooth-Devices/dbus-fast/issues/39)) ([`93b9a0a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/93b9a0a6ca91adb6c64d9316bd977a359c3be007))
+
 ## v1.15.0 (2022-09-26)
 ### Feature
 * Use async_timeout instead of asyncio.wait_for ([#38](https://github.com/Bluetooth-Devices/dbus-fast/issues/38)) ([`cb31780`](https://github.com/Bluetooth-Devices/dbus-fast/commit/cb317802d654bbff7b09233b4cce6188179f1d45))
