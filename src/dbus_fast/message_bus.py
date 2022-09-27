@@ -60,7 +60,7 @@ class BaseMessageBus:
         bus_address: Optional[str] = None,
         bus_type: BusType = BusType.SESSION,
         ProxyObject: Optional[Type[BaseProxyObject]] = None,
-    ):
+    ) -> None:
         self.unique_name = None
         self._disconnected = False
 
@@ -98,12 +98,12 @@ class BaseMessageBus:
         self._setup_socket()
 
     @property
-    def connected(self):
+    def connected(self) -> bool:
         if self.unique_name is None or self._disconnected or self._user_disconnect:
             return False
         return True
 
-    def export(self, path: str, interface: ServiceInterface):
+    def export(self, path: str, interface: ServiceInterface) -> None:
         """Export the service interface on this message bus to make it available
         to other clients.
 
@@ -136,7 +136,7 @@ class BaseMessageBus:
 
     def unexport(
         self, path: str, interface: Optional[Union[ServiceInterface, str]] = None
-    ):
+    ) -> None:
         """Unexport the path or service interface to make it no longer
         available to clients.
 
@@ -190,7 +190,7 @@ class BaseMessageBus:
         bus_name: str,
         path: str,
         callback: Callable[[Optional[intr.Node], Optional[Exception]], None],
-    ):
+    ) -> None:
         """Get introspection data for the node at the given path from the given
         bus name.
 
@@ -231,7 +231,7 @@ class BaseMessageBus:
             reply_notify,
         )
 
-    def _emit_interface_added(self, path, interface):
+    def _emit_interface_added(self, path: str, interface: ServiceInterface) -> None:
         """Emit the ``org.freedesktop.DBus.ObjectManager.InterfacesAdded`` signal.
 
         This signal is intended to be used to alert clients when
@@ -427,7 +427,7 @@ class BaseMessageBus:
 
         return self._ProxyObject(bus_name, path, introspection, self)
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         """Disconnect the message bus by closing the underlying connection asynchronously.
 
         All pending  and future calls will error with a connection error.
@@ -634,7 +634,9 @@ class BaseMessageBus:
         if err:
             raise err
 
-    def _call(self, msg, callback, check_callback: bool = True) -> None:
+    def _call(
+        self, msg: Message, callback: Callable, check_callback: bool = True
+    ) -> None:
         if check_callback:
             BaseMessageBus._check_callback_type(callback)
 
@@ -661,7 +663,7 @@ class BaseMessageBus:
             callback(None, None)
 
     @staticmethod
-    def _check_callback_type(callback):
+    def _check_callback_type(callback: Callable) -> None:
         """Raise a TypeError if the user gives an invalid callback as a parameter"""
 
         text = "a callback must be callable with two parameters"
@@ -674,7 +676,7 @@ class BaseMessageBus:
             raise TypeError(text)
 
     @staticmethod
-    def _check_method_return(msg, err, signature):
+    def _check_method_return(msg: Message, err: Exception, signature: str) -> None:
         if err:
             raise err
         elif (
@@ -688,7 +690,7 @@ class BaseMessageBus:
                 ErrorType.INTERNAL_ERROR, "invalid message type for method call", msg
             )
 
-    def _on_message(self, msg):
+    def _on_message(self, msg: Message) -> None:
         try:
             self._process_message(msg)
         except Exception as e:
@@ -696,7 +698,7 @@ class BaseMessageBus:
                 f"got unexpected error processing a message: {e}.\n{traceback.format_exc()}"
             )
 
-    def _send_reply(self, msg):
+    def _send_reply(self, msg: Message):
         bus = self
 
         class SendReply:
@@ -735,7 +737,7 @@ class BaseMessageBus:
 
         return SendReply()
 
-    def _process_message(self, msg):
+    def _process_message(self, msg: Message) -> None:
         handled = False
 
         for handler in self._user_message_handlers:
@@ -820,7 +822,9 @@ class BaseMessageBus:
 
         return handler
 
-    def _find_message_handler(self, msg):
+    def _find_message_handler(
+        self, msg: Message
+    ) -> Optional[Callable[[Message, Callable], None]]:
         handler = None
 
         if msg._matches(
@@ -860,14 +864,20 @@ class BaseMessageBus:
 
         return handler
 
-    def _default_introspect_handler(self, msg, send_reply):
+    def _default_introspect_handler(
+        self, msg: Message, send_reply: Callable[[Message], None]
+    ) -> None:
         introspection = self._introspect_export_path(msg.path).tostring()
         send_reply(Message.new_method_return(msg, "s", [introspection]))
 
-    def _default_ping_handler(self, msg, send_reply):
+    def _default_ping_handler(
+        self, msg: Message, send_reply: Callable[[Message], None]
+    ) -> None:
         send_reply(Message.new_method_return(msg))
 
-    def _default_get_machine_id_handler(self, msg, send_reply):
+    def _default_get_machine_id_handler(
+        self, msg: Message, send_reply: Callable[[Message], None]
+    ) -> None:
         if self._machine_id:
             send_reply(Message.new_method_return(msg, "s", self._machine_id))
             return
@@ -898,7 +908,9 @@ class BaseMessageBus:
             check_callback=False,
         )
 
-    def _default_get_managed_objects_handler(self, msg, send_reply):
+    def _default_get_managed_objects_handler(
+        self, msg: Message, send_reply: Callable[[Message], None]
+    ) -> None:
         result = {}
         result_signature = "a{oa{sa{sv}}}"
         error_handled = False
@@ -948,7 +960,9 @@ class BaseMessageBus:
                     interface, get_all_properties_callback, node
                 )
 
-    def _default_properties_handler(self, msg, send_reply):
+    def _default_properties_handler(
+        self, msg: Message, send_reply: Callable[[Message], None]
+    ) -> None:
         methods = {"Get": "ss", "Set": "ssv", "GetAll": "s"}
         if msg.member not in methods or methods[msg.member] != msg.signature:
             raise DBusError(
@@ -1090,7 +1104,7 @@ class BaseMessageBus:
         else:
             assert False
 
-    def _init_high_level_client(self):
+    def _init_high_level_client(self) -> None:
         """The high level client is initialized when the first proxy object is
         gotten. Currently just sets up the match rules for the name owner cache
         so signals can be routed to the right objects."""
@@ -1134,7 +1148,7 @@ class BaseMessageBus:
 
         self._match_rules[match_rule] = 1
 
-        def add_match_notify(msg, err):
+        def add_match_notify(msg: Message, err: Optional[Exception]) -> None:
             if err:
                 logging.error(f'add match request failed. match="{match_rule}", {err}')
             if msg.message_type == MessageType.ERROR:
