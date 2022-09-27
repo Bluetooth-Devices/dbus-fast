@@ -4,7 +4,8 @@ import logging
 import re
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
-from typing import Callable, Coroutine, Dict, List, Type, Union
+from functools import lru_cache
+from typing import Callable, Coroutine, Dict, List, Optional, Type, Union
 
 from . import introspection as intr
 from . import message_bus
@@ -50,7 +51,13 @@ class BaseProxyInterface:
     :vartype bus: :class:`BaseMessageBus <dbus_fast.message_bus.BaseMessageBus>`
     """
 
-    def __init__(self, bus_name, path, introspection, bus):
+    def __init__(
+        self,
+        bus_name: str,
+        path: str,
+        introspection: intr.Interface,
+        bus: "message_bus.BaseMessageBus",
+    ) -> None:
 
         self.bus_name = bus_name
         self.path = path
@@ -63,12 +70,13 @@ class BaseProxyInterface:
     _underscorer2 = re.compile(r"([a-z0-9])([A-Z])")
 
     @staticmethod
-    def _to_snake_case(member):
+    @lru_cache(maxsize=128)
+    def _to_snake_case(member: str) -> str:
         subbed = BaseProxyInterface._underscorer1.sub(r"\1_\2", member)
         return BaseProxyInterface._underscorer2.sub(r"\1_\2", subbed).lower()
 
     @staticmethod
-    def _check_method_return(msg, signature=None):
+    def _check_method_return(msg: Message, signature: Optional[str] = None):
         if msg.message_type == MessageType.ERROR:
             raise DBusError._from_message(msg)
         elif msg.message_type != MessageType.METHOD_RETURN:
@@ -82,13 +90,13 @@ class BaseProxyInterface:
                 msg,
             )
 
-    def _add_method(self, intr_method):
+    def _add_method(self, intr_method: intr.Method) -> None:
         raise NotImplementedError("this must be implemented in the inheriting class")
 
-    def _add_property(self, intr_property):
+    def _add_property(self, intr_property: intr.Property) -> None:
         raise NotImplementedError("this must be implemented in the inheriting class")
 
-    def _message_handler(self, msg):
+    def _message_handler(self, msg: Message) -> None:
         if (
             not msg._matches(
                 message_type=MessageType.SIGNAL,
@@ -133,8 +141,8 @@ class BaseProxyInterface:
             if isinstance(cb_result, Coroutine):
                 asyncio.create_task(cb_result)
 
-    def _add_signal(self, intr_signal, interface):
-        def on_signal_fn(fn, *, unpack_variants: bool = False):
+    def _add_signal(self, intr_signal: intr.Signal, interface: intr.Interface) -> None:
+        def on_signal_fn(fn: Callable, *, unpack_variants: bool = False):
             fn_signature = inspect.signature(fn)
             if 0 < len(
                 [
@@ -173,7 +181,7 @@ class BaseProxyInterface:
                 SignalHandler(fn, unpack_variants)
             )
 
-        def off_signal_fn(fn, *, unpack_variants: bool = False):
+        def off_signal_fn(fn: Callable, *, unpack_variants: bool = False) -> None:
             try:
                 i = self._signal_handlers[intr_signal.name].index(
                     SignalHandler(fn, unpack_variants)
@@ -235,7 +243,7 @@ class BaseProxyObject:
         introspection: Union[intr.Node, str, ET.Element],
         bus: "message_bus.BaseMessageBus",
         ProxyInterface: Type[BaseProxyInterface],
-    ):
+    ) -> None:
         assert_object_path_valid(path)
         assert_bus_name_valid(bus_name)
 
@@ -296,7 +304,7 @@ class BaseProxyObject:
         for intr_signal in intr_interface.signals:
             interface._add_signal(intr_signal, interface)
 
-        def get_owner_notify(msg, err):
+        def get_owner_notify(msg: Message, err: Optional[Exception]) -> None:
             if err:
                 logging.error(f'getting name owner for "{name}" failed, {err}')
                 return
