@@ -32,6 +32,7 @@ class SignatureType:
     """
 
     _tokens = "ybnqiuxtdsogavh({"
+    __slots__ = ("token", "children", "_signature")
 
     def __init__(self, token: str) -> None:
         self.token = token
