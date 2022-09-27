@@ -1,5 +1,5 @@
 import xml.etree.ElementTree as ET
-from typing import Any, List, Union
+from typing import TYPE_CHECKING, Any, List, Union
 
 from .. import introspection as intr
 from .._private.util import replace_fds_with_idx, replace_idx_with_fds
@@ -10,7 +10,9 @@ from ..message_bus import BaseMessageBus
 from ..proxy_object import BaseProxyInterface, BaseProxyObject
 from ..signature import Variant
 from ..signature import unpack_variants as unpack
-from .message_bus import MessageBus as AioMessageBus
+
+if TYPE_CHECKING:
+    from .message_bus import MessageBus as AioMessageBus
 
 
 class ProxyInterface(BaseProxyInterface):
