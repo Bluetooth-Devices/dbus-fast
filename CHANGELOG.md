@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.15.3 (2022-09-27)
+### Fix
+* Improve typing on proxy_object ([#41](https://github.com/Bluetooth-Devices/dbus-fast/issues/41)) ([`ac955b5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ac955b50ea2921b114f6a89c2e1d3fbf34698deb))
+
 ## v1.15.2 (2022-09-27)
 ### Fix
 * More typing fixes ([#40](https://github.com/Bluetooth-Devices/dbus-fast/issues/40)) ([`a6b9581`](https://github.com/Bluetooth-Devices/dbus-fast/commit/a6b9581d6228bf2cb4b93531677acc959e2d4dd1))
