@@ -77,7 +77,7 @@ class ProxyInterface(BaseProxyInterface):
     <dbus_fast.DBusError>` will be raised with information about the error.
     """
 
-    bus: AioMessageBus
+    bus: "AioMessageBus"
 
     def _add_method(self, intr_method: intr.Method) -> None:
         async def method_fn(
