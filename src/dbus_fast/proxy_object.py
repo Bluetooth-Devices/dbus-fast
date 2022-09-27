@@ -5,18 +5,16 @@ import re
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import TYPE_CHECKING, Callable, Coroutine, Dict, List, Optional, Type, Union
+from typing import Callable, Coroutine, Dict, List, Optional, Type, Union
 
 from . import introspection as intr
+from . import message_bus
 from ._private.util import replace_idx_with_fds
 from .constants import ErrorType, MessageType
 from .errors import DBusError, InterfaceNotFoundError
 from .message import Message
 from .signature import unpack_variants as unpack
 from .validators import assert_bus_name_valid, assert_object_path_valid
-
-if TYPE_CHECKING:
-    from . import message_bus
 
 
 @dataclass
