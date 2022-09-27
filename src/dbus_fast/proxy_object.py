@@ -4,6 +4,7 @@ import logging
 import re
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
+from functools import lru_cache
 from typing import TYPE_CHECKING, Callable, Coroutine, Dict, List, Optional, Type, Union
 
 from . import introspection as intr
@@ -71,7 +72,8 @@ class BaseProxyInterface:
     _underscorer2 = re.compile(r"([a-z0-9])([A-Z])")
 
     @staticmethod
-    def _to_snake_case(member):
+    @lru_cache(maxsize=128)
+    def _to_snake_case(member: str) -> str:
         subbed = BaseProxyInterface._underscorer1.sub(r"\1_\2", member)
         return BaseProxyInterface._underscorer2.sub(r"\1_\2", subbed).lower()
 
