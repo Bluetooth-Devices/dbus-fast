@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.17.0 (2022-09-27)
+### Feature
+* Improve unmarshaller performance ([#43](https://github.com/Bluetooth-Devices/dbus-fast/issues/43)) ([`c4b4a03`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c4b4a038f8822b6be7b062184b8092b6249878bc))
+
 ## v1.16.0 (2022-09-27)
 ### Feature
 * Add benchmark for bluez properties messages ([#42](https://github.com/Bluetooth-Devices/dbus-fast/issues/42)) ([`076c5df`](https://github.com/Bluetooth-Devices/dbus-fast/commit/076c5df825221901d1565e45f8662d7d9009ffe9))
