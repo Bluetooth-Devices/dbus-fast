@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.18.0 (2022-10-01)
+### Feature
+* Add optional cython extension ([#44](https://github.com/Bluetooth-Devices/dbus-fast/issues/44)) ([`b737574`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b737574cf04f5c6b6f881fbdce2663119a6dc404))
+
 ## v1.17.0 (2022-09-27)
 ### Feature
 * Improve unmarshaller performance ([#43](https://github.com/Bluetooth-Devices/dbus-fast/issues/43)) ([`c4b4a03`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c4b4a038f8822b6be7b062184b8092b6249878bc))
