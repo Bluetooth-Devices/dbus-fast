@@ -27,20 +27,15 @@ packages = [
 python = "^3.7"
 
 # Documentation Dependencies
-sphinxcontrib-asyncio = {version = "^0.3.0", extras = ["docs"]}
-sphinxcontrib-fulltoc = {version = "^1.2.0", extras = ["docs"]}
-Sphinx = {version = "^5.1.1", extras = ["docs"]}
-myst-parser = {version = "^0.18.0", extras = ["docs"]}
-sphinx-rtd-theme = {version = "^1.0.0", extras = ["docs"]}
 async-timeout = ">=3.0.0"
 
 [tool.poetry.extras]
 docs = [
-    "myst-parser",
-    "sphinx",
-    "sphinx-rtd-theme",
-    "sphinxcontrib-asyncio",
-    "sphinxcontrib-fulltoc"
+    "myst-parser = ^0.18.0",
+    "sphinx = ^5.1.1",
+    "sphinx-rtd-theme = ^1.0.0",
+    "sphinxcontrib-asyncio = ^0.3.0",
+    "sphinxcontrib-fulltoc = ^1.2.0"
 ]
 
 [tool.poetry.dev-dependencies]
