@@ -14,6 +14,7 @@ classifiers = [
     "Operating System :: OS Independent",
     "Topic :: Software Development :: Libraries",
 ]
+build = "build.py"
 packages = [
     { include = "dbus_fast", from = "src" },
 ]
@@ -50,6 +51,8 @@ pytest-asyncio = "^0.19.0"
 [tool.poetry.group.dev.dependencies]
 pycairo = "^1.21.0"
 PyGObject = "^3.42.2"
+Cython = "^0.29.32"
+setuptools = "^65.4.1"
 
 [tool.semantic_release]
 branch = "main"
@@ -100,5 +103,5 @@ module = "docs.*"
 ignore_errors = true
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ['setuptools>=65.4.1', 'wheel', 'Cython', "poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
