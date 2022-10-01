@@ -227,8 +227,8 @@ class Unmarshaller:
         str_start = self.pos
         # read terminating '\0' byte as well (str_length + 1)
         start_pos = self.pos - UINT32_SIZE
-        end_pos = self.pos - 1
         self.pos += self.view[start_pos : self.pos].cast(UINT32_CAST)[0] + 1
+        end_pos = self.pos - 1
         return self.buf[str_start:end_pos].decode()
 
     def read_string_unpack(self, type_=None) -> str:
