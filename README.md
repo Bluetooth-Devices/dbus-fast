@@ -48,7 +48,8 @@ Desktop users can use this library to create their own scripts and utilities to 
 
 dbus-fast plans to improve over other DBus libraries for Python in the following ways:
 
-- Zero dependencies and pure Python 3.
+- Zero dependencies and pure Python 3
+- An optional cython extension is available to speed up (un)marshalling
 - Focus on performance
 - Support for multiple IO backends including asyncio and the GLib main loop.
 - Nonblocking IO suitable for GUI development.
