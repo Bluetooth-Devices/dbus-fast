@@ -186,7 +186,7 @@ class Unmarshaller:
 
         return msg
 
-    def read_to_pos(self, pos: int) -> None:
+    def read_to_pos(self, pos) -> None:
         """
         Read from underlying socket into buffer.
 
@@ -301,7 +301,7 @@ class Unmarshaller:
             result_list.append(self.readers[child_type.token](self, child_type))
         return result_list
 
-    def header_fields(self, header_length: int) -> Dict[str, Any]:
+    def header_fields(self, header_length) -> Dict[str, Any]:
         """Header fields are always a(yv)."""
         beginning_pos = self.pos
         headers = {}
