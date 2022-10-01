@@ -61,7 +61,7 @@ jobs:
         run: |
           if [ "${{ matrix.extension }}" = "skip_cython" ]; then
             SKIP_CYTHON=1 poetry install
-          else:
+          else
             poetry install
           fi
       - name: Test with Pytest
