@@ -438,7 +438,6 @@ sphinxcontrib-htmlhelp = ">=2.0.0"
 sphinxcontrib-jsmath = "*"
 sphinxcontrib-qthelp = "*"
 sphinxcontrib-serializinghtml = ">=1.1.5"
-sphinxcontrib-websupport = {version = "*", optional = true, markers = "extra == \"docs\""}
 
 [package.extras]
 docs = ["sphinxcontrib-websupport"]
@@ -551,21 +550,6 @@ lint = ["docutils-stubs", "flake8", "mypy"]
 test = ["pytest"]
 
 [[package]]
-name = "sphinxcontrib-websupport"
-version = "1.2.4"
-description = "Sphinx API for Web Apps"
-category = "main"
-optional = false
-python-versions = ">=3.5"
-
-[package.dependencies]
-sphinxcontrib-serializinghtml = "*"
-
-[package.extras]
-lint = ["flake8"]
-test = ["Sphinx", "pytest", "sqlalchemy", "whoosh"]
-
-[[package]]
 name = "tomli"
 version = "2.0.1"
 description = "A lil' TOML parser"
@@ -612,7 +596,7 @@ docs = ["myst-parser", "Sphinx", "sphinx-rtd-theme", "sphinxcontrib-asyncio", "s
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "ec05641a5a06397f73a3b3e3b91a13d1464f0c465b3fd7bca44af86f065036cd"
+content-hash = "96d521d1e66777febd43aad81ec451dbf5a15873e1434052283b6ecdf3095c07"
 
 [metadata.files]
 alabaster = [
@@ -954,10 +938,6 @@ sphinxcontrib-qthelp = [
 sphinxcontrib-serializinghtml = [
     {file = "sphinxcontrib-serializinghtml-1.1.5.tar.gz", hash = "sha256:aa5f6de5dfdf809ef505c4895e51ef5c9eac17d0f287933eb49ec495280b6952"},
     {file = "sphinxcontrib_serializinghtml-1.1.5-py2.py3-none-any.whl", hash = "sha256:352a9a00ae864471d3a7ead8d7d79f5fc0b57e8b3f95e9867eb9eb28999b92fd"},
-]
-sphinxcontrib-websupport = [
-    {file = "sphinxcontrib-websupport-1.2.4.tar.gz", hash = "sha256:4edf0223a0685a7c485ae5a156b6f529ba1ee481a1417817935b20bde1956232"},
-    {file = "sphinxcontrib_websupport-1.2.4-py2.py3-none-any.whl", hash = "sha256:6fc9287dfc823fe9aa432463edd6cea47fa9ebbf488d7f289b322ffcfca075c7"},
 ]
 tomli = [
     {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
