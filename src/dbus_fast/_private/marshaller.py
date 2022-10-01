@@ -9,7 +9,7 @@ PACK_UINT32 = Struct("<I").pack
 class Marshaller:
     """Marshall data for Dbus."""
 
-    __slots__ = ("signature_tree", "buffer", "body")
+    __slots__ = ("signature_tree", "_buf", "body")
 
     def __init__(self, signature: str, body: List[Any]) -> None:
         """Marshaller constructor."""

@@ -1,6 +1,7 @@
 """Build optional cython modules."""
 
 import contextlib
+import os
 from distutils.command.build_ext import build_ext
 
 
@@ -13,6 +14,8 @@ class BuildExt(build_ext):
 
 
 def build(setup_kwargs):
+    if os.environ.get("SKIP_CYTHON", False):
+        return
     with contextlib.suppress(Exception):
         from Cython.Build import cythonize
 
