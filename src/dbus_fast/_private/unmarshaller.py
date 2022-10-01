@@ -226,10 +226,10 @@ class Unmarshaller:
         self.pos += UINT32_SIZE + (-self.pos & (UINT32_SIZE - 1))  # align
         str_start = self.pos
         # read terminating '\0' byte as well (str_length + 1)
-        self.pos += (
-            self.view[self.pos - UINT32_SIZE : self.pos].cast(UINT32_CAST)[0] + 1
-        )
-        return self.buf[str_start : self.pos - 1].decode()
+        start_pos = self.pos - UINT32_SIZE
+        end_pos = self.pos - 1
+        self.pos += self.view[start_pos : self.pos].cast(UINT32_CAST)[0] + 1
+        return self.buf[str_start:end_pos].decode()
 
     def read_string_unpack(self, type_=None) -> str:
         """Read a string using unpack."""
@@ -255,9 +255,9 @@ class Unmarshaller:
 
     def read_struct(self, type_=None) -> List[Any]:
         self.pos += -self.pos & 7  # align 8
+        readers = self.readers
         return [
-            self.readers[child_type.token](self, child_type)
-            for child_type in type_.children
+            readers[child_type.token](self, child_type) for child_type in type_.children
         ]
 
     def read_dict_entry(self, type_: SignatureType) -> Dict[Any, Any]:
@@ -288,22 +288,23 @@ class Unmarshaller:
             return self.buf[self.pos - array_length : self.pos]
 
         beginning_pos = self.pos
+        readers = self.readers
 
         if child_type.token == "{":
             result_dict = {}
             while self.pos - beginning_pos < array_length:
                 self.pos += -self.pos & 7  # align 8
-                key = self.readers[child_type.children[0].token](
+                key = readers[child_type.children[0].token](
                     self, child_type.children[0]
                 )
-                result_dict[key] = self.readers[child_type.children[1].token](
+                result_dict[key] = readers[child_type.children[1].token](
                     self, child_type.children[1]
                 )
             return result_dict
 
         result_list = []
         while self.pos - beginning_pos < array_length:
-            result_list.append(self.readers[child_type.token](self, child_type))
+            result_list.append(readers[child_type.token](self, child_type))
         return result_list
 
     def header_fields(self, header_length) -> Dict[str, Any]:

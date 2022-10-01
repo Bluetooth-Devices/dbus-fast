@@ -41,7 +41,7 @@ class Marshaller:
         self._buf.append(0)
         return signature_len + 2
 
-    def write_string(self, value: str, _=None) -> int:
+    def write_string(self, value, _=None) -> int:
         value_bytes = value.encode()
         value_len = len(value)
         written = self.align(4) + 4

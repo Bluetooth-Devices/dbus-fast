@@ -48,9 +48,14 @@ cdef class Unmarshaller:
     )
     cpdef read_signature(self, type_ = *)
 
+    @cython.locals(
+        endian=cython.uint,
+        protocol_version=cython.uint,
+    )
     cpdef _read_header(self)
 
     @cython.locals(
+        beginning_pos=cython.ulong,
         o=cython.ulong,
         signature_len=cython.uint,
     )
