@@ -135,7 +135,7 @@ class Unmarshaller:
         "pos",
         "stream",
         "sock",
-        "message",
+        "_message",
         "readers",
         "body_len",
         "serial",
@@ -153,7 +153,7 @@ class Unmarshaller:
         self.pos = 0
         self.stream = stream
         self.sock = sock
-        self.message: Message | None = None
+        self._message: Message | None = None
         self.readers: Dict[str, READER_TYPE] = {}
         self.body_len = 0
         self.serial = 0
@@ -163,6 +163,11 @@ class Unmarshaller:
         self.msg_len = 0
         # Only set if we cannot cast
         self._uint32_unpack: Callable | None = None
+
+    @property
+    def message(self) -> Message:
+        """Return the message that has been unmarshalled."""
+        return self._message
 
     def read_sock(self, length: int) -> bytes:
         """reads from the socket, storing any fds sent and handling errors
@@ -362,7 +367,7 @@ class Unmarshaller:
         header_fields = self.header_fields(self.header_len)
         self.pos += -self.pos & 7  # align 8
         tree = SignatureTree._get(header_fields.get(HeaderField.SIGNATURE.name, ""))
-        self.message = Message(
+        self._message = Message(
             destination=header_fields.get(HEADER_DESTINATION),
             path=header_fields.get(HEADER_PATH),
             interface=header_fields.get(HEADER_INTERFACE),

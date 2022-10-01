@@ -17,7 +17,7 @@ cdef class Unmarshaller:
     cdef unsigned int pos
     cdef object stream
     cdef object sock
-    cdef object message
+    cdef object _message
     cdef object readers
     cdef unsigned int body_len
     cdef unsigned int serial
