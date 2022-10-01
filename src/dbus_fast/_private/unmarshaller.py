@@ -128,12 +128,6 @@ class MarshallerStreamEndError(Exception):
 #
 class Unmarshaller:
 
-    buf: bytearray
-    view: memoryview
-    message: Message
-    unpack: Dict[str, Struct]
-    readers: READER_TYPE
-
     __slots__ = (
         "unix_fds",
         "buf",
@@ -141,7 +135,7 @@ class Unmarshaller:
         "pos",
         "stream",
         "sock",
-        "message",
+        "_message",
         "readers",
         "body_len",
         "serial",
@@ -159,16 +153,21 @@ class Unmarshaller:
         self.pos = 0
         self.stream = stream
         self.sock = sock
-        self.message = None
-        self.readers = None
-        self.body_len: int | None = None
-        self.serial: int | None = None
-        self.header_len: int | None = None
+        self._message: Message | None = None
+        self.readers: Dict[str, READER_TYPE] = {}
+        self.body_len = 0
+        self.serial = 0
+        self.header_len = 0
         self.message_type: MessageType | None = None
         self.flag: MessageFlag | None = None
         self.msg_len = 0
         # Only set if we cannot cast
         self._uint32_unpack: Callable | None = None
+
+    @property
+    def message(self) -> Message:
+        """Return the message that has been unmarshalled."""
+        return self._message
 
     def read_sock(self, length: int) -> bytes:
         """reads from the socket, storing any fds sent and handling errors
@@ -192,7 +191,7 @@ class Unmarshaller:
 
         return msg
 
-    def read_to_pos(self, pos: int) -> None:
+    def read_to_pos(self, pos) -> None:
         """
         Read from underlying socket into buffer.
 
@@ -219,20 +218,20 @@ class Unmarshaller:
         if len(data) + start_len != pos:
             raise MarshallerStreamEndError()
 
-    def read_boolean(self, _=None):
+    def read_boolean(self, type_=None) -> bool:
         return bool(self.readers[UINT32_SIGNATURE.token](self, UINT32_SIGNATURE))
 
-    def read_string_cast(self, _=None):
+    def read_string_cast(self, type_=None) -> str:
         """Read a string using cast."""
         self.pos += UINT32_SIZE + (-self.pos & (UINT32_SIZE - 1))  # align
         str_start = self.pos
         # read terminating '\0' byte as well (str_length + 1)
-        self.pos += (
-            self.view[self.pos - UINT32_SIZE : self.pos].cast(UINT32_CAST)[0] + 1
-        )
-        return self.buf[str_start : self.pos - 1].decode()
+        start_pos = self.pos - UINT32_SIZE
+        self.pos += self.view[start_pos : self.pos].cast(UINT32_CAST)[0] + 1
+        end_pos = self.pos - 1
+        return self.buf[str_start:end_pos].decode()
 
-    def read_string_unpack(self, _=None):
+    def read_string_unpack(self, type_=None) -> str:
         """Read a string using unpack."""
         self.pos += UINT32_SIZE + (-self.pos & (UINT32_SIZE - 1))  # align
         str_start = self.pos
@@ -240,34 +239,34 @@ class Unmarshaller:
         self.pos += self._uint32_unpack(self.view, str_start - UINT32_SIZE)[0] + 1
         return self.buf[str_start : self.pos - 1].decode()
 
-    def read_signature(self, _=None):
+    def read_signature(self, type_=None) -> str:
         signature_len = self.view[self.pos]  # byte
         o = self.pos + 1
         # read terminating '\0' byte as well (str_length + 1)
         self.pos = o + signature_len + 1
         return self.buf[o : o + signature_len].decode()
 
-    def read_variant(self, _=None):
+    def read_variant(self, type_=None) -> Variant:
         tree = SignatureTree._get(self.read_signature())
         # verify in Variant is only useful on construction not unmarshalling
         return Variant(
             tree, self.readers[tree.types[0].token](self, tree.types[0]), verify=False
         )
 
-    def read_struct(self, type_: SignatureType):
+    def read_struct(self, type_=None) -> List[Any]:
         self.pos += -self.pos & 7  # align 8
+        readers = self.readers
         return [
-            self.readers[child_type.token](self, child_type)
-            for child_type in type_.children
+            readers[child_type.token](self, child_type) for child_type in type_.children
         ]
 
-    def read_dict_entry(self, type_: SignatureType):
+    def read_dict_entry(self, type_: SignatureType) -> Dict[Any, Any]:
         self.pos += -self.pos & 7  # align 8
         return self.readers[type_.children[0].token](
             self, type_.children[0]
         ), self.readers[type_.children[1].token](self, type_.children[1])
 
-    def read_array(self, type_: SignatureType):
+    def read_array(self, type_: SignatureType) -> List[Any]:
         self.pos += -self.pos & 3  # align 4 for the array
         self.pos += (
             -self.pos & (UINT32_SIZE - 1)
@@ -289,25 +288,26 @@ class Unmarshaller:
             return self.buf[self.pos - array_length : self.pos]
 
         beginning_pos = self.pos
+        readers = self.readers
 
         if child_type.token == "{":
             result_dict = {}
             while self.pos - beginning_pos < array_length:
                 self.pos += -self.pos & 7  # align 8
-                key = self.readers[child_type.children[0].token](
+                key = readers[child_type.children[0].token](
                     self, child_type.children[0]
                 )
-                result_dict[key] = self.readers[child_type.children[1].token](
+                result_dict[key] = readers[child_type.children[1].token](
                     self, child_type.children[1]
                 )
             return result_dict
 
         result_list = []
         while self.pos - beginning_pos < array_length:
-            result_list.append(self.readers[child_type.token](self, child_type))
+            result_list.append(readers[child_type.token](self, child_type))
         return result_list
 
-    def header_fields(self, header_length):
+    def header_fields(self, header_length) -> Dict[str, Any]:
         """Header fields are always a(yv)."""
         beginning_pos = self.pos
         headers = {}
@@ -326,7 +326,7 @@ class Unmarshaller:
             )
         return headers
 
-    def _read_header(self):
+    def _read_header(self) -> None:
         """Read the header of the message."""
         # Signature is of the header is
         # BYTE, BYTE, BYTE, BYTE, UINT32, UINT32, ARRAY of STRUCT of (BYTE,VARIANT)
@@ -368,7 +368,7 @@ class Unmarshaller:
         header_fields = self.header_fields(self.header_len)
         self.pos += -self.pos & 7  # align 8
         tree = SignatureTree._get(header_fields.get(HeaderField.SIGNATURE.name, ""))
-        self.message = Message(
+        self._message = Message(
             destination=header_fields.get(HEADER_DESTINATION),
             path=header_fields.get(HEADER_PATH),
             interface=header_fields.get(HEADER_INTERFACE),
