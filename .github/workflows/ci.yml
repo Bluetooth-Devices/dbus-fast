@@ -114,7 +114,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-        ref: ${{ steps.release_sha.outputs.saved_release_sha }}
+        with:
+          ref: ${{ steps.release_sha.outputs.saved_release_sha }}
         fetch-depth: 0
 
       - name: Install poetry
