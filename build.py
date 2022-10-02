@@ -25,10 +25,10 @@ def build(setup_kwargs):
                         "src/dbus_fast/unpack.py",
                         "src/dbus_fast/_private/marshaller.py",
                         "src/dbus_fast/_private/unmarshaller.py",
-                    ]
+                    ],
+                    compiler_directives={"language_level": "3"},  # Python 3
                 ),
                 cmdclass=dict(build_ext=BuildExt),
-                compiler_directives={"language_level": "3"},  # Python 3
             )
         )
     except Exception:
