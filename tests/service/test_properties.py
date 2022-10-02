@@ -245,6 +245,8 @@ async def test_property_methods(interface_class):
 
     bus1.disconnect()
     bus2.disconnect()
+    bus1._sock.close()
+    bus2._sock.close()
 
 
 @pytest.mark.parametrize("interface_class", [ExampleInterface, AsyncInterface])
@@ -301,3 +303,5 @@ async def test_property_changed_signal(interface_class):
 
     bus1.disconnect()
     bus2.disconnect()
+    bus1._sock.close()
+    bus2._sock.close()
