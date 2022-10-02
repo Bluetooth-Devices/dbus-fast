@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.21.3 (2022-10-02)
+### Fix
+* Make wheel build depend on release success ([#54](https://github.com/Bluetooth-Devices/dbus-fast/issues/54)) ([`49d98d0`](https://github.com/Bluetooth-Devices/dbus-fast/commit/49d98d01c2a3736adcc5d088fdd447c45b9503de))
+
 ## v1.21.2 (2022-10-02)
 ### Fix
 * Additional tweaks to publishing wheels ([#53](https://github.com/Bluetooth-Devices/dbus-fast/issues/53)) ([`05b9453`](https://github.com/Bluetooth-Devices/dbus-fast/commit/05b945317380ad3d50b2f9d9114a61a2c57d99f0))
