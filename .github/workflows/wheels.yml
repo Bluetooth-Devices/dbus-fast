@@ -3,7 +3,7 @@ name: Build
 on:
   release:
     types:
-      - published
+      - released
 
 jobs:
   build_wheels:
@@ -43,7 +43,7 @@ jobs:
     environment: release
 
     # alternatively, to publish when a GitHub Release is created, use the following rule:
-    if: github.event_name == 'release' && github.event.action == 'published'
+    if: github.event_name == 'release' && github.event.action == 'released'
     steps:
       - uses: actions/download-artifact@v3
         with:
