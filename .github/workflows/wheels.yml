@@ -17,8 +17,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Install libs
-        run: sudo apt-get install -y dbus dbus-x11 python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
+
       - name: Install poetry
         run: pipx install poetry
       # Used to host cibuildwheel
@@ -33,6 +32,7 @@ jobs:
         # to supply options, put them in 'env', like:
         env:
           CIBW_SKIP: cp36-*
+          CIBW_BEFORE_ALL_LINUX: apt-get install -y dbus dbus-x11 python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
 
       - uses: actions/upload-artifact@v3
         with:
