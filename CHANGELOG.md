@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.21.7 (2022-10-02)
+### Fix
+* Seperate wheels back out so it builds after ([#58](https://github.com/Bluetooth-Devices/dbus-fast/issues/58)) ([`c74c251`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c74c2519a12a0f9cbb8c1b12b8871df22dda047d))
+
 ## v1.21.6 (2022-10-02)
 ### Fix
 * Language_level warning when running cythonize ([#57](https://github.com/Bluetooth-Devices/dbus-fast/issues/57)) ([`b7b441e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b7b441eeef8bfa1dc286c78435ff9bac9d072302))
