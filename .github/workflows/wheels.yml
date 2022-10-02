@@ -32,7 +32,7 @@ jobs:
         # to supply options, put them in 'env', like:
         env:
           CIBW_SKIP: cp36-*
-          CIBW_BEFORE_ALL_LINUX: apt-get install -y gcc || yum -y gcc || apk add gcc
+          CIBW_BEFORE_ALL_LINUX: apt-get install -y gcc || yum install -y gcc || apk add gcc
 
       - uses: actions/upload-artifact@v3
         with:
