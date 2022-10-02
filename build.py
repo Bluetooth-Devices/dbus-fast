@@ -28,6 +28,7 @@ def build(setup_kwargs):
                     ]
                 ),
                 cmdclass=dict(build_ext=BuildExt),
+                compiler_directives={"language_level": "3"},  # Python 3
             )
         )
     except Exception:
