@@ -9,7 +9,7 @@ from ..message import Message, MessageFlag
 from ..message_bus import BaseMessageBus
 from ..proxy_object import BaseProxyInterface, BaseProxyObject
 from ..signature import Variant
-from ..signature import unpack_variants as unpack
+from ..unpack import unpack_variants as unpack
 
 if TYPE_CHECKING:
     from .message_bus import MessageBus as AioMessageBus

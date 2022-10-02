@@ -13,7 +13,7 @@ from ._private.util import replace_idx_with_fds
 from .constants import ErrorType, MessageType
 from .errors import DBusError, InterfaceNotFoundError
 from .message import Message
-from .signature import unpack_variants as unpack
+from .unpack import unpack_variants as unpack
 from .validators import assert_bus_name_valid, assert_object_path_valid
 
 

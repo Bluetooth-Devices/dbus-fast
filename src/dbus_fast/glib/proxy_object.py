@@ -8,7 +8,7 @@ from ..message import Message
 from ..message_bus import BaseMessageBus
 from ..proxy_object import BaseProxyInterface, BaseProxyObject
 from ..signature import Variant
-from ..signature import unpack_variants as unpack
+from ..unpack import unpack_variants as unpack
 
 # glib is optional
 try:
