@@ -3,6 +3,7 @@ name: Wheels
 on:
   workflow_run:
     workflows: [CI]
+    branch: [main]
     types:
       - completed
 
