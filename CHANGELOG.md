@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v1.20.0 (2022-10-02)
+### Feature
+* Add additional cython types to the unmarshaller ([#45](https://github.com/Bluetooth-Devices/dbus-fast/issues/45)) ([`0f279a5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0f279a5ea9cd440fdbdd7dbafc1a48b1cc3577d7))
+
+### Fix
+* Add missing closes to tests ([#49](https://github.com/Bluetooth-Devices/dbus-fast/issues/49)) ([`d2ce4a1`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d2ce4a18462b5e304bc75983be3fffa3c426affc))
+
 ## v1.19.0 (2022-10-02)
 ### Feature
 * Add additional cython types to marshaller ([#48](https://github.com/Bluetooth-Devices/dbus-fast/issues/48)) ([`ddba96a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ddba96a73107644e31af591d8b726472a7deb85b))
