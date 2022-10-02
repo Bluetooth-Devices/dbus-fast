@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.21.10 (2022-10-02)
+### Fix
+* Github action tag matching ([#61](https://github.com/Bluetooth-Devices/dbus-fast/issues/61)) ([`b95d0b8`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b95d0b8ce63e03c972fef72354cd67c2062bea94))
+
 ## v1.21.9 (2022-10-02)
 ### Fix
 * Build wheels on tag instead ([#60](https://github.com/Bluetooth-Devices/dbus-fast/issues/60)) ([`6166896`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6166896c49a1358c951057fcc73d4b91ac92e08b))
