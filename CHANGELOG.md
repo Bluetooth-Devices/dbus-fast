@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.21.6 (2022-10-02)
+### Fix
+* Language_level warning when running cythonize ([#57](https://github.com/Bluetooth-Devices/dbus-fast/issues/57)) ([`b7b441e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b7b441eeef8bfa1dc286c78435ff9bac9d072302))
+
 ## v1.21.5 (2022-10-02)
 ### Fix
 * Cython build of unpack ([#56](https://github.com/Bluetooth-Devices/dbus-fast/issues/56)) ([`5df01ac`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5df01ac1ba3dc0515ffa8d0b01c1d386ef726e91))
