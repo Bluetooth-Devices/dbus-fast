@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.19.0 (2022-10-02)
+### Feature
+* Add additional cython types to marshaller ([#48](https://github.com/Bluetooth-Devices/dbus-fast/issues/48)) ([`ddba96a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ddba96a73107644e31af591d8b726472a7deb85b))
+
 ## v1.18.0 (2022-10-01)
 ### Feature
 * Add optional cython extension ([#44](https://github.com/Bluetooth-Devices/dbus-fast/issues/44)) ([`b737574`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b737574cf04f5c6b6f881fbdce2663119a6dc404))
