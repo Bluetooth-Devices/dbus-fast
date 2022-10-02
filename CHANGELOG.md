@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.21.0 (2022-10-02)
+### Feature
+* Cythonize unpack_variants ([#51](https://github.com/Bluetooth-Devices/dbus-fast/issues/51)) ([`1587211`](https://github.com/Bluetooth-Devices/dbus-fast/commit/158721123fc56675f04b9081ef4107590a8c2b17))
+
 ## v1.20.0 (2022-10-02)
 ### Feature
 * Add additional cython types to the unmarshaller ([#45](https://github.com/Bluetooth-Devices/dbus-fast/issues/45)) ([`0f279a5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0f279a5ea9cd440fdbdd7dbafc1a48b1cc3577d7))
