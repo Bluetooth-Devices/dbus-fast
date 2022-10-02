@@ -3,7 +3,7 @@ name: Wheels
 on:
   push:
     tags:
-      - "v*"
+      - "**"
 
 jobs:
   build_wheels:
