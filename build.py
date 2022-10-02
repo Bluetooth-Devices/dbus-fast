@@ -16,7 +16,7 @@ class BuildExt(build_ext):
 def build(setup_kwargs):
     if os.environ.get("SKIP_CYTHON", False):
         return
-    with contextlib.suppress(Exception):
+    try:
         from Cython.Build import cythonize
 
         setup_kwargs.update(
@@ -31,3 +31,7 @@ def build(setup_kwargs):
                 cmdclass=dict(build_ext=BuildExt),
             )
         )
+    except Exception:
+        if os.environ.get("REQUIRE_CYTHON"):
+            raise
+        pass
