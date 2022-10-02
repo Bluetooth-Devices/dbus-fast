@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.21.12 (2022-10-02)
+### Fix
+* Switch to on create instead of push ([#63](https://github.com/Bluetooth-Devices/dbus-fast/issues/63)) ([`af0ed88`](https://github.com/Bluetooth-Devices/dbus-fast/commit/af0ed889985425b33fbbe35e8c8a4d0427643367))
+
 ## v1.21.11 (2022-10-02)
 ### Fix
 * Accept any tag to build wheels ([#62](https://github.com/Bluetooth-Devices/dbus-fast/issues/62)) ([`60fca54`](https://github.com/Bluetooth-Devices/dbus-fast/commit/60fca54d2a4da67e3211b9e3f421787154234041))
