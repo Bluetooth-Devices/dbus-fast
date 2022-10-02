@@ -124,6 +124,7 @@ jobs:
         env:
           CIBW_SKIP: cp36-*
           CIBW_BEFORE_ALL_LINUX: apt-get install -y gcc || yum install -y gcc || apk add gcc
+          CIBW_BUILD_VERBOSITY: 3
           REQUIRE_CYTHON: 1
 
       - uses: actions/upload-artifact@v3
