@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.21.1 (2022-10-02)
+### Fix
+* Wheel builds on released ([#52](https://github.com/Bluetooth-Devices/dbus-fast/issues/52)) ([`6259fb2`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6259fb299722688ca19a41a61a7a783e9abdca8c))
+
 ## v1.21.0 (2022-10-02)
 ### Feature
 * Cythonize unpack_variants ([#51](https://github.com/Bluetooth-Devices/dbus-fast/issues/51)) ([`1587211`](https://github.com/Bluetooth-Devices/dbus-fast/commit/158721123fc56675f04b9081ef4107590a8c2b17))
