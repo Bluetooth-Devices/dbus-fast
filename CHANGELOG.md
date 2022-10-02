@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.21.17 (2022-10-02)
+### Fix
+* Install python-semantic-release in wheel workflow ([#68](https://github.com/Bluetooth-Devices/dbus-fast/issues/68)) ([`cca0d6e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/cca0d6e98a5934fee83ccafbd2ed47cf60a3ce99))
+
 ## v1.21.16 (2022-10-02)
 ### Fix
 * Ensure we can get the latest version in the wheels build process ([#67](https://github.com/Bluetooth-Devices/dbus-fast/issues/67)) ([`ecd5a70`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ecd5a7036945ccdd79e3049a7f2904709544af51))
