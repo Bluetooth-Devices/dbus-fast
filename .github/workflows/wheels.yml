@@ -1,17 +1,14 @@
 name: Wheels
 
 on:
-  workflow_run:
-    workflows: [CI]
-    branch: [main]
-    types:
-      - completed
+  push:
+    tags:
+      - v*
 
 jobs:
   build_wheels:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    if: github.event_name == 'release' && github.event.action == 'published'
 
     strategy:
       matrix:
