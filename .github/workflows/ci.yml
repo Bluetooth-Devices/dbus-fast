@@ -112,11 +112,12 @@ jobs:
           fetch-depth: 0
           ref: "main"
 
-      - name: Install poetry
-        run: pipx install poetry
+      # Used to host cibuildwheel
+      - name: Set up Python
+        uses: actions/setup-python@v4
 
       - name: Install semantic-release
-        run: pipx install semantic-release
+        run: python -m pip install semantic-release
 
       - name: Get Release Tag
         id: release_tag
@@ -128,10 +129,6 @@ jobs:
         with:
           ref: "v${{ steps.release_tag.outputs.newest_release_tag }}"
           fetch-depth: 0
-
-      # Used to host cibuildwheel
-      - name: Set up Python
-        uses: actions/setup-python@v4
 
       - name: Install cibuildwheel
         run: python -m pip install cibuildwheel==2.10.2
