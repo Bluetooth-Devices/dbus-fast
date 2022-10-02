@@ -23,6 +23,7 @@ def build(setup_kwargs):
             dict(
                 ext_modules=cythonize(
                     [
+                        "src/dbus_fast/_unpack.py",
                         "src/dbus_fast/_private/marshaller.py",
                         "src/dbus_fast/_private/unmarshaller.py",
                     ]

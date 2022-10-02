@@ -1,7 +1,8 @@
 """Test unpack variants."""
 import pytest
 
-from dbus_fast.signature import Variant, unpack_variants
+from dbus_fast.signature import Variant
+from dbus_fast.unpack import unpack_variants
 
 
 @pytest.mark.asyncio
