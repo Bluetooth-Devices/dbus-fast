@@ -12,7 +12,7 @@ cdef unsigned int HEADER_SIGNATURE_SIZE
 cdef class Unmarshaller:
 
     cdef object unix_fds
-    cdef bytearray buf
+    cdef object buf
     cdef object view
     cdef unsigned int pos
     cdef object stream
@@ -31,15 +31,9 @@ cdef class Unmarshaller:
     @cython.locals(
         start_len=cython.ulong,
         missing_bytes=cython.ulong,
-        data=cython.bytes
     )
     cpdef read_to_pos(self, unsigned long pos)
 
-    cpdef read_uint32_cast(self, object type_)
-
-    @cython.locals(
-        buf_bytes=cython.bytearray,
-    )
     cpdef read_string_cast(self, type_ = *)
 
     @cython.locals(
@@ -59,10 +53,6 @@ cdef class Unmarshaller:
         protocol_version=cython.uint,
     )
     cpdef _read_header(self)
-
-    cpdef _read_body(self)
-
-    cpdef unmarshall(self)
 
     @cython.locals(
         beginning_pos=cython.ulong,

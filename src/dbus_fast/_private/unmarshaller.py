@@ -218,10 +218,6 @@ class Unmarshaller:
         if len(data) + start_len != pos:
             raise MarshallerStreamEndError()
 
-    def read_uint32_cast(self, signature: SignatureType) -> Any:
-        self.pos += UINT32_SIZE + (-self.pos & (UINT32_SIZE - 1))  # align
-        return self.view[self.pos - UINT32_SIZE : self.pos].cast(UINT32_CAST)[0]
-
     def read_boolean(self, type_=None) -> bool:
         return bool(self.readers[UINT32_SIGNATURE.token](self, UINT32_SIGNATURE))
 
@@ -232,7 +228,8 @@ class Unmarshaller:
         # read terminating '\0' byte as well (str_length + 1)
         start_pos = self.pos - UINT32_SIZE
         self.pos += self.view[start_pos : self.pos].cast(UINT32_CAST)[0] + 1
-        return self.buf[str_start : self.pos - 1].decode()
+        end_pos = self.pos - 1
+        return self.buf[str_start:end_pos].decode()
 
     def read_string_unpack(self, type_=None) -> str:
         """Read a string using unpack."""
@@ -400,12 +397,12 @@ class Unmarshaller:
         to be resumed when more data comes in over the wire.
         """
         try:
-            if not self.msg_len:
+            if not self.message_type:
                 self._read_header()
             self._read_body()
         except MarshallerStreamEndError:
             return None
-        return self._message
+        return self.message
 
     _complex_parsers_unpack: Dict[
         str, Callable[["Unmarshaller", SignatureType], Any]
@@ -429,8 +426,6 @@ class Unmarshaller:
         "(": read_struct,
         "{": read_dict_entry,
         "v": read_variant,
-        "h": read_uint32_cast,
-        UINT32_DBUS_TYPE: read_uint32_cast,
     }
 
     _ctype_by_endian: Dict[
