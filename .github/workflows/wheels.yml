@@ -2,8 +2,8 @@ name: Wheels
 
 on:
   release:
-    types:
-      - published
+    types: [published]
+    branch: [main]
 
 jobs:
   build_wheels:
