@@ -97,12 +97,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           pypi_token: ${{ secrets.PYPI_TOKEN }}
 
-      - name: Save Release SHA
-        id: release_sha
-        shell: bash
-        run: |
-          echo "::set-output name=saved_release_sha::$(git rev-parse --short HEAD)"
-
   build_wheels:
     needs: [release]
 
@@ -115,11 +109,26 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ${{ steps.release_sha.outputs.saved_release_sha }}
-          fetch-depth: 0
+          fetch-depth: 100
+          ref: HEAD
 
       - name: Install poetry
         run: pipx install poetry
+
+      - name: Install semantic-release
+        run: pipx install semantic-release
+
+      - name: Get Release Tag
+        id: release_tag
+        shell: bash
+        run: |
+          echo "::set-output name=newest_release_tag::$(semantic-release print-version --current)"
+
+      - uses: actions/checkout@v3
+        with:
+          ref: "v${{ steps.release_tag.outputs.newest_release_tag }}"
+          fetch-depth: 0
+
       # Used to host cibuildwheel
       - name: Set up Python
         uses: actions/setup-python@v4
