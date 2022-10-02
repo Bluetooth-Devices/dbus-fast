@@ -113,6 +113,8 @@ def test_sending_messages_between_buses():
 
     bus1.disconnect()
     bus2.disconnect()
+    bus1._sock.close()
+    bus2._sock.close()
 
 
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
@@ -164,3 +166,5 @@ def test_sending_signals_between_buses():
 
     bus1.disconnect()
     bus2.disconnect()
+    bus1._sock.close()
+    bus2._sock.close()
