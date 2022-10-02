@@ -1,5 +1,5 @@
 import xml.etree.ElementTree as ET
-from typing import List, Union
+from typing import TYPE_CHECKING, Any, List, Union
 
 from .. import introspection as intr
 from .._private.util import replace_fds_with_idx, replace_idx_with_fds
@@ -10,6 +10,9 @@ from ..message_bus import BaseMessageBus
 from ..proxy_object import BaseProxyInterface, BaseProxyObject
 from ..signature import Variant
 from ..signature import unpack_variants as unpack
+
+if TYPE_CHECKING:
+    from .message_bus import MessageBus as AioMessageBus
 
 
 class ProxyInterface(BaseProxyInterface):
@@ -74,7 +77,9 @@ class ProxyInterface(BaseProxyInterface):
     <dbus_fast.DBusError>` will be raised with information about the error.
     """
 
-    def _add_method(self, intr_method):
+    bus: "AioMessageBus"
+
+    def _add_method(self, intr_method: intr.Method) -> None:
         async def method_fn(
             *args, flags=MessageFlag.NONE, unpack_variants: bool = False
         ):
@@ -119,8 +124,8 @@ class ProxyInterface(BaseProxyInterface):
 
     def _add_property(
         self,
-        intr_property,
-    ):
+        intr_property: intr.Property,
+    ) -> None:
         async def property_getter(
             *, flags=MessageFlag.NONE, unpack_variants: bool = False
         ):
@@ -150,7 +155,7 @@ class ProxyInterface(BaseProxyInterface):
                 return unpack(body)
             return body
 
-        async def property_setter(val):
+        async def property_setter(val: Any) -> None:
             variant = Variant(intr_property.signature, val)
 
             body, unix_fds = replace_fds_with_idx(
@@ -188,7 +193,7 @@ class ProxyObject(BaseProxyObject):
         path: str,
         introspection: Union[intr.Node, str, ET.Element],
         bus: BaseMessageBus,
-    ):
+    ) -> None:
         super().__init__(bus_name, path, introspection, bus, ProxyInterface)
 
     def get_interface(self, name: str) -> ProxyInterface:

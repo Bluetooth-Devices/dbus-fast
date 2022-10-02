@@ -42,6 +42,11 @@ DBUS_TO_CTYPE = {
     "h": ("I", 4),  # uint32
 }
 
+UINT32_UNPACK_BY_ENDIAN = {
+    LITTLE_ENDIAN: Struct("<I").unpack_from,
+    BIG_ENDIAN: Struct(">I").unpack_from,
+}
+
 HEADER_SIGNATURE_SIZE = 16
 HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION = 12
 
@@ -53,15 +58,44 @@ HEADER_ERROR_NAME = HeaderField.ERROR_NAME.name
 HEADER_REPLY_SERIAL = HeaderField.REPLY_SERIAL.name
 HEADER_SENDER = HeaderField.SENDER.name
 
-READER_TYPE = Dict[
-    str,
-    Tuple[
-        Optional[Callable[["Unmarshaller", SignatureType], Any]],
-        Optional[str],
-        Optional[int],
-        Optional[Struct],
-    ],
-]
+READER_TYPE = Callable[["Unmarshaller", SignatureType], Any]
+
+
+def cast_parser_factory(ctype: str, size: int) -> READER_TYPE:
+    """Build a parser that casts the bytes to the given ctype."""
+
+    def _cast_parser(self: "Unmarshaller", signature: SignatureType) -> Any:
+        self.pos += size + (-self.pos & (size - 1))  # align
+        return self.view[self.pos - size : self.pos].cast(ctype)[0]
+
+    return _cast_parser
+
+
+def unpack_parser_factory(unpack_from: Callable, size: int) -> READER_TYPE:
+    """Build a parser that unpacks the bytes using the given unpack_from function."""
+
+    def _unpack_from_parser(self: "Unmarshaller", signature: SignatureType) -> Any:
+        self.pos += size + (-self.pos & (size - 1))  # align
+        return unpack_from(self.view, self.pos - size)[0]
+
+    return _unpack_from_parser
+
+
+def build_simple_parsers(
+    endian: int, can_cast: bool
+) -> Dict[str, Callable[["Unmarshaller", SignatureType], Any]]:
+    """Build a dict of parsers for simple types."""
+    parsers: Dict[str, Callable[["Unmarshaller", SignatureType], Any]] = {}
+    for dbus_type, ctype_size in DBUS_TO_CTYPE.items():
+        ctype, size = ctype_size
+        size = ctype_size[1]
+        if can_cast:
+            parsers[dbus_type] = cast_parser_factory(ctype, size)
+        else:
+            parsers[dbus_type] = unpack_parser_factory(
+                Struct(f"{UNPACK_SYMBOL[endian]}{ctype}").unpack_from, size
+            )
+    return parsers
 
 
 class MarshallerStreamEndError(Exception):
@@ -94,12 +128,6 @@ class MarshallerStreamEndError(Exception):
 #
 class Unmarshaller:
 
-    buf: bytearray
-    view: memoryview
-    message: Message
-    unpack: Dict[str, Struct]
-    readers: READER_TYPE
-
     __slots__ = (
         "unix_fds",
         "buf",
@@ -107,7 +135,7 @@ class Unmarshaller:
         "pos",
         "stream",
         "sock",
-        "message",
+        "_message",
         "readers",
         "body_len",
         "serial",
@@ -125,16 +153,21 @@ class Unmarshaller:
         self.pos = 0
         self.stream = stream
         self.sock = sock
-        self.message = None
-        self.readers = None
-        self.body_len: int | None = None
-        self.serial: int | None = None
-        self.header_len: int | None = None
+        self._message: Message | None = None
+        self.readers: Dict[str, READER_TYPE] = {}
+        self.body_len = 0
+        self.serial = 0
+        self.header_len = 0
         self.message_type: MessageType | None = None
         self.flag: MessageFlag | None = None
         self.msg_len = 0
         # Only set if we cannot cast
         self._uint32_unpack: Callable | None = None
+
+    @property
+    def message(self) -> Message:
+        """Return the message that has been unmarshalled."""
+        return self._message
 
     def read_sock(self, length: int) -> bytes:
         """reads from the socket, storing any fds sent and handling errors
@@ -158,7 +191,7 @@ class Unmarshaller:
 
         return msg
 
-    def read_to_pos(self, pos: int) -> None:
+    def read_to_pos(self, pos) -> None:
         """
         Read from underlying socket into buffer.
 
@@ -185,20 +218,20 @@ class Unmarshaller:
         if len(data) + start_len != pos:
             raise MarshallerStreamEndError()
 
-    def read_boolean(self, _=None):
-        return bool(self.read_argument(UINT32_SIGNATURE))
+    def read_boolean(self, type_=None) -> bool:
+        return bool(self.readers[UINT32_SIGNATURE.token](self, UINT32_SIGNATURE))
 
-    def read_string_cast(self, _=None):
+    def read_string_cast(self, type_=None) -> str:
         """Read a string using cast."""
         self.pos += UINT32_SIZE + (-self.pos & (UINT32_SIZE - 1))  # align
         str_start = self.pos
         # read terminating '\0' byte as well (str_length + 1)
-        self.pos += (
-            self.view[self.pos - UINT32_SIZE : self.pos].cast(UINT32_CAST)[0] + 1
-        )
-        return self.buf[str_start : self.pos - 1].decode()
+        start_pos = self.pos - UINT32_SIZE
+        self.pos += self.view[start_pos : self.pos].cast(UINT32_CAST)[0] + 1
+        end_pos = self.pos - 1
+        return self.buf[str_start:end_pos].decode()
 
-    def read_string_unpack(self, _=None):
+    def read_string_unpack(self, type_=None) -> str:
         """Read a string using unpack."""
         self.pos += UINT32_SIZE + (-self.pos & (UINT32_SIZE - 1))  # align
         str_start = self.pos
@@ -206,29 +239,34 @@ class Unmarshaller:
         self.pos += self._uint32_unpack(self.view, str_start - UINT32_SIZE)[0] + 1
         return self.buf[str_start : self.pos - 1].decode()
 
-    def read_signature(self, _=None):
+    def read_signature(self, type_=None) -> str:
         signature_len = self.view[self.pos]  # byte
         o = self.pos + 1
         # read terminating '\0' byte as well (str_length + 1)
         self.pos = o + signature_len + 1
         return self.buf[o : o + signature_len].decode()
 
-    def read_variant(self, _=None):
+    def read_variant(self, type_=None) -> Variant:
         tree = SignatureTree._get(self.read_signature())
         # verify in Variant is only useful on construction not unmarshalling
-        return Variant(tree, self.read_argument(tree.types[0]), verify=False)
-
-    def read_struct(self, type_: SignatureType):
-        self.pos += -self.pos & 7  # align 8
-        return [self.read_argument(child_type) for child_type in type_.children]
-
-    def read_dict_entry(self, type_: SignatureType):
-        self.pos += -self.pos & 7  # align 8
-        return self.read_argument(type_.children[0]), self.read_argument(
-            type_.children[1]
+        return Variant(
+            tree, self.readers[tree.types[0].token](self, tree.types[0]), verify=False
         )
 
-    def read_array(self, type_: SignatureType):
+    def read_struct(self, type_=None) -> List[Any]:
+        self.pos += -self.pos & 7  # align 8
+        readers = self.readers
+        return [
+            readers[child_type.token](self, child_type) for child_type in type_.children
+        ]
+
+    def read_dict_entry(self, type_: SignatureType) -> Dict[Any, Any]:
+        self.pos += -self.pos & 7  # align 8
+        return self.readers[type_.children[0].token](
+            self, type_.children[0]
+        ), self.readers[type_.children[1].token](self, type_.children[1])
+
+    def read_array(self, type_: SignatureType) -> List[Any]:
         self.pos += -self.pos & 3  # align 4 for the array
         self.pos += (
             -self.pos & (UINT32_SIZE - 1)
@@ -250,31 +288,26 @@ class Unmarshaller:
             return self.buf[self.pos - array_length : self.pos]
 
         beginning_pos = self.pos
+        readers = self.readers
 
         if child_type.token == "{":
             result_dict = {}
             while self.pos - beginning_pos < array_length:
                 self.pos += -self.pos & 7  # align 8
-                key = self.read_argument(child_type.children[0])
-                result_dict[key] = self.read_argument(child_type.children[1])
+                key = readers[child_type.children[0].token](
+                    self, child_type.children[0]
+                )
+                result_dict[key] = readers[child_type.children[1].token](
+                    self, child_type.children[1]
+                )
             return result_dict
 
         result_list = []
         while self.pos - beginning_pos < array_length:
-            result_list.append(self.read_argument(child_type))
+            result_list.append(readers[child_type.token](self, child_type))
         return result_list
 
-    def read_argument(self, type_: SignatureType) -> Any:
-        """Dispatch to an argument reader or cast/unpack a C type."""
-        reader, ctype, size, struct = self.readers[type_.token]
-        if reader:  # complex type
-            return reader(self, type_)
-        self.pos += size + (-self.pos & (size - 1))  # align
-        if struct:  # struct only set if we cannot cast
-            return struct(self.view, self.pos - size)[0]
-        return self.view[self.pos - size : self.pos].cast(ctype)[0]
-
-    def header_fields(self, header_length):
+    def header_fields(self, header_length) -> Dict[str, Any]:
         """Header fields are always a(yv)."""
         beginning_pos = self.pos
         headers = {}
@@ -288,10 +321,12 @@ class Unmarshaller:
             o = self.pos + 1
             self.pos += signature_len + 2  # one for the byte, one for the '\0'
             tree = SignatureTree._get(self.buf[o : o + signature_len].decode())
-            headers[HEADER_NAME_MAP[field_0]] = self.read_argument(tree.types[0])
+            headers[HEADER_NAME_MAP[field_0]] = self.readers[tree.types[0].token](
+                self, tree.types[0]
+            )
         return headers
 
-    def _read_header(self):
+    def _read_header(self) -> None:
         """Read the header of the message."""
         # Signature is of the header is
         # BYTE, BYTE, BYTE, BYTE, UINT32, UINT32, ARRAY of STRUCT of (BYTE,VARIANT)
@@ -323,7 +358,7 @@ class Unmarshaller:
         )
         self.readers = self._readers_by_type[(endian, can_cast)]
         if not can_cast:
-            self._uint32_unpack = self.readers[UINT32_DBUS_TYPE][3]
+            self._uint32_unpack = UINT32_UNPACK_BY_ENDIAN[endian]
 
     def _read_body(self):
         """Read the body of the message."""
@@ -333,7 +368,7 @@ class Unmarshaller:
         header_fields = self.header_fields(self.header_len)
         self.pos += -self.pos & 7  # align 8
         tree = SignatureTree._get(header_fields.get(HeaderField.SIGNATURE.name, ""))
-        self.message = Message(
+        self._message = Message(
             destination=header_fields.get(HEADER_DESTINATION),
             path=header_fields.get(HEADER_PATH),
             interface=header_fields.get(HEADER_INTERFACE),
@@ -345,7 +380,9 @@ class Unmarshaller:
             sender=header_fields.get(HEADER_SENDER),
             unix_fds=self.unix_fds,
             signature=tree.signature,
-            body=[self.read_argument(t) for t in tree.types] if self.body_len else [],
+            body=[self.readers[t.token](self, t) for t in tree.types]
+            if self.body_len
+            else [],
             serial=self.serial,
             # The D-Bus implementation already validates the message,
             # so we don't need to do it again.
@@ -368,46 +405,33 @@ class Unmarshaller:
         return self.message
 
     _complex_parsers_unpack: Dict[
-        str, Tuple[Callable[["Unmarshaller", SignatureType], Any], None, None, None]
+        str, Callable[["Unmarshaller", SignatureType], Any]
     ] = {
-        "b": (read_boolean, None, None, None),
-        "o": (read_string_unpack, None, None, None),
-        "s": (read_string_unpack, None, None, None),
-        "g": (read_signature, None, None, None),
-        "a": (read_array, None, None, None),
-        "(": (read_struct, None, None, None),
-        "{": (read_dict_entry, None, None, None),
-        "v": (read_variant, None, None, None),
+        "b": read_boolean,
+        "o": read_string_unpack,
+        "s": read_string_unpack,
+        "g": read_signature,
+        "a": read_array,
+        "(": read_struct,
+        "{": read_dict_entry,
+        "v": read_variant,
     }
 
-    _complex_parsers_cast: Dict[
-        str, Tuple[Callable[["Unmarshaller", SignatureType], Any], None, None, None]
-    ] = {
-        "b": (read_boolean, None, None, None),
-        "o": (read_string_cast, None, None, None),
-        "s": (read_string_cast, None, None, None),
-        "g": (read_signature, None, None, None),
-        "a": (read_array, None, None, None),
-        "(": (read_struct, None, None, None),
-        "{": (read_dict_entry, None, None, None),
-        "v": (read_variant, None, None, None),
+    _complex_parsers_cast: Dict[str, Callable[["Unmarshaller", SignatureType], Any]] = {
+        "b": read_boolean,
+        "o": read_string_cast,
+        "s": read_string_cast,
+        "g": read_signature,
+        "a": read_array,
+        "(": read_struct,
+        "{": read_dict_entry,
+        "v": read_variant,
     }
 
     _ctype_by_endian: Dict[
         Tuple[int, bool], Dict[str, Tuple[None, str, int, Callable]]
     ] = {
-        endian_can_cast: {
-            dbus_type: (
-                None,
-                *ctype_size,
-                None
-                if endian_can_cast[1]
-                else Struct(
-                    f"{UNPACK_SYMBOL[endian_can_cast[0]]}{ctype_size[0]}"
-                ).unpack_from,
-            )
-            for dbus_type, ctype_size in DBUS_TO_CTYPE.items()
-        }
+        endian_can_cast: build_simple_parsers(*endian_can_cast)
         for endian_can_cast in [
             (LITTLE_ENDIAN, True),
             (LITTLE_ENDIAN, False),

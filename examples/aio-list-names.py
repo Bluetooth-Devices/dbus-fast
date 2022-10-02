@@ -10,8 +10,6 @@ import json
 from dbus_fast import Message, MessageType
 from dbus_fast.aio import MessageBus
 
-loop = asyncio.get_event_loop()
-
 
 async def main():
     bus = await MessageBus().connect()
@@ -31,4 +29,4 @@ async def main():
     print(json.dumps(reply.body[0], indent=2))
 
 
-loop.run_until_complete(main())
+asyncio.run(main())

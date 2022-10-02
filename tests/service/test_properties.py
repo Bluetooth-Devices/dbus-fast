@@ -270,7 +270,7 @@ async def test_property_changed_signal(interface_class):
 
     async def wait_for_message():
         # TODO timeout
-        future = asyncio.get_event_loop().create_future()
+        future = asyncio.get_running_loop().create_future()
 
         def message_handler(signal):
             if signal.interface == "org.freedesktop.DBus.Properties":

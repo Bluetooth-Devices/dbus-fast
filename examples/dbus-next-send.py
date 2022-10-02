@@ -101,8 +101,6 @@ else:
     if not signature:
         exit_error("--signature is a required argument when passing a message body")
 
-loop = asyncio.get_event_loop()
-
 
 async def main():
     bus = await MessageBus(bus_type=bus_type).connect()
@@ -135,4 +133,4 @@ async def main():
     sys.exit(ret)
 
 
-loop.run_until_complete(main())
+asyncio.run(main())

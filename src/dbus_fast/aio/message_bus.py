@@ -6,6 +6,8 @@ from collections import deque
 from copy import copy
 from typing import Any, Optional
 
+import async_timeout
+
 from .. import introspection as intr
 from .._private.unmarshaller import Unmarshaller
 from ..auth import Authenticator, AuthExternal
@@ -89,7 +91,7 @@ class _MessageWriter:
                 _future_set_exception(self.fut, e)
             self.bus._finalize(e)
 
-    def buffer_message(self, msg: Message, future=None):
+    def buffer_message(self, msg: Message, future=None) -> None:
         self.messages.append(
             (
                 msg._marshall(negotiate_unix_fd=self.negotiate_unix_fd),
@@ -98,11 +100,11 @@ class _MessageWriter:
             )
         )
 
-    def _write_without_remove_writer(self):
+    def _write_without_remove_writer(self) -> None:
         """Call the write callback without removing the writer."""
         self.write_callback(remove_writer=False)
 
-    def schedule_write(self, msg: Message = None, future=None):
+    def schedule_write(self, msg: Message = None, future=None) -> None:
         queue_is_empty = not self.messages
         if msg is not None:
             self.buffer_message(msg, future)
@@ -161,7 +163,7 @@ class MessageBus(BaseMessageBus):
     ):
         super().__init__(bus_address, bus_type, ProxyObject)
         self._negotiate_unix_fd = negotiate_unix_fd
-        self._loop = asyncio.get_event_loop()
+        self._loop = asyncio.get_running_loop()
         self._unmarshaller = self._create_unmarshaller()
 
         self._writer = _MessageWriter(self)
@@ -257,7 +259,8 @@ class MessageBus(BaseMessageBus):
 
         super().introspect(bus_name, path, reply_handler)
 
-        return await asyncio.wait_for(future, timeout=timeout)
+        async with async_timeout.timeout(timeout):
+            return await future
 
     async def request_name(
         self, name: str, flags: NameFlag = NameFlag.NONE
@@ -355,7 +358,7 @@ class MessageBus(BaseMessageBus):
 
         return future.result()
 
-    def send(self, msg: Message):
+    def send(self, msg: Message) -> asyncio.Future:
         """Asynchronously send a message on the message bus.
 
         .. note:: This method may change to a couroutine function in the 1.0
@@ -415,7 +418,7 @@ class MessageBus(BaseMessageBus):
 
         return handler
 
-    def _message_reader(self):
+    def _message_reader(self) -> None:
         try:
             while True:
                 if self._unmarshaller.unmarshall():
@@ -426,13 +429,13 @@ class MessageBus(BaseMessageBus):
         except Exception as e:
             self._finalize(e)
 
-    async def _auth_readline(self):
+    async def _auth_readline(self) -> str:
         buf = b""
         while buf[-2:] != b"\r\n":
             buf += await self._loop.sock_recv(self._sock, 2)
         return buf[:-2].decode()
 
-    async def _authenticate(self):
+    async def _authenticate(self) -> None:
         await self._loop.sock_sendall(self._sock, b"\0")
 
         first_line = self._auth._authentication_start(
@@ -456,7 +459,7 @@ class MessageBus(BaseMessageBus):
             if response == "BEGIN":
                 break
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         """Disconnect the message bus by closing the underlying connection asynchronously.
 
         All pending  and future calls will error with a connection error.

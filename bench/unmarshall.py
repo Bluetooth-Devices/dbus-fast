@@ -3,6 +3,9 @@ import timeit
 
 from dbus_fast._private.unmarshaller import Unmarshaller
 
+#  cythonize -X language_level=3 -a -i  src/dbus_fast/_private/unmarshaller.py
+
+
 bluez_rssi_message = (
     "6c04010134000000e25389019500000001016f00250000002f6f72672f626c75657a2f686369302f6465"
     "765f30385f33415f46325f31455f32425f3631000000020173001f0000006f72672e667265656465736b"

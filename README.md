@@ -48,7 +48,8 @@ Desktop users can use this library to create their own scripts and utilities to 
 
 dbus-fast plans to improve over other DBus libraries for Python in the following ways:
 
-- Zero dependencies and pure Python 3.
+- Zero dependencies and pure Python 3
+- An optional cython extension is available to speed up (un)marshalling
 - Focus on performance
 - Support for multiple IO backends including asyncio and the GLib main loop.
 - Nonblocking IO suitable for GUI development.
@@ -78,8 +79,6 @@ from dbus_fast.aio import MessageBus
 
 import asyncio
 
-loop = asyncio.get_event_loop()
-
 
 async def main():
     bus = await MessageBus().connect()
@@ -106,9 +105,9 @@ async def main():
 
     properties.on_properties_changed(on_properties_changed)
 
-    await loop.create_future()
+    await asyncio.Event().wait()
 
-loop.run_until_complete(main())
+asyncio.run(main())
 ```
 
 ## The Service Interface
@@ -159,9 +158,9 @@ async def main():
     # now that we are ready to handle requests, we can request name from D-Bus
     await bus.request_name('test.name')
     # wait indefinitely
-    await asyncio.get_event_loop().create_future()
+    await asyncio.Event().wait()
 
-asyncio.get_event_loop().run_until_complete(main())
+asyncio.run(main())
 ```
 
 ## The Low-Level Interface
@@ -176,8 +175,6 @@ from dbus_fast.aio import MessageBus
 
 import asyncio
 import json
-
-loop = asyncio.get_event_loop()
 
 
 async def main():
@@ -195,7 +192,7 @@ async def main():
     print(json.dumps(reply.body[0], indent=2))
 
 
-loop.run_until_complete(main())
+asyncio.run(main())
 ```
 
 ## Projects that use python-dbus-fast
