@@ -6,7 +6,7 @@ import cython
 cdef class Marshaller:
 
     cdef object signature_tree
-    cdef object _buf
+    cdef bytearray _buf
     cdef object body
 
 
@@ -25,10 +25,23 @@ cdef class Marshaller:
     @cython.locals(
         array_len=cython.uint,
         written=cython.uint,
+        array_len_packed=cython.bytes,
     )
     cpdef write_array(self, object array, object type)
 
     @cython.locals(
         written=cython.uint,
     )
+    cpdef write_struct(self, object array, object type)
+
+    @cython.locals(
+        written=cython.uint,
+    )
     cpdef write_single(self, object type_, object body)
+
+    cpdef marshall(self)
+
+    @cython.locals(
+        offset=cython.ulong,
+    )
+    cpdef _construct_buffer(self)

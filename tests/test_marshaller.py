@@ -21,7 +21,8 @@ def print_buf(buf):
 
 
 # these messages have been verified with another library
-table = json.load(open(os.path.dirname(__file__) + "/data/messages.json"))
+with open(os.path.dirname(__file__) + "/data/messages.json") as f:
+    table = json.load(f)
 
 
 def json_to_message(message: Dict[str, Any]) -> Message:

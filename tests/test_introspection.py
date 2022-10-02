@@ -3,7 +3,8 @@ import os
 from dbus_fast import ArgDirection, PropertyAccess, SignatureType
 from dbus_fast import introspection as intr
 
-example_data = open(f"{os.path.dirname(__file__)}/data/introspection.xml").read()
+with open(f"{os.path.dirname(__file__)}/data/introspection.xml") as f:
+    example_data = f.read()
 
 
 def test_example_introspection_from_xml():
