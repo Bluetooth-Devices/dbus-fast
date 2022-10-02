@@ -35,6 +35,8 @@ cdef class Unmarshaller:
     )
     cpdef read_to_pos(self, unsigned long pos)
 
+    cpdef read_uint32_cast(self, object type_)
+
     @cython.locals(
         buf_bytes=cython.bytearray,
     )
@@ -59,6 +61,8 @@ cdef class Unmarshaller:
     cpdef _read_header(self)
 
     cpdef _read_body(self)
+
+    cpdef unmarshall(self)
 
     @cython.locals(
         beginning_pos=cython.ulong,

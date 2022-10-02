@@ -218,6 +218,10 @@ class Unmarshaller:
         if len(data) + start_len != pos:
             raise MarshallerStreamEndError()
 
+    def read_uint32_cast(self, signature: SignatureType) -> Any:
+        self.pos += UINT32_SIZE + (-self.pos & (UINT32_SIZE - 1))  # align
+        return self.view[self.pos - UINT32_SIZE : self.pos].cast(UINT32_CAST)[0]
+
     def read_boolean(self, type_=None) -> bool:
         return bool(self.readers[UINT32_SIGNATURE.token](self, UINT32_SIGNATURE))
 
@@ -425,6 +429,8 @@ class Unmarshaller:
         "(": read_struct,
         "{": read_dict_entry,
         "v": read_variant,
+        "h": read_uint32_cast,
+        UINT32_DBUS_TYPE: read_uint32_cast,
     }
 
     _ctype_by_endian: Dict[

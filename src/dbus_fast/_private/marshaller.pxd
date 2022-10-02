@@ -38,3 +38,10 @@ cdef class Marshaller:
         written=cython.uint,
     )
     cpdef write_single(self, object type_, object body)
+
+    cpdef marshall(self)
+
+    @cython.locals(
+        offset=cython.ulong,
+    )
+    cpdef _construct_buffer(self)
