@@ -1,6 +1,5 @@
 """Build optional cython modules."""
 
-import contextlib
 import os
 from distutils.command.build_ext import build_ext
 
@@ -23,7 +22,7 @@ def build(setup_kwargs):
             dict(
                 ext_modules=cythonize(
                     [
-                        "src/dbus_fast/_unpack.py",
+                        "src/dbus_fast/unpack.py",
                         "src/dbus_fast/_private/marshaller.py",
                         "src/dbus_fast/_private/unmarshaller.py",
                     ]
