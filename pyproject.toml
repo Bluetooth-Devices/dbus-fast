@@ -53,7 +53,7 @@ pytest-asyncio = "^0.19.0"
 pycairo = "^1.21.0"
 PyGObject = "^3.42.2"
 Cython = "^0.29.32"
-setuptools = "^65.4.1"
+setuptools = ">=59.6.0"
 
 [tool.semantic_release]
 branch = "main"
@@ -104,5 +104,5 @@ module = "docs.*"
 ignore_errors = true
 
 [build-system]
-requires = ['setuptools>=65.4.1', 'wheel', 'Cython', "poetry-core>=1.0.0"]
+requires = ['setuptools>=59.6.0', 'wheel', 'Cython', "poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
