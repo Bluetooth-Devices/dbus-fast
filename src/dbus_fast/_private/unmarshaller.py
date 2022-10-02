@@ -396,12 +396,12 @@ class Unmarshaller:
         to be resumed when more data comes in over the wire.
         """
         try:
-            if not self.message_type:
+            if not self.msg_len:
                 self._read_header()
             self._read_body()
         except MarshallerStreamEndError:
             return None
-        return self.message
+        return self._message
 
     _complex_parsers_unpack: Dict[
         str, Callable[["Unmarshaller", SignatureType], Any]

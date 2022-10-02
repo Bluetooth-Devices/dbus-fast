@@ -58,6 +58,8 @@ cdef class Unmarshaller:
     )
     cpdef _read_header(self)
 
+    cpdef _read_body(self)
+
     @cython.locals(
         beginning_pos=cython.ulong,
         o=cython.ulong,
