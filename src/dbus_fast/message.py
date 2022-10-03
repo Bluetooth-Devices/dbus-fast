@@ -83,7 +83,7 @@ class Message:
         "signature",
         "signature_tree",
         "body",
-        "serial",
+        "_serial",
     )
 
     def __init__(
