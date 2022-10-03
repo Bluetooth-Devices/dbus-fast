@@ -169,11 +169,18 @@ class Unmarshaller:
 
         Call this before processing a new message.
         """
+        self._unix_fds: List[int] = []
         self._view = None
         self._buf.clear()
         self._message = None
         self._pos = 0
+        self._body_len = 0
+        self._serial = 0
+        self._header_len = 0
+        self._message_type = 0
+        self._flag = 0
         self._msg_len = 0
+        self._uint32_unpack = None
 
     @property
     def message(self) -> Message:
