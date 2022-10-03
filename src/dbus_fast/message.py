@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Union
 
 from ._private.constants import LITTLE_ENDIAN, PROTOCOL_VERSION, HeaderField
 from ._private.marshaller import Marshaller
@@ -105,7 +105,7 @@ class Message:
         reply_serial: int = None,
         sender: str = None,
         unix_fds: List[int] = [],
-        signature: str | SignatureTree = "",
+        signature: Union[str, SignatureTree] = "",
         body: List[Any] = [],
         serial: int = 0,
         validate: bool = True,
