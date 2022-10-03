@@ -300,27 +300,29 @@ class Unmarshaller:
             )[0]
 
         child_type = type_.children[0]
-        if child_type.token in "xtd{(":
+        token = child_type.token
+
+        if token in "xtd{(":
             # the first alignment is not included in the array size
             self._pos += -self._pos & 7  # align 8
 
-        if child_type.token == "y":
+        if token == "y":
             self._pos += array_length
             return self._buf[self._pos - array_length : self._pos]
 
         beginning_pos = self._pos
         readers = self._readers
 
-        if child_type.token == "{":
+        if token == "{":
             result_dict = {}
+            child_0 = child_type.children[0]
+            token_0 = child_0.token
+            child_1 = child_type.children[1]
+            token_1 = child_1.token
             while self._pos - beginning_pos < array_length:
                 self._pos += -self._pos & 7  # align 8
-                key = readers[child_type.children[0].token](
-                    self, child_type.children[0]
-                )
-                result_dict[key] = readers[child_type.children[1].token](
-                    self, child_type.children[1]
-                )
+                key = readers[token_0](self, child_0)
+                result_dict[key] = readers[token_1](self, child_1)
             return result_dict
 
         result_list = []
