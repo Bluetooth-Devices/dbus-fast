@@ -27,6 +27,7 @@ cdef class Unmarshaller:
     cdef unsigned int msg_len
     cdef object _uint32_unpack
 
+    cpdef reset(self)
 
     @cython.locals(
         start_len=cython.ulong,

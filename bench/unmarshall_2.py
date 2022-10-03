@@ -35,8 +35,15 @@ bluez_properties_message = (
 )
 
 
+stream = io.BytesIO(bluez_properties_message)
+
+unmarshaller = Unmarshaller(stream)
+
+
 def unmarhsall_bluez_rssi_message():
-    Unmarshaller(io.BytesIO(bluez_properties_message)).unmarshall()
+    stream.seek(0)
+    unmarshaller.reset()
+    unmarshaller.unmarshall()
 
 
 count = 1000000

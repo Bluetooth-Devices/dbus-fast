@@ -164,6 +164,24 @@ class Unmarshaller:
         # Only set if we cannot cast
         self._uint32_unpack: Callable | None = None
 
+    def reset(self) -> None:
+        """Reset the unmarshaller to its initial state.
+
+        Call this before processing a new message.
+        """
+        self.unix_fds = []
+        self.view = None
+        self.buf.clear()
+        self.pos = 0
+        self._message = None
+        self.body_len = 0
+        self.serial = 0
+        self.header_len = 0
+        self.message_type = None
+        self.flag = None
+        self.msg_len = 0
+        self._uint32_unpack = None
+
     @property
     def message(self) -> Message:
         """Return the message that has been unmarshalled."""
