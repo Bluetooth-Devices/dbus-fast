@@ -423,6 +423,7 @@ class MessageBus(BaseMessageBus):
         unmarshaller = self._unmarshaller
         try:
             while True:
+                unmarshaller.reset()
                 if unmarshaller.unmarshall():
                     try:
                         self._process_message(unmarshaller.message)
@@ -430,7 +431,6 @@ class MessageBus(BaseMessageBus):
                         logging.error(
                             f"got unexpected error processing a message: {e}.\n{traceback.format_exc()}"
                         )
-                    unmarshaller.reset()
                 else:
                     break
         except Exception as e:
