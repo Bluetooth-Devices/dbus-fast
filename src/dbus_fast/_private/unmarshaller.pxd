@@ -11,20 +11,20 @@ cdef unsigned int HEADER_SIGNATURE_SIZE
 
 cdef class Unmarshaller:
 
-    cdef object unix_fds
-    cdef bytearray buf
-    cdef object view
-    cdef unsigned int pos
-    cdef object stream
-    cdef object sock
+    cdef object _unix_fds
+    cdef bytearray _buf
+    cdef object _view
+    cdef unsigned int _pos
+    cdef object _stream
+    cdef object _sock
     cdef object _message
-    cdef object readers
-    cdef unsigned int body_len
-    cdef unsigned int serial
-    cdef unsigned int header_len
+    cdef object _readers
+    cdef unsigned int _body_len
+    cdef unsigned int _serial
+    cdef unsigned int _header_len
     cdef unsigned int _message_type
     cdef unsigned int _flag
-    cdef unsigned int msg_len
+    cdef unsigned int _msg_len
     cdef object _uint32_unpack
 
     cpdef reset(self)
