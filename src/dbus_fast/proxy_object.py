@@ -99,9 +99,11 @@ class BaseProxyInterface:
     def _message_handler(self, msg: Message) -> None:
         if (
             not msg._matches(
-                message_type=MessageType.SIGNAL,
-                interface=self.introspection.name,
-                path=self.path,
+                {
+                    "message_type": MessageType.SIGNAL,
+                    "interface": self.introspection.name,
+                    "path": self.path,
+                }
             )
             or msg.member not in self._signal_handlers
         ):

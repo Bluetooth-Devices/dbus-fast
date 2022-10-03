@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, Dict, List
 
 from ._private.constants import LITTLE_ENDIAN, PROTOCOL_VERSION, HeaderField
 from ._private.marshaller import Marshaller
@@ -11,13 +11,6 @@ from .validators import (
     assert_member_name_valid,
     assert_object_path_valid,
 )
-
-REQUIRED_FIELDS = {
-    MessageType.METHOD_CALL: ("path", "member"),
-    MessageType.SIGNAL: ("path", "member", "interface"),
-    MessageType.ERROR: ("error_name", "reply_serial"),
-    MessageType.METHOD_RETURN: ("reply_serial",),
-}
 
 HEADER_PATH = HeaderField.PATH.value
 HEADER_INTERFACE = HeaderField.INTERFACE.value
@@ -109,7 +102,7 @@ class Message:
         body: List[Any] = [],
         serial: int = 0,
         validate: bool = True,
-    ):
+    ) -> None:
         self.destination = destination
         self.path = path
         self.interface = interface
@@ -137,23 +130,39 @@ class Message:
 
         if not validate:
             return
-        if self.destination is not None:
-            assert_bus_name_valid(self.destination)
-        if self.interface is not None:
-            assert_interface_name_valid(self.interface)
-        if self.path is not None:
-            assert_object_path_valid(self.path)
-        if self.member is not None:
-            assert_member_name_valid(self.member)
+        if destination is not None:
+            assert_bus_name_valid(destination)
+        if interface is not None:
+            assert_interface_name_valid(interface)
+        if path is not None:
+            assert_object_path_valid(path)
+        if member is not None:
+            assert_member_name_valid(member)
         if self.error_name is not None:
             assert_interface_name_valid(self.error_name)
 
-        required_fields = REQUIRED_FIELDS.get(self.message_type)
-        if not required_fields:
+        if self.message_type == MessageType.METHOD_CALL:
+            if not path:
+                raise InvalidMessageError(f"missing required field: path")
+            if not member:
+                raise InvalidMessageError(f"missing required field: member")
+        elif self.message_type == MessageType.SIGNAL:
+            if not path:
+                raise InvalidMessageError(f"missing required field: path")
+            if not member:
+                raise InvalidMessageError(f"missing required field: member")
+            if not interface:
+                raise InvalidMessageError(f"missing required field: interface")
+        elif self.message_type == MessageType.ERROR:
+            if not error_name:
+                raise InvalidMessageError(f"missing required field: error_name")
+            if not reply_serial:
+                raise InvalidMessageError(f"missing required field: reply_serial")
+        elif self.message_type == MessageType.METHOD_RETURN:
+            if not reply_serial:
+                raise InvalidMessageError(f"missing required field: reply_serial")
+        else:
             raise InvalidMessageError(f"got unknown message type: {self.message_type}")
-        for field in required_fields:
-            if not getattr(self, field):
-                raise InvalidMessageError(f"missing required field: {field}")
 
     @staticmethod
     def new_error(msg: "Message", error_name: str, error_text: str) -> "Message":
@@ -257,8 +266,8 @@ class Message:
             unix_fds=unix_fds,
         )
 
-    def _matches(self, **kwargs):
-        for attr, val in kwargs.items():
+    def _matches(self, matchers: Dict[str, Any]) -> bool:
+        for attr, val in matchers.items():
             if getattr(self, attr) != val:
                 return False
 

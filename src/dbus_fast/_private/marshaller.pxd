@@ -9,12 +9,10 @@ cdef class Marshaller:
     cdef bytearray _buf
     cdef object body
 
-
     @cython.locals(
         offset=cython.ulong,
     )
     cpdef int align(self, unsigned long n)
-
 
     @cython.locals(
         signature_len=cython.uint,

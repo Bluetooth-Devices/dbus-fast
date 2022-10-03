@@ -774,10 +774,12 @@ class BaseMessageBus:
 
         if msg.message_type == MessageType.SIGNAL:
             if msg._matches(
-                member="NameOwnerChanged",  # least likely to match
-                sender="org.freedesktop.DBus",
-                path="/org/freedesktop/DBus",
-                interface="org.freedesktop.DBus",
+                {
+                    "member": "NameOwnerChanged",  # least likely to match
+                    "sender": "org.freedesktop.DBus",
+                    "path": "/org/freedesktop/DBus",
+                    "interface": "org.freedesktop.DBus",
+                }
             ):
                 [name, old_owner, new_owner] = msg.body
                 if new_owner:
@@ -828,22 +830,27 @@ class BaseMessageBus:
         handler = None
 
         if msg._matches(
-            interface="org.freedesktop.DBus.Introspectable",
-            member="Introspect",
-            signature="",
+            {
+                "interface": "org.freedesktop.DBus.Introspectable",
+                "member": "Introspect",
+                "signature": "",
+            }
         ):
             handler = self._default_introspect_handler
 
-        elif msg._matches(interface="org.freedesktop.DBus.Properties"):
+        elif msg._matches({"interface": "org.freedesktop.DBus.Properties"}):
             handler = self._default_properties_handler
 
-        elif msg._matches(interface="org.freedesktop.DBus.Peer"):
-            if msg._matches(member="Ping", signature=""):
+        elif msg._matches({"interface": "org.freedesktop.DBus.Peer"}):
+            if msg._matches({"member": "Ping", "signature": ""}):
                 handler = self._default_ping_handler
-            elif msg._matches(member="GetMachineId", signature=""):
+            elif msg._matches({"member": "GetMachineId", "signature": ""}):
                 handler = self._default_get_machine_id_handler
         elif msg._matches(
-            interface="org.freedesktop.DBus.ObjectManager", member="GetManagedObjects"
+            {
+                "interface": "org.freedesktop.DBus.ObjectManager",
+                "member": "GetManagedObjects",
+            }
         ):
             handler = self._default_get_managed_objects_handler
 
@@ -853,9 +860,11 @@ class BaseMessageBus:
                     if method.disabled:
                         continue
                     if msg._matches(
-                        interface=interface.name,
-                        member=method.name,
-                        signature=method.in_signature,
+                        {
+                            "interface": interface.name,
+                            "member": method.name,
+                            "signature": method.in_signature,
+                        }
                     ):
                         handler = self._make_method_handler(interface, method)
                         break
