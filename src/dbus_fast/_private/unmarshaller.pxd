@@ -8,6 +8,10 @@ from ..signature import SignatureType
 cdef unsigned int UINT32_SIZE
 cdef unsigned int HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
 cdef unsigned int HEADER_SIGNATURE_SIZE
+cdef unsigned int LITTLE_ENDIAN
+cdef unsigned int BIG_ENDIAN
+cdef bint IS_BIG_ENDIAN
+cdef bint IS_LITTLE_ENDIAN
 
 cdef class Unmarshaller:
 
@@ -57,6 +61,7 @@ cdef class Unmarshaller:
     @cython.locals(
         endian=cython.uint,
         protocol_version=cython.uint,
+        can_cast=cython.bint
     )
     cpdef _read_header(self)
 
