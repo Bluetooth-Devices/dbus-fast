@@ -140,8 +140,8 @@ class Unmarshaller:
         "body_len",
         "serial",
         "header_len",
-        "message_type",
-        "flag",
+        "_message_type",
+        "_flag",
         "msg_len",
         "_uint32_unpack",
     )
@@ -158,8 +158,8 @@ class Unmarshaller:
         self.body_len = 0
         self.serial = 0
         self.header_len = 0
-        self.message_type: MessageType | None = None
-        self.flag: MessageFlag | None = None
+        self._message_type = 0
+        self._flag = 0
         self.msg_len = 0
         # Only set if we cannot cast
         self._uint32_unpack: Callable | None = None
@@ -177,8 +177,8 @@ class Unmarshaller:
         self.body_len = 0
         self.serial = 0
         self.header_len = 0
-        self.message_type = None
-        self.flag = None
+        self._message_type = 0
+        self._flag = 0
         self.msg_len = 0
         self._uint32_unpack = None
 
@@ -354,8 +354,8 @@ class Unmarshaller:
         self.read_to_pos(HEADER_SIGNATURE_SIZE)
         buffer = self.buf
         endian = buffer[0]
-        self.message_type = MESSAGE_TYPE_MAP[buffer[1]]
-        self.flag = MESSAGE_FLAG_MAP[buffer[2]]
+        self._message_type = buffer[1]
+        self._flag = buffer[2]
         protocol_version = buffer[3]
 
         if endian != LITTLE_ENDIAN and endian != BIG_ENDIAN:
@@ -394,8 +394,8 @@ class Unmarshaller:
             path=header_fields.get(HEADER_PATH),
             interface=header_fields.get(HEADER_INTERFACE),
             member=header_fields.get(HEADER_MEMBER),
-            message_type=self.message_type,
-            flags=self.flag,
+            message_type=MESSAGE_TYPE_MAP[self._message_type],
+            flags=MESSAGE_FLAG_MAP[self._flag],
             error_name=header_fields.get(HEADER_ERROR_NAME),
             reply_serial=header_fields.get(HEADER_REPLY_SERIAL),
             sender=header_fields.get(HEADER_SENDER),

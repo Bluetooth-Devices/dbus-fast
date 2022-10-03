@@ -22,8 +22,8 @@ cdef class Unmarshaller:
     cdef unsigned int body_len
     cdef unsigned int serial
     cdef unsigned int header_len
-    cdef object message_type
-    cdef object flag
+    cdef unsigned int _message_type
+    cdef unsigned int _flag
     cdef unsigned int msg_len
     cdef object _uint32_unpack
 
