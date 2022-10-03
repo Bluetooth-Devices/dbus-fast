@@ -126,7 +126,7 @@ class Message:
             else SignatureTree._get(signature)
         )
         self.body = body
-        self.serial = serial
+        self._serial = serial
 
         if not validate:
             return
@@ -163,6 +163,10 @@ class Message:
                 raise InvalidMessageError(f"missing required field: reply_serial")
         else:
             raise InvalidMessageError(f"got unknown message type: {self.message_type}")
+
+    @property
+    def serial(self) -> int:
+        return self._serial
 
     @staticmethod
     def new_error(msg: "Message", error_name: str, error_text: str) -> "Message":
@@ -318,7 +322,7 @@ class Message:
             self.flags.value,
             PROTOCOL_VERSION,
             len(body_block.buffer),
-            self.serial,
+            self._serial,
             fields,
         ]
         header_block = Marshaller("yyyyuua(yv)", header_body)

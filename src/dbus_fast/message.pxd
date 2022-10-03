@@ -22,7 +22,7 @@ cdef class Message:
     cdef str signature
     cdef object signature_tree
     cdef list body
-    cdef unsigned int serial
+    cdef unsigned int _serial
 
     @cython.locals(
         fields=cython.list,
