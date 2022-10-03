@@ -172,6 +172,7 @@ class Unmarshaller:
         self._view = None
         self._buf.clear()
         self._message = None
+        self._pos = 0
         self._msg_len = 0
 
     @property
