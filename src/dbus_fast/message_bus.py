@@ -690,14 +690,6 @@ class BaseMessageBus:
                 ErrorType.INTERNAL_ERROR, "invalid message type for method call", msg
             )
 
-    def _on_message(self, msg: Message) -> None:
-        try:
-            self._process_message(msg)
-        except Exception as e:
-            logging.error(
-                f"got unexpected error processing a message: {e}.\n{traceback.format_exc()}"
-            )
-
     def _send_reply(self, msg: Message):
         bus = self
 
@@ -773,11 +765,11 @@ class BaseMessageBus:
                     break
 
         if msg.message_type == MessageType.SIGNAL:
-            if msg._matches(
-                member="NameOwnerChanged",  # least likely to match
-                sender="org.freedesktop.DBus",
-                path="/org/freedesktop/DBus",
-                interface="org.freedesktop.DBus",
+            if (
+                msg.member == "NameOwnerChanged"
+                and msg.sender == "org.freedesktop.DBus"
+                and msg.path == "/org/freedesktop/DBus"
+                and msg.interface == "org.freedesktop.DBus"
             ):
                 [name, old_owner, new_owner] = msg.body
                 if new_owner:
@@ -827,23 +819,24 @@ class BaseMessageBus:
     ) -> Optional[Callable[[Message, Callable], None]]:
         handler = None
 
-        if msg._matches(
-            interface="org.freedesktop.DBus.Introspectable",
-            member="Introspect",
-            signature="",
+        if (
+            msg.interface == "org.freedesktop.DBus.Introspectable"
+            and msg.member == "Introspect"
+            and msg.signature == ""
         ):
             handler = self._default_introspect_handler
 
-        elif msg._matches(interface="org.freedesktop.DBus.Properties"):
+        elif msg.interface == "org.freedesktop.DBus.Properties":
             handler = self._default_properties_handler
 
-        elif msg._matches(interface="org.freedesktop.DBus.Peer"):
-            if msg._matches(member="Ping", signature=""):
+        elif msg.interface == "org.freedesktop.DBus.Peer":
+            if msg.member == "Ping" and msg.signature == "":
                 handler = self._default_ping_handler
-            elif msg._matches(member="GetMachineId", signature=""):
+            elif msg.member == "GetMachineId" and msg.signature == "":
                 handler = self._default_get_machine_id_handler
-        elif msg._matches(
-            interface="org.freedesktop.DBus.ObjectManager", member="GetManagedObjects"
+        elif (
+            msg.interface == "org.freedesktop.DBus.ObjectManager"
+            and msg.member == "GetManagedObjects"
         ):
             handler = self._default_get_managed_objects_handler
 
@@ -852,10 +845,10 @@ class BaseMessageBus:
                 for method in ServiceInterface._get_methods(interface):
                     if method.disabled:
                         continue
-                    if msg._matches(
-                        interface=interface.name,
-                        member=method.name,
-                        signature=method.in_signature,
+                    if (
+                        msg.interface == interface.name
+                        and msg.member == method.name
+                        and msg.signature == method.in_signature
                     ):
                         handler = self._make_method_handler(interface, method)
                         break

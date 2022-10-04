@@ -13,7 +13,7 @@ from ._private.util import (
 )
 from .constants import PropertyAccess
 from .errors import SignalDisabledError
-from .signature import SignatureBodyMismatchError, SignatureTree, Variant
+from .signature import SignatureBodyMismatchError, Variant, get_signature_tree
 
 
 class _Method:
@@ -39,7 +39,7 @@ class _Method:
         out_args = []
         out_signature = parse_annotation(inspection.return_annotation)
         if out_signature:
-            for type_ in SignatureTree._get(out_signature).types:
+            for type_ in get_signature_tree(out_signature).types:
                 out_args.append(intr.Arg(type_, intr.ArgDirection.OUT))
 
         self.name = name
@@ -48,8 +48,8 @@ class _Method:
         self.introspection = intr.Method(name, in_args, out_args)
         self.in_signature = in_signature
         self.out_signature = out_signature
-        self.in_signature_tree = SignatureTree._get(in_signature)
-        self.out_signature_tree = SignatureTree._get(out_signature)
+        self.in_signature_tree = get_signature_tree(in_signature)
+        self.out_signature_tree = get_signature_tree(out_signature)
 
 
 def method(name: str = None, disabled: bool = False):
@@ -116,12 +116,12 @@ class _Signal:
 
         if return_annotation:
             signature = return_annotation
-            signature_tree = SignatureTree._get(signature)
+            signature_tree = get_signature_tree(signature)
             for type_ in signature_tree.types:
                 args.append(intr.Arg(type_, intr.ArgDirection.OUT))
         else:
             signature = ""
-            signature_tree = SignatureTree._get("")
+            signature_tree = get_signature_tree("")
 
         self.signature = signature
         self.signature_tree = signature_tree
@@ -226,7 +226,7 @@ class _Property(property):
             )
 
         self.signature = return_annotation
-        tree = SignatureTree._get(return_annotation)
+        tree = get_signature_tree(return_annotation)
 
         if len(tree.types) != 1:
             raise ValueError("the property signature must be a single complete type")

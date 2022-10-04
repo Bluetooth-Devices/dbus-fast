@@ -1,10 +1,10 @@
-from typing import Any, List
+from typing import Any, List, Union
 
 from ._private.constants import LITTLE_ENDIAN, PROTOCOL_VERSION, HeaderField
 from ._private.marshaller import Marshaller
 from .constants import ErrorType, MessageFlag, MessageType
 from .errors import InvalidMessageError
-from .signature import SignatureTree, Variant
+from .signature import SignatureTree, Variant, get_signature_tree
 from .validators import (
     assert_bus_name_valid,
     assert_interface_name_valid,
@@ -105,11 +105,11 @@ class Message:
         reply_serial: int = None,
         sender: str = None,
         unix_fds: List[int] = [],
-        signature: str = "",
+        signature: Union[str, SignatureTree] = "",
         body: List[Any] = [],
         serial: int = 0,
         validate: bool = True,
-    ):
+    ) -> None:
         self.destination = destination
         self.path = path
         self.interface = interface
@@ -124,14 +124,12 @@ class Message:
         self.reply_serial = reply_serial
         self.sender = sender
         self.unix_fds = unix_fds
-        self.signature = (
-            signature.signature if type(signature) is SignatureTree else signature
-        )
-        self.signature_tree = (
-            signature
-            if type(signature) is SignatureTree
-            else SignatureTree._get(signature)
-        )
+        if type(signature) is SignatureTree:
+            self.signature = signature.signature
+            self.signature_tree = signature
+        else:
+            self.signature = signature
+            self.signature_tree = get_signature_tree(signature)
         self.body = body
         self.serial = serial
 
@@ -256,13 +254,6 @@ class Message:
             body=body,
             unix_fds=unix_fds,
         )
-
-    def _matches(self, **kwargs):
-        for attr, val in kwargs.items():
-            if getattr(self, attr) != val:
-                return False
-
-        return True
 
     def _marshall(self, negotiate_unix_fd=False):
         # TODO maximum message size is 134217728 (128 MiB)

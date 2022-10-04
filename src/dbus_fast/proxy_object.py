@@ -13,7 +13,7 @@ from ._private.util import replace_idx_with_fds
 from .constants import ErrorType, MessageType
 from .errors import DBusError, InterfaceNotFoundError
 from .message import Message
-from .signature import unpack_variants as unpack
+from .unpack import unpack_variants as unpack
 from .validators import assert_bus_name_valid, assert_object_path_valid
 
 
@@ -98,11 +98,9 @@ class BaseProxyInterface:
 
     def _message_handler(self, msg: Message) -> None:
         if (
-            not msg._matches(
-                message_type=MessageType.SIGNAL,
-                interface=self.introspection.name,
-                path=self.path,
-            )
+            msg.message_type != MessageType.SIGNAL
+            or msg.interface != self.introspection.name
+            or msg.path != self.path
             or msg.member not in self._signal_handlers
         ):
             return

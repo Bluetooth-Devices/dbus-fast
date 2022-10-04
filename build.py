@@ -1,6 +1,5 @@
 """Build optional cython modules."""
 
-import contextlib
 import os
 from distutils.command.build_ext import build_ext
 
@@ -16,17 +15,24 @@ class BuildExt(build_ext):
 def build(setup_kwargs):
     if os.environ.get("SKIP_CYTHON", False):
         return
-    with contextlib.suppress(Exception):
+    try:
         from Cython.Build import cythonize
 
         setup_kwargs.update(
             dict(
                 ext_modules=cythonize(
                     [
+                        "src/dbus_fast/signature.py",
+                        "src/dbus_fast/unpack.py",
                         "src/dbus_fast/_private/marshaller.py",
                         "src/dbus_fast/_private/unmarshaller.py",
-                    ]
+                    ],
+                    compiler_directives={"language_level": "3"},  # Python 3
                 ),
                 cmdclass=dict(build_ext=BuildExt),
             )
         )
+    except Exception:
+        if os.environ.get("REQUIRE_CYTHON"):
+            raise
+        pass

@@ -2,6 +2,7 @@ import array
 import asyncio
 import logging
 import socket
+import traceback
 from collections import deque
 from copy import copy
 from typing import Any, Optional
@@ -419,11 +420,17 @@ class MessageBus(BaseMessageBus):
         return handler
 
     def _message_reader(self) -> None:
+        unmarshaller = self._unmarshaller
         try:
             while True:
-                if self._unmarshaller.unmarshall():
-                    self._on_message(self._unmarshaller.message)
-                    self._unmarshaller = self._create_unmarshaller()
+                if unmarshaller.unmarshall():
+                    try:
+                        self._process_message(unmarshaller.message)
+                    except Exception as e:
+                        logging.error(
+                            f"got unexpected error processing a message: {e}.\n{traceback.format_exc()}"
+                        )
+                    unmarshaller.reset()
                 else:
                     break
         except Exception as e:

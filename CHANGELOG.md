@@ -2,6 +2,90 @@
 
 <!--next-version-placeholder-->
 
+## v1.24.0 (2022-10-04)
+### Feature
+* Add cython extension for signature ([#72](https://github.com/Bluetooth-Devices/dbus-fast/issues/72)) ([`0ad8801`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0ad8801215093cdbf0f62fce5b953d9b01e9d524))
+
+## v1.23.0 (2022-10-04)
+### Feature
+* Speed up unmarshall performance ([#71](https://github.com/Bluetooth-Devices/dbus-fast/issues/71)) ([`f38e08f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f38e08fa7cc8d41e896663ab0f163aa37a472abe))
+
+## v1.22.0 (2022-10-03)
+### Feature
+* Speed up message bus matching ([#70](https://github.com/Bluetooth-Devices/dbus-fast/issues/70)) ([`cccfea3`](https://github.com/Bluetooth-Devices/dbus-fast/commit/cccfea30b9ec5417eecef5093ee02f7b7a254c45))
+
+## v1.21.17 (2022-10-02)
+### Fix
+* Install python-semantic-release in wheel workflow ([#68](https://github.com/Bluetooth-Devices/dbus-fast/issues/68)) ([`cca0d6e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/cca0d6e98a5934fee83ccafbd2ed47cf60a3ce99))
+
+## v1.21.16 (2022-10-02)
+### Fix
+* Ensure we can get the latest version in the wheels build process ([#67](https://github.com/Bluetooth-Devices/dbus-fast/issues/67)) ([`ecd5a70`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ecd5a7036945ccdd79e3049a7f2904709544af51))
+
+## v1.21.15 (2022-10-02)
+### Fix
+* Checkout main for wheels ([#66](https://github.com/Bluetooth-Devices/dbus-fast/issues/66)) ([`3051a93`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3051a9322cc711cee24583dedf25cee31a31c3b3))
+
+## v1.21.14 (2022-10-02)
+### Fix
+* Use semantic-release to find the latest tag for wheels ([#65](https://github.com/Bluetooth-Devices/dbus-fast/issues/65)) ([`b76eb97`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b76eb97188c204996d049d326b4d21c74bc3f325))
+
+## v1.21.13 (2022-10-02)
+### Fix
+* Build wheels from the sha saved after release ([#64](https://github.com/Bluetooth-Devices/dbus-fast/issues/64)) ([`faee181`](https://github.com/Bluetooth-Devices/dbus-fast/commit/faee18172bb7bc72ade8a54f2a8bd0fae5e35018))
+
+## v1.21.12 (2022-10-02)
+### Fix
+* Switch to on create instead of push ([#63](https://github.com/Bluetooth-Devices/dbus-fast/issues/63)) ([`af0ed88`](https://github.com/Bluetooth-Devices/dbus-fast/commit/af0ed889985425b33fbbe35e8c8a4d0427643367))
+
+## v1.21.11 (2022-10-02)
+### Fix
+* Accept any tag to build wheels ([#62](https://github.com/Bluetooth-Devices/dbus-fast/issues/62)) ([`60fca54`](https://github.com/Bluetooth-Devices/dbus-fast/commit/60fca54d2a4da67e3211b9e3f421787154234041))
+
+## v1.21.10 (2022-10-02)
+### Fix
+* Github action tag matching ([#61](https://github.com/Bluetooth-Devices/dbus-fast/issues/61)) ([`b95d0b8`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b95d0b8ce63e03c972fef72354cd67c2062bea94))
+
+## v1.21.9 (2022-10-02)
+### Fix
+* Build wheels on tag instead ([#60](https://github.com/Bluetooth-Devices/dbus-fast/issues/60)) ([`6166896`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6166896c49a1358c951057fcc73d4b91ac92e08b))
+
+## v1.21.8 (2022-10-02)
+### Fix
+* Publish wheels when release happens ([#59](https://github.com/Bluetooth-Devices/dbus-fast/issues/59)) ([`45e8ac0`](https://github.com/Bluetooth-Devices/dbus-fast/commit/45e8ac00c6473c5329b36d4f19f5eb846db19d31))
+
+## v1.21.7 (2022-10-02)
+### Fix
+* Seperate wheels back out so it builds after ([#58](https://github.com/Bluetooth-Devices/dbus-fast/issues/58)) ([`c74c251`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c74c2519a12a0f9cbb8c1b12b8871df22dda047d))
+
+## v1.21.6 (2022-10-02)
+### Fix
+* Language_level warning when running cythonize ([#57](https://github.com/Bluetooth-Devices/dbus-fast/issues/57)) ([`b7b441e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b7b441eeef8bfa1dc286c78435ff9bac9d072302))
+
+## v1.21.5 (2022-10-02)
+### Fix
+* Cython build of unpack ([#56](https://github.com/Bluetooth-Devices/dbus-fast/issues/56)) ([`5df01ac`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5df01ac1ba3dc0515ffa8d0b01c1d386ef726e91))
+
+## v1.21.4 (2022-10-02)
+### Fix
+* Increase verbosity of wheel builds ([#55](https://github.com/Bluetooth-Devices/dbus-fast/issues/55)) ([`4779e7b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/4779e7b825270268ae28b5fc1c4ddb45647c31c5))
+
+## v1.21.3 (2022-10-02)
+### Fix
+* Make wheel build depend on release success ([#54](https://github.com/Bluetooth-Devices/dbus-fast/issues/54)) ([`49d98d0`](https://github.com/Bluetooth-Devices/dbus-fast/commit/49d98d01c2a3736adcc5d088fdd447c45b9503de))
+
+## v1.21.2 (2022-10-02)
+### Fix
+* Additional tweaks to publishing wheels ([#53](https://github.com/Bluetooth-Devices/dbus-fast/issues/53)) ([`05b9453`](https://github.com/Bluetooth-Devices/dbus-fast/commit/05b945317380ad3d50b2f9d9114a61a2c57d99f0))
+
+## v1.21.1 (2022-10-02)
+### Fix
+* Wheel builds on released ([#52](https://github.com/Bluetooth-Devices/dbus-fast/issues/52)) ([`6259fb2`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6259fb299722688ca19a41a61a7a783e9abdca8c))
+
+## v1.21.0 (2022-10-02)
+### Feature
+* Cythonize unpack_variants ([#51](https://github.com/Bluetooth-Devices/dbus-fast/issues/51)) ([`1587211`](https://github.com/Bluetooth-Devices/dbus-fast/commit/158721123fc56675f04b9081ef4107590a8c2b17))
+
 ## v1.20.0 (2022-10-02)
 ### Feature
 * Add additional cython types to the unmarshaller ([#45](https://github.com/Bluetooth-Devices/dbus-fast/issues/45)) ([`0f279a5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0f279a5ea9cd440fdbdd7dbafc1a48b1cc3577d7))

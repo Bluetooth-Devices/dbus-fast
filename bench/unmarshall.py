@@ -16,8 +16,15 @@ bluez_rssi_message = (
 )
 
 
+stream = io.BytesIO(bytes.fromhex(bluez_rssi_message))
+
+unmarshaller = Unmarshaller(stream)
+
+
 def unmarhsall_bluez_rssi_message():
-    Unmarshaller(io.BytesIO(bytes.fromhex(bluez_rssi_message))).unmarshall()
+    stream.seek(0)
+    unmarshaller.reset()
+    unmarshaller.unmarshall()
 
 
 count = 1000000

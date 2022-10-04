@@ -3,7 +3,7 @@ from typing import List, Union
 
 from .constants import ArgDirection, PropertyAccess
 from .errors import InvalidIntrospectionError
-from .signature import SignatureTree, SignatureType
+from .signature import SignatureType, get_signature_tree
 from .validators import assert_interface_name_valid, assert_member_name_valid
 
 # https://dbus.freedesktop.org/doc/dbus-specification.html#introspection-format
@@ -42,7 +42,7 @@ class Arg:
             type_ = signature
             signature = signature.signature
         else:
-            tree = SignatureTree._get(signature)
+            tree = get_signature_tree(signature)
             if len(tree.types) != 1:
                 raise InvalidIntrospectionError(
                     f"an argument must have a single complete type. (has {len(tree.types)} types)"
@@ -248,7 +248,7 @@ class Property:
     ):
         assert_member_name_valid(name)
 
-        tree = SignatureTree._get(signature)
+        tree = get_signature_tree(signature)
         if len(tree.types) != 1:
             raise InvalidIntrospectionError(
                 f"properties must have a single complete type. (has {len(tree.types)} types)"
