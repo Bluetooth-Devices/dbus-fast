@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.24.0 (2022-10-04)
+### Feature
+* Add cython extension for signature ([#72](https://github.com/Bluetooth-Devices/dbus-fast/issues/72)) ([`0ad8801`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0ad8801215093cdbf0f62fce5b953d9b01e9d524))
+
 ## v1.23.0 (2022-10-04)
 ### Feature
 * Speed up unmarshall performance ([#71](https://github.com/Bluetooth-Devices/dbus-fast/issues/71)) ([`f38e08f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f38e08fa7cc8d41e896663ab0f163aa37a472abe))
