@@ -316,18 +316,19 @@ class Unmarshaller:
         if token == "{":
             result_dict = {}
             child_0 = child_type.children[0]
-            token_0 = child_0.token
+            reader_0 = readers[child_0.token]
             child_1 = child_type.children[1]
-            token_1 = child_1.token
+            reader_1 = readers[child_1.token]
             while self._pos - beginning_pos < array_length:
                 self._pos += -self._pos & 7  # align 8
-                key = readers[token_0](self, child_0)
-                result_dict[key] = readers[token_1](self, child_1)
+                key = reader_0(self, child_0)
+                result_dict[key] = reader_1(self, child_1)
             return result_dict
 
         result_list = []
+        reader = readers[child_type.token]
         while self._pos - beginning_pos < array_length:
-            result_list.append(readers[child_type.token](self, child_type))
+            result_list.append(reader(self, child_type))
         return result_list
 
     def header_fields(self, header_length) -> Dict[str, Any]:
