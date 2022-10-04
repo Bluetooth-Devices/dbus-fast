@@ -10,8 +10,6 @@ cdef unsigned int HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
 cdef unsigned int HEADER_SIGNATURE_SIZE
 cdef unsigned int LITTLE_ENDIAN
 cdef unsigned int BIG_ENDIAN
-cdef bint IS_BIG_ENDIAN
-cdef bint IS_LITTLE_ENDIAN
 
 cdef class Unmarshaller:
 
