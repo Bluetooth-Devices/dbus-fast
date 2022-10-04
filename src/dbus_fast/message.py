@@ -4,7 +4,7 @@ from ._private.constants import LITTLE_ENDIAN, PROTOCOL_VERSION, HeaderField
 from ._private.marshaller import Marshaller
 from .constants import ErrorType, MessageFlag, MessageType
 from .errors import InvalidMessageError
-from .signature import SignatureTree, Variant
+from .signature import SignatureTree, Variant, get_signature_tree
 from .validators import (
     assert_bus_name_valid,
     assert_interface_name_valid,
@@ -129,7 +129,7 @@ class Message:
             self.signature_tree = signature
         else:
             self.signature = signature
-            self.signature_tree = SignatureTree._get(signature)
+            self.signature_tree = get_signature_tree(signature)
         self.body = body
         self.serial = serial
 
@@ -254,13 +254,6 @@ class Message:
             body=body,
             unix_fds=unix_fds,
         )
-
-    def _matches(self, **kwargs):
-        for attr, val in kwargs.items():
-            if getattr(self, attr) != val:
-                return False
-
-        return True
 
     def _marshall(self, negotiate_unix_fd=False):
         # TODO maximum message size is 134217728 (128 MiB)

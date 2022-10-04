@@ -330,10 +330,7 @@ class SignatureTree:
         :class:`InvalidSignatureError` if the given signature is not valid.
     """
 
-    @staticmethod
-    @lru_cache(maxsize=None)
-    def _get(signature: str = "") -> "SignatureTree":
-        return SignatureTree(signature)
+    __slots__ = ("signature", "types")
 
     def __init__(self, signature: str = ""):
         self.signature = signature
@@ -414,7 +411,7 @@ class Variant:
             signature_str = signature.signature
             signature_tree = None
         elif type(signature) is str:
-            signature_tree = SignatureTree._get(signature)
+            signature_tree = get_signature_tree(signature)
         else:
             raise TypeError(
                 "signature must be a SignatureTree, SignatureType, or a string"
@@ -445,3 +442,8 @@ class Variant:
         return "<dbus_fast.signature.Variant ('{}', {})>".format(
             self.type.signature, self.value
         )
+
+
+@lru_cache(maxsize=None)
+def get_signature_tree(signature: str = "") -> SignatureTree:
+    return SignatureTree(signature)
