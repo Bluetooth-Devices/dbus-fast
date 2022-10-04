@@ -13,6 +13,9 @@ cdef unsigned int BIG_ENDIAN
 cdef str UINT32_CAST
 cdef object UINT32_SIGNATURE
 
+cdef class MarshallerStreamEndError(Exception):
+    pass
+
 cdef class Unmarshaller:
 
     cdef object _unix_fds
@@ -33,18 +36,20 @@ cdef class Unmarshaller:
 
     cpdef reset(self)
 
+    cdef read_sock(self, unsigned long length)
+
     @cython.locals(
         start_len=cython.ulong,
         missing_bytes=cython.ulong
     )
-    cpdef read_to_pos(self, unsigned long pos)
+    cdef read_to_pos(self, unsigned long pos)
 
     cpdef read_uint32_cast(self, object type_)
 
     @cython.locals(
         buf_bytes=cython.bytearray,
     )
-    cpdef read_string_cast(self, type_ = *)
+    cpdef read_string_cast(self, object type_)
 
     @cython.locals(
         beginning_pos=cython.ulong,
@@ -56,16 +61,16 @@ cdef class Unmarshaller:
         o=cython.ulong,
         signature_len=cython.uint,
     )
-    cpdef read_signature(self, type_ = *)
+    cpdef read_signature(self, object type_)
 
     @cython.locals(
         endian=cython.uint,
         protocol_version=cython.uint,
         can_cast=cython.bint
     )
-    cpdef _read_header(self)
+    cdef _read_header(self)
 
-    cpdef _read_body(self)
+    cdef _read_body(self)
 
     cpdef unmarshall(self)
 
@@ -74,4 +79,4 @@ cdef class Unmarshaller:
         o=cython.ulong,
         signature_len=cython.uint,
     )
-    cpdef header_fields(self, unsigned int header_length)
+    cdef header_fields(self, unsigned int header_length)

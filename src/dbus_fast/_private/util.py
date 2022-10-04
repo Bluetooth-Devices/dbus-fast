@@ -2,7 +2,7 @@ import ast
 import inspect
 from typing import Any, List, Union
 
-from ..signature import SignatureTree, Variant
+from ..signature import SignatureTree, Variant, get_signature_tree
 
 
 def signature_contains_type(
@@ -11,7 +11,7 @@ def signature_contains_type(
     """For a given signature and body, check to see if it contains any members
     with the given token"""
     if type(signature) is str:
-        signature = SignatureTree._get(signature)
+        signature = get_signature_tree(signature)
 
     queue = []
     contains_variants = False
@@ -56,7 +56,7 @@ def replace_fds_with_idx(
     an index and return the corresponding list of unix fds that can be set on
     the Message"""
     if type(signature) is str:
-        signature = SignatureTree._get(signature)
+        signature = get_signature_tree(signature)
 
     if not signature_contains_type(signature, body, "h"):
         return body, []
@@ -82,7 +82,7 @@ def replace_idx_with_fds(
     Type 'h' refers to an index in the unix_fds array. Replace those with the
     actual file descriptor or `None` if one does not exist."""
     if type(signature) is str:
-        signature = SignatureTree._get(signature)
+        signature = get_signature_tree(signature)
 
     if not signature_contains_type(signature, body, "h"):
         return body

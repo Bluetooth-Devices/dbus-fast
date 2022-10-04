@@ -1,7 +1,7 @@
 from struct import Struct, error
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
-from ..signature import SignatureTree, SignatureType, Variant
+from ..signature import SignatureType, Variant, get_signature_tree
 
 PACK_UINT32 = Struct("<I").pack
 
@@ -13,7 +13,7 @@ class Marshaller:
 
     def __init__(self, signature: str, body: List[Any]) -> None:
         """Marshaller constructor."""
-        self.signature_tree = SignatureTree._get(signature)
+        self.signature_tree = get_signature_tree(signature)
         self._buf = bytearray()
         self.body = body
 

@@ -3,12 +3,12 @@ import io
 import socket
 import sys
 from struct import Struct
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Tuple
 
-from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP, MessageFlag, MessageType
+from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP
 from ..errors import InvalidMessageError
 from ..message import Message
-from ..signature import SignatureTree, SignatureType, Variant
+from ..signature import SignatureType, Variant, get_signature_tree
 from .constants import (
     BIG_ENDIAN,
     HEADER_NAME_MAP,
@@ -28,7 +28,7 @@ UNPACK_LENGTHS = {BIG_ENDIAN: Struct(">III"), LITTLE_ENDIAN: Struct("<III")}
 UINT32_CAST = "I"
 UINT32_SIZE = 4
 UINT32_DBUS_TYPE = "u"
-UINT32_SIGNATURE = SignatureTree._get(UINT32_DBUS_TYPE).types[0]
+UINT32_SIGNATURE = get_signature_tree(UINT32_DBUS_TYPE).types[0]
 
 DBUS_TO_CTYPE = {
     "y": ("B", 1),  # byte
@@ -236,14 +236,14 @@ class Unmarshaller:
         if len(data) + start_len != pos:
             raise MarshallerStreamEndError()
 
-    def read_uint32_cast(self, signature: SignatureType) -> Any:
+    def read_uint32_cast(self, type_: SignatureType) -> Any:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
         return self._view[self._pos - UINT32_SIZE : self._pos].cast(UINT32_CAST)[0]
 
-    def read_boolean(self, type_=None) -> bool:
+    def read_boolean(self, type_: SignatureType) -> bool:
         return bool(self._readers[UINT32_SIGNATURE.token](self, UINT32_SIGNATURE))
 
-    def read_string_cast(self, type_=None) -> str:
+    def read_string_cast(self, type_: SignatureType) -> str:
         """Read a string using cast."""
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
         str_start = self._pos
@@ -252,7 +252,7 @@ class Unmarshaller:
         self._pos += self._view[start_pos : self._pos].cast(UINT32_CAST)[0] + 1
         return self._buf[str_start : self._pos - 1].decode()
 
-    def read_string_unpack(self, type_=None) -> str:
+    def read_string_unpack(self, type_: SignatureType) -> str:
         """Read a string using unpack."""
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
         str_start = self._pos
@@ -260,21 +260,21 @@ class Unmarshaller:
         self._pos += self._uint32_unpack(self._view, str_start - UINT32_SIZE)[0] + 1
         return self._buf[str_start : self._pos - 1].decode()
 
-    def read_signature(self, type_=None) -> str:
+    def read_signature(self, type_: SignatureType) -> str:
         signature_len = self._view[self._pos]  # byte
         o = self._pos + 1
         # read terminating '\0' byte as well (str_length + 1)
         self._pos = o + signature_len + 1
         return self._buf[o : o + signature_len].decode()
 
-    def read_variant(self, type_=None) -> Variant:
-        tree = SignatureTree._get(self.read_signature())
+    def read_variant(self, type_: SignatureType) -> Variant:
+        tree = get_signature_tree(self.read_signature(type_))
         # verify in Variant is only useful on construction not unmarshalling
         return Variant(
             tree, self._readers[tree.types[0].token](self, tree.types[0]), verify=False
         )
 
-    def read_struct(self, type_=None) -> List[Any]:
+    def read_struct(self, type_: SignatureType) -> List[Any]:
         self._pos += -self._pos & 7  # align 8
         readers = self._readers
         return [
@@ -344,7 +344,7 @@ class Unmarshaller:
             signature_len = self._view[self._pos]  # byte
             o = self._pos + 1
             self._pos += signature_len + 2  # one for the byte, one for the '\0'
-            tree = SignatureTree._get(self._buf[o : o + signature_len].decode())
+            tree = get_signature_tree(self._buf[o : o + signature_len].decode())
             headers[HEADER_NAME_MAP[field_0]] = self._readers[tree.types[0].token](
                 self, tree.types[0]
             )
@@ -391,7 +391,7 @@ class Unmarshaller:
         self._pos = HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
         header_fields = self.header_fields(self._header_len)
         self._pos += -self._pos & 7  # align 8
-        tree = SignatureTree._get(header_fields.get(HeaderField.SIGNATURE.name, ""))
+        tree = get_signature_tree(header_fields.get(HeaderField.SIGNATURE.name, ""))
         self._message = Message(
             destination=header_fields.get(HEADER_DESTINATION),
             path=header_fields.get(HEADER_PATH),
