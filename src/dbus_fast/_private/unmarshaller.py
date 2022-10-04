@@ -403,7 +403,7 @@ class Unmarshaller:
             reply_serial=header_fields.get(HEADER_REPLY_SERIAL),
             sender=header_fields.get(HEADER_SENDER),
             unix_fds=self._unix_fds,
-            signature=tree.signature,
+            signature=tree,
             body=[self._readers[t.token](self, t) for t in tree.types]
             if self._body_len
             else [],
