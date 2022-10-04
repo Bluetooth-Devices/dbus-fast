@@ -1,4 +1,6 @@
 import io
+import logging
+import traceback
 from typing import Callable, Optional
 
 from .. import introspection as intr
@@ -172,6 +174,14 @@ class MessageBus(BaseMessageBus):
             self._auth = AuthExternal()
         else:
             self._auth = auth
+
+    def _on_message(self, msg: Message) -> None:
+        try:
+            self._process_message(msg)
+        except Exception as e:
+            logging.error(
+                f"got unexpected error processing a message: {e}.\n{traceback.format_exc()}"
+            )
 
     def connect(
         self, connect_notify: Callable[["MessageBus", Optional[Exception]], None] = None

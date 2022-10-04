@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Union
 
 from ._private.constants import LITTLE_ENDIAN, PROTOCOL_VERSION, HeaderField
 from ._private.marshaller import Marshaller
@@ -105,11 +105,11 @@ class Message:
         reply_serial: int = None,
         sender: str = None,
         unix_fds: List[int] = [],
-        signature: str = "",
+        signature: Union[str, SignatureTree] = "",
         body: List[Any] = [],
         serial: int = 0,
         validate: bool = True,
-    ):
+    ) -> None:
         self.destination = destination
         self.path = path
         self.interface = interface
@@ -124,14 +124,12 @@ class Message:
         self.reply_serial = reply_serial
         self.sender = sender
         self.unix_fds = unix_fds
-        self.signature = (
-            signature.signature if type(signature) is SignatureTree else signature
-        )
-        self.signature_tree = (
-            signature
-            if type(signature) is SignatureTree
-            else SignatureTree._get(signature)
-        )
+        if type(signature) is SignatureTree:
+            self.signature = signature.signature
+            self.signature_tree = signature
+        else:
+            self.signature = signature
+            self.signature_tree = SignatureTree._get(signature)
         self.body = body
         self.serial = serial
 

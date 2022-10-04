@@ -8,25 +8,30 @@ from ..signature import SignatureType
 cdef unsigned int UINT32_SIZE
 cdef unsigned int HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
 cdef unsigned int HEADER_SIGNATURE_SIZE
+cdef unsigned int LITTLE_ENDIAN
+cdef unsigned int BIG_ENDIAN
+cdef str UINT32_CAST
+cdef object UINT32_SIGNATURE
 
 cdef class Unmarshaller:
 
-    cdef object unix_fds
-    cdef bytearray buf
-    cdef object view
-    cdef unsigned int pos
-    cdef object stream
-    cdef object sock
+    cdef object _unix_fds
+    cdef bytearray _buf
+    cdef object _view
+    cdef unsigned int _pos
+    cdef object _stream
+    cdef object _sock
     cdef object _message
-    cdef object readers
-    cdef unsigned int body_len
-    cdef unsigned int serial
-    cdef unsigned int header_len
-    cdef object message_type
-    cdef object flag
-    cdef unsigned int msg_len
+    cdef object _readers
+    cdef unsigned int _body_len
+    cdef unsigned int _serial
+    cdef unsigned int _header_len
+    cdef unsigned int _message_type
+    cdef unsigned int _flag
+    cdef unsigned int _msg_len
     cdef object _uint32_unpack
 
+    cpdef reset(self)
 
     @cython.locals(
         start_len=cython.ulong,
@@ -56,6 +61,7 @@ cdef class Unmarshaller:
     @cython.locals(
         endian=cython.uint,
         protocol_version=cython.uint,
+        can_cast=cython.bint
     )
     cpdef _read_header(self)
 

@@ -690,14 +690,6 @@ class BaseMessageBus:
                 ErrorType.INTERNAL_ERROR, "invalid message type for method call", msg
             )
 
-    def _on_message(self, msg: Message) -> None:
-        try:
-            self._process_message(msg)
-        except Exception as e:
-            logging.error(
-                f"got unexpected error processing a message: {e}.\n{traceback.format_exc()}"
-            )
-
     def _send_reply(self, msg: Message):
         bus = self
 
