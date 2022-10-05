@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.25.0 (2022-10-05)
+### Feature
+* Add cython extension for messages ([#73](https://github.com/Bluetooth-Devices/dbus-fast/issues/73)) ([`8676f12`](https://github.com/Bluetooth-Devices/dbus-fast/commit/8676f12a7e040d7c3f20584739a74ad1074a4717))
+
 ## v1.24.0 (2022-10-04)
 ### Feature
 * Add cython extension for signature ([#72](https://github.com/Bluetooth-Devices/dbus-fast/issues/72)) ([`0ad8801`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0ad8801215093cdbf0f62fce5b953d9b01e9d524))
