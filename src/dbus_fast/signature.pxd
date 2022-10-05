@@ -14,3 +14,10 @@ cdef class SignatureTree:
 
     cdef public str signature
     cdef public list types
+
+
+cdef class Variant:
+
+    cdef public object signature_type
+    cdef public str signature
+    cdef public object value
