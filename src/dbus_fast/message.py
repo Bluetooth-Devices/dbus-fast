@@ -121,7 +121,7 @@ class Message:
         self.error_name = (
             error_name if type(error_name) is not ErrorType else error_name.value
         )
-        self.reply_serial = reply_serial
+        self.reply_serial = reply_serial or 0
         self.sender = sender
         self.unix_fds = unix_fds
         if type(signature) is SignatureTree:
@@ -131,7 +131,7 @@ class Message:
             self.signature = signature
             self.signature_tree = get_signature_tree(signature)
         self.body = body
-        self.serial = serial
+        self.serial = serial or 0
 
         if not validate:
             return
