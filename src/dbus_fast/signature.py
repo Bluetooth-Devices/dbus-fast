@@ -403,7 +403,8 @@ class Variant:
         signature: Union[str, SignatureTree, SignatureType],
         value: Any,
         verify: bool = True,
-    ):
+    ) -> None:
+        """Init a new Variant."""
         if type(signature) is SignatureTree:
             signature_tree = signature
         elif type(signature) is SignatureType:

@@ -256,6 +256,7 @@ class Message:
         )
 
     def _marshall(self, negotiate_unix_fd=False):
+        """Marshall this message into a byte array."""
         # TODO maximum message size is 134217728 (128 MiB)
         body_block = Marshaller(self.signature, self.body)
         body_block.marshall()
