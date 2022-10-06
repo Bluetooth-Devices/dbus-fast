@@ -54,6 +54,7 @@ pycairo = "^1.21.0"
 PyGObject = "^3.42.2"
 Cython = "^0.29.32"
 setuptools = "^65.4.1"
+pytest-timeout = "^2.1.0"
 
 [tool.semantic_release]
 branch = "main"
