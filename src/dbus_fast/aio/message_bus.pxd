@@ -18,3 +18,5 @@ cdef class _MessageWriter:
     cdef unsigned int offset
     cdef list unix_fds
     cdef object fut
+
+    def _write_without_remove_writer(self)
