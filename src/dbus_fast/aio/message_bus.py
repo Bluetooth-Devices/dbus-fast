@@ -95,7 +95,7 @@ class _MessageWriter:
     def buffer_message(self, msg: Message, future=None) -> None:
         self.messages.append(
             (
-                msg._marshall(negotiate_unix_fd=self.negotiate_unix_fd),
+                msg._marshall(self.negotiate_unix_fd),
                 copy(msg.unix_fds),
                 future,
             )
@@ -216,7 +216,7 @@ class MessageBus(BaseMessageBus):
         )
 
         self._method_return_handlers[hello_msg.serial] = on_hello
-        self._stream.write(hello_msg._marshall())
+        self._stream.write(hello_msg._marshall(False))
         self._stream.flush()
 
         return await future

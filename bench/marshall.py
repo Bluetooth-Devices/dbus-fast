@@ -11,7 +11,7 @@ message = Message(
 
 
 def marhsall_bluez_get_managed_objects_message():
-    message._marshall()
+    message._marshall(False)
 
 
 count = 1000000
