@@ -49,7 +49,7 @@ class _MessageWriter:
         self.bus = bus
         self.sock = bus._sock
         self.loop = bus._loop
-        self.buf: Optional[bytearray] = None
+        self.buf: Optional[memoryview] = None
         self.fd = bus._fd
         self.offset = 0
         self.unix_fds: Optional[List[int]] = None

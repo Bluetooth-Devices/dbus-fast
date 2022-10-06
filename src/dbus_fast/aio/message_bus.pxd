@@ -13,7 +13,7 @@ cdef class _MessageWriter:
     cdef object bus
     cdef object sock
     cdef object loop
-    cdef bytearray buf
+    cdef object buf
     cdef unsigned int fd
     cdef unsigned int offset
     cdef list unix_fds
