@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 
 from dbus_fast import Message, MessageFlag, MessageType
@@ -51,6 +53,7 @@ def test_standard_interfaces():
 
 
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
+@pytest.mark.skipif(sys.version_info[:3][1] == 10, reason="segfaults on py3.10")
 def test_sending_messages_between_buses():
     bus1 = MessageBus().connect_sync()
     bus2 = MessageBus().connect_sync()
@@ -118,6 +121,7 @@ def test_sending_messages_between_buses():
 
 
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
+@pytest.mark.skipif(sys.version_info[:3][1] == 10, reason="segfaults on py3.10")
 def test_sending_signals_between_buses():
     bus1 = MessageBus().connect_sync()
     bus2 = MessageBus().connect_sync()

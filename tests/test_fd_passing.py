@@ -108,10 +108,11 @@ async def test_sending_file_descriptor_low_level():
 
     assert_fds_equal(fd_before, fd_after)
 
-    for fd in [fd_before, fd_after]:
-        os.close(fd)
     for bus in [bus1, bus2]:
         bus.disconnect()
+        await bus.wait_for_disconnect()
+    for fd in [fd_before, fd_after]:
+        os.close(fd)
 
 
 @pytest.mark.asyncio
@@ -223,6 +224,7 @@ async def test_high_level_service_fd_passing(event_loop):
 
     for bus in [bus1, bus2]:
         bus.disconnect()
+        await bus.wait_for_disconnect()
 
 
 @pytest.mark.asyncio
@@ -279,6 +281,7 @@ async def test_sending_file_descriptor_with_proxy(event_loop):
     os.close(fd)
 
     bus.disconnect()
+    await bus.wait_for_disconnect()
 
 
 @pytest.mark.asyncio

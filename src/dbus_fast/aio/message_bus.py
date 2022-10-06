@@ -5,7 +5,7 @@ import socket
 import traceback
 from collections import deque
 from copy import copy
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 import async_timeout
 
@@ -25,6 +25,10 @@ from ..message import Message
 from ..message_bus import BaseMessageBus
 from ..service import ServiceInterface
 from .proxy_object import ProxyObject
+
+
+class ConnectionClosed(OSError):
+    """Raised when the connection is closed out from under the writer."""
 
 
 def _future_set_exception(fut: asyncio.Future, exc: Exception) -> None:
@@ -86,10 +90,7 @@ class _MessageWriter:
                     # wait for writable
                     return
         except Exception as e:
-            if self.bus._user_disconnect:
-                _future_set_result(self.fut, None)
-            else:
-                _future_set_exception(self.fut, e)
+            self._set_futures(e)
             self.bus._finalize(e)
 
     def buffer_message(self, msg: Message, future=None) -> None:
@@ -101,11 +102,29 @@ class _MessageWriter:
             )
         )
 
+    def _set_futures(self, exc: Optional[Exception]) -> None:
+        futures: List[asyncio.Future] = []
+        if self.fut:
+            futures.append(self.fut)
+        while self.messages:
+            futures.append(self.messages.pop()[2])
+        for fut in futures:
+            if self.bus._user_disconnect:
+                _future_set_result(fut, None)
+            else:
+                _future_set_exception(fut, exc)
+
+    def connection_closed(self) -> None:
+        """Called when the connection is closed."""
+        self._set_futures(ConnectionClosed)
+
     def _write_without_remove_writer(self) -> None:
         """Call the write callback without removing the writer."""
         self.write_callback(remove_writer=False)
 
     def schedule_write(self, msg: Message = None, future=None) -> None:
+        if self.bus._disconnected:
+            raise ConnectionClosed
         queue_is_empty = not self.messages
         if msg is not None:
             self.buffer_message(msg, future)
@@ -162,7 +181,8 @@ class MessageBus(BaseMessageBus):
         auth: Authenticator = None,
         negotiate_unix_fd=False,
     ):
-        super().__init__(bus_address, bus_type, ProxyObject)
+        super().__init__(bus_address, bus_type, ProxyObject, buffering=0)
+
         self._negotiate_unix_fd = negotiate_unix_fd
         self._loop = asyncio.get_running_loop()
         self._unmarshaller = self._create_unmarshaller()
@@ -346,14 +366,15 @@ class MessageBus(BaseMessageBus):
 
         future = self._loop.create_future()
 
-        def reply_handler(reply, err):
+        def _call_reply_handler(reply: Message, err: Optional[Exception]) -> None:
+            """Handle a reply to a method call."""
             if not future.done():
                 if err:
-                    _future_set_exception(future, err)
+                    future.set_exception(err)
                 else:
-                    _future_set_result(future, reply)
+                    future.set_result(reply)
 
-        self._call(msg, reply_handler, check_callback=False)
+        self._call(msg, _call_reply_handler, check_callback=False)
 
         await future
 
@@ -476,6 +497,7 @@ class MessageBus(BaseMessageBus):
             self._sock.close()
         except Exception:
             logging.warning("could not close socket", exc_info=True)
+        self._writer.connection_closed()
 
     def _create_unmarshaller(self) -> Unmarshaller:
         sock = None
@@ -484,6 +506,7 @@ class MessageBus(BaseMessageBus):
         return Unmarshaller(self._stream, sock)
 
     def _finalize(self, err: Optional[Exception] = None) -> None:
+        """Finalize the connection."""
         try:
             self._loop.remove_reader(self._fd)
         except Exception:

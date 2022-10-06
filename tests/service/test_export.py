@@ -66,6 +66,7 @@ async def test_export_unexport():
     assert not node.nodes
 
     bus.disconnect()
+    await bus.wait_for_disconnect()
 
 
 @pytest.mark.asyncio
@@ -105,6 +106,7 @@ async def test_export_alias():
     assert interface._method_called
 
     bus.disconnect()
+    await bus.wait_for_disconnect()
 
 
 @pytest.mark.asyncio
@@ -123,3 +125,4 @@ async def test_export_introspection():
     assert len(root.nodes) == 1
 
     bus.disconnect()
+    await bus.wait_for_disconnect()

@@ -68,6 +68,8 @@ async def test_name_requests():
 
     bus1.disconnect()
     bus2.disconnect()
+    await bus1.wait_for_disconnect()
+    await bus2.wait_for_disconnect()
 
 
 @pytest.mark.skipif(sys.version_info[:3][1] == 10, reason="segfaults on py3.10")

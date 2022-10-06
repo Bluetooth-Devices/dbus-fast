@@ -104,6 +104,8 @@ async def test_aio_proxy_object():
 
     bus.disconnect()
     bus2.disconnect()
+    await bus.wait_for_disconnect()
+    await bus2.wait_for_disconnect()
 
 
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)

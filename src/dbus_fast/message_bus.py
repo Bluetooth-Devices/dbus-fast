@@ -60,6 +60,7 @@ class BaseMessageBus:
         bus_address: Optional[str] = None,
         bus_type: BusType = BusType.SESSION,
         ProxyObject: Optional[Type[BaseProxyObject]] = None,
+        buffering: Optional[int] = None,
     ) -> None:
         self.unique_name = None
         self._disconnected = False
@@ -95,7 +96,7 @@ class BaseMessageBus:
         # machine id is lazy loaded
         self._machine_id = None
 
-        self._setup_socket()
+        self._setup_socket(buffering)
 
     @property
     def connected(self) -> bool:
@@ -582,7 +583,7 @@ class BaseMessageBus:
 
         return node
 
-    def _setup_socket(self):
+    def _setup_socket(self, buffering: Optional[int] = None) -> None:
         err = None
 
         for transport, options in self._bus_address:
@@ -592,7 +593,7 @@ class BaseMessageBus:
 
             if transport == "unix":
                 self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-                self._stream = self._sock.makefile("rwb")
+                self._stream = self._sock.makefile("rwb", buffering=buffering)
                 self._fd = self._sock.fileno()
 
                 if "path" in options:
@@ -613,7 +614,7 @@ class BaseMessageBus:
 
             elif transport == "tcp":
                 self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self._stream = self._sock.makefile("rwb")
+                self._stream = self._sock.makefile("rwb", buffering=buffering)
                 self._fd = self._sock.fileno()
 
                 if "host" in options:

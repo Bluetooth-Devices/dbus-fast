@@ -42,6 +42,7 @@ async def test_standard_interfaces():
     assert type(reply.body[0]) is str
 
     bus.disconnect()
+    await bus.wait_for_disconnect()
 
 
 @pytest.mark.asyncio
@@ -107,6 +108,8 @@ async def test_sending_messages_between_buses():
 
     bus1.disconnect()
     bus2.disconnect()
+    await bus1.wait_for_disconnect()
+    await bus2.wait_for_disconnect()
 
 
 @pytest.mark.asyncio
@@ -153,3 +156,5 @@ async def test_sending_signals_between_buses(event_loop):
 
     bus1.disconnect()
     bus2.disconnect()
+    await bus1.wait_for_disconnect()
+    await bus2.wait_for_disconnect()

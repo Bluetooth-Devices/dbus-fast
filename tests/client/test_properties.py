@@ -91,7 +91,9 @@ async def test_aio_properties():
             raise e
 
     service_bus.disconnect()
+    await service_bus.wait_for_disconnect()
     bus.disconnect()
+    await bus.wait_for_disconnect()
 
 
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)

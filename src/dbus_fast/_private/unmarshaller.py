@@ -146,7 +146,7 @@ class Unmarshaller:
         "_uint32_unpack",
     )
 
-    def __init__(self, stream: io.BufferedRWPair, sock=None):
+    def __init__(self, stream: socket.SocketIO, sock=None):
         self._unix_fds: List[int] = []
         self._buf = bytearray()  # Actual buffer
         self._view = None  # Memory view of the buffer
