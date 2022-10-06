@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 
 from dbus_fast import Message, MessageType, aio, glib
