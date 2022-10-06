@@ -1,4 +1,4 @@
-from typing import Any, List, Union
+from typing import Any, List, Optional, Union
 
 from ._private.constants import LITTLE_ENDIAN, PROTOCOL_VERSION, HeaderField
 from ._private.marshaller import Marshaller
@@ -95,17 +95,17 @@ class Message:
 
     def __init__(
         self,
-        destination: str = None,
-        path: str = None,
-        interface: str = None,
-        member: str = None,
+        destination: Optional[str] = None,
+        path: Optional[str] = None,
+        interface: Optional[str] = None,
+        member: Optional[str] = None,
         message_type: MessageType = MessageType.METHOD_CALL,
         flags: MessageFlag = MessageFlag.NONE,
-        error_name: str = None,
-        reply_serial: int = None,
-        sender: str = None,
+        error_name: Optional[Union[str, ErrorType]] = None,
+        reply_serial=0,
+        sender: Optional[str] = None,
         unix_fds: List[int] = [],
-        signature: Union[str, SignatureTree] = "",
+        signature: Optional[Union[SignatureTree, str]] = None,
         body: List[Any] = [],
         serial: int = 0,
         validate: bool = True,
@@ -119,7 +119,7 @@ class Message:
             flags if type(flags) is MessageFlag else MessageFlag(bytes([flags]))
         )
         self.error_name = (
-            error_name if type(error_name) is not ErrorType else error_name.value
+            str(error_name.value) if type(error_name) is ErrorType else error_name
         )
         self.reply_serial = reply_serial or 0
         self.sender = sender
@@ -128,8 +128,8 @@ class Message:
             self.signature = signature.signature
             self.signature_tree = signature
         else:
-            self.signature = signature
-            self.signature_tree = get_signature_tree(signature)
+            self.signature = signature or ""
+            self.signature_tree = get_signature_tree(signature or "")
         self.body = body
         self.serial = serial or 0
 
@@ -154,7 +154,9 @@ class Message:
                 raise InvalidMessageError(f"missing required field: {field}")
 
     @staticmethod
-    def new_error(msg: "Message", error_name: str, error_text: str) -> "Message":
+    def new_error(
+        msg: "Message", error_name: Union[str, ErrorType], error_text: str
+    ) -> "Message":
         """A convenience constructor to create an error message in reply to the given message.
 
         :param msg: The message this error is in reply to.
@@ -255,7 +257,7 @@ class Message:
             unix_fds=unix_fds,
         )
 
-    def _marshall(self, negotiate_unix_fd=False):
+    def _marshall(self, negotiate_unix_fd: bool) -> bytearray:
         """Marshall this message into a byte array."""
         # TODO maximum message size is 134217728 (128 MiB)
         body_block = Marshaller(self.signature, self.body)

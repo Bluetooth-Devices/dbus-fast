@@ -20,4 +20,4 @@ cdef class Message:
     cdef public list body
     cdef public unsigned int serial
 
-    cpdef _marshall(self, negotiate_unix_fd = *)
+    cpdef _marshall(self, bint negotiate_unix_fd)

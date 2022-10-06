@@ -135,7 +135,7 @@ def is_member_name_valid(member: str) -> bool:
     return True
 
 
-def assert_bus_name_valid(name: str):
+def assert_bus_name_valid(name: str) -> None:
     """Raise an error if this is not a valid bus name.
 
     .. seealso:: https://dbus.freedesktop.org/doc/dbus-specification.html#message-protocol-names-bus
@@ -150,7 +150,7 @@ def assert_bus_name_valid(name: str):
         raise InvalidBusNameError(name)
 
 
-def assert_object_path_valid(path: str):
+def assert_object_path_valid(path: str) -> None:
     """Raise an error if this is not a valid object path.
 
     .. seealso:: https://dbus.freedesktop.org/doc/dbus-specification.html#message-protocol-marshaling-object-path
@@ -165,7 +165,7 @@ def assert_object_path_valid(path: str):
         raise InvalidObjectPathError(path)
 
 
-def assert_interface_name_valid(name: str):
+def assert_interface_name_valid(name: str) -> None:
     """Raise an error if this is not a valid interface name.
 
     .. seealso:: https://dbus.freedesktop.org/doc/dbus-specification.html#message-protocol-names-interface
@@ -180,7 +180,7 @@ def assert_interface_name_valid(name: str):
         raise InvalidInterfaceNameError(name)
 
 
-def assert_member_name_valid(member):
+def assert_member_name_valid(member) -> None:
     """Raise an error if this is not a valid member name.
 
     .. seealso:: https://dbus.freedesktop.org/doc/dbus-specification.html#message-protocol-names-member

@@ -98,7 +98,7 @@ class _MessageWritableSource(_GLibSource):
                 return GLib.SOURCE_REMOVE
             else:
                 message = self.bus._buffered_messages.pop(0)
-                self.message_stream = io.BytesIO(message._marshall())
+                self.message_stream = io.BytesIO(message._marshall(False))
                 return GLib.SOURCE_CONTINUE
         except BlockingIOError:
             return GLib.SOURCE_CONTINUE
@@ -233,7 +233,7 @@ class MessageBus(BaseMessageBus):
             )
 
             self._method_return_handlers[hello_msg.serial] = on_hello
-            self._stream.write(hello_msg._marshall())
+            self._stream.write(hello_msg._marshall(False))
             self._stream.flush()
 
         self._authenticate(authenticate_notify)
