@@ -2,6 +2,17 @@
 
 <!--next-version-placeholder-->
 
+## v1.26.0 (2022-10-06)
+### Feature
+* Add cython defs for Variant class ([#74](https://github.com/Bluetooth-Devices/dbus-fast/issues/74)) ([`cd08f06`](https://github.com/Bluetooth-Devices/dbus-fast/commit/cd08f063cc352c65d2330cbe09ca72a367c58806))
+
+### Fix
+* Incorrect pxd typing for for _marshall ([#75](https://github.com/Bluetooth-Devices/dbus-fast/issues/75)) ([`cf1f012`](https://github.com/Bluetooth-Devices/dbus-fast/commit/cf1f0129baaac48d6a4804e8c6a0af5bc7ef8d16))
+
+## v1.25.0 (2022-10-05)
+### Feature
+* Add cython extension for messages ([#73](https://github.com/Bluetooth-Devices/dbus-fast/issues/73)) ([`8676f12`](https://github.com/Bluetooth-Devices/dbus-fast/commit/8676f12a7e040d7c3f20584739a74ad1074a4717))
+
 ## v1.24.0 (2022-10-04)
 ### Feature
 * Add cython extension for signature ([#72](https://github.com/Bluetooth-Devices/dbus-fast/issues/72)) ([`0ad8801`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0ad8801215093cdbf0f62fce5b953d9b01e9d524))

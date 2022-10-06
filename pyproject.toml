@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dbus-fast"
-version = "1.24.0"
+version = "1.26.0"
 description = "A faster version of dbus-next"
 authors = ["Bluetooth Devices Authors <bluetooth@koston.org>"]
 license = "MIT"
@@ -54,6 +54,7 @@ pycairo = "^1.21.0"
 PyGObject = "^3.42.2"
 Cython = "^0.29.32"
 setuptools = "^65.4.1"
+pytest-timeout = "^2.1.0"
 
 [tool.semantic_release]
 branch = "main"
