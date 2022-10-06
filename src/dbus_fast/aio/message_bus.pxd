@@ -19,4 +19,4 @@ cdef class _MessageWriter:
     cdef list unix_fds
     cdef object fut
 
-    cpdef _write_without_remove_writer(self)
+    cdef _write_without_remove_writer(self)
