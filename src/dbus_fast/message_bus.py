@@ -1,3 +1,4 @@
+import contextlib
 import inspect
 import logging
 import socket
@@ -23,6 +24,8 @@ from .proxy_object import BaseProxyObject
 from .service import ServiceInterface
 from .signature import Variant
 from .validators import assert_bus_name_valid, assert_object_path_valid
+
+BUFFER_SIZE = 1024**2
 
 
 class BaseMessageBus:
@@ -630,6 +633,9 @@ class BaseMessageBus:
 
             else:
                 raise InvalidAddressError(f"got unknown address transport: {transport}")
+
+            with contextlib.suppress(Exception):
+                self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, BUFFER_SIZE)
 
         if err:
             raise err
