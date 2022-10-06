@@ -5,7 +5,7 @@ import socket
 import traceback
 from collections import deque
 from copy import copy
-from typing import Any, Optional
+from typing import Any, Callable, List, Optional
 
 import async_timeout
 
@@ -23,34 +23,40 @@ from ..constants import (
 from ..errors import AuthError
 from ..message import Message
 from ..message_bus import BaseMessageBus
-from ..service import ServiceInterface
+from ..service import ServiceInterface, _Method
 from .proxy_object import ProxyObject
 
 
 def _future_set_exception(fut: asyncio.Future, exc: Exception) -> None:
+    """Set the result of a future to an exception, but only if it's not already done."""
     if fut is not None and not fut.done():
         fut.set_exception(exc)
 
 
 def _future_set_result(fut: asyncio.Future, result: Any) -> None:
+    """Set the result of a future, but only if it's not already done."""
     if fut is not None and not fut.done():
         fut.set_result(result)
 
 
 class _MessageWriter:
+    """A message writer that uses the asyncio event loop."""
+
     def __init__(self, bus: "MessageBus") -> None:
+        """Initialize the message writer."""
         self.messages = deque()
         self.negotiate_unix_fd = bus._negotiate_unix_fd
         self.bus = bus
         self.sock = bus._sock
         self.loop = bus._loop
-        self.buf = None
+        self.buf: Optional[bytearray] = None
         self.fd = bus._fd
         self.offset = 0
-        self.unix_fds = None
+        self.unix_fds: Optional[List[int]] = None
         self.fut: Optional[asyncio.Future] = None
 
     def write_callback(self, remove_writer: bool = True) -> None:
+        """Write data to the socket."""
         try:
             while True:
                 if self.buf is None:
@@ -93,6 +99,7 @@ class _MessageWriter:
             self.bus._finalize(e)
 
     def buffer_message(self, msg: Message, future=None) -> None:
+        """Buffer a message to be written to the socket."""
         self.messages.append(
             (
                 msg._marshall(self.negotiate_unix_fd),
@@ -106,6 +113,7 @@ class _MessageWriter:
         self.write_callback(remove_writer=False)
 
     def schedule_write(self, msg: Message = None, future=None) -> None:
+        """Schedule a message to be written to the socket."""
         queue_is_empty = not self.messages
         if msg is not None:
             self.buffer_message(msg, future)
@@ -161,7 +169,8 @@ class MessageBus(BaseMessageBus):
         bus_type: BusType = BusType.SESSION,
         auth: Authenticator = None,
         negotiate_unix_fd=False,
-    ):
+    ) -> None:
+        """Initialize the aio message bus."""
         super().__init__(bus_address, bus_type, ProxyObject)
         self._negotiate_unix_fd = negotiate_unix_fd
         self._loop = asyncio.get_running_loop()
@@ -195,7 +204,7 @@ class MessageBus(BaseMessageBus):
 
         self._loop.add_reader(self._fd, self._message_reader)
 
-        def on_hello(reply, err):
+        def on_hello(reply: Message, err: Optional[Exception]) -> None:
             try:
                 if err:
                     raise err
@@ -362,7 +371,7 @@ class MessageBus(BaseMessageBus):
     def send(self, msg: Message) -> asyncio.Future:
         """Asynchronously send a message on the message bus.
 
-        .. note:: This method may change to a couroutine function in the 1.0
+        .. note:: This method may change to a coroutine function in the 1.0
             release of the library.
 
         :param msg: The message to send.
@@ -396,12 +405,12 @@ class MessageBus(BaseMessageBus):
         """
         return await self._disconnect_future
 
-    def _make_method_handler(self, interface, method):
+    def _make_method_handler(self, interface, method: _Method) -> Callable:
         if not asyncio.iscoroutinefunction(method.fn):
             return super()._make_method_handler(interface, method)
 
-        def handler(msg, send_reply):
-            def done(fut):
+        def handler(msg: Message, send_reply):
+            def done(fut: asyncio.Future):
                 with send_reply:
                     result = fut.result()
                     body, unix_fds = ServiceInterface._fn_result_to_body(
@@ -443,6 +452,7 @@ class MessageBus(BaseMessageBus):
         return buf[:-2].decode()
 
     async def _authenticate(self) -> None:
+        """Authenticate with the message bus."""
         await self._loop.sock_sendall(self._sock, b"\0")
 
         first_line = self._auth._authentication_start(
