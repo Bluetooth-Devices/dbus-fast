@@ -2,6 +2,18 @@
 
 <!--next-version-placeholder-->
 
+## v1.28.1 (2022-10-07)
+### Fix
+* Disconnect race in tests ([#79](https://github.com/Bluetooth-Devices/dbus-fast/issues/79)) ([`f2bb106`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f2bb10680a5d4e363ff8e7762fef25ec75ef8b14))
+
+## v1.28.0 (2022-10-07)
+### Feature
+* Speed up unmarshalling int16 types ([#81](https://github.com/Bluetooth-Devices/dbus-fast/issues/81)) ([`18213c0`](https://github.com/Bluetooth-Devices/dbus-fast/commit/18213c0a00f162cbf74fa7fc0bbcf12c1109c347))
+
+## v1.27.0 (2022-10-07)
+### Feature
+* Cythonize headers in unmarshaller ([#80](https://github.com/Bluetooth-Devices/dbus-fast/issues/80)) ([`ae96be7`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ae96be70f5e960d3feb726b7c769dff26b41c428))
+
 ## v1.26.0 (2022-10-06)
 ### Feature
 * Add cython defs for Variant class ([#74](https://github.com/Bluetooth-Devices/dbus-fast/issues/74)) ([`cd08f06`](https://github.com/Bluetooth-Devices/dbus-fast/commit/cd08f063cc352c65d2330cbe09ca72a367c58806))

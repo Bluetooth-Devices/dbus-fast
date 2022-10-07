@@ -3,19 +3,13 @@ import io
 import socket
 import sys
 from struct import Struct
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP
 from ..errors import InvalidMessageError
 from ..message import Message
 from ..signature import SignatureType, Variant, get_signature_tree
-from .constants import (
-    BIG_ENDIAN,
-    HEADER_NAME_MAP,
-    LITTLE_ENDIAN,
-    PROTOCOL_VERSION,
-    HeaderField,
-)
+from .constants import BIG_ENDIAN, LITTLE_ENDIAN, PROTOCOL_VERSION, HeaderField
 
 IS_LITTLE_ENDIAN = sys.byteorder == "little"
 IS_BIG_ENDIAN = sys.byteorder == "big"
@@ -30,16 +24,20 @@ UINT32_SIZE = 4
 UINT32_DBUS_TYPE = "u"
 UINT32_SIGNATURE = get_signature_tree(UINT32_DBUS_TYPE).types[0]
 
+INT16_CAST = "h"
+INT16_SIZE = 2
+INT16_DBUS_TYPE = "n"
+
 DBUS_TO_CTYPE = {
     "y": ("B", 1),  # byte
-    "n": ("h", 2),  # int16
+    INT16_DBUS_TYPE: (INT16_CAST, INT16_SIZE),  # int16
     "q": ("H", 2),  # uint16
     "i": ("i", 4),  # int32
     UINT32_DBUS_TYPE: (UINT32_CAST, UINT32_SIZE),  # uint32
     "x": ("q", 8),  # int64
     "t": ("Q", 8),  # uint64
     "d": ("d", 8),  # double
-    "h": ("I", 4),  # uint32
+    "h": (UINT32_CAST, UINT32_SIZE),  # uint32
 }
 
 UINT32_UNPACK_BY_ENDIAN = {
@@ -50,13 +48,19 @@ UINT32_UNPACK_BY_ENDIAN = {
 HEADER_SIGNATURE_SIZE = 16
 HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION = 12
 
-HEADER_DESTINATION = HeaderField.DESTINATION.name
-HEADER_PATH = HeaderField.PATH.name
-HEADER_INTERFACE = HeaderField.INTERFACE.name
-HEADER_MEMBER = HeaderField.MEMBER.name
-HEADER_ERROR_NAME = HeaderField.ERROR_NAME.name
-HEADER_REPLY_SERIAL = HeaderField.REPLY_SERIAL.name
-HEADER_SENDER = HeaderField.SENDER.name
+
+HEADER_MESSAGE_ARG_NAME = {
+    1: "path",
+    2: "interface",
+    3: "member",
+    4: "error_name",
+    5: "reply_serial",
+    6: "destination",
+    7: "sender",
+    8: "signature",
+    9: "unix_fds",
+}
+
 
 READER_TYPE = Callable[["Unmarshaller", SignatureType], Any]
 
@@ -236,9 +240,13 @@ class Unmarshaller:
         if len(data) + start_len != pos:
             raise MarshallerStreamEndError()
 
-    def read_uint32_cast(self, type_: SignatureType) -> Any:
+    def read_uint32_cast(self, type_: SignatureType) -> int:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
         return self._view[self._pos - UINT32_SIZE : self._pos].cast(UINT32_CAST)[0]
+
+    def read_int16_cast(self, type_: SignatureType) -> int:
+        self._pos += INT16_SIZE + (-self._pos & (INT16_SIZE - 1))  # align
+        return self._view[self._pos - INT16_SIZE : self._pos].cast(INT16_CAST)[0]
 
     def read_boolean(self, type_: SignatureType) -> bool:
         return bool(self._readers[UINT32_SIGNATURE.token](self, UINT32_SIGNATURE))
@@ -345,8 +353,9 @@ class Unmarshaller:
             o = self._pos + 1
             self._pos += signature_len + 2  # one for the byte, one for the '\0'
             tree = get_signature_tree(self._buf[o : o + signature_len].decode())
-            headers[HEADER_NAME_MAP[field_0]] = self._readers[tree.types[0].token](
-                self, tree.types[0]
+            type_ = tree.types[0]
+            headers[HEADER_MESSAGE_ARG_NAME[field_0]] = self._readers[type_.token](
+                self, type_
             )
         return headers
 
@@ -391,17 +400,12 @@ class Unmarshaller:
         self._pos = HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
         header_fields = self.header_fields(self._header_len)
         self._pos += -self._pos & 7  # align 8
-        tree = get_signature_tree(header_fields.get(HeaderField.SIGNATURE.name, ""))
+        header_fields.pop("unix_fds", None)  # defined by self._unix_fds
+        tree = get_signature_tree(header_fields.pop("signature", ""))
         self._message = Message(
-            destination=header_fields.get(HEADER_DESTINATION),
-            path=header_fields.get(HEADER_PATH),
-            interface=header_fields.get(HEADER_INTERFACE),
-            member=header_fields.get(HEADER_MEMBER),
+            **header_fields,
             message_type=MESSAGE_TYPE_MAP[self._message_type],
             flags=MESSAGE_FLAG_MAP[self._flag],
-            error_name=header_fields.get(HEADER_ERROR_NAME),
-            reply_serial=header_fields.get(HEADER_REPLY_SERIAL),
-            sender=header_fields.get(HEADER_SENDER),
             unix_fds=self._unix_fds,
             signature=tree,
             body=[self._readers[t.token](self, t) for t in tree.types]
@@ -413,7 +417,7 @@ class Unmarshaller:
             validate=False,
         )
 
-    def unmarshall(self):
+    def unmarshall(self) -> Optional[Message]:
         """Unmarshall the message.
 
         The underlying read function will raise MarshallerStreamEndError
@@ -452,6 +456,7 @@ class Unmarshaller:
         "v": read_variant,
         "h": read_uint32_cast,
         UINT32_DBUS_TYPE: read_uint32_cast,
+        INT16_DBUS_TYPE: read_int16_cast,
     }
 
     _ctype_by_endian: Dict[

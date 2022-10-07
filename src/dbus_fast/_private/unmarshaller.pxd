@@ -5,12 +5,26 @@ import cython
 from ..signature import SignatureType
 
 
+cdef str HEADER_DESTINATION
+cdef str HEADER_PATH
+cdef str HEADER_INTERFACE
+cdef str HEADER_MEMBER
+cdef str HEADER_ERROR_NAME
+cdef str HEADER_REPLY_SERIAL
+cdef str HEADER_SENDER
+cdef str HEADER_SIGNATURE
+
+
 cdef unsigned int UINT32_SIZE
+cdef unsigned int INT16_SIZE
 cdef unsigned int HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
 cdef unsigned int HEADER_SIGNATURE_SIZE
 cdef unsigned int LITTLE_ENDIAN
 cdef unsigned int BIG_ENDIAN
+cdef unsigned int PROTOCOL_VERSION
 cdef str UINT32_CAST
+cdef str INT16_CAST
+
 cdef object UINT32_SIGNATURE
 
 cdef class MarshallerStreamEndError(Exception):
