@@ -400,6 +400,7 @@ class Unmarshaller:
         self._pos = HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
         header_fields = self.header_fields(self._header_len)
         self._pos += -self._pos & 7  # align 8
+        header_fields.pop("unix_fds", None)  # defined by self._unix_fds
         tree = get_signature_tree(header_fields.pop("signature", ""))
         self._message = Message(
             **header_fields,
