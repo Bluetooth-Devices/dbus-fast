@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.29.0 (2022-10-07)
+### Feature
+* Unpack header names as message kwargs ([#82](https://github.com/Bluetooth-Devices/dbus-fast/issues/82)) ([`7398a3f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7398a3fc4726fa20b34840967a6c3777eef12f52))
+
 ## v1.28.1 (2022-10-07)
 ### Fix
 * Disconnect race in tests ([#79](https://github.com/Bluetooth-Devices/dbus-fast/issues/79)) ([`f2bb106`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f2bb10680a5d4e363ff8e7762fef25ec75ef8b14))
