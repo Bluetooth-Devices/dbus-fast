@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.27.0 (2022-10-07)
+### Feature
+* Cythonize headers in unmarshaller ([#80](https://github.com/Bluetooth-Devices/dbus-fast/issues/80)) ([`ae96be7`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ae96be70f5e960d3feb726b7c769dff26b41c428))
+
 ## v1.26.0 (2022-10-06)
 ### Feature
 * Add cython defs for Variant class ([#74](https://github.com/Bluetooth-Devices/dbus-fast/issues/74)) ([`cd08f06`](https://github.com/Bluetooth-Devices/dbus-fast/commit/cd08f063cc352c65d2330cbe09ca72a367c58806))
