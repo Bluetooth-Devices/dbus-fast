@@ -5,16 +5,6 @@ import cython
 from ..signature import SignatureType
 
 
-cdef str HEADER_DESTINATION
-cdef str HEADER_PATH
-cdef str HEADER_INTERFACE
-cdef str HEADER_MEMBER
-cdef str HEADER_ERROR_NAME
-cdef str HEADER_REPLY_SERIAL
-cdef str HEADER_SENDER
-cdef str HEADER_SIGNATURE
-
-
 cdef unsigned int UINT32_SIZE
 cdef unsigned int INT16_SIZE
 cdef unsigned int HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
