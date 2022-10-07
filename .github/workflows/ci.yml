@@ -65,7 +65,7 @@ jobs:
             poetry install
           fi
       - name: Test with Pytest
-        run: export $(dbus-launch); poetry run pytest --cov-report=xml
+        run: export $(dbus-launch); poetry run pytest --cov-report=xml --timeout=5
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
