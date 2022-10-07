@@ -9,7 +9,7 @@ from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP
 from ..errors import InvalidMessageError
 from ..message import Message
 from ..signature import SignatureType, Variant, get_signature_tree
-from .constants import BIG_ENDIAN, LITTLE_ENDIAN, PROTOCOL_VERSION, HeaderField
+from .constants import BIG_ENDIAN, LITTLE_ENDIAN, PROTOCOL_VERSION
 
 IS_LITTLE_ENDIAN = sys.byteorder == "little"
 IS_BIG_ENDIAN = sys.byteorder == "big"
