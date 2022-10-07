@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.28.0 (2022-10-07)
+### Feature
+* Speed up unmarshalling int16 types ([#81](https://github.com/Bluetooth-Devices/dbus-fast/issues/81)) ([`18213c0`](https://github.com/Bluetooth-Devices/dbus-fast/commit/18213c0a00f162cbf74fa7fc0bbcf12c1109c347))
+
 ## v1.27.0 (2022-10-07)
 ### Feature
 * Cythonize headers in unmarshaller ([#80](https://github.com/Bluetooth-Devices/dbus-fast/issues/80)) ([`ae96be7`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ae96be70f5e960d3feb726b7c769dff26b41c428))
