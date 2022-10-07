@@ -16,11 +16,14 @@ cdef str HEADER_SIGNATURE
 
 
 cdef unsigned int UINT32_SIZE
+cdef unsigned int INT16_SIZE
 cdef unsigned int HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
 cdef unsigned int HEADER_SIGNATURE_SIZE
 cdef unsigned int LITTLE_ENDIAN
 cdef unsigned int BIG_ENDIAN
 cdef str UINT32_CAST
+cdef str INT16_CAST
+
 cdef object UINT32_SIGNATURE
 
 cdef class MarshallerStreamEndError(Exception):
