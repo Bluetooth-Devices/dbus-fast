@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.29.1 (2022-10-07)
+### Fix
+* Remove unused unmarshaller code ([#83](https://github.com/Bluetooth-Devices/dbus-fast/issues/83)) ([`3613ff8`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3613ff846b8bb66000c65c778bb06596cd643b22))
+
 ## v1.29.0 (2022-10-07)
 ### Feature
 * Unpack header names as message kwargs ([#82](https://github.com/Bluetooth-Devices/dbus-fast/issues/82)) ([`7398a3f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7398a3fc4726fa20b34840967a6c3777eef12f52))
