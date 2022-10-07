@@ -3,7 +3,7 @@ import io
 import socket
 import sys
 from struct import Struct
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP
 from ..errors import InvalidMessageError
@@ -30,16 +30,20 @@ UINT32_SIZE = 4
 UINT32_DBUS_TYPE = "u"
 UINT32_SIGNATURE = get_signature_tree(UINT32_DBUS_TYPE).types[0]
 
+INT16_CAST = "h"
+INT16_SIZE = 2
+INT16_DBUS_TYPE = "n"
+
 DBUS_TO_CTYPE = {
     "y": ("B", 1),  # byte
-    "n": ("h", 2),  # int16
+    INT16_DBUS_TYPE: (INT16_CAST, INT16_SIZE),  # int16
     "q": ("H", 2),  # uint16
     "i": ("i", 4),  # int32
     UINT32_DBUS_TYPE: (UINT32_CAST, UINT32_SIZE),  # uint32
     "x": ("q", 8),  # int64
     "t": ("Q", 8),  # uint64
     "d": ("d", 8),  # double
-    "h": ("I", 4),  # uint32
+    "h": (UINT32_CAST, UINT32_SIZE),  # uint32
 }
 
 UINT32_UNPACK_BY_ENDIAN = {
@@ -237,9 +241,13 @@ class Unmarshaller:
         if len(data) + start_len != pos:
             raise MarshallerStreamEndError()
 
-    def read_uint32_cast(self, type_: SignatureType) -> Any:
+    def read_uint32_cast(self, type_: SignatureType) -> int:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
         return self._view[self._pos - UINT32_SIZE : self._pos].cast(UINT32_CAST)[0]
+
+    def read_int16_cast(self, type_: SignatureType) -> int:
+        self._pos += INT16_SIZE + (-self._pos & (INT16_SIZE - 1))  # align
+        return self._view[self._pos - INT16_SIZE : self._pos].cast(INT16_CAST)[0]
 
     def read_boolean(self, type_: SignatureType) -> bool:
         return bool(self._readers[UINT32_SIGNATURE.token](self, UINT32_SIGNATURE))
@@ -414,7 +422,7 @@ class Unmarshaller:
             validate=False,
         )
 
-    def unmarshall(self):
+    def unmarshall(self) -> Optional[Message]:
         """Unmarshall the message.
 
         The underlying read function will raise MarshallerStreamEndError
@@ -453,6 +461,7 @@ class Unmarshaller:
         "v": read_variant,
         "h": read_uint32_cast,
         UINT32_DBUS_TYPE: read_uint32_cast,
+        INT16_DBUS_TYPE: read_int16_cast,
     }
 
     _ctype_by_endian: Dict[
