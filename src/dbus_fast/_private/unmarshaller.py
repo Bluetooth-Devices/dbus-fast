@@ -57,6 +57,7 @@ HEADER_MEMBER = HeaderField.MEMBER.name
 HEADER_ERROR_NAME = HeaderField.ERROR_NAME.name
 HEADER_REPLY_SERIAL = HeaderField.REPLY_SERIAL.name
 HEADER_SENDER = HeaderField.SENDER.name
+HEADER_SIGNATURE = HeaderField.SIGNATURE.name
 
 READER_TYPE = Callable[["Unmarshaller", SignatureType], Any]
 
@@ -391,7 +392,7 @@ class Unmarshaller:
         self._pos = HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
         header_fields = self.header_fields(self._header_len)
         self._pos += -self._pos & 7  # align 8
-        tree = get_signature_tree(header_fields.get(HeaderField.SIGNATURE.name, ""))
+        tree = get_signature_tree(header_fields.get(HEADER_SIGNATURE, ""))
         self._message = Message(
             destination=header_fields.get(HEADER_DESTINATION),
             path=header_fields.get(HEADER_PATH),
