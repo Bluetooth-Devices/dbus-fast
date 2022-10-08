@@ -145,7 +145,8 @@ class Marshaller:
 
             writer, packer, size = writers[t]
             if not writer:
-                self._align(size)
+                if size != 1:
+                    self._align(size)
                 buf.extend(packer(body[i]))
             else:
                 writer(self, body[i], type_)
@@ -155,11 +156,11 @@ class Marshaller:
         Tuple[
             Optional[Callable[[Any, Any], int]],
             Optional[Callable[[Any], bytes]],
-            Optional[int],
+            int,
         ],
     ] = {
         "y": (None, Struct("<B").pack, 1),
-        "b": (write_boolean, None, None),
+        "b": (write_boolean, None, 0),
         "n": (None, Struct("<h").pack, 2),
         "q": (None, Struct("<H").pack, 2),
         "i": (None, Struct("<i").pack, 4),
@@ -168,11 +169,11 @@ class Marshaller:
         "t": (None, Struct("<Q").pack, 8),
         "d": (None, Struct("<d").pack, 8),
         "h": (None, Struct("<I").pack, 4),
-        "o": (write_string, None, None),
-        "s": (write_string, None, None),
-        "g": (write_signature, None, None),
-        "a": (write_array, None, None),
-        "(": (write_struct, None, None),
-        "{": (write_dict_entry, None, None),
-        "v": (write_variant, None, None),
+        "o": (write_string, None, 0),
+        "s": (write_string, None, 0),
+        "g": (write_signature, None, 0),
+        "a": (write_array, None, 0),
+        "(": (write_struct, None, 0),
+        "{": (write_dict_entry, None, 0),
+        "v": (write_variant, None, 0),
     }

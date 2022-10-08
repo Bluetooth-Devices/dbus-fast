@@ -51,5 +51,6 @@ cdef class Marshaller:
 
     @cython.locals(
         offset=cython.ulong,
+        size=cython.int
     )
     cdef _construct_buffer(self)
