@@ -37,6 +37,9 @@ class Marshaller:
         return written + 4
 
     def write_signature(self, signature: str, _=None) -> int:
+        return self._write_signature(signature)
+
+    def _write_signature(self, signature) -> int:
         signature_bytes = signature.encode()
         signature_len = len(signature)
         self._buf.append(signature_len)
@@ -56,8 +59,8 @@ class Marshaller:
         return written
 
     def write_variant(self, variant: Variant, _=None) -> int:
-        written = self.write_signature(variant.signature)
-        written += self.write_single(variant.type, variant.value)
+        written = self._write_signature(variant.signature)
+        written += self._write_single(variant.type, variant.value)
         return written
 
     def write_array(self, array: Iterable[Any], type_: SignatureType) -> int:
@@ -103,16 +106,16 @@ class Marshaller:
     def write_struct(self, array: List[Any], type_: SignatureType) -> int:
         written = self._align(8)
         for i, value in enumerate(array):
-            written += self.write_single(type_.children[i], value)
+            written += self._write_single(type_.children[i], value)
         return written
 
     def write_dict_entry(self, dict_entry: List[Any], type_: SignatureType) -> int:
         written = self._align(8)
-        written += self.write_single(type_.children[0], dict_entry[0])
-        written += self.write_single(type_.children[1], dict_entry[1])
+        written += self._write_single(type_.children[0], dict_entry[0])
+        written += self._write_single(type_.children[1], dict_entry[1])
         return written
 
-    def write_single(self, type_: SignatureType, body: Any) -> int:
+    def _write_single(self, type_: SignatureType, body: Any) -> int:
         t = type_.token
 
         if t not in self._writers:
