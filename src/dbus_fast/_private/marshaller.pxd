@@ -26,6 +26,12 @@ cdef class Marshaller:
     cpdef write_string(self, object value, _ = *)
 
     @cython.locals(
+        signature_bytes=cython.bytes,
+        signature_len=cython.uint,
+    )
+    cdef _write_signature(self, str signature)
+
+    @cython.locals(
         array_len=cython.uint,
         written=cython.uint,
         array_len_packed=cython.bytes,

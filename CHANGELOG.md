@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.30.0 (2022-10-08)
+### Feature
+* Speed up aligning data during marshall ([#85](https://github.com/Bluetooth-Devices/dbus-fast/issues/85)) ([`07e6886`](https://github.com/Bluetooth-Devices/dbus-fast/commit/07e68862d93cd5dc470ad2a3ae6f8eaf12808271))
+
 ## v1.29.1 (2022-10-07)
 ### Fix
 * Remove unused unmarshaller code ([#83](https://github.com/Bluetooth-Devices/dbus-fast/issues/83)) ([`3613ff8`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3613ff846b8bb66000c65c778bb06596cd643b22))
