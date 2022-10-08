@@ -1,9 +1,10 @@
 from struct import Struct, error
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Tuple
 
 from ..signature import SignatureType, Variant, get_signature_tree
 
 PACK_UINT32 = Struct("<I").pack
+PACKED_UINT32_ZERO = PACK_UINT32(0)
 
 
 class Marshaller:
@@ -22,6 +23,9 @@ class Marshaller:
         return self._buf
 
     def align(self, n) -> int:
+        return self._align(n)
+
+    def _align(self, n) -> int:
         offset = n - len(self._buf) % n
         if offset == 0 or offset == n:
             return 0
@@ -29,11 +33,14 @@ class Marshaller:
         return offset
 
     def write_boolean(self, boolean: bool, _=None) -> int:
-        written = self.align(4)
+        written = self._align(4)
         self._buf.extend(PACK_UINT32(int(boolean)))
         return written + 4
 
     def write_signature(self, signature: str, _=None) -> int:
+        return self._write_signature(signature)
+
+    def _write_signature(self, signature) -> int:
         signature_bytes = signature.encode()
         signature_len = len(signature)
         self._buf.append(signature_len)
@@ -44,134 +51,110 @@ class Marshaller:
     def write_string(self, value, _=None) -> int:
         value_bytes = value.encode()
         value_len = len(value)
-        written = self.align(4) + 4
+        written = self._align(4) + 4
         self._buf.extend(PACK_UINT32(value_len))
         self._buf.extend(value_bytes)
         written += value_len
         self._buf.append(0)
-        written += 1
-        return written
+        return written + 1
 
     def write_variant(self, variant: Variant, _=None) -> int:
-        written = self.write_signature(variant.signature)
-        written += self.write_single(variant.type, variant.value)
+        written = self._write_signature(variant.signature)
+        written += self._write_single(variant.type, variant.value)
         return written
 
     def write_array(self, array: Iterable[Any], type_: SignatureType) -> int:
         # TODO max array size is 64MiB (67108864 bytes)
-        written = self.align(4)
+        written = self._align(4)
+        buf = self._buf
         # length placeholder
-        offset = len(self._buf)
-        written += self.align(4) + 4
-        self._buf.extend(PACK_UINT32(0))
+        offset = len(buf)
+        written += self._align(4) + 4
+        buf.extend(PACKED_UINT32_ZERO)
         child_type = type_.children[0]
+        token = child_type.token
 
-        if child_type.token in "xtd{(":
+        if token in "xtd{(":
             # the first alignment is not included in array size
-            written += self.align(8)
+            written += self._align(8)
 
         array_len = 0
-        if child_type.token == "{":
+        if token == "{":
             for key, value in array.items():
                 array_len += self.write_dict_entry([key, value], child_type)
-        elif child_type.token == "y":
+        elif token == "y":
             array_len = len(array)
-            self._buf.extend(array)
-        elif child_type.token in self._writers:
-            writer, packer, size = self._writers[child_type.token]
-            if not writer:
+            buf.extend(array)
+        else:
+            writer_size = self._writers.get(token)
+            if not writer_size:
+                raise NotImplementedError(f'type is not implemented yet: "{token}"')
+            writer, size = writer_size
+            if size:
                 for value in array:
-                    array_len += self.align(size) + size
-                    self._buf.extend(packer(value))
+                    array_len += self._align(size) + size
+                    buf.extend(writer(value))
             else:
                 for value in array:
                     array_len += writer(self, value, child_type)
-        else:
-            raise NotImplementedError(
-                f'type is not implemented yet: "{child_type.token}"'
-            )
 
         array_len_packed = PACK_UINT32(array_len)
         for i in range(offset, offset + 4):
-            self._buf[i] = array_len_packed[i - offset]
+            buf[i] = array_len_packed[i - offset]
 
         return written + array_len
 
     def write_struct(self, array: List[Any], type_: SignatureType) -> int:
-        written = self.align(8)
+        written = self._align(8)
         for i, value in enumerate(array):
-            written += self.write_single(type_.children[i], value)
+            written += self._write_single(type_.children[i], value)
         return written
 
     def write_dict_entry(self, dict_entry: List[Any], type_: SignatureType) -> int:
-        written = self.align(8)
-        written += self.write_single(type_.children[0], dict_entry[0])
-        written += self.write_single(type_.children[1], dict_entry[1])
+        written = self._align(8)
+        written += self._write_single(type_.children[0], dict_entry[0])
+        written += self._write_single(type_.children[1], dict_entry[1])
         return written
 
-    def write_single(self, type_: SignatureType, body: Any) -> int:
-        t = type_.token
+    def _write_single(self, type_: SignatureType, body: Any) -> int:
+        writer_size = self._writers.get(type_.token)
+        if not writer_size:
+            raise NotImplementedError(f'type is not implemented yet: "{type_.token}"')
 
-        if t not in self._writers:
-            raise NotImplementedError(f'type is not implemented yet: "{t}"')
-
-        writer, packer, size = self._writers[t]
-        if not writer:
-            written = self.align(size)
-            self._buf.extend(packer(body))
+        writer, size = writer_size
+        if size:
+            written = 0 if size == 1 else self._align(size)
+            self._buf.extend(writer(body))
             return written + size
         return writer(self, body, type_)
 
     def marshall(self):
         """Marshalls the body into a byte array"""
+        self._buf.clear()
+        body = self.body
         try:
-            self._construct_buffer()
+            for type_ in self.signature_tree.types:
+                self._write_single(type_, body)
         except error:
             self.signature_tree.verify(self.body)
         return self._buf
 
-    def _construct_buffer(self):
-        self._buf.clear()
-        for i, type_ in enumerate(self.signature_tree.types):
-            t = type_.token
-            if t not in self._writers:
-                raise NotImplementedError(f'type is not implemented yet: "{t}"')
-
-            writer, packer, size = self._writers[t]
-            if not writer:
-
-                # In-line align
-                offset = size - len(self._buf) % size
-                if offset != 0 and offset != size:
-                    self._buf.extend(bytes(offset))
-
-                self._buf.extend(packer(self.body[i]))
-            else:
-                writer(self, self.body[i], type_)
-
-    _writers: Dict[
-        str,
-        Tuple[
-            Optional[Callable[[Any, Any], int]],
-            Optional[Callable[[Any], bytes]],
-            Optional[int],
-        ],
-    ] = {
-        "y": (None, Struct("<B").pack, 1),
-        "b": (write_boolean, None, None),
-        "n": (None, Struct("<h").pack, 2),
-        "q": (None, Struct("<H").pack, 2),
-        "i": (None, Struct("<i").pack, 4),
-        "u": (None, PACK_UINT32, 4),
-        "x": (None, Struct("<q").pack, 8),
-        "t": (None, Struct("<Q").pack, 8),
-        "d": (None, Struct("<d").pack, 8),
-        "h": (None, Struct("<I").pack, 4),
-        "o": (write_string, None, None),
-        "s": (write_string, None, None),
-        "g": (write_signature, None, None),
-        "a": (write_array, None, None),
-        "(": (write_struct, None, None),
-        "{": (write_dict_entry, None, None),
-        "v": (write_variant, None, None),
+    _writers: Dict[str, Tuple[Callable, int],] = {
+        "y": (Struct("<B").pack, 1),
+        "b": (write_boolean, 0),
+        "n": (Struct("<h").pack, 2),
+        "q": (Struct("<H").pack, 2),
+        "i": (Struct("<i").pack, 4),
+        "u": (PACK_UINT32, 4),
+        "x": (Struct("<q").pack, 8),
+        "t": (Struct("<Q").pack, 8),
+        "d": (Struct("<d").pack, 8),
+        "h": (Struct("<I").pack, 4),
+        "o": (write_string, 0),
+        "s": (write_string, 0),
+        "g": (write_signature, 0),
+        "a": (write_array, 0),
+        "(": (write_struct, 0),
+        "{": (write_dict_entry, 0),
+        "v": (write_variant, 0),
     }

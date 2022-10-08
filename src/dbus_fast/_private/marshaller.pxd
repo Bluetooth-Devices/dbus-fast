@@ -3,16 +3,20 @@
 import cython
 
 
+cdef bytes PACKED_UINT32_ZERO
+
 cdef class Marshaller:
 
     cdef object signature_tree
     cdef bytearray _buf
     cdef object body
 
+    cpdef int align(self, unsigned int n)
+
     @cython.locals(
         offset=cython.ulong,
     )
-    cpdef int align(self, unsigned long n)
+    cdef int _align(self, unsigned int n)
 
     @cython.locals(
         value_len=cython.uint,
@@ -26,8 +30,12 @@ cdef class Marshaller:
         written=cython.uint,
         array_len_packed=cython.bytes,
         i=cython.uint,
+        token=cython.str,
+        size=cython.uint,
     )
     cpdef write_array(self, object array, object type)
+
+    cdef int _write_signature(self, str signature)
 
     @cython.locals(
         written=cython.uint,
@@ -37,8 +45,9 @@ cdef class Marshaller:
 
     @cython.locals(
         written=cython.uint,
+        size=cython.uint,
     )
-    cpdef write_single(self, object type_, object body)
+    cdef _write_single(self, object type_, object body)
 
     @cython.locals(
         written=cython.uint,
@@ -46,8 +55,3 @@ cdef class Marshaller:
     cpdef write_dict_entry(self, object type_, object body)
 
     cpdef marshall(self)
-
-    @cython.locals(
-        offset=cython.ulong,
-    )
-    cdef _construct_buffer(self)
