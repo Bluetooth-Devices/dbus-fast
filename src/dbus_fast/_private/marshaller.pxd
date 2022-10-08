@@ -48,6 +48,7 @@ cdef class Marshaller:
 
     @cython.locals(
         written=cython.uint,
+        size=cython.uint,
     )
     cdef _write_single(self, object type_, object body)
 
