@@ -37,7 +37,6 @@ cdef class Marshaller:
         token=cython.str,
         array_len_packed=cython.bytes,
         i=cython.uint,
-        offset=cython.uint,
     )
     cpdef write_array(self, object array, object type)
 
