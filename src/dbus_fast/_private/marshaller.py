@@ -22,6 +22,9 @@ class Marshaller:
         return self._buf
 
     def align(self, n) -> int:
+        return self._align(n)
+
+    def _align(self, n) -> int:
         offset = n - len(self._buf) % n
         if offset == 0 or offset == n:
             return 0
@@ -29,7 +32,7 @@ class Marshaller:
         return offset
 
     def write_boolean(self, boolean: bool, _=None) -> int:
-        written = self.align(4)
+        written = self._align(4)
         self._buf.extend(PACK_UINT32(int(boolean)))
         return written + 4
 
@@ -44,7 +47,7 @@ class Marshaller:
     def write_string(self, value, _=None) -> int:
         value_bytes = value.encode()
         value_len = len(value)
-        written = self.align(4) + 4
+        written = self._align(4) + 4
         self._buf.extend(PACK_UINT32(value_len))
         self._buf.extend(value_bytes)
         written += value_len
@@ -59,16 +62,16 @@ class Marshaller:
 
     def write_array(self, array: Iterable[Any], type_: SignatureType) -> int:
         # TODO max array size is 64MiB (67108864 bytes)
-        written = self.align(4)
+        written = self._align(4)
         # length placeholder
         offset = len(self._buf)
-        written += self.align(4) + 4
+        written += self._align(4) + 4
         self._buf.extend(PACK_UINT32(0))
         child_type = type_.children[0]
 
         if child_type.token in "xtd{(":
             # the first alignment is not included in array size
-            written += self.align(8)
+            written += self._align(8)
 
         array_len = 0
         if child_type.token == "{":
@@ -81,7 +84,7 @@ class Marshaller:
             writer, packer, size = self._writers[child_type.token]
             if not writer:
                 for value in array:
-                    array_len += self.align(size) + size
+                    array_len += self._align(size) + size
                     self._buf.extend(packer(value))
             else:
                 for value in array:
@@ -98,13 +101,13 @@ class Marshaller:
         return written + array_len
 
     def write_struct(self, array: List[Any], type_: SignatureType) -> int:
-        written = self.align(8)
+        written = self._align(8)
         for i, value in enumerate(array):
             written += self.write_single(type_.children[i], value)
         return written
 
     def write_dict_entry(self, dict_entry: List[Any], type_: SignatureType) -> int:
-        written = self.align(8)
+        written = self._align(8)
         written += self.write_single(type_.children[0], dict_entry[0])
         written += self.write_single(type_.children[1], dict_entry[1])
         return written
@@ -117,7 +120,7 @@ class Marshaller:
 
         writer, packer, size = self._writers[t]
         if not writer:
-            written = self.align(size)
+            written = self._align(size)
             self._buf.extend(packer(body))
             return written + size
         return writer(self, body, type_)
@@ -132,22 +135,20 @@ class Marshaller:
 
     def _construct_buffer(self):
         self._buf.clear()
+        writers = self._writers
+        body = self.body
+        buf = self._buf
         for i, type_ in enumerate(self.signature_tree.types):
             t = type_.token
-            if t not in self._writers:
+            if t not in writers:
                 raise NotImplementedError(f'type is not implemented yet: "{t}"')
 
-            writer, packer, size = self._writers[t]
+            writer, packer, size = writers[t]
             if not writer:
-
-                # In-line align
-                offset = size - len(self._buf) % size
-                if offset != 0 and offset != size:
-                    self._buf.extend(bytes(offset))
-
-                self._buf.extend(packer(self.body[i]))
+                self._align(size)
+                buf.extend(packer(body[i]))
             else:
-                writer(self, self.body[i], type_)
+                writer(self, body[i], type_)
 
     _writers: Dict[
         str,
