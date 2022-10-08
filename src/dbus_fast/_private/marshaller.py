@@ -139,22 +139,47 @@ class Marshaller:
             self.signature_tree.verify(self.body)
         return self._buf
 
-    _writers: Dict[str, Tuple[Callable, int]] = {
-        "y": (Struct("<B").pack, 1),
-        "b": (write_boolean, 0),
-        "n": (Struct("<h").pack, 2),
-        "q": (Struct("<H").pack, 2),
-        "i": (Struct("<i").pack, 4),
-        "u": (PACK_UINT32, 4),
-        "x": (Struct("<q").pack, 8),
-        "t": (Struct("<Q").pack, 8),
-        "d": (Struct("<d").pack, 8),
-        "h": (Struct("<I").pack, 4),
-        "o": (write_string, 0),
-        "s": (write_string, 0),
-        "g": (write_signature, 0),
-        "a": (write_array, 0),
-        "(": (write_struct, 0),
-        "{": (write_dict_entry, 0),
-        "v": (write_variant, 0),
+    def _construct_buffer(self):
+        self._buf.clear()
+        writers = self._writers
+        body = self.body
+        buf = self._buf
+        for i, type_ in enumerate(self.signature_tree.types):
+            t = type_.token
+            if t not in writers:
+                raise NotImplementedError(f'type is not implemented yet: "{t}"')
+
+            writer, packer, size = writers[t]
+            if not writer:
+                if size != 1:
+                    self._align(size)
+                buf.extend(packer(body[i]))
+            else:
+                writer(self, body[i], type_)
+
+    _writers: Dict[
+        str,
+        Tuple[
+            Optional[Callable[[Any, Any], int]],
+            Optional[Callable[[Any], bytes]],
+            int,
+        ],
+    ] = {
+        "y": (None, Struct("<B").pack, 1),
+        "b": (write_boolean, None, 0),
+        "n": (None, Struct("<h").pack, 2),
+        "q": (None, Struct("<H").pack, 2),
+        "i": (None, Struct("<i").pack, 4),
+        "u": (None, PACK_UINT32, 4),
+        "x": (None, Struct("<q").pack, 8),
+        "t": (None, Struct("<Q").pack, 8),
+        "d": (None, Struct("<d").pack, 8),
+        "h": (None, Struct("<I").pack, 4),
+        "o": (write_string, None, 0),
+        "s": (write_string, None, 0),
+        "g": (write_signature, None, 0),
+        "a": (write_array, None, 0),
+        "(": (write_struct, None, 0),
+        "{": (write_dict_entry, None, 0),
+        "v": (write_variant, None, 0),
     }
