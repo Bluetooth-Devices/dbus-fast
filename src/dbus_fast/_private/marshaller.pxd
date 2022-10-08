@@ -22,14 +22,12 @@ cdef class Marshaller:
         value_len=cython.uint,
         signature_len=cython.uint,
         written=cython.uint,
-        buf=cython.bytearray
     )
     cpdef write_string(self, object value, _ = *)
 
     @cython.locals(
         signature_bytes=cython.bytes,
         signature_len=cython.uint,
-        buf=cython.bytearray
     )
     cdef _write_signature(self, str signature)
 
@@ -40,7 +38,6 @@ cdef class Marshaller:
         array_len_packed=cython.bytes,
         i=cython.uint,
         offset=cython.uint,
-        buf=cython.bytearray
     )
     cpdef write_array(self, object array, object type)
 
@@ -67,6 +64,5 @@ cdef class Marshaller:
         offset=cython.ulong,
         size=cython.int,
         t=cython.str,
-        buf=cython.bytearray
     )
     cdef _construct_buffer(self)
