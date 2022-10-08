@@ -4,6 +4,7 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 from ..signature import SignatureType, Variant, get_signature_tree
 
 PACK_UINT32 = Struct("<I").pack
+PACKED_UINT32_ZERO = PACK_UINT32(0)
 
 
 class Marshaller:
@@ -42,19 +43,21 @@ class Marshaller:
     def _write_signature(self, signature) -> int:
         signature_bytes = signature.encode()
         signature_len = len(signature)
-        self._buf.append(signature_len)
-        self._buf.extend(signature_bytes)
-        self._buf.append(0)
+        buf = self._buf
+        buf.append(signature_len)
+        buf.extend(signature_bytes)
+        buf.append(0)
         return signature_len + 2
 
     def write_string(self, value, _=None) -> int:
         value_bytes = value.encode()
         value_len = len(value)
         written = self._align(4) + 4
-        self._buf.extend(PACK_UINT32(value_len))
-        self._buf.extend(value_bytes)
+        buf = self._buf
+        buf.extend(PACK_UINT32(value_len))
+        buf.extend(value_bytes)
         written += value_len
-        self._buf.append(0)
+        buf.append(0)
         written += 1
         return written
 
@@ -67,28 +70,30 @@ class Marshaller:
         # TODO max array size is 64MiB (67108864 bytes)
         written = self._align(4)
         # length placeholder
-        offset = len(self._buf)
+        buf = self._buf
+        offset = len(buf)
         written += self._align(4) + 4
-        self._buf.extend(PACK_UINT32(0))
+        buf.extend(PACKED_UINT32_ZERO)
         child_type = type_.children[0]
+        token = child_type.token
 
-        if child_type.token in "xtd{(":
+        if token in "xtd{(":
             # the first alignment is not included in array size
             written += self._align(8)
 
         array_len = 0
-        if child_type.token == "{":
+        if token == "{":
             for key, value in array.items():
                 array_len += self.write_dict_entry([key, value], child_type)
-        elif child_type.token == "y":
+        elif token == "y":
             array_len = len(array)
-            self._buf.extend(array)
-        elif child_type.token in self._writers:
-            writer, packer, size = self._writers[child_type.token]
+            buf.extend(array)
+        elif token in self._writers:
+            writer, packer, size = self._writers[token]
             if not writer:
                 for value in array:
                     array_len += self._align(size) + size
-                    self._buf.extend(packer(value))
+                    buf.extend(packer(value))
             else:
                 for value in array:
                     array_len += writer(self, value, child_type)
@@ -99,7 +104,7 @@ class Marshaller:
 
         array_len_packed = PACK_UINT32(array_len)
         for i in range(offset, offset + 4):
-            self._buf[i] = array_len_packed[i - offset]
+            buf[i] = array_len_packed[i - offset]
 
         return written + array_len
 
