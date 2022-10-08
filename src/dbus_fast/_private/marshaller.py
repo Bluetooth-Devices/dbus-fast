@@ -139,7 +139,7 @@ class Marshaller:
             self.signature_tree.verify(self.body)
         return self._buf
 
-    _writers: Dict[str, Tuple[Callable, int],] = {
+    _writers: Dict[str, Tuple[Callable, int]] = {
         "y": (Struct("<B").pack, 1),
         "b": (write_boolean, 0),
         "n": (Struct("<h").pack, 2),
