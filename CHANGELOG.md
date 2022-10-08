@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.32.0 (2022-10-08)
+### Feature
+* Speed up marshalling arrays ([#87](https://github.com/Bluetooth-Devices/dbus-fast/issues/87)) ([`f554345`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f554345b3640524300fbe406f4ac25dbf61a2274))
+
 ## v1.31.0 (2022-10-08)
 ### Feature
 * Speed up marshalling variants ([#86](https://github.com/Bluetooth-Devices/dbus-fast/issues/86)) ([`7847e26`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7847e26e6e6cfe172437544d7709dc0c87a65402))
