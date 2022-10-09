@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from .errors import InvalidSignatureError, SignatureBodyMismatchError
 from .validators import is_object_path_valid
@@ -293,7 +293,7 @@ class SignatureType:
 
         return True
 
-    validators: dict[str, Callable[["SignatureType", Any], None]] = {
+    validators: Dict[str, Callable[["SignatureType", Any], None]] = {
         "y": _verify_byte,
         "b": _verify_boolean,
         "n": _verify_int16,
