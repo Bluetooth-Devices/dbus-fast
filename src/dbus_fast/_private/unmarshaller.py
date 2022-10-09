@@ -269,7 +269,7 @@ class Unmarshaller:
         return self._buf[str_start : self._pos - 1].decode()
 
     def read_signature(self, type_: SignatureType) -> str:
-        signature_len = self._view[self._pos]  # byte
+        signature_len = self._buf[self._pos]  # byte
         o = self._pos + 1
         # read terminating '\0' byte as well (str_length + 1)
         self._pos = o + signature_len + 1
@@ -277,9 +277,12 @@ class Unmarshaller:
 
     def read_variant(self, type_: SignatureType) -> Variant:
         tree = get_signature_tree(self.read_signature(type_))
+        signature_type = tree.types[0]
         # verify in Variant is only useful on construction not unmarshalling
         return Variant(
-            tree, self._readers[tree.types[0].token](self, tree.types[0]), verify=False
+            tree,
+            self._readers[signature_type.token](self, signature_type),
+            verify=False,
         )
 
     def read_struct(self, type_: SignatureType) -> List[Any]:
