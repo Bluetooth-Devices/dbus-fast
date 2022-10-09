@@ -321,23 +321,26 @@ class Unmarshaller:
             self._pos += array_length
             return self._buf[self._pos - array_length : self._pos]
 
-        beginning_pos = self._pos
-        readers = self._readers
-
         if token == "{":
             result_dict = {}
+            beginning_pos = self._pos
             child_0 = child_type.children[0]
-            reader_0 = readers[child_0.token]
             child_1 = child_type.children[1]
-            reader_1 = readers[child_1.token]
+            reader_1 = self._readers[child_1.token]
+            reader_0 = self._readers[child_0.token]
+
             while self._pos - beginning_pos < array_length:
                 self._pos += -self._pos & 7  # align 8
                 key = reader_0(self, child_0)
                 result_dict[key] = reader_1(self, child_1)
             return result_dict
 
+        if array_length == 0:
+            return []
+
         result_list = []
-        reader = readers[child_type.token]
+        beginning_pos = self._pos
+        reader = self._readers[child_type.token]
         while self._pos - beginning_pos < array_length:
             result_list.append(reader(self, child_type))
         return result_list
