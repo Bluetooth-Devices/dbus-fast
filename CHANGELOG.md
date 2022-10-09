@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.38.0 (2022-10-09)
+### Feature
+* Optimize for reading a{sv} messages and headers ([#98](https://github.com/Bluetooth-Devices/dbus-fast/issues/98)) ([`4648d29`](https://github.com/Bluetooth-Devices/dbus-fast/commit/4648d29df4b616f49c06ca9fcbfbc27717d97135))
+
 ## v1.37.0 (2022-10-09)
 ### Feature
 * Speed up empty array unmarshall ([#96](https://github.com/Bluetooth-Devices/dbus-fast/issues/96)) ([`2c6ee99`](https://github.com/Bluetooth-Devices/dbus-fast/commit/2c6ee99b73dcfb2e2d45d2610a3fa10a4ff2136a))
