@@ -46,7 +46,7 @@ def unmarhsall_bluez_rssi_message():
     unmarshaller.unmarshall()
 
 
-count = 1000000
+count = 3000000
 time = timeit.Timer(unmarhsall_bluez_rssi_message).timeit(count)
 print(
     f"Unmarshalling {count} bluetooth properties changed messages took {time} seconds"
