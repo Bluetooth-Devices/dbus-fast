@@ -354,8 +354,7 @@ class Unmarshaller:
             signature_len = buf[self._pos]  # byte
             o = self._pos + 1
             self._pos += signature_len + 2  # one for the byte, one for the '\0'
-            tree = get_signature_tree(buf[o : o + signature_len].decode())
-            type_ = tree.types[0]
+            type_ = get_signature_tree(buf[o : o + signature_len].decode()).types[0]
             headers[HEADER_MESSAGE_ARG_NAME[field_0]] = readers[type_.token](
                 self, type_
             )
