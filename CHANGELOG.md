@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.35.0 (2022-10-09)
+### Feature
+* Add unpack variants benchmark ([#94](https://github.com/Bluetooth-Devices/dbus-fast/issues/94)) ([`eb966fd`](https://github.com/Bluetooth-Devices/dbus-fast/commit/eb966fd7cf3a3f05879c29f7eb98727dd117c317))
+
 ## v1.34.0 (2022-10-09)
 ### Feature
 * Add additional typing ([#93](https://github.com/Bluetooth-Devices/dbus-fast/issues/93)) ([`7326bdf`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7326bdf097310eafa21364dd46f6ebb72baa1a3d))
