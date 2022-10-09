@@ -269,7 +269,7 @@ class Unmarshaller:
         return self._buf[str_start : self._pos - 1].decode()
 
     def read_signature(self, type_: SignatureType) -> str:
-        signature_len = self._view[self._pos]  # byte
+        signature_len = self._buf[self._pos]  # byte
         o = self._pos + 1
         # read terminating '\0' byte as well (str_length + 1)
         self._pos = o + signature_len + 1
@@ -277,9 +277,12 @@ class Unmarshaller:
 
     def read_variant(self, type_: SignatureType) -> Variant:
         tree = get_signature_tree(self.read_signature(type_))
+        signature_type = tree.types[0]
         # verify in Variant is only useful on construction not unmarshalling
         return Variant(
-            tree, self._readers[tree.types[0].token](self, tree.types[0]), verify=False
+            tree,
+            self._readers[signature_type.token](self, signature_type),
+            verify=False,
         )
 
     def read_struct(self, type_: SignatureType) -> List[Any]:
@@ -343,18 +346,19 @@ class Unmarshaller:
         """Header fields are always a(yv)."""
         beginning_pos = self._pos
         headers = {}
+        buf = self._buf
+        readers = self._readers
         while self._pos - beginning_pos < header_length:
             # Now read the y (byte) of struct (yv)
             self._pos += (-self._pos & 7) + 1  # align 8 + 1 for 'y' byte
-            field_0 = self._view[self._pos - 1]
+            field_0 = buf[self._pos - 1]
 
             # Now read the v (variant) of struct (yv)
-            signature_len = self._view[self._pos]  # byte
+            signature_len = buf[self._pos]  # byte
             o = self._pos + 1
             self._pos += signature_len + 2  # one for the byte, one for the '\0'
-            tree = get_signature_tree(self._buf[o : o + signature_len].decode())
-            type_ = tree.types[0]
-            headers[HEADER_MESSAGE_ARG_NAME[field_0]] = self._readers[type_.token](
+            type_ = get_signature_tree(buf[o : o + signature_len].decode()).types[0]
+            headers[HEADER_MESSAGE_ARG_NAME[field_0]] = readers[type_.token](
                 self, type_
             )
         return headers

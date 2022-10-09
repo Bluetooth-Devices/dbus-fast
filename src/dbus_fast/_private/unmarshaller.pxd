@@ -81,6 +81,7 @@ cdef class Unmarshaller:
     @cython.locals(
         beginning_pos=cython.ulong,
         o=cython.ulong,
+        field_0=cython.uint,
         signature_len=cython.uint,
     )
     cdef header_fields(self, unsigned int header_length)
