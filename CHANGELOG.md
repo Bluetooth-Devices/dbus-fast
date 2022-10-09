@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.36.0 (2022-10-09)
+### Feature
+* Add cdef to unpack_variants ([#95](https://github.com/Bluetooth-Devices/dbus-fast/issues/95)) ([`dbf42c3`](https://github.com/Bluetooth-Devices/dbus-fast/commit/dbf42c370784236ff31e9324968f02a5efb58586))
+
 ## v1.35.0 (2022-10-09)
 ### Feature
 * Add unpack variants benchmark ([#94](https://github.com/Bluetooth-Devices/dbus-fast/issues/94)) ([`eb966fd`](https://github.com/Bluetooth-Devices/dbus-fast/commit/eb966fd7cf3a3f05879c29f7eb98727dd117c317))
