@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.37.0 (2022-10-09)
+### Feature
+* Speed up empty array unmarshall ([#96](https://github.com/Bluetooth-Devices/dbus-fast/issues/96)) ([`2c6ee99`](https://github.com/Bluetooth-Devices/dbus-fast/commit/2c6ee99b73dcfb2e2d45d2610a3fa10a4ff2136a))
+
 ## v1.36.0 (2022-10-09)
 ### Feature
 * Add cdef to unpack_variants ([#95](https://github.com/Bluetooth-Devices/dbus-fast/issues/95)) ([`dbf42c3`](https://github.com/Bluetooth-Devices/dbus-fast/commit/dbf42c370784236ff31e9324968f02a5efb58586))
