@@ -50,10 +50,18 @@ cdef class Unmarshaller:
 
     cpdef read_uint32_cast(self, object type_)
 
+    cpdef read_string_unpack(self, object type_)
+
+    cdef _read_string_unpack(self)
+
+    cpdef read_string_cast(self, object type_)
+
     @cython.locals(
         buf_bytes=cython.bytearray,
     )
-    cpdef read_string_cast(self, object type_)
+    cdef _read_string_cast(self)
+
+    cdef _read_variant(self)
 
     @cython.locals(
         beginning_pos=cython.ulong,
@@ -61,16 +69,19 @@ cdef class Unmarshaller:
     )
     cpdef read_array(self, object type_)
 
+    cpdef read_signature(self, object type_)
+
     @cython.locals(
         o=cython.ulong,
         signature_len=cython.uint,
     )
-    cpdef read_signature(self, object type_)
+    cdef _read_signature(self)
 
     @cython.locals(
         endian=cython.uint,
         protocol_version=cython.uint,
-        can_cast=cython.bint
+        can_cast=cython.bint,
+        key=cython.str
     )
     cdef _read_header(self)
 
