@@ -69,11 +69,11 @@ class PropertyAccess(Enum):
     WRITE = "write"  #: The property is writeonly.
     READWRITE = "readwrite"  #: The property can be read or written to.
 
-    def readable(self):
+    def readable(self) -> bool:
         """Get whether the property can be read."""
         return self == PropertyAccess.READ or self == PropertyAccess.READWRITE
 
-    def writable(self):
+    def writable(self) -> bool:
         """Get whether the property can be written to."""
         return self == PropertyAccess.WRITE or self == PropertyAccess.READWRITE
 

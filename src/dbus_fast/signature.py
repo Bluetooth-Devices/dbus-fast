@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Any, List, Union
+from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
 
 from .errors import InvalidSignatureError, SignatureBodyMismatchError
 from .validators import is_object_path_valid
@@ -26,15 +26,14 @@ class SignatureType:
     def __init__(self, token: str) -> None:
         self.token = token
         self.children: List[SignatureType] = []
-        self._signature = None
+        self._signature: Optional[str] = None
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if type(other) is SignatureType:
             return self.signature == other.signature
-        else:
-            return super().__eq__(other)
+        return super().__eq__(other)
 
-    def _collapse(self):
+    def _collapse(self) -> str:
         if self.token not in "a({":
             return self.token
 
@@ -58,9 +57,9 @@ class SignatureType:
         return self._signature
 
     @staticmethod
-    def _parse_next(signature):
+    def _parse_next(signature: str) -> Tuple["SignatureType", str]:
         if not signature:
-            return (None, "")
+            raise InvalidSignatureError("Cannot parse an empty signature")
 
         token = signature[0]
 
@@ -103,7 +102,7 @@ class SignatureType:
         # basic type
         return (SignatureType(token), signature[1:])
 
-    def _verify_byte(self, body):
+    def _verify_byte(self, body: int) -> None:
         BYTE_MIN = 0x00
         BYTE_MAX = 0xFF
         if not isinstance(body, int):
@@ -115,13 +114,13 @@ class SignatureType:
                 f"DBus BYTE type must be between {BYTE_MIN} and {BYTE_MAX}"
             )
 
-    def _verify_boolean(self, body):
+    def _verify_boolean(self, body: bool) -> None:
         if not isinstance(body, bool):
             raise SignatureBodyMismatchError(
                 f'DBus BOOLEAN type "b" must be Python type "bool", got {type(body)}'
             )
 
-    def _verify_int16(self, body):
+    def _verify_int16(self, body: int) -> None:
         INT16_MIN = -0x7FFF - 1
         INT16_MAX = 0x7FFF
         if not isinstance(body, int):
@@ -133,7 +132,7 @@ class SignatureType:
                 f'DBus INT16 type "n" must be between {INT16_MIN} and {INT16_MAX}'
             )
 
-    def _verify_uint16(self, body):
+    def _verify_uint16(self, body: int) -> None:
         UINT16_MIN = 0
         UINT16_MAX = 0xFFFF
         if not isinstance(body, int):
@@ -145,7 +144,7 @@ class SignatureType:
                 f'DBus UINT16 type "q" must be between {UINT16_MIN} and {UINT16_MAX}'
             )
 
-    def _verify_int32(self, body):
+    def _verify_int32(self, body: int) -> None:
         INT32_MIN = -0x7FFFFFFF - 1
         INT32_MAX = 0x7FFFFFFF
         if not isinstance(body, int):
@@ -157,7 +156,7 @@ class SignatureType:
                 f'DBus INT32 type "i" must be between {INT32_MIN} and {INT32_MAX}'
             )
 
-    def _verify_uint32(self, body):
+    def _verify_uint32(self, body: int) -> None:
         UINT32_MIN = 0
         UINT32_MAX = 0xFFFFFFFF
         if not isinstance(body, int):
@@ -169,7 +168,7 @@ class SignatureType:
                 f'DBus UINT32 type "u" must be between {UINT32_MIN} and {UINT32_MAX}'
             )
 
-    def _verify_int64(self, body):
+    def _verify_int64(self, body: int) -> None:
         INT64_MAX = 9223372036854775807
         INT64_MIN = -INT64_MAX - 1
         if not isinstance(body, int):
@@ -181,7 +180,7 @@ class SignatureType:
                 f'DBus INT64 type "x" must be between {INT64_MIN} and {INT64_MAX}'
             )
 
-    def _verify_uint64(self, body):
+    def _verify_uint64(self, body: int) -> None:
         UINT64_MIN = 0
         UINT64_MAX = 18446744073709551615
         if not isinstance(body, int):
@@ -193,13 +192,13 @@ class SignatureType:
                 f'DBus UINT64 type "t" must be between {UINT64_MIN} and {UINT64_MAX}'
             )
 
-    def _verify_double(self, body):
-        if not isinstance(body, float) and not isinstance(body, int):
+    def _verify_double(self, body: Union[float, int]) -> None:
+        if not isinstance(body, (float, int)):
             raise SignatureBodyMismatchError(
                 f'DBus DOUBLE type "d" must be Python type "float" or "int", got {type(body)}'
             )
 
-    def _verify_unix_fd(self, body):
+    def _verify_unix_fd(self, body: int) -> None:
         try:
             self._verify_uint32(body)
         except SignatureBodyMismatchError:
@@ -207,19 +206,19 @@ class SignatureType:
                 'DBus UNIX_FD type "h" must be a valid UINT32'
             )
 
-    def _verify_object_path(self, body):
+    def _verify_object_path(self, body: str) -> None:
         if not is_object_path_valid(body):
             raise SignatureBodyMismatchError(
                 'DBus OBJECT_PATH type "o" must be a valid object path'
             )
 
-    def _verify_string(self, body):
+    def _verify_string(self, body: str) -> None:
         if not isinstance(body, str):
             raise SignatureBodyMismatchError(
                 f'DBus STRING type "s" must be Python type "str", got {type(body)}'
             )
 
-    def _verify_signature(self, body):
+    def _verify_signature(self, body: str) -> None:
         # I guess we could run it through the SignatureTree parser instead
         if not isinstance(body, str):
             raise SignatureBodyMismatchError(
@@ -230,7 +229,7 @@ class SignatureType:
                 'DBus SIGNATURE type "g" must be less than 256 bytes'
             )
 
-    def _verify_array(self, body):
+    def _verify_array(self, body: Any) -> None:
         child_type = self.children[0]
 
         if child_type.token == "{":
@@ -255,7 +254,7 @@ class SignatureType:
             for member in body:
                 child_type.verify(member)
 
-    def _verify_struct(self, body):
+    def _verify_struct(self, body: Iterable[Any]) -> None:
         # TODO allow tuples
         if not isinstance(body, list):
             raise SignatureBodyMismatchError(
@@ -270,7 +269,7 @@ class SignatureType:
         for i, member in enumerate(body):
             self.children[i].verify(member)
 
-    def _verify_variant(self, body):
+    def _verify_variant(self, body: "Variant") -> None:
         # a variant signature and value is valid by construction
         if not isinstance(body, Variant):
             raise SignatureBodyMismatchError(
@@ -294,7 +293,7 @@ class SignatureType:
 
         return True
 
-    validators = {
+    validators: dict[str, Callable[["SignatureType", Any], None]] = {
         "y": _verify_byte,
         "b": _verify_boolean,
         "n": _verify_int16,
@@ -332,7 +331,7 @@ class SignatureTree:
 
     __slots__ = ("signature", "types")
 
-    def __init__(self, signature: str = ""):
+    def __init__(self, signature: str = "") -> None:
         self.signature = signature
 
         self.types: List[SignatureType] = []
@@ -344,13 +343,12 @@ class SignatureTree:
             (type_, signature) = SignatureType._parse_next(signature)
             self.types.append(type_)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if type(other) is SignatureTree:
             return self.signature == other.signature
-        else:
-            return super().__eq__(other)
+        return super().__eq__(other)
 
-    def verify(self, body: List[Any]):
+    def verify(self, body: List[Any]) -> bool:
         """Verifies that the give body matches this signature tree
 
         :param body: the body to verify for this tree
@@ -433,13 +431,12 @@ class Variant:
         self.signature = signature_str
         self.value = value
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if type(other) is Variant:
             return self.signature == other.signature and self.value == other.value
-        else:
-            return super().__eq__(other)
+        return super().__eq__(other)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<dbus_fast.signature.Variant ('{}', {})>".format(
             self.type.signature, self.value
         )
