@@ -27,7 +27,7 @@ def is_bus_name_valid(name: str) -> bool:
     :rtype: bool
     """
     if not isinstance(name, str):
-        return False
+        return False  # type: ignore[unreachable]
 
     if not name or len(name) > 255:
         return False
@@ -62,7 +62,7 @@ def is_object_path_valid(path: str) -> bool:
     :rtype: bool
     """
     if not isinstance(path, str):
-        return False
+        return False  # type: ignore[unreachable]
 
     if not path:
         return False
@@ -93,7 +93,7 @@ def is_interface_name_valid(name: str) -> bool:
     :rtype: bool
     """
     if not isinstance(name, str):
-        return False
+        return False  # type: ignore[unreachable]
 
     if not name or len(name) > 255:
         return False
@@ -124,7 +124,7 @@ def is_member_name_valid(member: str) -> bool:
     :rtype: bool
     """
     if not isinstance(member, str):
-        return False
+        return False  # type: ignore[unreachable]
 
     if not member or len(member) > 255:
         return False
@@ -180,7 +180,7 @@ def assert_interface_name_valid(name: str) -> None:
         raise InvalidInterfaceNameError(name)
 
 
-def assert_member_name_valid(member) -> None:
+def assert_member_name_valid(member: str) -> None:
     """Raise an error if this is not a valid member name.
 
     .. seealso:: https://dbus.freedesktop.org/doc/dbus-specification.html#message-protocol-names-member

@@ -9,7 +9,7 @@ from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP
 from ..errors import InvalidMessageError
 from ..message import Message
 from ..signature import SignatureType, Variant, get_signature_tree
-from .constants import BIG_ENDIAN, LITTLE_ENDIAN, PROTOCOL_VERSION, HeaderField
+from .constants import BIG_ENDIAN, LITTLE_ENDIAN, PROTOCOL_VERSION
 
 IS_LITTLE_ENDIAN = sys.byteorder == "little"
 IS_BIG_ENDIAN = sys.byteorder == "big"
@@ -253,6 +253,9 @@ class Unmarshaller:
 
     def read_string_cast(self, type_: SignatureType) -> str:
         """Read a string using cast."""
+        return self._read_string_cast()
+
+    def _read_string_cast(self) -> str:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
         str_start = self._pos
         # read terminating '\0' byte as well (str_length + 1)
@@ -261,6 +264,9 @@ class Unmarshaller:
         return self._buf[str_start : self._pos - 1].decode()
 
     def read_string_unpack(self, type_: SignatureType) -> str:
+        return self._read_string_unpack()
+
+    def _read_string_unpack(self) -> str:
         """Read a string using unpack."""
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
         str_start = self._pos
@@ -269,17 +275,26 @@ class Unmarshaller:
         return self._buf[str_start : self._pos - 1].decode()
 
     def read_signature(self, type_: SignatureType) -> str:
-        signature_len = self._view[self._pos]  # byte
+        return self._read_signature()
+
+    def _read_signature(self) -> str:
+        signature_len = self._buf[self._pos]  # byte
         o = self._pos + 1
         # read terminating '\0' byte as well (str_length + 1)
         self._pos = o + signature_len + 1
         return self._buf[o : o + signature_len].decode()
 
     def read_variant(self, type_: SignatureType) -> Variant:
-        tree = get_signature_tree(self.read_signature(type_))
+        return self._read_variant()
+
+    def _read_variant(self) -> Variant:
+        tree = get_signature_tree(self._read_signature())
+        signature_type = tree.types[0]
         # verify in Variant is only useful on construction not unmarshalling
         return Variant(
-            tree, self._readers[tree.types[0].token](self, tree.types[0]), verify=False
+            tree,
+            self._readers[signature_type.token](self, signature_type),
+            verify=False,
         )
 
     def read_struct(self, type_: SignatureType) -> List[Any]:
@@ -318,23 +333,41 @@ class Unmarshaller:
             self._pos += array_length
             return self._buf[self._pos - array_length : self._pos]
 
-        beginning_pos = self._pos
-        readers = self._readers
-
         if token == "{":
             result_dict = {}
+            beginning_pos = self._pos
             child_0 = child_type.children[0]
-            reader_0 = readers[child_0.token]
             child_1 = child_type.children[1]
-            reader_1 = readers[child_1.token]
-            while self._pos - beginning_pos < array_length:
-                self._pos += -self._pos & 7  # align 8
-                key = reader_0(self, child_0)
-                result_dict[key] = reader_1(self, child_1)
+            child_0_token = child_0.token
+            child_1_token = child_1.token
+
+            # Strings with variant values are the most common case
+            # so we optimize for that by inlining the string reading
+            # and the variant reading here
+            if child_0_token in "os" and child_1_token == "v":
+                while self._pos - beginning_pos < array_length:
+                    self._pos += -self._pos & 7  # align 8
+                    if self._uint32_unpack:  # cannot cast
+                        key = self._read_string_unpack()
+                    else:
+                        key = self._read_string_cast()
+                    result_dict[key] = self._read_variant()
+            else:
+                reader_1 = self._readers[child_1_token]
+                reader_0 = self._readers[child_0_token]
+                while self._pos - beginning_pos < array_length:
+                    self._pos += -self._pos & 7  # align 8
+                    key = reader_0(self, child_0)
+                    result_dict[key] = reader_1(self, child_1)
+
             return result_dict
 
+        if array_length == 0:
+            return []
+
         result_list = []
-        reader = readers[child_type.token]
+        beginning_pos = self._pos
+        reader = self._readers[child_type.token]
         while self._pos - beginning_pos < array_length:
             result_list.append(reader(self, child_type))
         return result_list
@@ -343,20 +376,35 @@ class Unmarshaller:
         """Header fields are always a(yv)."""
         beginning_pos = self._pos
         headers = {}
+        buf = self._buf
+        readers = self._readers
         while self._pos - beginning_pos < header_length:
             # Now read the y (byte) of struct (yv)
             self._pos += (-self._pos & 7) + 1  # align 8 + 1 for 'y' byte
-            field_0 = self._view[self._pos - 1]
+            field_0 = buf[self._pos - 1]
 
             # Now read the v (variant) of struct (yv)
-            signature_len = self._view[self._pos]  # byte
+            # first we read the signature
+            signature_len = buf[self._pos]  # byte
             o = self._pos + 1
             self._pos += signature_len + 2  # one for the byte, one for the '\0'
-            tree = get_signature_tree(self._buf[o : o + signature_len].decode())
-            type_ = tree.types[0]
-            headers[HEADER_MESSAGE_ARG_NAME[field_0]] = self._readers[type_.token](
-                self, type_
-            )
+            type_ = get_signature_tree(buf[o : o + signature_len].decode()).types[0]
+            token = type_.token
+            # Now that we have the token we can read the variant value
+            key = HEADER_MESSAGE_ARG_NAME[field_0]
+            # Strings and signatures are the most common types
+            # so we inline them for performance
+            if token in "os":
+                if self._uint32_unpack:  # cannot cast
+                    headers[key] = self._read_string_unpack()
+                else:
+                    headers[key] = self._read_string_cast()
+            elif token == "g":
+                headers[key] = self._read_signature()
+            else:
+                # There shouldn't be any other types in the header
+                # but just in case, we'll read it using the slow path
+                headers[key] = readers[type_.token](self, type_)
         return headers
 
     def _read_header(self) -> None:

@@ -5,16 +5,6 @@ import cython
 from ..signature import SignatureType
 
 
-cdef str HEADER_DESTINATION
-cdef str HEADER_PATH
-cdef str HEADER_INTERFACE
-cdef str HEADER_MEMBER
-cdef str HEADER_ERROR_NAME
-cdef str HEADER_REPLY_SERIAL
-cdef str HEADER_SENDER
-cdef str HEADER_SIGNATURE
-
-
 cdef unsigned int UINT32_SIZE
 cdef unsigned int INT16_SIZE
 cdef unsigned int HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
@@ -60,10 +50,18 @@ cdef class Unmarshaller:
 
     cpdef read_uint32_cast(self, object type_)
 
+    cpdef read_string_unpack(self, object type_)
+
+    cdef _read_string_unpack(self)
+
+    cpdef read_string_cast(self, object type_)
+
     @cython.locals(
         buf_bytes=cython.bytearray,
     )
-    cpdef read_string_cast(self, object type_)
+    cdef _read_string_cast(self)
+
+    cdef _read_variant(self)
 
     @cython.locals(
         beginning_pos=cython.ulong,
@@ -71,16 +69,19 @@ cdef class Unmarshaller:
     )
     cpdef read_array(self, object type_)
 
+    cpdef read_signature(self, object type_)
+
     @cython.locals(
         o=cython.ulong,
         signature_len=cython.uint,
     )
-    cpdef read_signature(self, object type_)
+    cdef _read_signature(self)
 
     @cython.locals(
         endian=cython.uint,
         protocol_version=cython.uint,
-        can_cast=cython.bint
+        can_cast=cython.bint,
+        key=cython.str
     )
     cdef _read_header(self)
 
@@ -91,6 +92,7 @@ cdef class Unmarshaller:
     @cython.locals(
         beginning_pos=cython.ulong,
         o=cython.ulong,
+        field_0=cython.uint,
         signature_len=cython.uint,
     )
     cdef header_fields(self, unsigned int header_length)

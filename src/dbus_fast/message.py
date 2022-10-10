@@ -100,9 +100,9 @@ class Message:
         interface: Optional[str] = None,
         member: Optional[str] = None,
         message_type: MessageType = MessageType.METHOD_CALL,
-        flags: MessageFlag = MessageFlag.NONE,
+        flags: Union[MessageFlag, int] = MessageFlag.NONE,
         error_name: Optional[Union[str, ErrorType]] = None,
-        reply_serial=0,
+        reply_serial: int = 0,
         sender: Optional[str] = None,
         unix_fds: List[int] = [],
         signature: Optional[Union[SignatureTree, str]] = None,
@@ -115,9 +115,7 @@ class Message:
         self.interface = interface
         self.member = member
         self.message_type = message_type
-        self.flags = (
-            flags if type(flags) is MessageFlag else MessageFlag(bytes([flags]))
-        )
+        self.flags = flags if type(flags) is MessageFlag else MessageFlag(flags)
         self.error_name = (
             str(error_name.value) if type(error_name) is ErrorType else error_name
         )
@@ -128,7 +126,7 @@ class Message:
             self.signature = signature.signature
             self.signature_tree = signature
         else:
-            self.signature = signature or ""
+            self.signature = signature or ""  # type: ignore[assignment]
             self.signature_tree = get_signature_tree(signature or "")
         self.body = body
         self.serial = serial or 0
@@ -144,7 +142,7 @@ class Message:
         if self.member is not None:
             assert_member_name_valid(self.member)
         if self.error_name is not None:
-            assert_interface_name_valid(self.error_name)
+            assert_interface_name_valid(self.error_name)  # type: ignore[arg-type]
 
         required_fields = REQUIRED_FIELDS.get(self.message_type)
         if not required_fields:
@@ -219,8 +217,8 @@ class Message:
         interface: str,
         member: str,
         signature: str = "",
-        body: List[Any] = None,
-        unix_fds: List[int] = None,
+        body: Optional[List[Any]] = None,
+        unix_fds: Optional[List[int]] = None,
     ) -> "Message":
         """A convenience constructor to create a new signal message.
 
@@ -246,15 +244,14 @@ class Message:
             - :class:`InvalidInterfaceNameError` - If ``interface`` is not a valid interface name.
             - :class:`InvalidMemberNameError` - If ``member`` is not a valid member name.
         """
-        body = body if body else []
         return Message(
             message_type=MessageType.SIGNAL,
             interface=interface,
             path=path,
             member=member,
             signature=signature,
-            body=body,
-            unix_fds=unix_fds,
+            body=body or [],
+            unix_fds=unix_fds or [],
         )
 
     def _marshall(self, negotiate_unix_fd: bool) -> bytearray:
