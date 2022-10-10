@@ -27,12 +27,12 @@ from ..service import ServiceInterface
 from .proxy_object import ProxyObject
 
 
-def _future_set_exception(fut: asyncio.Future, exc: Exception) -> None:
+def _future_set_exception(fut: asyncio.Future[Any], exc: Exception) -> None:
     if fut is not None and not fut.done():
         fut.set_exception(exc)
 
 
-def _future_set_result(fut: asyncio.Future, result: Any) -> None:
+def _future_set_result(fut: asyncio.Future[Any], result: Any) -> None:
     if fut is not None and not fut.done():
         fut.set_result(result)
 
@@ -48,7 +48,7 @@ class _MessageWriter:
         self.fd = bus._fd
         self.offset = 0
         self.unix_fds = None
-        self.fut: Optional[asyncio.Future] = None
+        self.fut: Optional[asyncio.Future[Optional[bytes]]] = None
 
     def write_callback(self, remove_writer: bool = True) -> None:
         try:
@@ -359,7 +359,7 @@ class MessageBus(BaseMessageBus):
 
         return future.result()
 
-    def send(self, msg: Message) -> asyncio.Future:
+    def send(self, msg: Message) -> asyncio.Future[Optional[bytes]]:
         """Asynchronously send a message on the message bus.
 
         .. note:: This method may change to a couroutine function in the 1.0
