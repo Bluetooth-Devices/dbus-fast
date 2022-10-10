@@ -443,5 +443,5 @@ class Variant:
 
 
 @lru_cache(maxsize=None)
-def get_signature_tree(signature: str = "") -> SignatureTree:
+def get_signature_tree(signature: str) -> SignatureTree:
     return SignatureTree(signature)
