@@ -245,6 +245,9 @@ class Unmarshaller:
         return self._view[self._pos - UINT32_SIZE : self._pos].cast(UINT32_CAST)[0]
 
     def read_int16_cast(self, type_: SignatureType) -> int:
+        return self._read_int16_cast()
+
+    def _read_int16_cast(self) -> int:
         self._pos += INT16_SIZE + (-self._pos & (INT16_SIZE - 1))  # align
         return self._view[self._pos - INT16_SIZE : self._pos].cast(INT16_CAST)[0]
 
@@ -291,10 +294,13 @@ class Unmarshaller:
         tree = get_signature_tree(self._read_signature())
         signature_type = tree.types[0]
         # verify in Variant is only useful on construction not unmarshalling
+        token = signature_type.token
+        if token == "n" and self._uint32_unpack is None:
+            return Variant(tree, self._read_int16_cast(), False)
         return Variant(
             tree,
-            self._readers[signature_type.token](self, signature_type),
-            verify=False,
+            self._readers[token](self, signature_type),
+            False,
         )
 
     def read_struct(self, type_: SignatureType) -> List[Any]:
