@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.39.0 (2022-10-10)
+### Feature
+* Add additional typing ([#100](https://github.com/Bluetooth-Devices/dbus-fast/issues/100)) ([`cde1893`](https://github.com/Bluetooth-Devices/dbus-fast/commit/cde1893dca1872d8b482a145337ee3bbf47c35b4))
+
 ## v1.38.0 (2022-10-09)
 ### Feature
 * Optimize for reading a{sv} messages and headers ([#98](https://github.com/Bluetooth-Devices/dbus-fast/issues/98)) ([`4648d29`](https://github.com/Bluetooth-Devices/dbus-fast/commit/4648d29df4b616f49c06ca9fcbfbc27717d97135))
