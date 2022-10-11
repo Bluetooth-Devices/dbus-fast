@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.40.0 (2022-10-10)
+### Feature
+* Speed up unmarshaller ([#101](https://github.com/Bluetooth-Devices/dbus-fast/issues/101)) ([`a6a248b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/a6a248b3b1dbbb06784f700b49a7fe92b30cc7b5))
+
 ## v1.39.0 (2022-10-10)
 ### Feature
 * Add additional typing ([#100](https://github.com/Bluetooth-Devices/dbus-fast/issues/100)) ([`cde1893`](https://github.com/Bluetooth-Devices/dbus-fast/commit/cde1893dca1872d8b482a145337ee3bbf47c35b4))
