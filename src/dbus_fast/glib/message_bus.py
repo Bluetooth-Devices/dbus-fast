@@ -49,8 +49,9 @@ class _MessageSource(_GLibSource):
                 if not self.unmarshaller:
                     self.unmarshaller = Unmarshaller(self.bus._stream)
 
-                if self.unmarshaller.unmarshall():
-                    callback(self.unmarshaller.message)
+                message = self.unmarshaller.unmarshall()
+                if message:
+                    callback(message)
                     self.unmarshaller = None
                 else:
                     break
