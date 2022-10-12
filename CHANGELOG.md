@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.44.0 (2022-10-12)
+### Feature
+* Speed up unpack_variants ([#105](https://github.com/Bluetooth-Devices/dbus-fast/issues/105)) ([`a4fdda2`](https://github.com/Bluetooth-Devices/dbus-fast/commit/a4fdda271f7a96e267826ffa3f268ec02078ba73))
+
 ## v1.43.0 (2022-10-12)
 ### Feature
 * Improve aio message reader performance ([#104](https://github.com/Bluetooth-Devices/dbus-fast/issues/104)) ([`9fa697d`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9fa697da65d449b7402aa7f2f26762b0d2e175c6))
