@@ -2,7 +2,7 @@ import asyncio
 import copy
 import inspect
 from functools import wraps
-from typing import Any, Dict, List, Set, no_type_check_decorator
+from typing import Any, Dict, List, no_type_check_decorator
 
 from . import introspection as intr
 from ._private.util import (
