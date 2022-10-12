@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.43.0 (2022-10-12)
+### Feature
+* Improve aio message reader performance ([#104](https://github.com/Bluetooth-Devices/dbus-fast/issues/104)) ([`9fa697d`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9fa697da65d449b7402aa7f2f26762b0d2e175c6))
+
 ## v1.42.0 (2022-10-12)
 ### Feature
 * Complete some more missing typing ([#103](https://github.com/Bluetooth-Devices/dbus-fast/issues/103)) ([`5787032`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5787032af7cae1ffffd1561390cdb02053776345))
