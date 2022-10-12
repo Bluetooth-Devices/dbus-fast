@@ -4,8 +4,6 @@ import inspect
 from functools import wraps
 from typing import Any, Dict, List, Set, no_type_check_decorator
 
-from dbus_fast.message_bus import BaseMessageBus
-
 from . import introspection as intr
 from ._private.util import (
     parse_annotation,
@@ -332,7 +330,7 @@ class ServiceInterface:
         self.__methods: List[_Method] = []
         self.__properties: List[_Property] = []
         self.__signals: List[_Signal] = []
-        self.__buses: Set[BaseMessageBus] = set()
+        self.__buses = set()
 
         for name, member in inspect.getmembers(type(self)):
             member_dict = getattr(member, "__dict__", {})
@@ -439,15 +437,15 @@ class ServiceInterface:
         return interface.__signals
 
     @staticmethod
-    def _get_buses(interface: "ServiceInterface") -> List[BaseMessageBus]:
+    def _get_buses(interface: "ServiceInterface"):
         return interface.__buses
 
     @staticmethod
-    def _add_bus(interface: "ServiceInterface", bus: BaseMessageBus) -> None:
+    def _add_bus(interface: "ServiceInterface", bus) -> None:
         interface.__buses.add(bus)
 
     @staticmethod
-    def _remove_bus(interface: "ServiceInterface", bus: BaseMessageBus) -> None:
+    def _remove_bus(interface: "ServiceInterface", bus) -> None:
         interface.__buses.remove(bus)
 
     @staticmethod
