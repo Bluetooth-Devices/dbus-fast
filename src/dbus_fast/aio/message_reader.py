@@ -12,12 +12,14 @@ def build_message_reader(
     finalize: Callable[[Optional[Exception]], None],
 ) -> None:
     """Build a callable that reads messages from the unmarshaller and passes them to the process function."""
+    unmarshall = unmarshaller.unmarshall
+    reset = unmarshaller.reset
 
     def _message_reader() -> None:
         """Reads messages from the unmarshaller and passes them to the process function."""
         try:
             while True:
-                message = unmarshaller.unmarshall()
+                message = unmarshall()
                 if not message:
                     return
                 try:
@@ -26,7 +28,7 @@ def build_message_reader(
                     logging.error(
                         f"got unexpected error processing a message: {e}.\n{traceback.format_exc()}"
                     )
-                unmarshaller.reset()
+                reset()
         except Exception as e:
             finalize(e)
 
