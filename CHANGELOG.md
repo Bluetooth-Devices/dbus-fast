@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.42.0 (2022-10-12)
+### Feature
+* Complete some more missing typing ([#103](https://github.com/Bluetooth-Devices/dbus-fast/issues/103)) ([`5787032`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5787032af7cae1ffffd1561390cdb02053776345))
+
 ## v1.41.0 (2022-10-11)
 ### Feature
 * Add more typing to unmarshaller ([#102](https://github.com/Bluetooth-Devices/dbus-fast/issues/102)) ([`e7048fa`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e7048fa38b63ea45e819930a51ca5744f86da73f))
