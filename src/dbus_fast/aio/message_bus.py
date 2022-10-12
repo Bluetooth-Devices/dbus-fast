@@ -426,24 +426,6 @@ class MessageBus(BaseMessageBus):
 
         return handler
 
-    def _message_reader(self) -> None:
-        unmarshaller = self._unmarshaller
-        try:
-            while True:
-                message = unmarshaller.unmarshall()
-                if message:
-                    try:
-                        self._process_message(message)
-                    except Exception as e:
-                        logging.error(
-                            f"got unexpected error processing a message: {e}.\n{traceback.format_exc()}"
-                        )
-                    unmarshaller.reset()
-                else:
-                    break
-        except Exception as e:
-            self._finalize(e)
-
     async def _auth_readline(self) -> str:
         buf = b""
         while buf[-2:] != b"\r\n":
