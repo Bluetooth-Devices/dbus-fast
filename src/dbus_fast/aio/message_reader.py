@@ -15,15 +15,14 @@ def message_reader(
     try:
         while True:
             message = unmarshaller.unmarshall()
-            if message:
-                try:
-                    process(message)
-                except Exception as e:
-                    logging.error(
-                        f"got unexpected error processing a message: {e}.\n{traceback.format_exc()}"
-                    )
-                unmarshaller.reset()
-            else:
-                break
+            if not message:
+                return
+            try:
+                process(message)
+            except Exception as e:
+                logging.error(
+                    f"got unexpected error processing a message: {e}.\n{traceback.format_exc()}"
+                )
+            unmarshaller.reset()
     except Exception as e:
         finalize(e)
