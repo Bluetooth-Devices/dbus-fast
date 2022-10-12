@@ -14,7 +14,7 @@ def message_reader(
     """Reads messages from the unmarshaller and passes them to the process function."""
     try:
         while True:
-            message = unmarshaller._unmarshall()
+            message = unmarshaller.unmarshall()
             if message:
                 try:
                     process(message)
@@ -22,7 +22,7 @@ def message_reader(
                     logging.error(
                         f"got unexpected error processing a message: {e}.\n{traceback.format_exc()}"
                     )
-                unmarshaller._reset()
+                unmarshaller.reset()
             else:
                 break
     except Exception as e:

@@ -40,8 +40,6 @@ cdef class Unmarshaller:
 
     cpdef reset(self)
 
-    cdef _reset(self)
-
     cdef read_sock(self, unsigned long length)
 
     @cython.locals(
@@ -94,8 +92,6 @@ cdef class Unmarshaller:
     cdef _read_body(self)
 
     cpdef unmarshall(self)
-
-    cdef _unmarshall(self)
 
     @cython.locals(
         beginning_pos=cython.ulong,
