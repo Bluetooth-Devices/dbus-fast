@@ -24,6 +24,7 @@ from ..errors import AuthError
 from ..message import Message
 from ..message_bus import BaseMessageBus
 from ..service import ServiceInterface
+from .message_reader import message_reader
 from .proxy_object import ProxyObject
 
 
@@ -193,7 +194,13 @@ class MessageBus(BaseMessageBus):
 
         future = self._loop.create_future()
 
-        self._loop.add_reader(self._fd, self._message_reader)
+        self._loop.add_reader(
+            self._fd,
+            message_reader,
+            self._unmarshaller,
+            self._process_message,
+            self._finalize,
+        )
 
         def on_hello(reply, err):
             try:

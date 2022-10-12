@@ -22,6 +22,7 @@ def build(setup_kwargs):
             dict(
                 ext_modules=cythonize(
                     [
+                        "src/dbus_fast/aio/message_reader.py",
                         "src/dbus_fast/message.py",
                         "src/dbus_fast/signature.py",
                         "src/dbus_fast/unpack.py",

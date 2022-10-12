@@ -173,6 +173,9 @@ class Unmarshaller:
 
         Call this before processing a new message.
         """
+        self._reset()
+
+    def _reset(self) -> None:
         self._unix_fds = []
         self._view = None
         self._buf.clear()
@@ -478,6 +481,9 @@ class Unmarshaller:
         if there are not enough bytes in the buffer. This allows unmarshall
         to be resumed when more data comes in over the wire.
         """
+        self._unmarshall()
+
+    def _unmarshall(self) -> Optional[Message]:
         try:
             if not self._msg_len:
                 self._read_header()
