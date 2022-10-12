@@ -4,15 +4,20 @@ from .signature import Variant
 
 
 def unpack_variants(data: Any) -> Any:
-    """Unpack variants and remove signature info."""
+    """Unpack variants and remove signature info.
+
+    This function should only be used to unpack
+    unmarshalled data as the checks are not
+    idiomatic.
+    """
     return _unpack_variants(data)
 
 
 def _unpack_variants(data: Any) -> Any:
-    if isinstance(data, dict):
+    if type(data) is dict:
         return {k: _unpack_variants(v) for k, v in data.items()}
-    if isinstance(data, list):
+    if type(data) is list:
         return [_unpack_variants(item) for item in data]
-    if isinstance(data, Variant):
+    if type(data) is Variant:
         return _unpack_variants(data.value)
     return data
