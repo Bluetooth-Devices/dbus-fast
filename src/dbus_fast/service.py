@@ -327,9 +327,9 @@ class ServiceInterface:
     def __init__(self, name: str):
         # TODO cannot be overridden by a dbus member
         self.name = name
-        self.__methods = []
-        self.__properties = []
-        self.__signals = []
+        self.__methods: List[_Method] = []
+        self.__properties: List[_Property] = []
+        self.__signals: List[_Signal] = []
         self.__buses = set()
 
         for name, member in inspect.getmembers(type(self)):
@@ -425,27 +425,27 @@ class ServiceInterface:
         )
 
     @staticmethod
-    def _get_properties(interface):
+    def _get_properties(interface: "ServiceInterface") -> List[_Property]:
         return interface.__properties
 
     @staticmethod
-    def _get_methods(interface):
+    def _get_methods(interface: "ServiceInterface") -> List[_Method]:
         return interface.__methods
 
     @staticmethod
-    def _get_signals(interface):
+    def _get_signals(interface: "ServiceInterface") -> List[_Signal]:
         return interface.__signals
 
     @staticmethod
-    def _get_buses(interface):
+    def _get_buses(interface: "ServiceInterface"):
         return interface.__buses
 
     @staticmethod
-    def _add_bus(interface, bus):
+    def _add_bus(interface: "ServiceInterface", bus) -> None:
         interface.__buses.add(bus)
 
     @staticmethod
-    def _remove_bus(interface, bus):
+    def _remove_bus(interface: "ServiceInterface", bus) -> None:
         interface.__buses.remove(bus)
 
     @staticmethod

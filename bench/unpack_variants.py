@@ -2,6 +2,9 @@ import timeit
 
 from dbus_fast import Variant, unpack_variants
 
+# cythonize -X language_level=3 -a -i  src/dbus_fast/unpack.py
+
+
 message = {
     "/org/bluez/hci0": {
         "org.bluez.Adapter1": {

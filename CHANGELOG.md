@@ -2,6 +2,30 @@
 
 <!--next-version-placeholder-->
 
+## v1.45.0 (2022-10-13)
+### Feature
+* Optimize signature readers for most common messages ([#107](https://github.com/Bluetooth-Devices/dbus-fast/issues/107)) ([`d5fb4d9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d5fb4d9c8bf17c51762ea961d745c5db7d8d8a22))
+
+## v1.44.0 (2022-10-12)
+### Feature
+* Speed up unpack_variants ([#105](https://github.com/Bluetooth-Devices/dbus-fast/issues/105)) ([`a4fdda2`](https://github.com/Bluetooth-Devices/dbus-fast/commit/a4fdda271f7a96e267826ffa3f268ec02078ba73))
+
+## v1.43.0 (2022-10-12)
+### Feature
+* Improve aio message reader performance ([#104](https://github.com/Bluetooth-Devices/dbus-fast/issues/104)) ([`9fa697d`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9fa697da65d449b7402aa7f2f26762b0d2e175c6))
+
+## v1.42.0 (2022-10-12)
+### Feature
+* Complete some more missing typing ([#103](https://github.com/Bluetooth-Devices/dbus-fast/issues/103)) ([`5787032`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5787032af7cae1ffffd1561390cdb02053776345))
+
+## v1.41.0 (2022-10-11)
+### Feature
+* Add more typing to unmarshaller ([#102](https://github.com/Bluetooth-Devices/dbus-fast/issues/102)) ([`e7048fa`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e7048fa38b63ea45e819930a51ca5744f86da73f))
+
+## v1.40.0 (2022-10-10)
+### Feature
+* Speed up unmarshaller ([#101](https://github.com/Bluetooth-Devices/dbus-fast/issues/101)) ([`a6a248b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/a6a248b3b1dbbb06784f700b49a7fe92b30cc7b5))
+
 ## v1.39.0 (2022-10-10)
 ### Feature
 * Add additional typing ([#100](https://github.com/Bluetooth-Devices/dbus-fast/issues/100)) ([`cde1893`](https://github.com/Bluetooth-Devices/dbus-fast/commit/cde1893dca1872d8b482a145337ee3bbf47c35b4))
