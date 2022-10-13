@@ -47,15 +47,15 @@ cdef class Unmarshaller:
         start_len=cython.ulong,
         missing_bytes=cython.ulong
     )
-    cdef read_to_pos(self, unsigned long pos)
+    cdef void read_to_pos(self, unsigned long pos)
 
     cpdef read_uint32_unpack(self, object type_)
 
-    cpdef _read_uint32_unpack(self)
+    cdef unsigned int _read_uint32_unpack(self)
 
     cpdef read_int16_unpack(self, object type_)
 
-    cdef _read_int16_unpack(self)
+    cdef int _read_int16_unpack(self)
 
     cpdef read_string_unpack(self, object type_)
 
@@ -89,12 +89,12 @@ cdef class Unmarshaller:
         protocol_version=cython.uint,
         key=cython.str
     )
-    cdef _read_header(self)
+    cdef void _read_header(self)
 
     @cython.locals(
         body=cython.list,
     )
-    cdef _read_body(self)
+    cdef void _read_body(self)
 
     cpdef unmarshall(self)
 

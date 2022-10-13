@@ -12,9 +12,6 @@ from ..message import Message
 from ..signature import SignatureType, Variant, get_signature_tree
 from .constants import BIG_ENDIAN, LITTLE_ENDIAN, PROTOCOL_VERSION
 
-IS_LITTLE_ENDIAN = sys.byteorder == "little"
-IS_BIG_ENDIAN = sys.byteorder == "big"
-
 MAX_UNIX_FDS = 16
 
 UNPACK_SYMBOL = {LITTLE_ENDIAN: "<", BIG_ENDIAN: ">"}
