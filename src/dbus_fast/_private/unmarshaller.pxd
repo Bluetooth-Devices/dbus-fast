@@ -15,7 +15,13 @@ cdef unsigned int PROTOCOL_VERSION
 cdef str UINT32_CAST
 cdef str INT16_CAST
 
-cdef object UINT32_SIGNATURE
+cdef object UNPACK_HEADER_LITTLE_ENDIAN
+cdef object UNPACK_HEADER_BIG_ENDIAN
+cdef object UINT32_UNPACK_LITTLE_ENDIAN
+cdef object UINT32_UNPACK_BIG_ENDIAN
+cdef object INT16_UNPACK_LITTLE_ENDIAN
+cdef object INT16_UNPACK_BIG_ENDIAN
+
 
 cdef class MarshallerStreamEndError(Exception):
     pass
@@ -24,7 +30,6 @@ cdef class Unmarshaller:
 
     cdef object _unix_fds
     cdef bytearray _buf
-    cdef object _view
     cdef unsigned int _pos
     cdef object _stream
     cdef object _sock
@@ -37,6 +42,7 @@ cdef class Unmarshaller:
     cdef unsigned int _flag
     cdef unsigned int _msg_len
     cdef object _uint32_unpack
+    cdef object _int16_unpack
 
     cpdef reset(self)
 
@@ -48,30 +54,32 @@ cdef class Unmarshaller:
     )
     cdef read_to_pos(self, unsigned long pos)
 
-    cpdef read_uint32_cast(self, object type_)
+    cpdef read_uint32_unpack(self, object type_)
 
-    cpdef read_int16_cast(self, object type_)
+    cdef unsigned int _read_uint32_unpack(self)
 
-    cdef _read_int16_cast(self)
+    cpdef read_int16_unpack(self, object type_)
+
+    cdef int _read_int16_unpack(self)
 
     cpdef read_string_unpack(self, object type_)
 
     cdef _read_string_unpack(self)
 
-    cpdef read_string_cast(self, object type_)
-
     @cython.locals(
         buf_bytes=cython.bytearray,
     )
-    cdef _read_string_cast(self)
+    cdef _read_string_unpack(self)
 
     cdef _read_variant(self)
+
+    cpdef read_array(self, object type_)
 
     @cython.locals(
         beginning_pos=cython.ulong,
         array_length=cython.uint,
     )
-    cpdef read_array(self, object type_)
+    cdef _read_array(self, object type_)
 
     cpdef read_signature(self, object type_)
 
@@ -84,7 +92,6 @@ cdef class Unmarshaller:
     @cython.locals(
         endian=cython.uint,
         protocol_version=cython.uint,
-        can_cast=cython.bint,
         key=cython.str
     )
     cdef _read_header(self)
