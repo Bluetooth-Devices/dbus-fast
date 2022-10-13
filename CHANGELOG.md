@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.45.0 (2022-10-13)
+### Feature
+* Optimize signature readers for most common messages ([#107](https://github.com/Bluetooth-Devices/dbus-fast/issues/107)) ([`d5fb4d9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d5fb4d9c8bf17c51762ea961d745c5db7d8d8a22))
+
 ## v1.44.0 (2022-10-12)
 ### Feature
 * Speed up unpack_variants ([#105](https://github.com/Bluetooth-Devices/dbus-fast/issues/105)) ([`a4fdda2`](https://github.com/Bluetooth-Devices/dbus-fast/commit/a4fdda271f7a96e267826ffa3f268ec02078ba73))
