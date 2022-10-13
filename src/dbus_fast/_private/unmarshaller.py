@@ -133,6 +133,7 @@ class Unmarshaller:
         "_flag",
         "_msg_len",
         "_uint32_unpack",
+        "_int16_unpack",
     )
 
     def __init__(self, stream: io.BufferedRWPair, sock: Optional[socket.socket] = None):
