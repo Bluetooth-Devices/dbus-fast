@@ -235,7 +235,7 @@ class Unmarshaller:
 
     def _read_int16_unpack(self) -> int:
         self._pos += INT16_SIZE + (-self._pos & (INT16_SIZE - 1))  # align
-        return self._int16_unpack(self._buf, self._pos - UINT32_SIZE)[0]
+        return self._int16_unpack(self._buf, self._pos - INT16_SIZE)[0]
 
     def read_boolean(self, type_: SignatureType) -> bool:
         return bool(self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0])
