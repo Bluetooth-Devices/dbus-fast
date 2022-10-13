@@ -15,6 +15,8 @@ cdef unsigned int PROTOCOL_VERSION
 cdef str UINT32_CAST
 cdef str INT16_CAST
 
+cdef object UNPACK_LENGTHS_LITTLE_ENDIAN
+cdef object UNPACK_LENGTHS_BIG_ENDIAN
 cdef object UINT32_UNPACK_LITTLE_ENDIAN
 cdef object UINT32_UNPACK_BIG_ENDIAN
 cdef object INT16_UNPACK_LITTLE_ENDIAN
@@ -98,7 +100,6 @@ cdef class Unmarshaller:
 
     @cython.locals(
         body=cython.list,
-        tree=cython.str
     )
     cdef void _read_body(self)
 

@@ -15,7 +15,6 @@ from .constants import BIG_ENDIAN, LITTLE_ENDIAN, PROTOCOL_VERSION
 MAX_UNIX_FDS = 16
 
 UNPACK_SYMBOL = {LITTLE_ENDIAN: "<", BIG_ENDIAN: ">"}
-UNPACK_LENGTHS = {BIG_ENDIAN: Struct(">III"), LITTLE_ENDIAN: Struct("<III")}
 
 UINT32_CAST = "I"
 UINT32_SIZE = 4
@@ -38,6 +37,8 @@ DBUS_TO_CTYPE = {
     "h": (UINT32_CAST, UINT32_SIZE),  # uint32
 }
 
+UNPACK_LENGTHS_BIG_ENDIAN = Struct(">III").unpack_from
+UNPACK_LENGTHS_LITTLE_ENDIAN = Struct("<III").unpack_from
 UINT32_UNPACK_LITTLE_ENDIAN = Struct("<I").unpack_from
 UINT32_UNPACK_BIG_ENDIAN = Struct(">I").unpack_from
 INT16_UNPACK_LITTLE_ENDIAN = Struct("<h").unpack_from
@@ -399,19 +400,25 @@ class Unmarshaller:
                 f"got unknown protocol version: {protocol_version}"
             )
 
-        self._body_len, self._serial, self._header_len = UNPACK_LENGTHS[
-            endian
-        ].unpack_from(buffer, 4)
+        if endian == LITTLE_ENDIAN:
+            (
+                self._body_len,
+                self._serial,
+                self._header_len,
+            ) = UNPACK_LENGTHS_LITTLE_ENDIAN(self._buf, 4)
+            self._uint32_unpack = UINT32_UNPACK_LITTLE_ENDIAN
+            self._int16_unpack = INT16_UNPACK_LITTLE_ENDIAN
+        else:
+            self._body_len, self._serial, self._header_len = UNPACK_LENGTHS_BIG_ENDIAN(
+                self._buf, 4
+            )
+            self._uint32_unpack = UINT32_UNPACK_BIG_ENDIAN
+            self._int16_unpack = INT16_UNPACK_BIG_ENDIAN
+
         self._msg_len = (
             self._header_len + (-self._header_len & 7) + self._body_len
         )  # align 8
         self._readers = self._readers_by_type[endian]
-        if endian == LITTLE_ENDIAN:
-            self._uint32_unpack = UINT32_UNPACK_LITTLE_ENDIAN
-            self._int16_unpack = INT16_UNPACK_LITTLE_ENDIAN
-        else:
-            self._uint32_unpack = UINT32_UNPACK_BIG_ENDIAN
-            self._int16_unpack = INT16_UNPACK_BIG_ENDIAN
 
     def _read_body(self) -> None:
         """Read the body of the message."""
