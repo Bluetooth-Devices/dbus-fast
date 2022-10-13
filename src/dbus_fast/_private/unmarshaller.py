@@ -1,5 +1,6 @@
 import array
 import io
+import pprint
 import socket
 import sys
 from struct import Struct
@@ -456,6 +457,7 @@ class Unmarshaller:
         self._pos += -self._pos & 7  # align 8
         header_fields.pop("unix_fds", None)  # defined by self._unix_fds
         tree = get_signature_tree(header_fields.pop("signature", ""))
+        pprint.pprint(["tree", tree.signature])
         self._message = Message(
             **header_fields,
             message_type=MESSAGE_TYPE_MAP[self._message_type],
