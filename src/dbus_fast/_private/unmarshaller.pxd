@@ -22,8 +22,6 @@ cdef object UINT32_UNPACK_BIG_ENDIAN
 cdef object INT16_UNPACK_LITTLE_ENDIAN
 cdef object INT16_UNPACK_BIG_ENDIAN
 
-cdef object UINT32_SIGNATURE
-
 
 cdef class MarshallerStreamEndError(Exception):
     pass
