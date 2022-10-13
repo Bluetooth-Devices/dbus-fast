@@ -41,10 +41,10 @@ DBUS_TO_CTYPE = {
     "h": (UINT32_CAST, UINT32_SIZE),  # uint32
 }
 
-UINT32_UNPACK_BY_ENDIAN = {
-    LITTLE_ENDIAN: Struct("<I").unpack_from,
-    BIG_ENDIAN: Struct(">I").unpack_from,
-}
+UINT32_UNPACK_LITTLE_ENDIAN = Struct("<I").unpack_from
+UINT32_UNPACK_BIG_ENDIAN = Struct(">I").unpack_from
+INT16_UNPACK_LITTLE_ENDIAN = Struct("<h").unpack_from
+INT16_UNPACK_BIG_ENDIAN = Struct(">h").unpack_from
 
 HEADER_SIGNATURE_SIZE = 16
 HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION = 12
@@ -66,40 +66,27 @@ HEADER_MESSAGE_ARG_NAME = {
 READER_TYPE = Callable[["Unmarshaller", SignatureType], Any]
 
 
-def cast_parser_factory(ctype: str, size: int) -> READER_TYPE:
-    """Build a parser that casts the bytes to the given ctype."""
-
-    def _cast_parser(self: "Unmarshaller", signature: SignatureType) -> Any:
-        self._pos += size + (-self._pos & (size - 1))  # align
-        return self._view[self._pos - size : self._pos].cast(ctype)[0]
-
-    return _cast_parser
-
-
 def unpack_parser_factory(unpack_from: Callable, size: int) -> READER_TYPE:
     """Build a parser that unpacks the bytes using the given unpack_from function."""
 
     def _unpack_from_parser(self: "Unmarshaller", signature: SignatureType) -> Any:
         self._pos += size + (-self._pos & (size - 1))  # align
-        return unpack_from(self._view, self._pos - size)[0]
+        return unpack_from(self._buf, self._pos - size)[0]
 
     return _unpack_from_parser
 
 
 def build_simple_parsers(
-    endian: int, can_cast: bool
+    endian: int,
 ) -> Dict[str, Callable[["Unmarshaller", SignatureType], Any]]:
     """Build a dict of parsers for simple types."""
     parsers: Dict[str, READER_TYPE] = {}
     for dbus_type, ctype_size in DBUS_TO_CTYPE.items():
         ctype, size = ctype_size
         size = ctype_size[1]
-        if can_cast:
-            parsers[dbus_type] = cast_parser_factory(ctype, size)
-        else:
-            parsers[dbus_type] = unpack_parser_factory(
-                Struct(f"{UNPACK_SYMBOL[endian]}{ctype}").unpack_from, size
-            )
+        parsers[dbus_type] = unpack_parser_factory(
+            Struct(f"{UNPACK_SYMBOL[endian]}{ctype}").unpack_from, size
+        )
     return parsers
 
 
@@ -136,7 +123,6 @@ class Unmarshaller:
     __slots__ = (
         "_unix_fds",
         "_buf",
-        "_view",
         "_pos",
         "_stream",
         "_sock",
@@ -149,13 +135,11 @@ class Unmarshaller:
         "_flag",
         "_msg_len",
         "_uint32_unpack",
-        "_can_cast",
     )
 
     def __init__(self, stream: io.BufferedRWPair, sock: Optional[socket.socket] = None):
         self._unix_fds: List[int] = []
         self._buf = bytearray()  # Actual buffer
-        self._view: Optional[memoryview] = None  # Memory view of the buffer
         self._stream = stream
         self._sock = sock
         self._message: Optional[Message] = None
@@ -167,9 +151,8 @@ class Unmarshaller:
         self._message_type = 0
         self._flag = 0
         self._msg_len = 0
-        # Only set if we cannot cast
         self._uint32_unpack: Callable | None = None
-        self._can_cast = False
+        self._int16_unpack: Callable | None = None
 
     def reset(self) -> None:
         """Reset the unmarshaller to its initial state.
@@ -177,7 +160,6 @@ class Unmarshaller:
         Call this before processing a new message.
         """
         self._unix_fds = []
-        self._view = None
         self._buf.clear()
         self._message = None
         self._pos = 0
@@ -188,7 +170,7 @@ class Unmarshaller:
         self._flag = 0
         self._msg_len = 0
         self._uint32_unpack = None
-        self._can_cast = False
+        self._int16_unpack = None
 
     @property
     def message(self) -> Message:
@@ -244,31 +226,19 @@ class Unmarshaller:
         if len(data) + start_len != pos:
             raise MarshallerStreamEndError()
 
-    def read_uint32_cast(self, type_: SignatureType) -> int:
+    def read_uint32_unpack(self, type_: SignatureType) -> int:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
-        return self._view[self._pos - UINT32_SIZE : self._pos].cast(UINT32_CAST)[0]
+        return self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
 
-    def read_int16_cast(self, type_: SignatureType) -> int:
-        return self._read_int16_cast()
+    def read_int16_unpack(self, type_: SignatureType) -> int:
+        return self._read_int16_unpack()
 
-    def _read_int16_cast(self) -> int:
+    def _read_int16_unpack(self) -> int:
         self._pos += INT16_SIZE + (-self._pos & (INT16_SIZE - 1))  # align
-        return self._view[self._pos - INT16_SIZE : self._pos].cast(INT16_CAST)[0]
+        return self._int16_unpack(self._buf, self._pos - UINT32_SIZE)[0]
 
     def read_boolean(self, type_: SignatureType) -> bool:
-        return bool(self._readers[UINT32_SIGNATURE.token](self, UINT32_SIGNATURE))
-
-    def read_string_cast(self, type_: SignatureType) -> str:
-        """Read a string using cast."""
-        return self._read_string_cast()
-
-    def _read_string_cast(self) -> str:
-        self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
-        str_start = self._pos
-        # read terminating '\0' byte as well (str_length + 1)
-        start_pos = self._pos - UINT32_SIZE
-        self._pos += self._view[start_pos : self._pos].cast(UINT32_CAST)[0] + 1
-        return self._buf[str_start : self._pos - 1].decode()
+        return bool(self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0])
 
     def read_string_unpack(self, type_: SignatureType) -> str:
         return self._read_string_unpack()
@@ -278,7 +248,7 @@ class Unmarshaller:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
         str_start = self._pos
         # read terminating '\0' byte as well (str_length + 1)
-        self._pos += self._uint32_unpack(self._view, str_start - UINT32_SIZE)[0] + 1
+        self._pos += self._uint32_unpack(self._buf, str_start - UINT32_SIZE)[0] + 1
         return self._buf[str_start : self._pos - 1].decode()
 
     def read_signature(self, type_: SignatureType) -> str:
@@ -299,8 +269,8 @@ class Unmarshaller:
         signature_type = tree.types[0]
         # verify in Variant is only useful on construction not unmarshalling
         token = signature_type.token
-        if token == "n" and self._can_cast:
-            return Variant(tree, self._read_int16_cast(), False)
+        if token == "n":
+            return Variant(tree, self._read_int16_unpack(), False)
         return Variant(
             tree,
             self._readers[token](self, signature_type),
@@ -328,12 +298,7 @@ class Unmarshaller:
         self._pos += (
             -self._pos & (UINT32_SIZE - 1)
         ) + UINT32_SIZE  # align for the uint32
-        if not self._can_cast:
-            array_length = self._uint32_unpack(self._view, self._pos - UINT32_SIZE)[0]
-        else:
-            array_length = self._view[self._pos - UINT32_SIZE : self._pos].cast(
-                UINT32_CAST
-            )[0]
+        array_length = self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
 
         child_type = type_.children[0]
         token = child_type.token
@@ -360,10 +325,7 @@ class Unmarshaller:
             if child_0_token in "os" and child_1_token == "v":
                 while self._pos - beginning_pos < array_length:
                     self._pos += -self._pos & 7  # align 8
-                    if not self._can_cast:
-                        key = self._read_string_unpack()
-                    else:
-                        key = self._read_string_cast()
+                    key = self._read_string_unpack()
                     result_dict[key] = self._read_variant()
             else:
                 reader_1 = self._readers[child_1_token]
@@ -408,10 +370,7 @@ class Unmarshaller:
             # Strings and signatures are the most common types
             # so we inline them for performance
             if token in "os":
-                if not self._can_cast:
-                    headers[key] = self._read_string_unpack()
-                else:
-                    headers[key] = self._read_string_cast()
+                headers[key] = self._read_string_unpack()
             elif token == "g":
                 headers[key] = self._read_signature()
             else:
@@ -446,18 +405,17 @@ class Unmarshaller:
         self._msg_len = (
             self._header_len + (-self._header_len & 7) + self._body_len
         )  # align 8
-        self._can_cast = bool(
-            (IS_LITTLE_ENDIAN and endian == LITTLE_ENDIAN)
-            or (IS_BIG_ENDIAN and endian == BIG_ENDIAN)
-        )
-        self._readers = self._readers_by_type[(endian, self._can_cast)]
-        if not self._can_cast:
-            self._uint32_unpack = UINT32_UNPACK_BY_ENDIAN[endian]
+        self._readers = self._readers_by_type[endian]
+        if endian == LITTLE_ENDIAN:
+            self._uint32_unpack = UINT32_UNPACK_LITTLE_ENDIAN
+            self._int16_unpack = INT16_UNPACK_LITTLE_ENDIAN
+        else:
+            self._uint32_unpack = UINT32_UNPACK_BIG_ENDIAN
+            self._int16_unpack = INT16_UNPACK_BIG_ENDIAN
 
     def _read_body(self) -> None:
         """Read the body of the message."""
         self.read_to_pos(HEADER_SIGNATURE_SIZE + self._msg_len)
-        self._view = memoryview(self._buf)
         self._pos = HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
         header_fields = self.header_fields(self._header_len)
         self._pos += -self._pos & 7  # align 8
@@ -465,12 +423,12 @@ class Unmarshaller:
         tree = get_signature_tree(header_fields.pop("signature", ""))
         if not self._body_len:
             body = []
-        elif self._can_cast and tree.signature == "s":
-            body = [self._read_string_cast()]
-        elif self._can_cast and tree.signature == "sa{sv}as":
+        elif tree.signature == "s":
+            body = [self._read_string_unpack()]
+        elif tree.signature == "sa{sv}as":
             types = tree.types
             body = [
-                self._read_string_cast(),
+                self._read_string_unpack(),
                 self._read_array(types[1]),
                 self._read_array(types[2]),
             ]
@@ -516,47 +474,22 @@ class Unmarshaller:
         "(": read_struct,
         "{": read_dict_entry,
         "v": read_variant,
+        "h": read_uint32_unpack,
+        UINT32_DBUS_TYPE: read_uint32_unpack,
+        INT16_DBUS_TYPE: read_int16_unpack,
     }
 
-    _complex_parsers_cast: Dict[str, Callable[["Unmarshaller", SignatureType], Any]] = {
-        "b": read_boolean,
-        "o": read_string_cast,
-        "s": read_string_cast,
-        "g": read_signature,
-        "a": read_array,
-        "(": read_struct,
-        "{": read_dict_entry,
-        "v": read_variant,
-        "h": read_uint32_cast,
-        UINT32_DBUS_TYPE: read_uint32_cast,
-        INT16_DBUS_TYPE: read_int16_cast,
+    _ctype_by_endian: Dict[int, Dict[str, READER_TYPE]] = {
+        endian: build_simple_parsers(endian) for endian in (LITTLE_ENDIAN, BIG_ENDIAN)
     }
 
-    _ctype_by_endian: Dict[Tuple[int, bool], Dict[str, READER_TYPE]] = {
-        endian_can_cast: build_simple_parsers(*endian_can_cast)
-        for endian_can_cast in (
-            (LITTLE_ENDIAN, True),
-            (LITTLE_ENDIAN, False),
-            (BIG_ENDIAN, True),
-            (BIG_ENDIAN, False),
-        )
-    }
-
-    _readers_by_type: Dict[Tuple[int, bool], Dict[str, READER_TYPE]] = {
-        (LITTLE_ENDIAN, True): {
-            **_ctype_by_endian[(LITTLE_ENDIAN, True)],
-            **_complex_parsers_cast,
-        },
-        (LITTLE_ENDIAN, False): {
-            **_ctype_by_endian[(LITTLE_ENDIAN, False)],
+    _readers_by_type: Dict[int, Dict[str, READER_TYPE]] = {
+        LITTLE_ENDIAN: {
+            **_ctype_by_endian[LITTLE_ENDIAN],
             **_complex_parsers_unpack,
         },
-        (BIG_ENDIAN, True): {
-            **_ctype_by_endian[(BIG_ENDIAN, True)],
-            **_complex_parsers_cast,
-        },
-        (BIG_ENDIAN, False): {
-            **_ctype_by_endian[(BIG_ENDIAN, False)],
+        BIG_ENDIAN: {
+            **_ctype_by_endian[BIG_ENDIAN],
             **_complex_parsers_unpack,
         },
     }
