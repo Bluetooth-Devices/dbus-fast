@@ -98,9 +98,6 @@ cdef class Unmarshaller:
     )
     cdef void _read_header(self)
 
-    @cython.locals(
-        body=cython.list,
-    )
     cdef void _read_body(self)
 
     cpdef unmarshall(self)
