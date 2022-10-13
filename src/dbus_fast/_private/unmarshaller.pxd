@@ -93,6 +93,7 @@ cdef class Unmarshaller:
 
     @cython.locals(
         body=cython.list,
+        tree=cython.str
     )
     cdef void _read_body(self)
 
