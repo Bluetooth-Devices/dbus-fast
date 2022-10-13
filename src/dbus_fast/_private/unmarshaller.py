@@ -37,11 +37,12 @@ DBUS_TO_CTYPE = {
     "h": (UINT32_CAST, UINT32_SIZE),  # uint32
 }
 
-UNPACK_HEADER_BIG_ENDIAN = Struct(">III").unpack_from
 UNPACK_HEADER_LITTLE_ENDIAN = Struct("<III").unpack_from
 UINT32_UNPACK_LITTLE_ENDIAN = Struct("<I").unpack_from
-UINT32_UNPACK_BIG_ENDIAN = Struct(">I").unpack_from
 INT16_UNPACK_LITTLE_ENDIAN = Struct("<h").unpack_from
+
+UNPACK_HEADER_BIG_ENDIAN = Struct(">III").unpack_from
+UINT32_UNPACK_BIG_ENDIAN = Struct(">I").unpack_from
 INT16_UNPACK_BIG_ENDIAN = Struct(">h").unpack_from
 
 HEADER_SIGNATURE_SIZE = 16
