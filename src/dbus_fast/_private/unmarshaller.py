@@ -227,6 +227,9 @@ class Unmarshaller:
             raise MarshallerStreamEndError()
 
     def read_uint32_unpack(self, type_: SignatureType) -> int:
+        return self._read_uint32_unpack()
+
+    def _read_uint32_unpack(self) -> int:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
         return self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
 
@@ -238,7 +241,7 @@ class Unmarshaller:
         return self._int16_unpack(self._buf, self._pos - INT16_SIZE)[0]
 
     def read_boolean(self, type_: SignatureType) -> bool:
-        return bool(self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0])
+        return bool(self._read_uint32_unpack())
 
     def read_string_unpack(self, type_: SignatureType) -> str:
         return self._read_string_unpack()

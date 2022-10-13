@@ -51,6 +51,8 @@ cdef class Unmarshaller:
 
     cpdef read_uint32_unpack(self, object type_)
 
+    cpdef _read_uint32_unpack(self)
+
     cpdef read_int16_unpack(self, object type_)
 
     cdef _read_int16_unpack(self)
