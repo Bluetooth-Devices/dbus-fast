@@ -37,8 +37,8 @@ DBUS_TO_CTYPE = {
     "h": (UINT32_CAST, UINT32_SIZE),  # uint32
 }
 
-UNPACK_LENGTHS_BIG_ENDIAN = Struct(">III").unpack_from
-UNPACK_LENGTHS_LITTLE_ENDIAN = Struct("<III").unpack_from
+UNPACK_HEADER_BIG_ENDIAN = Struct(">III").unpack_from
+UNPACK_HEADER_LITTLE_ENDIAN = Struct("<III").unpack_from
 UINT32_UNPACK_LITTLE_ENDIAN = Struct("<I").unpack_from
 UINT32_UNPACK_BIG_ENDIAN = Struct(">I").unpack_from
 INT16_UNPACK_LITTLE_ENDIAN = Struct("<h").unpack_from
@@ -405,11 +405,11 @@ class Unmarshaller:
                 self._body_len,
                 self._serial,
                 self._header_len,
-            ) = UNPACK_LENGTHS_LITTLE_ENDIAN(self._buf, 4)
+            ) = UNPACK_HEADER_LITTLE_ENDIAN(self._buf, 4)
             self._uint32_unpack = UINT32_UNPACK_LITTLE_ENDIAN
             self._int16_unpack = INT16_UNPACK_LITTLE_ENDIAN
         else:
-            self._body_len, self._serial, self._header_len = UNPACK_LENGTHS_BIG_ENDIAN(
+            self._body_len, self._serial, self._header_len = UNPACK_HEADER_BIG_ENDIAN(
                 self._buf, 4
             )
             self._uint32_unpack = UINT32_UNPACK_BIG_ENDIAN
