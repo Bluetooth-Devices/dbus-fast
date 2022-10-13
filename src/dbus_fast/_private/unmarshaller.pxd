@@ -37,6 +37,7 @@ cdef class Unmarshaller:
     cdef unsigned int _flag
     cdef unsigned int _msg_len
     cdef object _uint32_unpack
+    cdef bint _can_cast
 
     cpdef reset(self)
 
@@ -67,11 +68,13 @@ cdef class Unmarshaller:
 
     cdef _read_variant(self)
 
+    cpdef read_array(self, object type_)
+
     @cython.locals(
         beginning_pos=cython.ulong,
         array_length=cython.uint,
     )
-    cpdef read_array(self, object type_)
+    cdef _read_array(self, object type_)
 
     cpdef read_signature(self, object type_)
 
@@ -89,6 +92,9 @@ cdef class Unmarshaller:
     )
     cdef _read_header(self)
 
+    @cython.locals(
+        body=cython.list,
+    )
     cdef _read_body(self)
 
     cpdef unmarshall(self)

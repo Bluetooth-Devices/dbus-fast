@@ -149,6 +149,7 @@ class Unmarshaller:
         "_flag",
         "_msg_len",
         "_uint32_unpack",
+        "_can_cast",
     )
 
     def __init__(self, stream: io.BufferedRWPair, sock: Optional[socket.socket] = None):
@@ -168,6 +169,7 @@ class Unmarshaller:
         self._msg_len = 0
         # Only set if we cannot cast
         self._uint32_unpack: Callable | None = None
+        self._can_cast = False
 
     def reset(self) -> None:
         """Reset the unmarshaller to its initial state.
@@ -186,6 +188,7 @@ class Unmarshaller:
         self._flag = 0
         self._msg_len = 0
         self._uint32_unpack = None
+        self._can_cast = False
 
     @property
     def message(self) -> Message:
@@ -296,7 +299,7 @@ class Unmarshaller:
         signature_type = tree.types[0]
         # verify in Variant is only useful on construction not unmarshalling
         token = signature_type.token
-        if token == "n" and self._uint32_unpack is None:
+        if token == "n" and self._can_cast:
             return Variant(tree, self._read_int16_cast(), False)
         return Variant(
             tree,
@@ -318,11 +321,14 @@ class Unmarshaller:
         ), self._readers[type_.children[1].token](self, type_.children[1])
 
     def read_array(self, type_: SignatureType) -> Iterable[Any]:
+        return self._read_array(type_)
+
+    def _read_array(self, type_: SignatureType) -> Iterable[Any]:
         self._pos += -self._pos & 3  # align 4 for the array
         self._pos += (
             -self._pos & (UINT32_SIZE - 1)
         ) + UINT32_SIZE  # align for the uint32
-        if self._uint32_unpack:
+        if not self._can_cast:
             array_length = self._uint32_unpack(self._view, self._pos - UINT32_SIZE)[0]
         else:
             array_length = self._view[self._pos - UINT32_SIZE : self._pos].cast(
@@ -354,7 +360,7 @@ class Unmarshaller:
             if child_0_token in "os" and child_1_token == "v":
                 while self._pos - beginning_pos < array_length:
                     self._pos += -self._pos & 7  # align 8
-                    if self._uint32_unpack:  # cannot cast
+                    if not self._can_cast:
                         key = self._read_string_unpack()
                     else:
                         key = self._read_string_cast()
@@ -402,7 +408,7 @@ class Unmarshaller:
             # Strings and signatures are the most common types
             # so we inline them for performance
             if token in "os":
-                if self._uint32_unpack:  # cannot cast
+                if not self._can_cast:
                     headers[key] = self._read_string_unpack()
                 else:
                     headers[key] = self._read_string_cast()
@@ -440,12 +446,12 @@ class Unmarshaller:
         self._msg_len = (
             self._header_len + (-self._header_len & 7) + self._body_len
         )  # align 8
-        can_cast = bool(
+        self._can_cast = bool(
             (IS_LITTLE_ENDIAN and endian == LITTLE_ENDIAN)
             or (IS_BIG_ENDIAN and endian == BIG_ENDIAN)
         )
-        self._readers = self._readers_by_type[(endian, can_cast)]
-        if not can_cast:
+        self._readers = self._readers_by_type[(endian, self._can_cast)]
+        if not self._can_cast:
             self._uint32_unpack = UINT32_UNPACK_BY_ENDIAN[endian]
 
     def _read_body(self) -> None:
@@ -457,20 +463,31 @@ class Unmarshaller:
         self._pos += -self._pos & 7  # align 8
         header_fields.pop("unix_fds", None)  # defined by self._unix_fds
         tree = get_signature_tree(header_fields.pop("signature", ""))
-        pprint.pprint(["tree", tree.signature])
+        if not self._body_len:
+            body = []
+        elif self._can_cast and tree.signature == "s":
+            body = [self._read_string_cast()]
+        elif self._can_cast and tree.signature == "sa{sv}as":
+            types = tree.types
+            body = [
+                self._read_string_cast(),
+                self._read_array(types[1]),
+                self._read_array(types[2]),
+            ]
+        else:
+            body = [self._readers[t.token](self, t) for t in tree.types]
+
         self._message = Message(
-            **header_fields,
             message_type=MESSAGE_TYPE_MAP[self._message_type],
             flags=MESSAGE_FLAG_MAP[self._flag],
             unix_fds=self._unix_fds,
             signature=tree,
-            body=[self._readers[t.token](self, t) for t in tree.types]
-            if self._body_len
-            else [],
+            body=body,
             serial=self._serial,
             # The D-Bus implementation already validates the message,
             # so we don't need to do it again.
             validate=False,
+            **header_fields,
         )
 
     def unmarshall(self) -> Optional[Message]:
