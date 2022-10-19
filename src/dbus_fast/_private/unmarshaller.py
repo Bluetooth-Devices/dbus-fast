@@ -176,7 +176,7 @@ class Unmarshaller:
         """Return the message that has been unmarshalled."""
         return self._message
 
-    def read_sock(self, length: int) -> bytes:
+    def _read_sock(self, length: int) -> bytes:
         """reads from the socket, storing any fds sent and handling errors
         from the read itself"""
         unix_fd_list = array.array("i")
@@ -216,12 +216,12 @@ class Unmarshaller:
         if self._sock is None:
             data = self._stream.read(missing_bytes)
         else:
-            data = self.read_sock(missing_bytes)
+            data = self._read_sock(missing_bytes)
         if data == b"":
             raise EOFError()
         if data is None:
             raise MarshallerStreamEndError()
-        self._buf.extend(data)
+        self._buf += data
         if len(data) + start_len != pos:
             raise MarshallerStreamEndError()
 

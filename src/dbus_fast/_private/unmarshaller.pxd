@@ -54,11 +54,12 @@ cdef class Unmarshaller:
 
     cpdef reset(self)
 
-    cdef read_sock(self, unsigned long length)
+    cdef bytes _read_sock(self, unsigned long length)
 
     @cython.locals(
         start_len=cython.ulong,
-        missing_bytes=cython.ulong
+        missing_bytes=cython.ulong,
+        data=cython.bytes
     )
     cdef read_to_pos(self, unsigned long pos)
 
