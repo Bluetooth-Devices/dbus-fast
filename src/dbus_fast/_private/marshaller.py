@@ -1,5 +1,5 @@
 from struct import Struct, error
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 from ..signature import SignatureType, Variant, get_signature_tree
 
@@ -19,37 +19,36 @@ class Marshaller:
         self.body = body
 
     @property
-    def buffer(self):
+    def buffer(self) -> bytearray:
         return self._buf
 
-    def align(self, n) -> int:
+    def align(self, n):
         return self._align(n)
 
-    def _align(self, n) -> int:
+    def _align(self, n):
         offset = n - len(self._buf) % n
         if offset == 0 or offset == n:
             return 0
         self._buf.extend(bytes(offset))
         return offset
 
-    def write_boolean(self, boolean: bool, _=None) -> int:
+    def write_boolean(self, boolean: bool, type_: SignatureType) -> int:
         written = self._align(4)
         self._buf.extend(PACK_UINT32(int(boolean)))
         return written + 4
 
-    def write_signature(self, signature: str, _=None) -> int:
-        return self._write_signature(signature)
+    def write_signature(self, signature: str, type_: SignatureType) -> int:
+        return self._write_signature(signature.encode())
 
-    def _write_signature(self, signature) -> int:
-        signature_bytes = signature.encode()
-        signature_len = len(signature)
+    def _write_signature(self, signature_bytes) -> int:
+        signature_len = len(signature_bytes)
         buf = self._buf
         buf.append(signature_len)
         buf.extend(signature_bytes)
         buf.append(0)
         return signature_len + 2
 
-    def write_string(self, value, _=None) -> int:
+    def write_string(self, value, type_: SignatureType) -> int:
         value_bytes = value.encode()
         value_len = len(value)
         written = self._align(4) + 4
@@ -61,12 +60,19 @@ class Marshaller:
         written += 1
         return written
 
-    def write_variant(self, variant: Variant, _=None) -> int:
-        written = self._write_signature(variant.signature)
+    def write_variant(self, variant: Variant, type_: SignatureType) -> int:
+        written = self._write_signature(variant.signature.encode())
         written += self._write_single(variant.type, variant.value)
         return written
 
-    def write_array(self, array: Iterable[Any], type_: SignatureType) -> int:
+    def write_array(
+        self, array: Union[List[Any], Dict[Any, Any]], type_: SignatureType
+    ) -> int:
+        return self._write_array(array, type_)
+
+    def _write_array(
+        self, array: Union[List[Any], Dict[Any, Any]], type_: SignatureType
+    ) -> int:
         # TODO max array size is 64MiB (67108864 bytes)
         written = self._align(4)
         # length placeholder
@@ -83,24 +89,23 @@ class Marshaller:
 
         array_len = 0
         if token == "{":
-            for key, value in array.items():
+            for key, value in array.items():  # type: ignore[union-attr]
                 array_len += self.write_dict_entry([key, value], child_type)
         elif token == "y":
             array_len = len(array)
             buf.extend(array)
-        elif token in self._writers:
+        elif token == "(":
+            for value in array:
+                array_len += self._write_struct(value, child_type)
+        else:
             writer, packer, size = self._writers[token]
             if not writer:
                 for value in array:
                     array_len += self._align(size) + size
-                    buf.extend(packer(value))
+                    buf.extend(packer(value))  # type: ignore[misc]
             else:
                 for value in array:
                     array_len += writer(self, value, child_type)
-        else:
-            raise NotImplementedError(
-                f'type is not implemented yet: "{child_type.token}"'
-            )
 
         array_len_packed = PACK_UINT32(array_len)
         for i in range(offset, offset + 4):
@@ -109,6 +114,9 @@ class Marshaller:
         return written + array_len
 
     def write_struct(self, array: List[Any], type_: SignatureType) -> int:
+        return self._write_struct(array, type_)
+
+    def _write_struct(self, array: List[Any], type_: SignatureType) -> int:
         written = self._align(8)
         for i, value in enumerate(array):
             written += self._write_single(type_.children[i], value)
@@ -122,47 +130,50 @@ class Marshaller:
 
     def _write_single(self, type_: SignatureType, body: Any) -> int:
         t = type_.token
-
-        if t not in self._writers:
-            raise NotImplementedError(f'type is not implemented yet: "{t}"')
-
         writer, packer, size = self._writers[t]
         if not writer:
             written = self._align(size)
-            self._buf.extend(packer(body))
+            self._buf.extend(packer(body))  # type: ignore[misc]
             return written + size
         return writer(self, body, type_)
 
-    def marshall(self):
+    def marshall(self) -> bytearray:
         """Marshalls the body into a byte array"""
         try:
             self._construct_buffer()
+        except KeyError as ex:
+            raise NotImplementedError(f'type is not implemented yet: "{ex.args}"')
         except error:
             self.signature_tree.verify(self.body)
         return self._buf
 
-    def _construct_buffer(self):
+    def _construct_buffer(self) -> None:
         self._buf.clear()
         writers = self._writers
         body = self.body
         buf = self._buf
         for i, type_ in enumerate(self.signature_tree.types):
             t = type_.token
-            if t not in writers:
-                raise NotImplementedError(f'type is not implemented yet: "{t}"')
-
-            writer, packer, size = writers[t]
-            if not writer:
-                if size != 1:
-                    self._align(size)
-                buf.extend(packer(body[i]))
+            if t == "y":
+                buf.append(body[i])
+            elif t == "u":
+                self._align(4)
+                buf.extend(PACK_UINT32(body[i]))
+            elif t == "a":
+                self._write_array(body[i], type_)
             else:
-                writer(self, body[i], type_)
+                writer, packer, size = writers[t]
+                if not writer:
+                    if size != 1:
+                        self._align(size)
+                    buf.extend(packer(body[i]))  # type: ignore[misc]
+                else:
+                    writer(self, body[i], type_)
 
     _writers: Dict[
         str,
         Tuple[
-            Optional[Callable[[Any, Any], int]],
+            Optional[Callable[[Any, Any, SignatureType], int]],
             Optional[Callable[[Any], bytes]],
             int,
         ],
