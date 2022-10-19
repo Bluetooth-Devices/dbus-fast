@@ -198,7 +198,7 @@ class Unmarshaller:
 
         return msg
 
-    def read_to_pos(self, pos: int) -> None:
+    def _read_to_pos(self, pos: int) -> None:
         """
         Read from underlying socket into buffer.
 
@@ -385,17 +385,13 @@ class Unmarshaller:
         """Read the header of the message."""
         # Signature is of the header is
         # BYTE, BYTE, BYTE, BYTE, UINT32, UINT32, ARRAY of STRUCT of (BYTE,VARIANT)
-        self.read_to_pos(HEADER_SIGNATURE_SIZE)
+        self._read_to_pos(HEADER_SIGNATURE_SIZE)
         buffer = self._buf
         endian = buffer[0]
         self._message_type = buffer[1]
         self._flag = buffer[2]
         protocol_version = buffer[3]
 
-        if endian != LITTLE_ENDIAN and endian != BIG_ENDIAN:
-            raise InvalidMessageError(
-                f"Expecting endianness as the first byte, got {endian} from {buffer}"
-            )
         if protocol_version != PROTOCOL_VERSION:
             raise InvalidMessageError(
                 f"got unknown protocol version: {protocol_version}"
@@ -409,12 +405,16 @@ class Unmarshaller:
             ) = UNPACK_HEADER_LITTLE_ENDIAN(self._buf, 4)
             self._uint32_unpack = UINT32_UNPACK_LITTLE_ENDIAN
             self._int16_unpack = INT16_UNPACK_LITTLE_ENDIAN
-        else:
+        elif endian == BIG_ENDIAN:
             self._body_len, self._serial, self._header_len = UNPACK_HEADER_BIG_ENDIAN(
                 self._buf, 4
             )
             self._uint32_unpack = UINT32_UNPACK_BIG_ENDIAN
             self._int16_unpack = INT16_UNPACK_BIG_ENDIAN
+        else:
+            raise InvalidMessageError(
+                f"Expecting endianness as the first byte, got {endian} from {buffer}"
+            )
 
         self._msg_len = (
             self._header_len + (-self._header_len & 7) + self._body_len
@@ -423,7 +423,7 @@ class Unmarshaller:
 
     def _read_body(self) -> None:
         """Read the body of the message."""
-        self.read_to_pos(HEADER_SIGNATURE_SIZE + self._msg_len)
+        self._read_to_pos(HEADER_SIGNATURE_SIZE + self._msg_len)
         self._pos = HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
         header_fields = self.header_fields(self._header_len)
         self._pos += -self._pos & 7  # align 8
