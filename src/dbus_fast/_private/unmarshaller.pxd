@@ -61,7 +61,7 @@ cdef class Unmarshaller:
         missing_bytes=cython.ulong,
         data=cython.bytes
     )
-    cdef _read_to_pos(self, unsigned long pos)
+    cdef void _read_to_pos(self, unsigned long pos)
 
     cpdef read_uint32_unpack(self, object type_)
 
@@ -103,12 +103,12 @@ cdef class Unmarshaller:
         protocol_version=cython.uint,
         key=cython.str
     )
-    cdef _read_header(self)
+    cdef void _read_header(self)
 
     @cython.locals(
         body=cython.list
     )
-    cdef _read_body(self)
+    cdef void _read_body(self)
 
     cpdef unmarshall(self)
 
