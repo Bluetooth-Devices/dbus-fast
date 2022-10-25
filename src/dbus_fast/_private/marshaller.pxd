@@ -4,6 +4,7 @@ import cython
 
 
 cdef bytes PACKED_UINT32_ZERO
+cdef object PACK_UINT32
 
 cdef class Marshaller:
 
@@ -11,46 +12,58 @@ cdef class Marshaller:
     cdef bytearray _buf
     cdef object body
 
-    cpdef int align(self, unsigned int n)
+    cpdef unsigned int align(self, unsigned int n)
 
     @cython.locals(
         offset=cython.ulong,
     )
-    cdef int _align(self, unsigned int n)
+    cdef unsigned int _align(self, unsigned int n)
 
     @cython.locals(
         value_len=cython.uint,
         signature_len=cython.uint,
         written=cython.uint,
     )
-    cpdef write_string(self, object value, _ = *)
+    cpdef write_string(self, object value, object _type)
 
     @cython.locals(
-        signature_bytes=cython.bytes,
         signature_len=cython.uint,
     )
-    cdef _write_signature(self, str signature)
+    cdef unsigned int _write_signature(self, bytes signature_bytes)
 
-    @cython.locals(
-        array_len=cython.uint,
-        written=cython.uint,
-        token=cython.str,
-        array_len_packed=cython.bytes,
-        i=cython.uint,
-    )
     cpdef write_array(self, object array, object type)
 
     @cython.locals(
+        array_len=cython.uint,
+        buf=cython.bytearray,
+        written=cython.uint,
+        token=cython.str,
+        array_len_packed=cython.bytes,
+        size=cython.uint,
+        writer=cython.object,
+        packer=cython.object,
+        i=cython.uint,
+    )
+    cdef unsigned int _write_array(self, object array, object type)
+
+    cpdef write_struct(self, object array, object type)
+
+    @cython.locals(
         written=cython.uint,
         i=cython.uint,
     )
-    cpdef write_struct(self, object array, object type)
+    cdef unsigned int _write_struct(self, object array, object type)
+
+    @cython.locals(
+        written=cython.uint,
+    )
+    cpdef write_variant(self, object variant, object type)
 
     @cython.locals(
         written=cython.uint,
         size=cython.uint,
     )
-    cdef _write_single(self, object type_, object body)
+    cdef unsigned int _write_single(self, object type_, object body)
 
     @cython.locals(
         written=cython.uint,
@@ -62,7 +75,9 @@ cdef class Marshaller:
 
     @cython.locals(
         offset=cython.ulong,
-        size=cython.uint,
         t=cython.str,
+        size=cython.uint,
+        writer=cython.object,
+        packer=cython.object,
     )
     cdef _construct_buffer(self)

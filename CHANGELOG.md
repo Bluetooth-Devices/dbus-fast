@@ -2,6 +2,18 @@
 
 <!--next-version-placeholder-->
 
+## v1.48.0 (2022-10-20)
+### Feature
+* Add typing to auth module ([#110](https://github.com/Bluetooth-Devices/dbus-fast/issues/110)) ([`e07e281`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e07e281ded44f9ded3002c34803f802146a9e3c9))
+
+## v1.47.0 (2022-10-19)
+### Feature
+* Speed up unmarshaller ([#109](https://github.com/Bluetooth-Devices/dbus-fast/issues/109)) ([`2443cf9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/2443cf99909af02db040caeeded7024a020c50a5))
+
+## v1.46.0 (2022-10-19)
+### Feature
+* Speed up marshaller and add typing ([#108](https://github.com/Bluetooth-Devices/dbus-fast/issues/108)) ([`e8f568c`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e8f568c074965bf7955f29cd89cf14f1b8dd5643))
+
 ## v1.45.0 (2022-10-13)
 ### Feature
 * Optimize signature readers for most common messages ([#107](https://github.com/Bluetooth-Devices/dbus-fast/issues/107)) ([`d5fb4d9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d5fb4d9c8bf17c51762ea961d745c5db7d8d8a22))

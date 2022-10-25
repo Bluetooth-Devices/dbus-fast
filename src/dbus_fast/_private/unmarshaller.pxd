@@ -22,6 +22,14 @@ cdef object UINT32_UNPACK_BIG_ENDIAN
 cdef object INT16_UNPACK_LITTLE_ENDIAN
 cdef object INT16_UNPACK_BIG_ENDIAN
 
+cdef object Variant
+cdef object Message
+cdef object MESSAGE_TYPE_MAP
+cdef object MESSAGE_FLAG_MAP
+cdef object HEADER_MESSAGE_ARG_NAME
+
+cpdef get_signature_tree
+
 
 cdef class MarshallerStreamEndError(Exception):
     pass
@@ -46,13 +54,14 @@ cdef class Unmarshaller:
 
     cpdef reset(self)
 
-    cdef read_sock(self, unsigned long length)
+    cdef bytes _read_sock(self, unsigned long length)
 
     @cython.locals(
         start_len=cython.ulong,
-        missing_bytes=cython.ulong
+        missing_bytes=cython.ulong,
+        data=cython.bytes
     )
-    cdef read_to_pos(self, unsigned long pos)
+    cdef _read_to_pos(self, unsigned long pos)
 
     cpdef read_uint32_unpack(self, object type_)
 
@@ -96,6 +105,9 @@ cdef class Unmarshaller:
     )
     cdef _read_header(self)
 
+    @cython.locals(
+        body=cython.list
+    )
     cdef _read_body(self)
 
     cpdef unmarshall(self)
