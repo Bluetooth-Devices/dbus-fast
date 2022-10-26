@@ -365,8 +365,7 @@ class Unmarshaller:
             signature_len = buf[self._pos]  # byte
             o = self._pos + 1
             self._pos += signature_len + 2  # one for the byte, one for the '\0'
-            type_ = get_signature_tree(buf[o : o + signature_len].decode()).types[0]
-            token = type_.token
+            token = buf[o : o + signature_len].decode()
             # Now that we have the token we can read the variant value
             key = HEADER_MESSAGE_ARG_NAME[field_0]
             # Strings and signatures are the most common types
@@ -378,7 +377,7 @@ class Unmarshaller:
             else:
                 # There shouldn't be any other types in the header
                 # but just in case, we'll read it using the slow path
-                headers[key] = readers[type_.token](self, type_)
+                headers[key] = readers[token](self, get_signature_tree(token).types[0])
         return headers
 
     def _read_header(self) -> None:
