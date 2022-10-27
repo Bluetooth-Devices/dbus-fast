@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.51.0 (2022-10-27)
+### Feature
+* Inline cast uint32 and int16 to speed up unmarshall ([#115](https://github.com/Bluetooth-Devices/dbus-fast/issues/115)) ([`24dd9d9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/24dd9d9742e8c779b9c8aa751ba8b2815b61b15b))
+
 ## v1.50.0 (2022-10-27)
 ### Feature
 * Speed up unmarshall ([#114](https://github.com/Bluetooth-Devices/dbus-fast/issues/114)) ([`e1836b2`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e1836b2034ca4bfbb004027f98b42c68f6c6edce))
