@@ -1,6 +1,5 @@
 import array
 import io
-import pprint
 import socket
 import sys
 from struct import Struct

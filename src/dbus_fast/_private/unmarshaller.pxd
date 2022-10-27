@@ -32,7 +32,7 @@ cdef object HEADER_MESSAGE_ARG_NAME
 
 cpdef get_signature_tree
 
-cdef inline unsigned int _cast_uint32_native(const char * payload, unsigned int offset):
+cdef inline unsigned long _cast_uint32_native(const char * payload, unsigned int offset):
     cdef unsigned long *u32p = <unsigned long *> &payload[offset]
     return u32p[0]
 
