@@ -274,9 +274,10 @@ class Unmarshaller:
                 get_signature_tree(signature), self._read_int16_unpack(), False
             )
         tree = get_signature_tree(signature)
+        signature_type = tree.types[0]
         return Variant(
             tree,
-            self._readers[signature](self, tree.types[0]),
+            self._readers[signature_type.token](self, signature_type),
             False,
         )
 
