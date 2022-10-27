@@ -24,6 +24,9 @@ INT16_CAST = "h"
 INT16_SIZE = 2
 INT16_DBUS_TYPE = "n"
 
+SYS_IS_LITTLE_ENDIAN = sys.byteorder == "little"
+SYS_IS_BIG_ENDIAN = sys.byteorder == "big"
+
 DBUS_TO_CTYPE = {
     "y": ("B", 1),  # byte
     INT16_DBUS_TYPE: (INT16_CAST, INT16_SIZE),  # int16
@@ -99,6 +102,11 @@ class MarshallerStreamEndError(Exception):
     pass
 
 
+try:
+    import cython
+except ImportError:
+    from ._cython_compat import FakeCython as cython
+
 #
 # Alignment padding is handled with the following formula below
 #
@@ -134,6 +142,7 @@ class Unmarshaller:
         "_msg_len",
         "_uint32_unpack",
         "_int16_unpack",
+        "_is_native",
     )
 
     def __init__(self, stream: io.BufferedRWPair, sock: Optional[socket.socket] = None):
@@ -150,6 +159,7 @@ class Unmarshaller:
         self._message_type = 0
         self._flag = 0
         self._msg_len = 0
+        self._is_native = 0
         self._uint32_unpack: Callable | None = None
         self._int16_unpack: Callable | None = None
 
@@ -168,6 +178,7 @@ class Unmarshaller:
         self._message_type = 0
         self._flag = 0
         self._msg_len = 0
+        self._is_native = 0
         self._uint32_unpack = None
         self._int16_unpack = None
 
@@ -230,6 +241,8 @@ class Unmarshaller:
 
     def _read_uint32_unpack(self) -> int:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
+        if self._is_native and cython.compiled:
+            return _cast_uint32_native(self._buf, self._pos - UINT32_SIZE)
         return self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
 
     def read_int16_unpack(self, type_: SignatureType) -> int:
@@ -237,6 +250,8 @@ class Unmarshaller:
 
     def _read_int16_unpack(self) -> int:
         self._pos += INT16_SIZE + (-self._pos & (INT16_SIZE - 1))  # align
+        if self._is_native and cython.compiled:
+            return _cast_int16_native(self._buf, self._pos - INT16_SIZE)
         return self._int16_unpack(self._buf, self._pos - INT16_SIZE)[0]
 
     def read_boolean(self, type_: SignatureType) -> bool:
@@ -250,7 +265,10 @@ class Unmarshaller:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
         str_start = self._pos
         # read terminating '\0' byte as well (str_length + 1)
-        self._pos += self._uint32_unpack(self._buf, str_start - UINT32_SIZE)[0] + 1
+        if self._is_native and cython.compiled:
+            self._pos += _cast_uint32_native(self._buf, str_start - UINT32_SIZE) + 1
+        else:
+            self._pos += self._uint32_unpack(self._buf, str_start - UINT32_SIZE)[0] + 1
         return self._buf[str_start : self._pos - 1].decode()
 
     def read_signature(self, type_: SignatureType) -> str:
@@ -302,7 +320,10 @@ class Unmarshaller:
         self._pos += (
             -self._pos & (UINT32_SIZE - 1)
         ) + UINT32_SIZE  # align for the uint32
-        array_length = self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
+        if self._is_native and cython.compiled:
+            array_length = _cast_uint32_native(self._buf, self._pos - UINT32_SIZE)
+        else:
+            array_length = self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
 
         child_type = type_.children[0]
         token = child_type.token
@@ -398,6 +419,15 @@ class Unmarshaller:
                 f"got unknown protocol version: {protocol_version}"
             )
 
+        if (
+            cython.compiled
+            and (endian == LITTLE_ENDIAN and SYS_IS_LITTLE_ENDIAN)
+            or (endian == BIG_ENDIAN and SYS_IS_BIG_ENDIAN)
+        ):
+            self._is_native = 1
+            self._body_len = _cast_uint32_native(self._buf, 4)
+            self._serial = _cast_uint32_native(self._buf, 8)
+            self._header_len = _cast_uint32_native(self._buf, 12)
         if endian == LITTLE_ENDIAN:
             (
                 self._body_len,
