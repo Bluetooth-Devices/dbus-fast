@@ -14,6 +14,8 @@ cdef unsigned int BIG_ENDIAN
 cdef unsigned int PROTOCOL_VERSION
 cdef str UINT32_CAST
 cdef str INT16_CAST
+cdef bint SYS_IS_LITTLE_ENDIAN
+cdef bint SYS_IS_BIG_ENDIAN
 
 cdef object UNPACK_HEADER_LITTLE_ENDIAN
 cdef object UNPACK_HEADER_BIG_ENDIAN
@@ -30,6 +32,13 @@ cdef object HEADER_MESSAGE_ARG_NAME
 
 cpdef get_signature_tree
 
+cdef inline unsigned long _cast_uint32_native(const char * payload, unsigned int offset):
+    cdef unsigned long *u32p = <unsigned long *> &payload[offset]
+    return u32p[0]
+
+cdef inline short _cast_int16_native(const char *  payload, unsigned int offset):
+    cdef short *s16p = <short *> &payload[offset]
+    return s16p[0]
 
 cdef class MarshallerStreamEndError(Exception):
     pass
@@ -49,6 +58,7 @@ cdef class Unmarshaller:
     cdef unsigned int _message_type
     cdef unsigned int _flag
     cdef unsigned int _msg_len
+    cdef unsigned int _is_native
     cdef object _uint32_unpack
     cdef object _int16_unpack
 
