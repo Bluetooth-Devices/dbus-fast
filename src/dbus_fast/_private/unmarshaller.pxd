@@ -30,6 +30,15 @@ cdef object HEADER_MESSAGE_ARG_NAME
 
 cpdef get_signature_tree
 
+cpdef inline unsigned int _unpack_uint32_le(const char *payload):
+    cdef unsigned long *u32p
+    u32p = <unsigned long *>payload
+    return u32p[0]
+
+cpdef inline int _unpack_int16_le(const char *payload):
+    cdef int *s16p
+    s16p = <int *>payload
+    return s16p[0]
 
 cdef class MarshallerStreamEndError(Exception):
     pass

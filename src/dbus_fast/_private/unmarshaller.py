@@ -99,6 +99,15 @@ class MarshallerStreamEndError(Exception):
     pass
 
 
+try:
+    import cython
+except ImportError:
+    from .unmarshaller_pp import _unpack_int16_le, _unpack_uint32_le
+else:
+    if not cython.compiled:
+        from .unmarshaller_pp import _unpack_int16_le, _unpack_uint32_le
+
+
 #
 # Alignment padding is handled with the following formula below
 #
@@ -230,14 +239,14 @@ class Unmarshaller:
 
     def _read_uint32_unpack(self) -> int:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
-        return self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
+        return _unpack_uint32_le(self._buf[self._pos - UINT32_SIZE : self._pos])
 
     def read_int16_unpack(self, type_: SignatureType) -> int:
         return self._read_int16_unpack()
 
     def _read_int16_unpack(self) -> int:
         self._pos += INT16_SIZE + (-self._pos & (INT16_SIZE - 1))  # align
-        return self._int16_unpack(self._buf, self._pos - INT16_SIZE)[0]
+        return _unpack_int16_le(self._buf[self._pos - INT16_SIZE : self._pos])
 
     def read_boolean(self, type_: SignatureType) -> bool:
         return bool(self._read_uint32_unpack())
@@ -250,7 +259,9 @@ class Unmarshaller:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
         str_start = self._pos
         # read terminating '\0' byte as well (str_length + 1)
-        self._pos += self._uint32_unpack(self._buf, str_start - UINT32_SIZE)[0] + 1
+        self._pos += (
+            _unpack_uint32_le(self._buf[str_start - UINT32_SIZE : str_start]) + 1
+        )
         return self._buf[str_start : self._pos - 1].decode()
 
     def read_signature(self, type_: SignatureType) -> str:
@@ -302,7 +313,7 @@ class Unmarshaller:
         self._pos += (
             -self._pos & (UINT32_SIZE - 1)
         ) + UINT32_SIZE  # align for the uint32
-        array_length = self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
+        array_length = _unpack_uint32_le(self._buf[self._pos - UINT32_SIZE : self._pos])
 
         child_type = type_.children[0]
         token = child_type.token
