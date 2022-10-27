@@ -242,9 +242,9 @@ class Unmarshaller:
     def _read_uint32_unpack(self) -> int:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
         if self._is_native and cython.compiled:
-            return _cast_uint32_native(
+            return _cast_uint32_native(  # pragma: no cover
                 self._buf, self._pos - UINT32_SIZE
-            )  # pragma: no cover
+            )
         return self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
 
     def read_int16_unpack(self, type_: SignatureType) -> int:
@@ -253,9 +253,9 @@ class Unmarshaller:
     def _read_int16_unpack(self) -> int:
         self._pos += INT16_SIZE + (-self._pos & (INT16_SIZE - 1))  # align
         if self._is_native and cython.compiled:
-            return _cast_int16_native(
+            return _cast_int16_native(  # pragma: no cover
                 self._buf, self._pos - INT16_SIZE
-            )  # pragma: no cover
+            )
         return self._int16_unpack(self._buf, self._pos - INT16_SIZE)[0]
 
     def read_boolean(self, type_: SignatureType) -> bool:
@@ -270,9 +270,9 @@ class Unmarshaller:
         str_start = self._pos
         # read terminating '\0' byte as well (str_length + 1)
         if self._is_native and cython.compiled:
-            self._pos += (
+            self._pos += (  # pragma: no cover
                 _cast_uint32_native(self._buf, str_start - UINT32_SIZE) + 1
-            )  # pragma: no cover
+            )
         else:
             self._pos += self._uint32_unpack(self._buf, str_start - UINT32_SIZE)[0] + 1
         return self._buf[str_start : self._pos - 1].decode()
@@ -327,9 +327,9 @@ class Unmarshaller:
             -self._pos & (UINT32_SIZE - 1)
         ) + UINT32_SIZE  # align for the uint32
         if self._is_native and cython.compiled:
-            array_length = _cast_uint32_native(
+            array_length = _cast_uint32_native(  # pragma: no cover
                 self._buf, self._pos - UINT32_SIZE
-            )  # pragma: no cover
+            )
         else:
             array_length = self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
 
