@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from dbus_fast import Message, MessageFlag, MessageType, SignatureTree, Variant
+from dbus_fast._private._cython_compat import FakeCython
 from dbus_fast._private.unmarshaller import Unmarshaller
 
 
@@ -171,3 +172,7 @@ def test_ay_buffer():
     marshalled = msg._marshall(False)
     unmarshalled_msg = Unmarshaller(io.BytesIO(marshalled)).unmarshall()
     assert unmarshalled_msg.body[0] == body[0]
+
+
+def tests_fallback_no_cython():
+    assert FakeCython().compiled is False
