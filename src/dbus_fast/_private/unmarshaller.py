@@ -267,15 +267,17 @@ class Unmarshaller:
         return self._read_variant()
 
     def _read_variant(self) -> Variant:
-        tree = get_signature_tree(self._read_signature())
-        signature_type = tree.types[0]
+        signature = self._read_signature()
         # verify in Variant is only useful on construction not unmarshalling
-        token = signature_type.token
-        if token == "n":
-            return Variant(tree, self._read_int16_unpack(), False)
+        if signature == "n":
+            return Variant(
+                get_signature_tree(signature), self._read_int16_unpack(), False
+            )
+        tree = get_signature_tree(signature)
+        signature_type = tree.types[0]
         return Variant(
             tree,
-            self._readers[token](self, signature_type),
+            self._readers[signature_type.token](self, signature_type),
             False,
         )
 
