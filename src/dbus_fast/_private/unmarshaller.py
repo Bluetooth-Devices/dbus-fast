@@ -427,12 +427,11 @@ class Unmarshaller:
                 f"got unknown protocol version: {protocol_version}"
             )
 
-        if (
-            cython.compiled
-            and (endian == LITTLE_ENDIAN and SYS_IS_LITTLE_ENDIAN)
+        if cython.compiled and (
+            (endian == LITTLE_ENDIAN and SYS_IS_LITTLE_ENDIAN)
             or (endian == BIG_ENDIAN and SYS_IS_BIG_ENDIAN)
         ):
-            self._is_native = 1
+            self._is_native = 1  # pragma: no cover
             self._body_len = _cast_uint32_native(self._buf, 4)  # pragma: no cover
             self._serial = _cast_uint32_native(self._buf, 8)  # pragma: no cover
             self._header_len = _cast_uint32_native(self._buf, 12)  # pragma: no cover
