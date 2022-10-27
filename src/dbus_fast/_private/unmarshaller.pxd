@@ -73,10 +73,8 @@ cdef class Unmarshaller:
 
     cpdef read_string_unpack(self, object type_)
 
-    cdef _read_string_unpack(self)
-
     @cython.locals(
-        buf_bytes=cython.bytearray,
+        str_start=cython.uint,
     )
     cdef _read_string_unpack(self)
 
