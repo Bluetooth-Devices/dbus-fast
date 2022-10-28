@@ -50,6 +50,13 @@ HEADER_SIGNATURE_SIZE = 16
 HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION = 12
 
 
+SIGNATURE_TREE_EMPTY = get_signature_tree("")
+SIGNATURE_TREE_N = get_signature_tree("n")
+SIGNATURE_TREE_S = get_signature_tree("s")
+SIGNATURE_TREE_SA_SV_AS = get_signature_tree("sa{sv}as")
+SIGNATURE_TREE_SA_SV_AS_TYPES_1 = SIGNATURE_TREE_SA_SV_AS.types[1]
+SIGNATURE_TREE_SA_SV_AS_TYPES_2 = SIGNATURE_TREE_SA_SV_AS.types[2]
+
 HEADER_MESSAGE_ARG_NAME = {
     1: "path",
     2: "interface",
@@ -293,9 +300,7 @@ class Unmarshaller:
         signature = self._read_signature()
         # verify in Variant is only useful on construction not unmarshalling
         if signature == "n":
-            return Variant(
-                get_signature_tree(signature), self._read_int16_unpack(), False
-            )
+            return Variant(SIGNATURE_TREE_N, self._read_int16_unpack(), False)
         tree = get_signature_tree(signature)
         signature_type = tree.types[0]
         return Variant(
@@ -465,19 +470,22 @@ class Unmarshaller:
         header_fields = self.header_fields(self._header_len)
         self._pos += -self._pos & 7  # align 8
         header_fields.pop("unix_fds", None)  # defined by self._unix_fds
-        tree = get_signature_tree(header_fields.pop("signature", ""))
+        signature = header_fields.pop("signature", "")
         if not self._body_len:
+            tree = SIGNATURE_TREE_EMPTY
             body = []
-        elif tree.signature == "s":
+        elif signature == "s":
+            tree = SIGNATURE_TREE_S
             body = [self._read_string_unpack()]
-        elif tree.signature == "sa{sv}as":
-            types = tree.types
+        elif signature == "sa{sv}as":
+            tree = SIGNATURE_TREE_SA_SV_AS
             body = [
                 self._read_string_unpack(),
-                self._read_array(types[1]),
-                self._read_array(types[2]),
+                self._read_array(SIGNATURE_TREE_SA_SV_AS_TYPES_1),
+                self._read_array(SIGNATURE_TREE_SA_SV_AS_TYPES_2),
             ]
         else:
+            tree = get_signature_tree(signature)
             body = [self._readers[t.token](self, t) for t in tree.types]
 
         self._message = Message(

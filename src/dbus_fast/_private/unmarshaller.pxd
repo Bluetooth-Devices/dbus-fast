@@ -30,6 +30,14 @@ cdef object MESSAGE_TYPE_MAP
 cdef object MESSAGE_FLAG_MAP
 cdef object HEADER_MESSAGE_ARG_NAME
 
+cdef object SIGNATURE_TREE_EMPTY
+cdef object SIGNATURE_TREE_SA_SV_AS
+cdef object SIGNATURE_TREE_N
+cdef object SIGNATURE_TREE_S
+cdef object SIGNATURE_TREE_SA_SV_AS_TYPES_1
+cdef object SIGNATURE_TREE_SA_SV_AS_TYPES_2
+
+
 cpdef get_signature_tree
 
 cdef inline unsigned long _cast_uint32_native(const char * payload, unsigned int offset):
