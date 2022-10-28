@@ -37,4 +37,4 @@ def unmarshall_mfr_data_message():
 
 count = 3000000
 time = timeit.Timer(unmarshall_mfr_data_message).timeit(count)
-print(f"Unmarshalling {count} bluetooth rssi messages took {time} seconds")
+print(f"Unmarshalling {count} bluetooth ManufacturerData messages took {time} seconds")
