@@ -41,11 +41,15 @@ cdef object MESSAGE_FLAG_MAP
 cdef object HEADER_MESSAGE_ARG_NAME
 
 cdef object SIGNATURE_TREE_EMPTY
-cdef object SIGNATURE_TREE_SA_SV_AS
 cdef object SIGNATURE_TREE_N
 cdef object SIGNATURE_TREE_S
+cdef object SIGNATURE_TREE_SA_SV_AS
 cdef object SIGNATURE_TREE_SA_SV_AS_TYPES_1
 cdef object SIGNATURE_TREE_SA_SV_AS_TYPES_2
+cdef object SIGNATURE_TREE_AY
+cdef object SIGNATURE_TREE_AY_TYPES_0
+cdef object SIGNATURE_TREE_A_QV
+cdef object SIGNATURE_TREE_A_QV_TYPES_0
 
 
 cpdef get_signature_tree

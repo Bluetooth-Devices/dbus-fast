@@ -61,6 +61,12 @@ HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION = 12
 SIGNATURE_TREE_EMPTY = get_signature_tree("")
 SIGNATURE_TREE_N = get_signature_tree("n")
 SIGNATURE_TREE_S = get_signature_tree("s")
+
+SIGNATURE_TREE_AY = get_signature_tree("ay")
+SIGNATURE_TREE_AY_TYPES_0 = SIGNATURE_TREE_AY.types[0]
+SIGNATURE_TREE_A_QV = get_signature_tree("a{qv}")
+SIGNATURE_TREE_A_QV_TYPES_0 = SIGNATURE_TREE_A_QV.types[0]
+
 SIGNATURE_TREE_SA_SV_AS = get_signature_tree("sa{sv}as")
 SIGNATURE_TREE_SA_SV_AS_TYPES_1 = SIGNATURE_TREE_SA_SV_AS.types[1]
 SIGNATURE_TREE_SA_SV_AS_TYPES_2 = SIGNATURE_TREE_SA_SV_AS.types[2]
@@ -322,6 +328,16 @@ class Unmarshaller:
         # verify in Variant is only useful on construction not unmarshalling
         if signature == "n":
             return Variant(SIGNATURE_TREE_N, self._read_int16_unpack(), False)
+        elif signature == "ay":
+            return Variant(
+                SIGNATURE_TREE_AY, self._read_array(SIGNATURE_TREE_AY_TYPES_0), False
+            )
+        elif signature == "a{qv}":
+            return Variant(
+                SIGNATURE_TREE_A_QV,
+                self._read_array(SIGNATURE_TREE_A_QV_TYPES_0),
+                False,
+            )
         tree = get_signature_tree(signature)
         signature_type = tree.types[0]
         return Variant(
