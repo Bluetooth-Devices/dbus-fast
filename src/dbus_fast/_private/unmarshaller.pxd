@@ -7,22 +7,32 @@ from ..signature import SignatureType
 
 cdef unsigned int UINT32_SIZE
 cdef unsigned int INT16_SIZE
+cdef unsigned int UINT16_SIZE
+
 cdef unsigned int HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
 cdef unsigned int HEADER_SIGNATURE_SIZE
 cdef unsigned int LITTLE_ENDIAN
 cdef unsigned int BIG_ENDIAN
 cdef unsigned int PROTOCOL_VERSION
+
 cdef str UINT32_CAST
 cdef str INT16_CAST
+cdef str UINT16_CAST
+
 cdef bint SYS_IS_LITTLE_ENDIAN
 cdef bint SYS_IS_BIG_ENDIAN
 
 cdef object UNPACK_HEADER_LITTLE_ENDIAN
 cdef object UNPACK_HEADER_BIG_ENDIAN
+
 cdef object UINT32_UNPACK_LITTLE_ENDIAN
 cdef object UINT32_UNPACK_BIG_ENDIAN
+
 cdef object INT16_UNPACK_LITTLE_ENDIAN
 cdef object INT16_UNPACK_BIG_ENDIAN
+
+cdef object UINT16_UNPACK_LITTLE_ENDIAN
+cdef object UINT16_UNPACK_BIG_ENDIAN
 
 cdef object Variant
 cdef object Message
@@ -48,6 +58,11 @@ cdef inline short _cast_int16_native(const char *  payload, unsigned int offset)
     cdef short *s16p = <short *> &payload[offset]
     return s16p[0]
 
+cdef inline unsigned short _cast_uint16_native(const char *  payload, unsigned int offset):
+    cdef short *u16p = <short *> &payload[offset]
+    return u16p[0]
+
+
 cdef class MarshallerStreamEndError(Exception):
     pass
 
@@ -69,6 +84,7 @@ cdef class Unmarshaller:
     cdef unsigned int _is_native
     cdef object _uint32_unpack
     cdef object _int16_unpack
+    cdef object _uint16_unpack
 
     cpdef reset(self)
 
@@ -88,6 +104,10 @@ cdef class Unmarshaller:
     cpdef read_int16_unpack(self, object type_)
 
     cdef int _read_int16_unpack(self)
+
+    cpdef read_uint16_unpack(self, object type_)
+
+    cdef unsigned int _read_uint16_unpack(self)
 
     cpdef read_string_unpack(self, object type_)
 

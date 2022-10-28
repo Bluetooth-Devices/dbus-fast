@@ -23,13 +23,17 @@ INT16_CAST = "h"
 INT16_SIZE = 2
 INT16_DBUS_TYPE = "n"
 
+UINT16_CAST = "H"
+UINT16_SIZE = 2
+UINT16_DBUS_TYPE = "q"
+
 SYS_IS_LITTLE_ENDIAN = sys.byteorder == "little"
 SYS_IS_BIG_ENDIAN = sys.byteorder == "big"
 
 DBUS_TO_CTYPE = {
     "y": ("B", 1),  # byte
     INT16_DBUS_TYPE: (INT16_CAST, INT16_SIZE),  # int16
-    "q": ("H", 2),  # uint16
+    UINT16_DBUS_TYPE: (UINT16_CAST, UINT16_SIZE),  # uint16
     "i": ("i", 4),  # int32
     UINT32_DBUS_TYPE: (UINT32_CAST, UINT32_SIZE),  # uint32
     "x": ("q", 8),  # int64
@@ -39,12 +43,16 @@ DBUS_TO_CTYPE = {
 }
 
 UNPACK_HEADER_LITTLE_ENDIAN = Struct("<III").unpack_from
-UINT32_UNPACK_LITTLE_ENDIAN = Struct("<I").unpack_from
-INT16_UNPACK_LITTLE_ENDIAN = Struct("<h").unpack_from
-
 UNPACK_HEADER_BIG_ENDIAN = Struct(">III").unpack_from
-UINT32_UNPACK_BIG_ENDIAN = Struct(">I").unpack_from
-INT16_UNPACK_BIG_ENDIAN = Struct(">h").unpack_from
+
+UINT32_UNPACK_LITTLE_ENDIAN = Struct(f"<{UINT32_CAST}").unpack_from
+UINT32_UNPACK_BIG_ENDIAN = Struct(f">{UINT32_CAST}").unpack_from
+
+INT16_UNPACK_LITTLE_ENDIAN = Struct(f"<{INT16_CAST}").unpack_from
+INT16_UNPACK_BIG_ENDIAN = Struct(f">{INT16_CAST}").unpack_from
+
+UINT16_UNPACK_LITTLE_ENDIAN = Struct(f"<{UINT32_CAST}").unpack_from
+UINT16_UNPACK_BIG_ENDIAN = Struct(f">{UINT32_CAST}").unpack_from
 
 HEADER_SIGNATURE_SIZE = 16
 HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION = 12
@@ -148,6 +156,7 @@ class Unmarshaller:
         "_msg_len",
         "_uint32_unpack",
         "_int16_unpack",
+        "_uint16_unpack",
         "_is_native",
     )
 
@@ -168,6 +177,7 @@ class Unmarshaller:
         self._is_native = 0
         self._uint32_unpack: Callable | None = None
         self._int16_unpack: Callable | None = None
+        self._uint16_unpack: Callable | None = None
 
     def reset(self) -> None:
         """Reset the unmarshaller to its initial state.
@@ -185,8 +195,8 @@ class Unmarshaller:
         self._flag = 0
         self._msg_len = 0
         self._is_native = 0
-        self._uint32_unpack = None
-        self._int16_unpack = None
+        # No need to reset the unpack functions, they are set in _read_header
+        # every time a new message is processed.
 
     @property
     def message(self) -> Message:
@@ -252,6 +262,17 @@ class Unmarshaller:
                 self._buf, self._pos - UINT32_SIZE
             )
         return self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
+
+    def read_uint16_unpack(self, type_: SignatureType) -> int:
+        return self._read_uint16_unpack()
+
+    def _read_uint16_unpack(self) -> int:
+        self._pos += UINT16_SIZE + (-self._pos & (UINT16_SIZE - 1))  # align
+        if self._is_native and cython.compiled:
+            return _cast_uint16_native(  # pragma: no cover
+                self._buf, self._pos - UINT16_SIZE
+            )
+        return self._uint16_unpack(self._buf, self._pos - UINT16_SIZE)[0]
 
     def read_int16_unpack(self, type_: SignatureType) -> int:
         return self._read_int16_unpack()
@@ -355,15 +376,20 @@ class Unmarshaller:
             child_1 = child_type.children[1]
             child_0_token = child_0.token
             child_1_token = child_1.token
-
             # Strings with variant values are the most common case
             # so we optimize for that by inlining the string reading
             # and the variant reading here
-            if child_0_token in "os" and child_1_token == "v":
-                while self._pos - beginning_pos < array_length:
-                    self._pos += -self._pos & 7  # align 8
-                    key = self._read_string_unpack()
-                    result_dict[key] = self._read_variant()
+            if child_1_token == "v":
+                if child_0_token in "os":
+                    while self._pos - beginning_pos < array_length:
+                        self._pos += -self._pos & 7  # align 8
+                        key = self._read_string_unpack()
+                        result_dict[key] = self._read_variant()
+                if child_0_token == "q":
+                    while self._pos - beginning_pos < array_length:
+                        self._pos += -self._pos & 7  # align 8
+                        key = self._read_uint16_unpack()
+                        result_dict[key] = self._read_variant()
             else:
                 reader_1 = self._readers[child_1_token]
                 reader_0 = self._readers[child_0_token]
@@ -447,12 +473,14 @@ class Unmarshaller:
             ) = UNPACK_HEADER_LITTLE_ENDIAN(self._buf, 4)
             self._uint32_unpack = UINT32_UNPACK_LITTLE_ENDIAN
             self._int16_unpack = INT16_UNPACK_LITTLE_ENDIAN
+            self._uint16_unpack = UINT16_UNPACK_LITTLE_ENDIAN
         elif endian == BIG_ENDIAN:
             self._body_len, self._serial, self._header_len = UNPACK_HEADER_BIG_ENDIAN(
                 self._buf, 4
             )
             self._uint32_unpack = UINT32_UNPACK_BIG_ENDIAN
             self._int16_unpack = INT16_UNPACK_BIG_ENDIAN
+            self._uint16_unpack = UINT16_UNPACK_BIG_ENDIAN
         else:
             raise InvalidMessageError(
                 f"Expecting endianness as the first byte, got {endian} from {buffer}"
@@ -530,6 +558,7 @@ class Unmarshaller:
         "h": read_uint32_unpack,
         UINT32_DBUS_TYPE: read_uint32_unpack,
         INT16_DBUS_TYPE: read_int16_unpack,
+        UINT16_DBUS_TYPE: read_uint16_unpack,
     }
 
     _ctype_by_endian: Dict[int, Dict[str, READER_TYPE]] = {
