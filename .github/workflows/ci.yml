@@ -48,6 +48,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
+      - name: Update apt
+        run: sudo apt update
       - name: Install libs
         run: sudo apt-get install -y dbus dbus-x11 python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
       - name: Install poetry
