@@ -59,7 +59,7 @@ cdef inline short _cast_int16_native(const char *  payload, unsigned int offset)
     return s16p[0]
 
 cdef inline unsigned short _cast_uint16_native(const char *  payload, unsigned int offset):
-    cdef unsigned short *u16p = <short *> &payload[offset]
+    cdef unsigned short *u16p = <unsigned short *> &payload[offset]
     return u16p[0]
 
 
