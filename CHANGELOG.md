@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.54.0 (2022-10-28)
+### Feature
+* Speed up unmarshaller with common signature trees ([#120](https://github.com/Bluetooth-Devices/dbus-fast/issues/120)) ([`5b32072`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5b32072934a7269ffc7186aaaed77a0eb6872cd9))
+
 ## v1.53.0 (2022-10-28)
 ### Feature
 * Add additional pxd defs for message ([#118](https://github.com/Bluetooth-Devices/dbus-fast/issues/118)) ([`3eb123b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3eb123b0366ed143d395e0609540c580398cd896))
