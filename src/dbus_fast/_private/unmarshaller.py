@@ -385,7 +385,7 @@ class Unmarshaller:
                         self._pos += -self._pos & 7  # align 8
                         key = self._read_string_unpack()
                         result_dict[key] = self._read_variant()
-                if child_0_token == "q":
+                elif child_0_token == "q":
                     while self._pos - beginning_pos < array_length:
                         self._pos += -self._pos & 7  # align 8
                         key = self._read_uint16_unpack()
