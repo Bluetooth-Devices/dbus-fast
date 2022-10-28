@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.53.0 (2022-10-28)
+### Feature
+* Add additional pxd defs for message ([#118](https://github.com/Bluetooth-Devices/dbus-fast/issues/118)) ([`3eb123b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3eb123b0366ed143d395e0609540c580398cd896))
+
 ## v1.52.0 (2022-10-28)
 ### Feature
 * Small speed up to unpack_variants ([#117](https://github.com/Bluetooth-Devices/dbus-fast/issues/117)) ([`3c164a9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3c164a9291b9fb6e75aed0fc5aab1dfc7b79c376))
