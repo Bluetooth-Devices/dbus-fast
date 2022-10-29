@@ -78,6 +78,9 @@ SIGNATURE_TREE_SA_SV_AS = get_signature_tree("sa{sv}as")
 SIGNATURE_TREE_SA_SV_AS_TYPES_1 = SIGNATURE_TREE_SA_SV_AS.types[1]
 SIGNATURE_TREE_SA_SV_AS_TYPES_2 = SIGNATURE_TREE_SA_SV_AS.types[2]
 
+SIGNATURE_TREE_OA_SA_SV = get_signature_tree("oa{sa{sv}}")
+SIGNATURE_TREE_OA_SA_SV_TYPES_1 = SIGNATURE_TREE_OA_SA_SV.types[1]
+
 HEADER_MESSAGE_ARG_NAME = {
     1: "path",
     2: "interface",
@@ -553,6 +556,12 @@ class Unmarshaller:
                 self._read_string_unpack(),
                 self._read_array(SIGNATURE_TREE_SA_SV_AS_TYPES_1),
                 self._read_array(SIGNATURE_TREE_SA_SV_AS_TYPES_2),
+            ]
+        elif signature == "oa{sa{sv}}":
+            tree = SIGNATURE_TREE_OA_SA_SV
+            body = [
+                self._read_string_unpack(),
+                self._read_array(SIGNATURE_TREE_OA_SA_SV_TYPES_1),
             ]
         else:
             tree = get_signature_tree(signature)
