@@ -84,6 +84,10 @@ SIGNATURE_TREE_SA_SV_AS_TYPES_2 = SIGNATURE_TREE_SA_SV_AS.types[2]
 SIGNATURE_TREE_OA_SA_SV = get_signature_tree("oa{sa{sv}}")
 SIGNATURE_TREE_OA_SA_SV_TYPES_1 = SIGNATURE_TREE_OA_SA_SV.types[1]
 
+TOKEN_O_AS_INT = ord("o")
+TOKEN_S_AS_INT = ord("s")
+TOKEN_G_AS_INT = ord("g")
+
 HEADER_MESSAGE_ARG_NAME = {
     1: "path",
     2: "interface",
@@ -483,16 +487,17 @@ class Unmarshaller:
             signature_len = buf[self._pos]  # byte
             o = self._pos + 1
             self._pos += signature_len + 2  # one for the byte, one for the '\0'
-            token = buf[o : o + signature_len].decode()
+            token_as_int = buf[o]
             # Now that we have the token we can read the variant value
             key = HEADER_MESSAGE_ARG_NAME[field_0]
             # Strings and signatures are the most common types
             # so we inline them for performance
-            if token in "os":
+            if token_as_int == TOKEN_O_AS_INT or token_as_int == TOKEN_S_AS_INT:
                 headers[key] = self._read_string_unpack()
-            elif token == "g":
+            elif token_as_int == TOKEN_G_AS_INT:
                 headers[key] = self._read_signature()
             else:
+                token = buf[o : o + signature_len].decode()
                 # There shouldn't be any other types in the header
                 # but just in case, we'll read it using the slow path
                 headers[key] = readers[token](self, get_signature_tree(token).types[0])
