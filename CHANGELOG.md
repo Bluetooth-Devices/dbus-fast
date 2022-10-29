@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.58.0 (2022-10-29)
+### Feature
+* Add optimized parser for properties changed messages with service data ([#124](https://github.com/Bluetooth-Devices/dbus-fast/issues/124)) ([`c8a9452`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c8a945210ae3ea8d25e4547f70b25d61b778ffe1))
+
 ## v1.57.0 (2022-10-29)
 ### Feature
 * Add optimized parser for InterfacesRemoved ([#123](https://github.com/Bluetooth-Devices/dbus-fast/issues/123)) ([`09822a5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/09822a59ffad07b8dcb6d216d98e6dccbe338b06))
