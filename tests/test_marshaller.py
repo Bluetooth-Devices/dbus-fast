@@ -321,6 +321,49 @@ def test_unmarshall_bluez_interfaces_added_message():
     ]
 
 
+def test_unmarshall_bluez_interfaces_removed_message():
+    bluez_interfaces_removed_message = (
+        b'l\4\1\1\222\0\0\0\377@-\0~\0\0\0\1\1o\0\1\0\0\0/\0\0\0\0\0\0\0\2\1s\0"\0\0\0'
+        b"org.freedesktop.DBus.ObjectManager\0\0\0\0\0\0\3\1s\0\21\0\0\0InterfacesRemoved"
+        b"\0\0\0\0\0\0\0\10\1g\0\3oas\0\0\0\0\0\0\0\0\7\1s\0\5\0\0\0:1.12\0\0\0%\0\0\0"
+        b"/org/bluez/hci0/dev_5F_13_47_38_26_55\0\0\0b\0\0\0\37\0\0\0org.freedesktop.DBus"
+        b".Properties\0#\0\0\0org.freedesktop.DBus.Introspectable\0\21\0\0\0org.bluez.Dev"
+        b"ice1\0"
+    )
+
+    stream = io.BytesIO(bluez_interfaces_removed_message)
+    unmarshaller = Unmarshaller(stream)
+    assert unmarshaller.unmarshall()
+    message = unmarshaller.message
+    assert message is not None
+    assert message.body == [
+        "/org/bluez/hci0/dev_5F_13_47_38_26_55",
+        [
+            "org.freedesktop.DBus.Properties",
+            "org.freedesktop.DBus.Introspectable",
+            "org.bluez.Device1",
+        ],
+    ]
+    assert message.sender == ":1.12"
+    assert message.path == "/"
+    assert message.interface == "org.freedesktop.DBus.ObjectManager"
+    assert message.member == "InterfacesRemoved"
+    assert message.signature == "oas"
+    assert message.message_type == MessageType.SIGNAL
+    assert message.flags == MessageFlag.NO_REPLY_EXPECTED
+    assert message.serial == 2965759
+    assert message.destination is None
+    unpacked = unpack_variants(message.body)
+    assert unpacked == [
+        "/org/bluez/hci0/dev_5F_13_47_38_26_55",
+        [
+            "org.freedesktop.DBus.Properties",
+            "org.freedesktop.DBus.Introspectable",
+            "org.bluez.Device1",
+        ],
+    ]
+
+
 def test_ay_buffer():
     body = [bytes(10000)]
     msg = Message(path="/test", member="test", signature="ay", body=body)

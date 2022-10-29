@@ -70,6 +70,9 @@ SIGNATURE_TREE_AS_TYPES_0 = SIGNATURE_TREE_AS.types[0]
 SIGNATURE_TREE_A_SV = get_signature_tree("a{sv}")
 SIGNATURE_TREE_A_SV_TYPES_0 = SIGNATURE_TREE_A_SV.types[0]
 
+SIGNATURE_TREE_OAS = get_signature_tree("oas")
+SIGNATURE_TREE_OAS_TYPES_1 = SIGNATURE_TREE_OAS.types[1]
+
 SIGNATURE_TREE_AY_TYPES_0 = SIGNATURE_TREE_AY.types[0]
 SIGNATURE_TREE_A_QV = get_signature_tree("a{qv}")
 SIGNATURE_TREE_A_QV_TYPES_0 = SIGNATURE_TREE_A_QV.types[0]
@@ -417,8 +420,9 @@ class Unmarshaller:
         if token == "{":
             result_dict = {}
             beginning_pos = self._pos
-            child_0 = child_type.children[0]
-            child_1 = child_type.children[1]
+            children = child_type.children
+            child_0 = children[0]
+            child_1 = children[1]
             child_0_token = child_0.token
             child_1_token = child_1.token
             # Strings with variant values are the most common case
@@ -442,7 +446,6 @@ class Unmarshaller:
             else:
                 reader_1 = self._readers[child_1_token]
                 reader_0 = self._readers[child_0_token]
-
                 while self._pos - beginning_pos < array_length:
                     self._pos += -self._pos & 7  # align 8
                     key = reader_0(self, child_0)
@@ -455,7 +458,11 @@ class Unmarshaller:
 
         result_list = []
         beginning_pos = self._pos
-        reader = self._readers[child_type.token]
+        if token in "os":
+            while self._pos - beginning_pos < array_length:
+                result_list.append(self._read_string_unpack())
+            return result_list
+        reader = self._readers[token]
         while self._pos - beginning_pos < array_length:
             result_list.append(reader(self, child_type))
         return result_list
@@ -567,6 +574,12 @@ class Unmarshaller:
             body = [
                 self._read_string_unpack(),
                 self._read_array(SIGNATURE_TREE_OA_SA_SV_TYPES_1),
+            ]
+        elif signature == "oas":
+            tree = SIGNATURE_TREE_OAS
+            body = [
+                self._read_string_unpack(),
+                self._read_array(SIGNATURE_TREE_OAS_TYPES_1),
             ]
         else:
             tree = get_signature_tree(signature)
