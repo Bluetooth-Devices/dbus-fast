@@ -59,10 +59,17 @@ HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION = 12
 
 
 SIGNATURE_TREE_EMPTY = get_signature_tree("")
+SIGNATURE_TREE_B = get_signature_tree("b")
 SIGNATURE_TREE_N = get_signature_tree("n")
 SIGNATURE_TREE_S = get_signature_tree("s")
+SIGNATURE_TREE_O = get_signature_tree("o")
 
 SIGNATURE_TREE_AY = get_signature_tree("ay")
+SIGNATURE_TREE_AS = get_signature_tree("as")
+SIGNATURE_TREE_AS_TYPES_0 = SIGNATURE_TREE_AS.types[0]
+SIGNATURE_TREE_A_SV = get_signature_tree("a{sv}")
+SIGNATURE_TREE_A_SV_TYPES_0 = SIGNATURE_TREE_A_SV.types[0]
+
 SIGNATURE_TREE_AY_TYPES_0 = SIGNATURE_TREE_AY.types[0]
 SIGNATURE_TREE_A_QV = get_signature_tree("a{qv}")
 SIGNATURE_TREE_A_QV_TYPES_0 = SIGNATURE_TREE_A_QV.types[0]
@@ -70,6 +77,9 @@ SIGNATURE_TREE_A_QV_TYPES_0 = SIGNATURE_TREE_A_QV.types[0]
 SIGNATURE_TREE_SA_SV_AS = get_signature_tree("sa{sv}as")
 SIGNATURE_TREE_SA_SV_AS_TYPES_1 = SIGNATURE_TREE_SA_SV_AS.types[1]
 SIGNATURE_TREE_SA_SV_AS_TYPES_2 = SIGNATURE_TREE_SA_SV_AS.types[2]
+
+SIGNATURE_TREE_OA_SA_SV = get_signature_tree("oa{sa{sv}}")
+SIGNATURE_TREE_OA_SA_SV_TYPES_1 = SIGNATURE_TREE_OA_SA_SV.types[1]
 
 HEADER_MESSAGE_ARG_NAME = {
     1: "path",
@@ -292,6 +302,9 @@ class Unmarshaller:
         return self._int16_unpack(self._buf, self._pos - INT16_SIZE)[0]
 
     def read_boolean(self, type_: SignatureType) -> bool:
+        return self._read_boolean()
+
+    def _read_boolean(self) -> bool:
         return bool(self._read_uint32_unpack())
 
     def read_string_unpack(self, type_: SignatureType) -> str:
@@ -336,6 +349,22 @@ class Unmarshaller:
             return Variant(
                 SIGNATURE_TREE_A_QV,
                 self._read_array(SIGNATURE_TREE_A_QV_TYPES_0),
+                False,
+            )
+        elif signature == "s":
+            return Variant(SIGNATURE_TREE_S, self._read_string_unpack(), False)
+        elif signature == "b":
+            return Variant(SIGNATURE_TREE_B, self._read_boolean(), False)
+        elif signature == "o":
+            return Variant(SIGNATURE_TREE_O, self._read_string_unpack(), False)
+        elif signature == "as":
+            return Variant(
+                SIGNATURE_TREE_AS, self._read_array(SIGNATURE_TREE_AS_TYPES_0), False
+            )
+        elif signature == "a{sv}":
+            return Variant(
+                SIGNATURE_TREE_A_SV,
+                self._read_array(SIGNATURE_TREE_A_SV_TYPES_0),
                 False,
             )
         tree = get_signature_tree(signature)
@@ -395,20 +424,25 @@ class Unmarshaller:
             # Strings with variant values are the most common case
             # so we optimize for that by inlining the string reading
             # and the variant reading here
-            if child_1_token == "v":
-                if child_0_token in "os":
-                    while self._pos - beginning_pos < array_length:
-                        self._pos += -self._pos & 7  # align 8
-                        key = self._read_string_unpack()
-                        result_dict[key] = self._read_variant()
-                elif child_0_token == "q":
-                    while self._pos - beginning_pos < array_length:
-                        self._pos += -self._pos & 7  # align 8
-                        key = self._read_uint16_unpack()
-                        result_dict[key] = self._read_variant()
+            if child_0_token in "os" and child_1_token == "v":
+                while self._pos - beginning_pos < array_length:
+                    self._pos += -self._pos & 7  # align 8
+                    key = self._read_string_unpack()
+                    result_dict[key] = self._read_variant()
+            elif child_0_token == "q" and child_1_token == "v":
+                while self._pos - beginning_pos < array_length:
+                    self._pos += -self._pos & 7  # align 8
+                    key = self._read_uint16_unpack()
+                    result_dict[key] = self._read_variant()
+            elif child_0_token == "s" and child_1_token == "a":
+                while self._pos - beginning_pos < array_length:
+                    self._pos += -self._pos & 7  # align 8
+                    key = self._read_string_unpack()
+                    result_dict[key] = self._read_array(child_1)
             else:
                 reader_1 = self._readers[child_1_token]
                 reader_0 = self._readers[child_0_token]
+
                 while self._pos - beginning_pos < array_length:
                     self._pos += -self._pos & 7  # align 8
                     key = reader_0(self, child_0)
@@ -527,6 +561,12 @@ class Unmarshaller:
                 self._read_string_unpack(),
                 self._read_array(SIGNATURE_TREE_SA_SV_AS_TYPES_1),
                 self._read_array(SIGNATURE_TREE_SA_SV_AS_TYPES_2),
+            ]
+        elif signature == "oa{sa{sv}}":
+            tree = SIGNATURE_TREE_OA_SA_SV
+            body = [
+                self._read_string_unpack(),
+                self._read_array(SIGNATURE_TREE_OA_SA_SV_TYPES_1),
             ]
         else:
             tree = get_signature_tree(signature)

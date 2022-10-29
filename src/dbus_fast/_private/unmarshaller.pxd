@@ -41,11 +41,19 @@ cdef object MESSAGE_FLAG_MAP
 cdef object HEADER_MESSAGE_ARG_NAME
 
 cdef object SIGNATURE_TREE_EMPTY
+cdef object SIGNATURE_TREE_B
 cdef object SIGNATURE_TREE_N
+cdef object SIGNATURE_TREE_O
 cdef object SIGNATURE_TREE_S
+cdef object SIGNATURE_TREE_AS
+cdef object SIGNATURE_TREE_AS_TYPES_0
+cdef object SIGNATURE_TREE_A_SV
+cdef object SIGNATURE_TREE_A_SV_TYPES_0
 cdef object SIGNATURE_TREE_SA_SV_AS
 cdef object SIGNATURE_TREE_SA_SV_AS_TYPES_1
 cdef object SIGNATURE_TREE_SA_SV_AS_TYPES_2
+cdef object SIGNATURE_TREE_OA_SA_SV
+cdef object SIGNATURE_TREE_OA_SA_SV_TYPES_1
 cdef object SIGNATURE_TREE_AY
 cdef object SIGNATURE_TREE_AY_TYPES_0
 cdef object SIGNATURE_TREE_A_QV
@@ -100,6 +108,10 @@ cdef class Unmarshaller:
         data=cython.bytes
     )
     cdef _read_to_pos(self, unsigned long pos)
+
+    cpdef read_boolean(self, object type_)
+
+    cdef bint _read_boolean(self)
 
     cpdef read_uint32_unpack(self, object type_)
 
