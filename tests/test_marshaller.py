@@ -9,6 +9,7 @@ import pytest
 from dbus_fast import Message, MessageFlag, MessageType, SignatureTree, Variant
 from dbus_fast._private._cython_compat import FakeCython
 from dbus_fast._private.unmarshaller import Unmarshaller
+from dbus_fast.unpack import unpack_variants
 
 
 def print_buf(buf):
@@ -164,6 +165,67 @@ def test_unmarshall_can_resume():
         if unmarshaller.unmarshall():
             break
     assert unmarshaller.message is not None
+
+
+def test_unmarshall_bluez_message():
+    bluez_mfr_message = (
+        "6c040101780000009aca0a009500000001016f00250000002f6f72672f626c75657a2f686369302f646576"
+        "5f44305f43325f34455f30385f41425f3537000000020173001f0000006f72672e667265656465736b746f"
+        "702e444275732e50726f7065727469657300030173001100000050726f706572746965734368616e676564"
+        "00000000000000080167000873617b73767d617300000007017300040000003a312e340000000011000000"
+        "6f72672e626c75657a2e446576696365310000005400000000000000040000005253534900016e00aaff00"
+        "00100000004d616e756661637475726572446174610005617b71767d002400000075000261790000001800"
+        "00004204010170d0c24e08ab57d2c24e08ab5601000000000000000000006c040101340000009bca0a0095"
+        "00000001016f002500"
+    )
+    message_bytes = bytes.fromhex(bluez_mfr_message)
+    stream = io.BytesIO(message_bytes)
+    unmarshaller = Unmarshaller(stream)
+    assert unmarshaller.unmarshall()
+    message = unmarshaller.message
+    assert message is not None
+    assert message.body == [
+        "org.bluez.Device1",
+        {
+            "ManufacturerData": Variant(
+                "a{qv}",
+                {
+                    117: Variant(
+                        "ay",
+                        bytearray(
+                            b"B\x04\x01\x01p\xd0\xc2N\x08\xabW\xd2\xc2N\x08\xabV\x01\x00\x00\x00\x00\x00\x00"
+                        ),
+                    )
+                },
+            ),
+            "RSSI": Variant("n", -86),
+        },
+        [],
+    ]
+    assert message.sender == ":1.4"
+    assert message.path == "/org/bluez/hci0/dev_D0_C2_4E_08_AB_57"
+    assert message.interface == "org.freedesktop.DBus.Properties"
+    assert message.member == "PropertiesChanged"
+    assert message.signature == "sa{sv}as"
+    assert message.message_type == MessageType.SIGNAL
+    assert message.flags == MessageFlag.NO_REPLY_EXPECTED
+    assert message.serial == 707226
+    assert message.destination is None
+    unpacked = unpack_variants(message.body)
+    assert unpacked == [
+        "org.bluez.Device1",
+        {
+            "ManufacturerData": {
+                117: bytearray(
+                    b"B\x04\x01\x01p\xd0\xc2N\x08\xabW\xd2"
+                    b"\xc2N\x08\xabV\x01\x00\x00"
+                    b"\x00\x00\x00\x00"
+                )
+            },
+            "RSSI": -86,
+        },
+        [],
+    ]
 
 
 def test_ay_buffer():
