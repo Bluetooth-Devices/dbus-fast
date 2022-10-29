@@ -762,8 +762,8 @@ class BaseMessageBus:
                 exc_type: Optional[Type[Exception]],
                 exc_value: Optional[Exception],
                 tb: Optional[TracebackType],
-            ) -> None:
-                self._exit(exc_type, exc_value, tb)
+            ) -> bool:
+                return self._exit(exc_type, exc_value, tb)
 
             def send_error(self, exc: Exception) -> None:
                 self._exit(exc.__class__, exc, exc.__traceback__)
