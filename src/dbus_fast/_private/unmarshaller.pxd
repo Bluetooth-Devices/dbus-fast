@@ -113,19 +113,19 @@ cdef class Unmarshaller:
 
     cpdef read_boolean(self, object type_)
 
-    cdef bint _read_boolean(self)
+    cdef _read_boolean(self)
 
     cpdef read_uint32_unpack(self, object type_)
 
-    cdef unsigned int _read_uint32_unpack(self)
+    cdef _read_uint32_unpack(self)
 
     cpdef read_int16_unpack(self, object type_)
 
-    cdef int _read_int16_unpack(self)
+    cdef _read_int16_unpack(self)
 
     cpdef read_uint16_unpack(self, object type_)
 
-    cdef unsigned int _read_uint16_unpack(self)
+    cdef _read_uint16_unpack(self)
 
     cpdef read_string_unpack(self, object type_)
 
