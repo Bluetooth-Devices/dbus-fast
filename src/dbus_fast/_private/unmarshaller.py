@@ -424,16 +424,21 @@ class Unmarshaller:
             # Strings with variant values are the most common case
             # so we optimize for that by inlining the string reading
             # and the variant reading here
-            if child_1_token == "v" and child_0_token in "os":
+            if child_0_token in "os" and child_1_token == "v":
                 while self._pos - beginning_pos < array_length:
                     self._pos += -self._pos & 7  # align 8
                     key = self._read_string_unpack()
                     result_dict[key] = self._read_variant()
-            elif child_1_token == "v" and child_0_token == "q":
+            elif child_0_token == "q" and child_1_token == "v":
                 while self._pos - beginning_pos < array_length:
                     self._pos += -self._pos & 7  # align 8
                     key = self._read_uint16_unpack()
                     result_dict[key] = self._read_variant()
+            elif child_0_token == "s" and child_1_token == "a":
+                while self._pos - beginning_pos < array_length:
+                    self._pos += -self._pos & 7  # align 8
+                    key = self._read_string_unpack()
+                    result_dict[key] = self._read_array(child_1)
             else:
                 reader_1 = self._readers[child_1_token]
                 reader_0 = self._readers[child_0_token]
