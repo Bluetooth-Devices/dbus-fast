@@ -380,7 +380,6 @@ def test_unmarshall_bluez_properties_changed_with_service_data():
     assert unmarshaller.unmarshall()
     message = unmarshaller.message
     assert message is not None
-    assert message is not None
     assert message.body == [
         "org.bluez.Device1",
         {
@@ -431,6 +430,47 @@ def test_unmarshall_bluez_properties_changed_with_service_data():
         },
         [],
     ]
+
+
+def test_unmarshall_multiple_messages():
+    """Test we can unmarshall multiple messages in a single packet."""
+    multiple_message_packet = (
+        b"l\4\1\0014\0\0\0J\27\230\0\225\0\0\0\1\1o\0%\0\0\0/org/bluez/hci0/dev_F0_B3_EC_15_7F_8E\0\0\0\2\1s\0\37\0\0\0"
+        b"org.freedesktop.DBus.Properties\0\3\1s\0\21\0\0\0PropertiesChanged\0\0\0\0\0\0\0\10\1g\0\10sa{sv}as\0\0\0\7\1"
+        b"s\0\4\0\0\0:1.4\0\0\0\0\21\0\0\0org.bluez.Device1\0\0\0\16\0\0\0\0\0\0\0\4\0\0\0RSSI\0\1n\0\264\377\0\0\0\0\0"
+        b"\0l\4\1\0014\0\0\0K\27\230\0\225\0\0\0\1\1o\0%\0\0\0/org/bluez/hci0/dev_3F_70_98_0F_08_CB\0\0\0\2\1s\0\37\0\0"
+        b"\0org.freedesktop.DBus.Properties\0\3\1s\0\21\0\0\0PropertiesChanged\0\0\0\0\0\0\0\10\1g\0\10sa{sv}as\0\0\0\7"
+        b"\1s\0\4\0\0\0:1.4\0\0\0\0\21\0\0\0org.bluez.Device1\0\0\0\16\0\0\0\0\0\0\0\4\0\0\0RSSI\0\1n\0\260\377\0\0\0\0"
+        b"\0\0l\4\1\0014\0\0\0L\27\230\0\225\0\0\0\1\1o\0%\0\0\0/org/bluez/hci0/dev_D8_35_67_A4_F5_A5\0\0\0\2\1s\0\37\0"
+        b"\0\0org.freedesktop.DBus.Properties\0\3\1s\0\21\0\0\0PropertiesChanged\0\0\0\0\0\0\0\10\1g\0\10sa{sv}as\0\0\0"
+        b"\7\1s\0\4\0\0\0:1.4\0\0\0\0\21\0\0\0org.bluez.Device1\0\0\0\16\0\0\0\0\0\0\0\4\0\0\0RSSI\0\1n\0\242\377\0\0\0"
+        b"\0\0\0"
+    )
+    stream = io.BytesIO(multiple_message_packet)
+    unmarshaller = Unmarshaller(stream)
+    assert unmarshaller.unmarshall()
+    message = unmarshaller.message
+    assert message is not None
+    unpacked = unpack_variants(message.body)
+    assert unpacked == ["org.bluez.Device1", {"RSSI": -76}, []]
+
+    unmarshaller.reset()
+    assert unmarshaller.unmarshall()
+    message = unmarshaller.message
+    assert message is not None
+    unpacked = unpack_variants(message.body)
+    assert unpacked == ["org.bluez.Device1", {"RSSI": -80}, []]
+
+    unmarshaller.reset()
+    assert unmarshaller.unmarshall()
+    message = unmarshaller.message
+    assert message is not None
+    unpacked = unpack_variants(message.body)
+    assert unpacked == ["org.bluez.Device1", {"RSSI": -94}, []]
+
+    unmarshaller.reset()
+    with pytest.raises(EOFError):
+        unmarshaller.unmarshall()
 
 
 def test_ay_buffer():
