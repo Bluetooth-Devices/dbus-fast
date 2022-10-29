@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.57.0 (2022-10-29)
+### Feature
+* Add optimized parser for InterfacesRemoved ([#123](https://github.com/Bluetooth-Devices/dbus-fast/issues/123)) ([`09822a5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/09822a59ffad07b8dcb6d216d98e6dccbe338b06))
+
 ## v1.56.0 (2022-10-29)
 ### Feature
 * Optimize for interfaces added messages ([#122](https://github.com/Bluetooth-Devices/dbus-fast/issues/122)) ([`c05a27a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c05a27aef9395eb688385109c4ff7204d5103dda))
