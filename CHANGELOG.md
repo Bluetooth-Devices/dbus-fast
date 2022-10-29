@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.59.0 (2022-10-29)
+### Feature
+* Speed up decoding headers by avoiding unicode checks ([#125](https://github.com/Bluetooth-Devices/dbus-fast/issues/125)) ([`6121781`](https://github.com/Bluetooth-Devices/dbus-fast/commit/61217819fbbe073007a44db69328008941d6bb4c))
+
 ## v1.58.0 (2022-10-29)
 ### Feature
 * Add optimized parser for properties changed messages with service data ([#124](https://github.com/Bluetooth-Devices/dbus-fast/issues/124)) ([`c8a9452`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c8a945210ae3ea8d25e4547f70b25d61b778ffe1))
