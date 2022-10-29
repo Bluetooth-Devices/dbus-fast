@@ -228,6 +228,99 @@ def test_unmarshall_bluez_message():
     ]
 
 
+def test_unmarshall_bluez_interfaces_added_message():
+    bluez_interfaces_added_message = (
+        b'l\4\1\1\240\2\0\0\227\272\23\0u\0\0\0\1\1o\0\1\0\0\0/\0\0\0\0\0\0\0\2\1s\0"\0\0\0'
+        b"org.freedesktop.DBus.ObjectManager\0\0\0\0\0\0\3\1s\0\17\0\0\0InterfacesAdded\0\10"
+        b"\1g\0\noa{sa{sv}}\0\7\1s\0\4\0\0\0:1.4\0\0\0\0%\0\0\0/org/bluez/hci1/dev_58_2D_34"
+        b"_60_26_36\0\0\0p\2\0\0#\0\0\0org.freedesktop.DBus.Introspectable\0\0\0\0\0\0\0\0\0"
+        b"\21\0\0\0org.bluez.Device1\0\0\0\364\1\0\0\0\0\0\0\7\0\0\0Address\0\1s\0\0\21\0\0"
+        b"\00058:2D:34:60:26:36\0\0\0\v\0\0\0AddressType\0\1s\0\0\6\0\0\0public\0\0\4\0\0\0"
+        b"Name\0\1s\0\33\0\0\0Qingping Door/Window Sensor\0\0\0\0\0\5\0\0\0Alias\0\1s\0\0\0"
+        b"\0\33\0\0\0Qingping Door/Window Sensor\0\6\0\0\0Paired\0\1b\0\0\0\0\0\0\0\0\0\0\0"
+        b"\7\0\0\0Trusted\0\1b\0\0\0\0\0\0\0\0\0\0\7\0\0\0Blocked\0\1b\0\0\0\0\0\0\0\0\0\0\r"
+        b"\0\0\0LegacyPairing\0\1b\0\0\0\0\0\0\0\0\0\0\0\0\4\0\0\0RSSI\0\1n\0\316\377\0\0\t"
+        b"\0\0\0Connected\0\1b\0\0\0\0\0\0\0\0\5\0\0\0UUIDs\0\2as\0\0\0\0\0\0\0\0\0\0\0\7\0"
+        b"\0\0Adapter\0\1o\0\0\17\0\0\0/org/bluez/hci1\0\0\0\0\0\v\0\0\0ServiceData\0\5a{sv}"
+        b"\0\0@\0\0\0\0\0\0\0$\0\0\0000000fe95-0000-1000-8000-00805f9b34fb\0\2ay\0\0\0\0\f\0"
+        b"\0\0000X\326\3\0026&`4-X\10\20\0\0\0ServicesResolved\0\1b\0\0\0\0\0\0\0\0\0\37\0\0"
+        b"\0org.freedesktop.DBus.Properties\0\0\0\0\0"
+    )
+
+    stream = io.BytesIO(bluez_properties_changed_message)
+    unmarshaller = Unmarshaller(stream)
+    assert unmarshaller.unmarshall()
+    message = unmarshaller.message
+    assert message is not None
+    assert message.body == [
+        "/org/bluez/hci1/dev_58_2D_34_60_26_36",
+        {
+            "org.bluez.Device1": {
+                "Adapter": Variant("o", "/org/bluez/hci1"),
+                "Address": Variant("s", "58:2D:34:60:26:36"),
+                "AddressType": Variant("s", "public"),
+                "Alias": Variant("s", "Qingping Door/Window Sensor"),
+                "Blocked": Variant("b", False),
+                "Connected": Variant("b", False),
+                "LegacyPairing": Variant("b", False),
+                "Name": Variant("s", "Qingping Door/Window Sensor"),
+                "Paired": Variant("b", False),
+                "RSSI": Variant("n", -50),
+                "ServiceData": Variant(
+                    "a{sv}",
+                    {
+                        "0000fe95-0000-1000-8000-00805f9b34fb": Variant(
+                            "ay", bytearray(b"0X\xd6\x03\x026&`4-X\x08")
+                        )
+                    },
+                ),
+                "ServicesResolved": Variant("b", False),
+                "Trusted": Variant("b", False),
+                "UUIDs": Variant("as", []),
+            },
+            "org.freedesktop.DBus.Introspectable": {},
+            "org.freedesktop.DBus.Properties": {},
+        },
+    ]
+    assert message.sender == ":1.4"
+    assert message.path == "/"
+    assert message.interface == "org.freedesktop.DBus.ObjectManager"
+    assert message.member == "InterfacesAdded"
+    assert message.signature == "oa{sa{sv}}"
+    assert message.message_type == MessageType.SIGNAL
+    assert message.flags == MessageFlag.NO_REPLY_EXPECTED
+    assert message.serial == 1292951
+    assert message.destination is None
+    unpacked = unpack_variants(message.body)
+    assert unpacked == [
+        "/org/bluez/hci1/dev_58_2D_34_60_26_36",
+        {
+            "org.bluez.Device1": {
+                "Adapter": "/org/bluez/hci1",
+                "Address": "58:2D:34:60:26:36",
+                "AddressType": "public",
+                "Alias": "Qingping Door/Window Sensor",
+                "Blocked": False,
+                "Connected": False,
+                "LegacyPairing": False,
+                "Name": "Qingping Door/Window Sensor",
+                "Paired": False,
+                "RSSI": -50,
+                "ServiceData": {
+                    "0000fe95-0000-1000-8000-00805f9b34fb": bytearray(
+                        b"0X\xd6\x03" b"\x026&`" b"4-X\x08"
+                    )
+                },
+                "ServicesResolved": False,
+                "Trusted": False,
+                "UUIDs": [],
+            },
+            "org.freedesktop.DBus.Introspectable": {},
+            "org.freedesktop.DBus.Properties": {},
+        },
+    ]
+
+
 def test_ay_buffer():
     body = [bytes(10000)]
     msg = Message(path="/test", member="test", signature="ay", body=body)

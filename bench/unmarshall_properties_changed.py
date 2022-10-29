@@ -6,7 +6,7 @@ from dbus_fast._private.unmarshaller import Unmarshaller
 #  cythonize -X language_level=3 -a -i  src/dbus_fast/_private/unmarshaller.py
 
 
-bluez_properties_changed_message = (
+bluez_interfaces_added_message = (
     b'l\4\1\1\240\2\0\0\227\272\23\0u\0\0\0\1\1o\0\1\0\0\0/\0\0\0\0\0\0\0\2\1s\0"\0\0\0'
     b"org.freedesktop.DBus.ObjectManager\0\0\0\0\0\0\3\1s\0\17\0\0\0InterfacesAdded\0\10"
     b"\1g\0\noa{sa{sv}}\0\7\1s\0\4\0\0\0:1.4\0\0\0\0%\0\0\0/org/bluez/hci1/dev_58_2D_34"
@@ -25,16 +25,16 @@ bluez_properties_changed_message = (
 )
 
 
-stream = io.BytesIO(bluez_properties_changed_message)
+stream = io.BytesIO(bluez_interfaces_added_message)
 unmarshaller = Unmarshaller(stream)
 
 
-def unmarshall_properties_changed_message():
+def unmarshall_interfaces_added_message():
     stream.seek(0)
     unmarshaller.reset()
     unmarshaller.unmarshall()
 
 
 count = 3000000
-time = timeit.Timer(unmarshall_properties_changed_message).timeit(count)
-print(f"Unmarshalling {count} bluetooth PropertiesChanged messages took {time} seconds")
+time = timeit.Timer(unmarshall_interfaces_added_message).timeit(count)
+print(f"Unmarshalling {count} bluetooth InterfacesAdded messages took {time} seconds")
