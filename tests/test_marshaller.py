@@ -247,7 +247,7 @@ def test_unmarshall_bluez_interfaces_added_message():
         b"\0org.freedesktop.DBus.Properties\0\0\0\0\0"
     )
 
-    stream = io.BytesIO(bluez_properties_changed_message)
+    stream = io.BytesIO(bluez_interfaces_added_message)
     unmarshaller = Unmarshaller(stream)
     assert unmarshaller.unmarshall()
     message = unmarshaller.message

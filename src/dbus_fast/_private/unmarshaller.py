@@ -59,10 +59,17 @@ HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION = 12
 
 
 SIGNATURE_TREE_EMPTY = get_signature_tree("")
+SIGNATURE_TREE_B = get_signature_tree("b")
 SIGNATURE_TREE_N = get_signature_tree("n")
 SIGNATURE_TREE_S = get_signature_tree("s")
+SIGNATURE_TREE_O = get_signature_tree("o")
 
 SIGNATURE_TREE_AY = get_signature_tree("ay")
+SIGNATURE_TREE_AS = get_signature_tree("as")
+SIGNATURE_TREE_AS_TYPES_0 = SIGNATURE_TREE_AS.types[0]
+SIGNATURE_TREE_A_SV = get_signature_tree("a{sv}")
+SIGNATURE_TREE_A_SV_TYPES_0 = SIGNATURE_TREE_A_SV.types[0]
+
 SIGNATURE_TREE_AY_TYPES_0 = SIGNATURE_TREE_AY.types[0]
 SIGNATURE_TREE_A_QV = get_signature_tree("a{qv}")
 SIGNATURE_TREE_A_QV_TYPES_0 = SIGNATURE_TREE_A_QV.types[0]
@@ -292,6 +299,9 @@ class Unmarshaller:
         return self._int16_unpack(self._buf, self._pos - INT16_SIZE)[0]
 
     def read_boolean(self, type_: SignatureType) -> bool:
+        return self._read_boolean()
+
+    def _read_boolean(self) -> bool:
         return bool(self._read_uint32_unpack())
 
     def read_string_unpack(self, type_: SignatureType) -> str:
@@ -336,6 +346,22 @@ class Unmarshaller:
             return Variant(
                 SIGNATURE_TREE_A_QV,
                 self._read_array(SIGNATURE_TREE_A_QV_TYPES_0),
+                False,
+            )
+        elif signature == "s":
+            return Variant(SIGNATURE_TREE_S, self._read_string_unpack(), False)
+        elif signature == "b":
+            return Variant(SIGNATURE_TREE_B, self._read_boolean(), False)
+        elif signature == "o":
+            return Variant(SIGNATURE_TREE_O, self._read_string_unpack(), False)
+        elif signature == "as":
+            return Variant(
+                SIGNATURE_TREE_AS, self._read_array(SIGNATURE_TREE_AS_TYPES_0), False
+            )
+        elif signature == "a{sv}":
+            return Variant(
+                SIGNATURE_TREE_A_SV,
+                self._read_array(SIGNATURE_TREE_A_SV_TYPES_0),
                 False,
             )
         tree = get_signature_tree(signature)
