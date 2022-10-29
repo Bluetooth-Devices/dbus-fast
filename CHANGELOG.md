@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.59.1 (2022-10-29)
+### Fix
+* Pass return value to SendReply.__exit__ ([#127](https://github.com/Bluetooth-Devices/dbus-fast/issues/127)) ([`f8c67ed`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f8c67ed00fa8fe58a85b6ba73b5fa5974f802004))
+
 ## v1.59.0 (2022-10-29)
 ### Feature
 * Speed up decoding headers by avoiding unicode checks ([#125](https://github.com/Bluetooth-Devices/dbus-fast/issues/125)) ([`6121781`](https://github.com/Bluetooth-Devices/dbus-fast/commit/61217819fbbe073007a44db69328008941d6bb4c))
