@@ -1,6 +1,5 @@
 import array
 import io
-import pprint
 import socket
 import sys
 from struct import Struct
@@ -24,10 +23,17 @@ INT16_CAST = "h"
 INT16_SIZE = 2
 INT16_DBUS_TYPE = "n"
 
+UINT16_CAST = "H"
+UINT16_SIZE = 2
+UINT16_DBUS_TYPE = "q"
+
+SYS_IS_LITTLE_ENDIAN = sys.byteorder == "little"
+SYS_IS_BIG_ENDIAN = sys.byteorder == "big"
+
 DBUS_TO_CTYPE = {
     "y": ("B", 1),  # byte
     INT16_DBUS_TYPE: (INT16_CAST, INT16_SIZE),  # int16
-    "q": ("H", 2),  # uint16
+    UINT16_DBUS_TYPE: (UINT16_CAST, UINT16_SIZE),  # uint16
     "i": ("i", 4),  # int32
     UINT32_DBUS_TYPE: (UINT32_CAST, UINT32_SIZE),  # uint32
     "x": ("q", 8),  # int64
@@ -37,16 +43,50 @@ DBUS_TO_CTYPE = {
 }
 
 UNPACK_HEADER_LITTLE_ENDIAN = Struct("<III").unpack_from
-UINT32_UNPACK_LITTLE_ENDIAN = Struct("<I").unpack_from
-INT16_UNPACK_LITTLE_ENDIAN = Struct("<h").unpack_from
-
 UNPACK_HEADER_BIG_ENDIAN = Struct(">III").unpack_from
-UINT32_UNPACK_BIG_ENDIAN = Struct(">I").unpack_from
-INT16_UNPACK_BIG_ENDIAN = Struct(">h").unpack_from
+
+UINT32_UNPACK_LITTLE_ENDIAN = Struct(f"<{UINT32_CAST}").unpack_from
+UINT32_UNPACK_BIG_ENDIAN = Struct(f">{UINT32_CAST}").unpack_from
+
+INT16_UNPACK_LITTLE_ENDIAN = Struct(f"<{INT16_CAST}").unpack_from
+INT16_UNPACK_BIG_ENDIAN = Struct(f">{INT16_CAST}").unpack_from
+
+UINT16_UNPACK_LITTLE_ENDIAN = Struct(f"<{UINT16_CAST}").unpack_from
+UINT16_UNPACK_BIG_ENDIAN = Struct(f">{UINT16_CAST}").unpack_from
 
 HEADER_SIGNATURE_SIZE = 16
 HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION = 12
 
+
+SIGNATURE_TREE_EMPTY = get_signature_tree("")
+SIGNATURE_TREE_B = get_signature_tree("b")
+SIGNATURE_TREE_N = get_signature_tree("n")
+SIGNATURE_TREE_S = get_signature_tree("s")
+SIGNATURE_TREE_O = get_signature_tree("o")
+
+SIGNATURE_TREE_AY = get_signature_tree("ay")
+SIGNATURE_TREE_AS = get_signature_tree("as")
+SIGNATURE_TREE_AS_TYPES_0 = SIGNATURE_TREE_AS.types[0]
+SIGNATURE_TREE_A_SV = get_signature_tree("a{sv}")
+SIGNATURE_TREE_A_SV_TYPES_0 = SIGNATURE_TREE_A_SV.types[0]
+
+SIGNATURE_TREE_OAS = get_signature_tree("oas")
+SIGNATURE_TREE_OAS_TYPES_1 = SIGNATURE_TREE_OAS.types[1]
+
+SIGNATURE_TREE_AY_TYPES_0 = SIGNATURE_TREE_AY.types[0]
+SIGNATURE_TREE_A_QV = get_signature_tree("a{qv}")
+SIGNATURE_TREE_A_QV_TYPES_0 = SIGNATURE_TREE_A_QV.types[0]
+
+SIGNATURE_TREE_SA_SV_AS = get_signature_tree("sa{sv}as")
+SIGNATURE_TREE_SA_SV_AS_TYPES_1 = SIGNATURE_TREE_SA_SV_AS.types[1]
+SIGNATURE_TREE_SA_SV_AS_TYPES_2 = SIGNATURE_TREE_SA_SV_AS.types[2]
+
+SIGNATURE_TREE_OA_SA_SV = get_signature_tree("oa{sa{sv}}")
+SIGNATURE_TREE_OA_SA_SV_TYPES_1 = SIGNATURE_TREE_OA_SA_SV.types[1]
+
+TOKEN_O_AS_INT = ord("o")
+TOKEN_S_AS_INT = ord("s")
+TOKEN_G_AS_INT = ord("g")
 
 HEADER_MESSAGE_ARG_NAME = {
     1: "path",
@@ -99,6 +139,11 @@ class MarshallerStreamEndError(Exception):
     pass
 
 
+try:
+    import cython
+except ImportError:
+    from ._cython_compat import FakeCython as cython
+
 #
 # Alignment padding is handled with the following formula below
 #
@@ -134,6 +179,8 @@ class Unmarshaller:
         "_msg_len",
         "_uint32_unpack",
         "_int16_unpack",
+        "_uint16_unpack",
+        "_is_native",
     )
 
     def __init__(self, stream: io.BufferedRWPair, sock: Optional[socket.socket] = None):
@@ -150,8 +197,10 @@ class Unmarshaller:
         self._message_type = 0
         self._flag = 0
         self._msg_len = 0
+        self._is_native = 0
         self._uint32_unpack: Callable | None = None
         self._int16_unpack: Callable | None = None
+        self._uint16_unpack: Callable | None = None
 
     def reset(self) -> None:
         """Reset the unmarshaller to its initial state.
@@ -168,8 +217,9 @@ class Unmarshaller:
         self._message_type = 0
         self._flag = 0
         self._msg_len = 0
-        self._uint32_unpack = None
-        self._int16_unpack = None
+        self._is_native = 0
+        # No need to reset the unpack functions, they are set in _read_header
+        # every time a new message is processed.
 
     @property
     def message(self) -> Message:
@@ -230,16 +280,38 @@ class Unmarshaller:
 
     def _read_uint32_unpack(self) -> int:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
+        if self._is_native and cython.compiled:
+            return _cast_uint32_native(  # pragma: no cover
+                self._buf, self._pos - UINT32_SIZE
+            )
         return self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
+
+    def read_uint16_unpack(self, type_: SignatureType) -> int:
+        return self._read_uint16_unpack()
+
+    def _read_uint16_unpack(self) -> int:
+        self._pos += UINT16_SIZE + (-self._pos & (UINT16_SIZE - 1))  # align
+        if self._is_native and cython.compiled:
+            return _cast_uint16_native(  # pragma: no cover
+                self._buf, self._pos - UINT16_SIZE
+            )
+        return self._uint16_unpack(self._buf, self._pos - UINT16_SIZE)[0]
 
     def read_int16_unpack(self, type_: SignatureType) -> int:
         return self._read_int16_unpack()
 
     def _read_int16_unpack(self) -> int:
         self._pos += INT16_SIZE + (-self._pos & (INT16_SIZE - 1))  # align
+        if self._is_native and cython.compiled:
+            return _cast_int16_native(  # pragma: no cover
+                self._buf, self._pos - INT16_SIZE
+            )
         return self._int16_unpack(self._buf, self._pos - INT16_SIZE)[0]
 
     def read_boolean(self, type_: SignatureType) -> bool:
+        return self._read_boolean()
+
+    def _read_boolean(self) -> bool:
         return bool(self._read_uint32_unpack())
 
     def read_string_unpack(self, type_: SignatureType) -> str:
@@ -250,7 +322,12 @@ class Unmarshaller:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
         str_start = self._pos
         # read terminating '\0' byte as well (str_length + 1)
-        self._pos += self._uint32_unpack(self._buf, str_start - UINT32_SIZE)[0] + 1
+        if self._is_native and cython.compiled:
+            self._pos += (  # pragma: no cover
+                _cast_uint32_native(self._buf, str_start - UINT32_SIZE) + 1
+            )
+        else:
+            self._pos += self._uint32_unpack(self._buf, str_start - UINT32_SIZE)[0] + 1
         return self._buf[str_start : self._pos - 1].decode()
 
     def read_signature(self, type_: SignatureType) -> str:
@@ -267,15 +344,41 @@ class Unmarshaller:
         return self._read_variant()
 
     def _read_variant(self) -> Variant:
-        tree = get_signature_tree(self._read_signature())
-        signature_type = tree.types[0]
+        signature = self._read_signature()
         # verify in Variant is only useful on construction not unmarshalling
-        token = signature_type.token
-        if token == "n":
-            return Variant(tree, self._read_int16_unpack(), False)
+        if signature == "n":
+            return Variant(SIGNATURE_TREE_N, self._read_int16_unpack(), False)
+        elif signature == "ay":
+            return Variant(
+                SIGNATURE_TREE_AY, self._read_array(SIGNATURE_TREE_AY_TYPES_0), False
+            )
+        elif signature == "a{qv}":
+            return Variant(
+                SIGNATURE_TREE_A_QV,
+                self._read_array(SIGNATURE_TREE_A_QV_TYPES_0),
+                False,
+            )
+        elif signature == "s":
+            return Variant(SIGNATURE_TREE_S, self._read_string_unpack(), False)
+        elif signature == "b":
+            return Variant(SIGNATURE_TREE_B, self._read_boolean(), False)
+        elif signature == "o":
+            return Variant(SIGNATURE_TREE_O, self._read_string_unpack(), False)
+        elif signature == "as":
+            return Variant(
+                SIGNATURE_TREE_AS, self._read_array(SIGNATURE_TREE_AS_TYPES_0), False
+            )
+        elif signature == "a{sv}":
+            return Variant(
+                SIGNATURE_TREE_A_SV,
+                self._read_array(SIGNATURE_TREE_A_SV_TYPES_0),
+                False,
+            )
+        tree = get_signature_tree(signature)
+        signature_type = tree.types[0]
         return Variant(
             tree,
-            self._readers[token](self, signature_type),
+            self._readers[signature_type.token](self, signature_type),
             False,
         )
 
@@ -300,7 +403,12 @@ class Unmarshaller:
         self._pos += (
             -self._pos & (UINT32_SIZE - 1)
         ) + UINT32_SIZE  # align for the uint32
-        array_length = self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
+        if self._is_native and cython.compiled:
+            array_length = _cast_uint32_native(  # pragma: no cover
+                self._buf, self._pos - UINT32_SIZE
+            )
+        else:
+            array_length = self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
 
         child_type = type_.children[0]
         token = child_type.token
@@ -316,11 +424,11 @@ class Unmarshaller:
         if token == "{":
             result_dict = {}
             beginning_pos = self._pos
-            child_0 = child_type.children[0]
-            child_1 = child_type.children[1]
+            children = child_type.children
+            child_0 = children[0]
+            child_1 = children[1]
             child_0_token = child_0.token
             child_1_token = child_1.token
-
             # Strings with variant values are the most common case
             # so we optimize for that by inlining the string reading
             # and the variant reading here
@@ -329,6 +437,16 @@ class Unmarshaller:
                     self._pos += -self._pos & 7  # align 8
                     key = self._read_string_unpack()
                     result_dict[key] = self._read_variant()
+            elif child_0_token == "q" and child_1_token == "v":
+                while self._pos - beginning_pos < array_length:
+                    self._pos += -self._pos & 7  # align 8
+                    key = self._read_uint16_unpack()
+                    result_dict[key] = self._read_variant()
+            elif child_0_token == "s" and child_1_token == "a":
+                while self._pos - beginning_pos < array_length:
+                    self._pos += -self._pos & 7  # align 8
+                    key = self._read_string_unpack()
+                    result_dict[key] = self._read_array(child_1)
             else:
                 reader_1 = self._readers[child_1_token]
                 reader_0 = self._readers[child_0_token]
@@ -344,7 +462,11 @@ class Unmarshaller:
 
         result_list = []
         beginning_pos = self._pos
-        reader = self._readers[child_type.token]
+        if token in "os":
+            while self._pos - beginning_pos < array_length:
+                result_list.append(self._read_string_unpack())
+            return result_list
+        reader = self._readers[token]
         while self._pos - beginning_pos < array_length:
             result_list.append(reader(self, child_type))
         return result_list
@@ -365,16 +487,17 @@ class Unmarshaller:
             signature_len = buf[self._pos]  # byte
             o = self._pos + 1
             self._pos += signature_len + 2  # one for the byte, one for the '\0'
-            token = buf[o : o + signature_len].decode()
+            token_as_int = buf[o]
             # Now that we have the token we can read the variant value
             key = HEADER_MESSAGE_ARG_NAME[field_0]
             # Strings and signatures are the most common types
             # so we inline them for performance
-            if token in "os":
+            if token_as_int == TOKEN_O_AS_INT or token_as_int == TOKEN_S_AS_INT:
                 headers[key] = self._read_string_unpack()
-            elif token == "g":
+            elif token_as_int == TOKEN_G_AS_INT:
                 headers[key] = self._read_signature()
             else:
+                token = buf[o : o + signature_len].decode()
                 # There shouldn't be any other types in the header
                 # but just in case, we'll read it using the slow path
                 headers[key] = readers[token](self, get_signature_tree(token).types[0])
@@ -396,6 +519,14 @@ class Unmarshaller:
                 f"got unknown protocol version: {protocol_version}"
             )
 
+        if cython.compiled and (
+            (endian == LITTLE_ENDIAN and SYS_IS_LITTLE_ENDIAN)
+            or (endian == BIG_ENDIAN and SYS_IS_BIG_ENDIAN)
+        ):
+            self._is_native = 1  # pragma: no cover
+            self._body_len = _cast_uint32_native(self._buf, 4)  # pragma: no cover
+            self._serial = _cast_uint32_native(self._buf, 8)  # pragma: no cover
+            self._header_len = _cast_uint32_native(self._buf, 12)  # pragma: no cover
         if endian == LITTLE_ENDIAN:
             (
                 self._body_len,
@@ -404,12 +535,14 @@ class Unmarshaller:
             ) = UNPACK_HEADER_LITTLE_ENDIAN(self._buf, 4)
             self._uint32_unpack = UINT32_UNPACK_LITTLE_ENDIAN
             self._int16_unpack = INT16_UNPACK_LITTLE_ENDIAN
+            self._uint16_unpack = UINT16_UNPACK_LITTLE_ENDIAN
         elif endian == BIG_ENDIAN:
             self._body_len, self._serial, self._header_len = UNPACK_HEADER_BIG_ENDIAN(
                 self._buf, 4
             )
             self._uint32_unpack = UINT32_UNPACK_BIG_ENDIAN
             self._int16_unpack = INT16_UNPACK_BIG_ENDIAN
+            self._uint16_unpack = UINT16_UNPACK_BIG_ENDIAN
         else:
             raise InvalidMessageError(
                 f"Expecting endianness as the first byte, got {endian} from {buffer}"
@@ -427,19 +560,34 @@ class Unmarshaller:
         header_fields = self.header_fields(self._header_len)
         self._pos += -self._pos & 7  # align 8
         header_fields.pop("unix_fds", None)  # defined by self._unix_fds
-        tree = get_signature_tree(header_fields.pop("signature", ""))
+        signature = header_fields.pop("signature", "")
         if not self._body_len:
+            tree = SIGNATURE_TREE_EMPTY
             body = []
-        elif tree.signature == "s":
+        elif signature == "s":
+            tree = SIGNATURE_TREE_S
             body = [self._read_string_unpack()]
-        elif tree.signature == "sa{sv}as":
-            types = tree.types
+        elif signature == "sa{sv}as":
+            tree = SIGNATURE_TREE_SA_SV_AS
             body = [
                 self._read_string_unpack(),
-                self._read_array(types[1]),
-                self._read_array(types[2]),
+                self._read_array(SIGNATURE_TREE_SA_SV_AS_TYPES_1),
+                self._read_array(SIGNATURE_TREE_SA_SV_AS_TYPES_2),
+            ]
+        elif signature == "oa{sa{sv}}":
+            tree = SIGNATURE_TREE_OA_SA_SV
+            body = [
+                self._read_string_unpack(),
+                self._read_array(SIGNATURE_TREE_OA_SA_SV_TYPES_1),
+            ]
+        elif signature == "oas":
+            tree = SIGNATURE_TREE_OAS
+            body = [
+                self._read_string_unpack(),
+                self._read_array(SIGNATURE_TREE_OAS_TYPES_1),
             ]
         else:
+            tree = get_signature_tree(signature)
             body = [self._readers[t.token](self, t) for t in tree.types]
 
         self._message = Message(
@@ -484,6 +632,7 @@ class Unmarshaller:
         "h": read_uint32_unpack,
         UINT32_DBUS_TYPE: read_uint32_unpack,
         INT16_DBUS_TYPE: read_int16_unpack,
+        UINT16_DBUS_TYPE: read_uint16_unpack,
     }
 
     _ctype_by_endian: Dict[int, Dict[str, READER_TYPE]] = {
