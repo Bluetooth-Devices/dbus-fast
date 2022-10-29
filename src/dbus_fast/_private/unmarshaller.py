@@ -420,8 +420,9 @@ class Unmarshaller:
         if token == "{":
             result_dict = {}
             beginning_pos = self._pos
-            child_0 = child_type.children[0]
-            child_1 = child_type.children[1]
+            children = child_type.children
+            child_0 = children[0]
+            child_1 = children[1]
             child_0_token = child_0.token
             child_1_token = child_1.token
             # Strings with variant values are the most common case
@@ -457,7 +458,11 @@ class Unmarshaller:
 
         result_list = []
         beginning_pos = self._pos
-        reader = self._readers[child_type.token]
+        if token in "os":
+            while self._pos - beginning_pos < array_length:
+                result_list.append(self._read_string_unpack())
+            return result_list
+        reader = self._readers[token]
         while self._pos - beginning_pos < array_length:
             result_list.append(reader(self, child_type))
         return result_list
