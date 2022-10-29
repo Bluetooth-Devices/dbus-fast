@@ -61,6 +61,10 @@ cdef object SIGNATURE_TREE_AY_TYPES_0
 cdef object SIGNATURE_TREE_A_QV
 cdef object SIGNATURE_TREE_A_QV_TYPES_0
 
+cdef unsigned int TOKEN_O_AS_INT
+cdef unsigned int TOKEN_S_AS_INT
+cdef unsigned int TOKEN_G_AS_INT
+
 
 cpdef get_signature_tree
 
@@ -170,6 +174,7 @@ cdef class Unmarshaller:
         beginning_pos=cython.ulong,
         o=cython.ulong,
         field_0=cython.uint,
+        token_as_int=cython.uint,
         signature_len=cython.uint,
     )
     cdef header_fields(self, unsigned int header_length)
