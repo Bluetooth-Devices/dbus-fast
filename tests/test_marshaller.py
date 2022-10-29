@@ -9,6 +9,7 @@ import pytest
 from dbus_fast import Message, MessageFlag, MessageType, SignatureTree, Variant
 from dbus_fast._private._cython_compat import FakeCython
 from dbus_fast._private.unmarshaller import Unmarshaller
+from dbus_fast.unpack import unpack_variants
 
 
 def print_buf(buf):
@@ -210,6 +211,21 @@ def test_unmarshall_bluez_message():
     assert message.flags == MessageFlag.NO_REPLY_EXPECTED
     assert message.serial == 707226
     assert message.destination is None
+    unpacked = unpack_variants(message.body)
+    assert unpacked == [
+        "org.bluez.Device1",
+        {
+            "ManufacturerData": {
+                117: bytearray(
+                    b"B\x04\x01\x01p\xd0\xc2N\x08\xabW\xd2"
+                    b"\xc2N\x08\xabV\x01\x00\x00"
+                    b"\x00\x00\x00\x00"
+                )
+            },
+            "RSSI": -86,
+        },
+        [],
+    ]
 
 
 def test_ay_buffer():
