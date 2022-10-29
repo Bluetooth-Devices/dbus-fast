@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.56.0 (2022-10-29)
+### Feature
+* Optimize for interfaces added messages ([#122](https://github.com/Bluetooth-Devices/dbus-fast/issues/122)) ([`c05a27a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c05a27aef9395eb688385109c4ff7204d5103dda))
+
 ## v1.55.0 (2022-10-29)
 ### Feature
 * Add optimized reader for uint16 ([#121](https://github.com/Bluetooth-Devices/dbus-fast/issues/121)) ([`52881d9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/52881d9054e35ae3d727c4adafd7e0958b1c99af))
