@@ -1,3 +1,7 @@
+import logging
+from logging.handlers import QueueHandler
+from queue import SimpleQueue
+
 import pytest
 
 import dbus_fast.introspection as intr
@@ -93,14 +97,26 @@ async def test_aio_proxy_object():
     result = await interface.call_get_complex(unpack_variants=True)
     assert result == {"hello": "world"}
 
-    with pytest.raises(DBusError):
-        try:
-            await interface.call_throws_error()
-        except DBusError as e:
-            assert e.reply is not None
-            assert e.type == "test.error"
-            assert e.text == "something went wrong"
-            raise e
+    # In addition to the exception passing through, we need to verify that
+    # the exception doesn't trigger logging errors.
+    log_error_queue = SimpleQueue()
+    log_handler = QueueHandler(log_error_queue)
+    logger = logging.getLogger()
+
+    logger.addHandler(log_handler)
+    try:
+        with pytest.raises(DBusError):
+            try:
+                await interface.call_throws_error()
+            except DBusError as e:
+                assert e.reply is not None
+                assert e.type == "test.error"
+                assert e.text == "something went wrong"
+                raise e
+    finally:
+        logger.removeHandler(log_handler)
+
+    assert log_error_queue.empty()
 
     bus.disconnect()
     bus2.disconnect()
@@ -138,15 +154,27 @@ def test_glib_proxy_object():
     result = interface.call_get_complex_sync(unpack_variants=True)
     assert result == {"hello": "world"}
 
-    with pytest.raises(DBusError):
-        try:
-            result = interface.call_throws_error_sync()
-            assert False, result
-        except DBusError as e:
-            assert e.reply is not None
-            assert e.type == "test.error"
-            assert e.text == "something went wrong"
-            raise e
+    # In addition to the exception passing through, we need to verify that
+    # the exception doesn't trigger logging errors.
+    log_error_queue = SimpleQueue()
+    log_handler = QueueHandler(log_error_queue)
+    logger = logging.getLogger()
+
+    logger.addHandler(log_handler)
+    try:
+        with pytest.raises(DBusError):
+            try:
+                result = interface.call_throws_error_sync()
+                assert False, result
+            except DBusError as e:
+                assert e.reply is not None
+                assert e.type == "test.error"
+                assert e.text == "something went wrong"
+                raise e
+    finally:
+        logger.removeHandler(log_handler)
+
+    assert log_error_queue.empty()
 
     bus.disconnect()
     bus2.disconnect()
