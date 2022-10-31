@@ -142,7 +142,7 @@ class MarshallerStreamEndError(Exception):
 try:
     import cython
 except ImportError:
-    from ._cython_compat import FakeCython as cython
+    from ._cython_compat import FAKE_CYTHON as cython
 
 #
 # Alignment padding is handled with the following formula below
@@ -527,7 +527,7 @@ class Unmarshaller:
             self._body_len = _cast_uint32_native(self._buf, 4)  # pragma: no cover
             self._serial = _cast_uint32_native(self._buf, 8)  # pragma: no cover
             self._header_len = _cast_uint32_native(self._buf, 12)  # pragma: no cover
-        if endian == LITTLE_ENDIAN:
+        elif endian == LITTLE_ENDIAN:
             (
                 self._body_len,
                 self._serial,
