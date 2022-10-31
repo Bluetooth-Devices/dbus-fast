@@ -430,7 +430,9 @@ class MessageBus(BaseMessageBus):
     async def _auth_readline(self) -> str:
         buf = b""
         while buf[-2:] != b"\r\n":
-            buf += await self._loop.sock_recv(self._sock, 2)
+            # The auth protocol is line based, so we can read until we get a
+            # newline.
+            buf += await self._loop.sock_recv(self._sock, 1024)
         return buf[:-2].decode()
 
     async def _authenticate(self) -> None:
@@ -455,6 +457,9 @@ class MessageBus(BaseMessageBus):
                 )
                 self._stream.flush()
             if response == "BEGIN":
+                # The first octet received by the server after the \r\n of the BEGIN command
+                # from the client must be the first octet of the authenticated/encrypted stream
+                # of D-Bus messages.
                 break
 
     def disconnect(self) -> None:
