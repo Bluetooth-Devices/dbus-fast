@@ -1,4 +1,5 @@
 import logging
+import sys
 from logging.handlers import QueueHandler
 from queue import SimpleQueue
 
@@ -48,6 +49,7 @@ class ExampleInterface(ServiceInterface):
         raise DBusError("test.error", "something went wrong")
 
 
+@pytest.mark.skipif(sys.version_info[:3][1] in (11,), reason="segfaults on py3.11")
 @pytest.mark.asyncio
 async def test_aio_proxy_object():
     bus_name = "aio.client.test.methods"
