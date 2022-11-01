@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.61.0 (2022-11-01)
+### Feature
+* Add support and workarounds for cpython3.11 ([#31](https://github.com/Bluetooth-Devices/dbus-fast/issues/31)) ([`b53a467`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b53a4675d78f8e4e37be322ebda3eeec80f15723))
+
 ## v1.60.0 (2022-10-31)
 ### Feature
 * Speed up auth phase ([#131](https://github.com/Bluetooth-Devices/dbus-fast/issues/131)) ([`3eef636`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3eef6368268c2d46db3b31bf907959da36dbf2a4))
