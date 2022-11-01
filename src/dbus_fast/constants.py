@@ -21,9 +21,9 @@ class MessageType(Enum):
 
 # This is written out because of https://github.com/python/cpython/issues/98976
 MESSAGE_TYPE_MAP = {
-    0: MessageType.METHOD_CALL,
-    1: MessageType.METHOD_RETURN,
-    2: MessageType.ERROR,
+    1: MessageType.METHOD_CALL,
+    2: MessageType.METHOD_RETURN,
+    3: MessageType.ERROR,
     4: MessageType.SIGNAL,
 }
 
