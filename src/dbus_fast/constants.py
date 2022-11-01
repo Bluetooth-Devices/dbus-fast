@@ -19,13 +19,7 @@ class MessageType(Enum):
     SIGNAL = 4  #: A broadcast signal to subscribed connections
 
 
-# This is written out because of https://github.com/python/cpython/issues/98976
-MESSAGE_TYPE_MAP = {
-    1: MessageType.METHOD_CALL,
-    2: MessageType.METHOD_RETURN,
-    3: MessageType.ERROR,
-    4: MessageType.SIGNAL,
-}
+MESSAGE_TYPE_MAP = {field.value: field for field in MessageType}
 
 
 class MessageFlag(IntFlag):
