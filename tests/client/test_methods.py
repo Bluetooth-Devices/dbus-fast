@@ -49,7 +49,6 @@ class ExampleInterface(ServiceInterface):
         raise DBusError("test.error", "something went wrong")
 
 
-@pytest.mark.skipif(sys.version_info[:3][1] in (11,), reason="segfaults on py3.11")
 @pytest.mark.asyncio
 async def test_aio_proxy_object():
     bus_name = "aio.client.test.methods"
@@ -124,6 +123,7 @@ async def test_aio_proxy_object():
     bus2.disconnect()
 
 
+@pytest.mark.skipif(sys.version_info[:3][1] in (11,), reason="segfaults on py3.11")
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
 def test_glib_proxy_object():
     bus_name = "glib.client.test.methods"
