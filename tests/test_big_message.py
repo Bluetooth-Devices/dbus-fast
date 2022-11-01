@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 
 from dbus_fast import Message, MessageType, aio, glib
@@ -44,6 +46,9 @@ async def test_aio_big_message():
 
 
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
+@pytest.mark.skipif(
+    sys.version_info[:3][1] in (10, 11), reason="segfaults on py3.10,py3.11"
+)
 def test_glib_big_message():
     "this tests that nonblocking reads and writes actually work for glib"
     bus1 = glib.MessageBus().connect_sync()
