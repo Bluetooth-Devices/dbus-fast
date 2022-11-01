@@ -19,7 +19,13 @@ class MessageType(Enum):
     SIGNAL = 4  #: A broadcast signal to subscribed connections
 
 
-MESSAGE_TYPE_MAP = {field.value: field for field in MessageType}
+# This is written out because of https://github.com/python/cpython/issues/98976
+MESSAGE_TYPE_MAP = {
+    0: MessageType.METHOD_CALL,
+    1: MessageType.METHOD_RETURN,
+    2: MessageType.ERROR,
+    4: MessageType.SIGNAL,
+}
 
 
 class MessageFlag(IntFlag):
@@ -31,7 +37,13 @@ class MessageFlag(IntFlag):
     ALLOW_INTERACTIVE_AUTHORIZATION = 4
 
 
-MESSAGE_FLAG_MAP = {field.value: field for field in MessageFlag}
+# This is written out because of https://github.com/python/cpython/issues/98976
+MESSAGE_FLAG_MAP = {
+    0: MessageFlag.NONE,
+    1: MessageFlag.NO_REPLY_EXPECTED,
+    2: MessageFlag.NO_AUTOSTART,
+    4: MessageFlag.ALLOW_INTERACTIVE_AUTHORIZATION,
+}
 
 
 class NameFlag(IntFlag):
