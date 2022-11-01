@@ -590,10 +590,6 @@ class Unmarshaller:
             tree = get_signature_tree(signature)
             body = [self._readers[t.token](self, t) for t in tree.types]
 
-        import pprint
-
-        pprint.pprint([MESSAGE_FLAG_MAP, "flag", self._flag])
-
         self._message = Message(
             message_type=MESSAGE_TYPE_MAP[self._message_type],
             flags=MESSAGE_FLAG_MAP[self._flag],
