@@ -2,12 +2,16 @@ import array
 import asyncio
 import logging
 import socket
+import sys
 import traceback
 from collections import deque
 from copy import copy
 from typing import Any, Optional
 
-import async_timeout
+if sys.version_info[:2] < (3, 11):
+    from async_timeout import timeout as asyncio_timeout
+else:
+    from asyncio import timeout as asyncio_timeout
 
 from .. import introspection as intr
 from .._private.unmarshaller import Unmarshaller
@@ -268,7 +272,7 @@ class MessageBus(BaseMessageBus):
 
         super().introspect(bus_name, path, reply_handler)
 
-        async with async_timeout.timeout(timeout):
+        async with asyncio_timeout(timeout):
             return await future
 
     async def request_name(

@@ -25,7 +25,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.7"
-async-timeout = ">=3.0.0"
+async-timeout = {version = ">=3.0.0", python = "<3.11"}
 
 # Documentation Dependencies
 sphinxcontrib-asyncio = {version = "^0.3.0", optional = true}
