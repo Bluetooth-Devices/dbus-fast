@@ -2,12 +2,16 @@ import array
 import asyncio
 import logging
 import socket
+import sys
 import traceback
 from collections import deque
 from copy import copy
 from typing import Any, Optional
 
-import async_timeout
+if sys.version_info[:2] < (3, 11):
+    from async_timeout import timeout as asyncio_timeout
+else:
+    from asyncio import timeout as asyncio_timeout
 
 from .. import introspection as intr
 from .._private.unmarshaller import Unmarshaller
@@ -268,7 +272,7 @@ class MessageBus(BaseMessageBus):
 
         super().introspect(bus_name, path, reply_handler)
 
-        async with async_timeout.timeout(timeout):
+        async with asyncio_timeout(timeout):
             return await future
 
     async def request_name(
@@ -430,7 +434,9 @@ class MessageBus(BaseMessageBus):
     async def _auth_readline(self) -> str:
         buf = b""
         while buf[-2:] != b"\r\n":
-            buf += await self._loop.sock_recv(self._sock, 2)
+            # The auth protocol is line based, so we can read until we get a
+            # newline.
+            buf += await self._loop.sock_recv(self._sock, 1024)
         return buf[:-2].decode()
 
     async def _authenticate(self) -> None:
@@ -455,6 +461,9 @@ class MessageBus(BaseMessageBus):
                 )
                 self._stream.flush()
             if response == "BEGIN":
+                # The first octet received by the server after the \r\n of the BEGIN command
+                # from the client must be the first octet of the authenticated/encrypted stream
+                # of D-Bus messages.
                 break
 
     def disconnect(self) -> None:

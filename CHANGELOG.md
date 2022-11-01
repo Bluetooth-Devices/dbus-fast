@@ -2,6 +2,14 @@
 
 <!--next-version-placeholder-->
 
+## v1.60.0 (2022-10-31)
+### Feature
+* Speed up auth phase ([#131](https://github.com/Bluetooth-Devices/dbus-fast/issues/131)) ([`3eef636`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3eef6368268c2d46db3b31bf907959da36dbf2a4))
+
+## v1.59.2 (2022-10-31)
+### Fix
+* Correctly fallback to pure python when cython is missing ([#130](https://github.com/Bluetooth-Devices/dbus-fast/issues/130)) ([`8ab1f9d`](https://github.com/Bluetooth-Devices/dbus-fast/commit/8ab1f9d0b380293294a0f847664e0c459061c2d9))
+
 ## v1.59.1 (2022-10-29)
 ### Fix
 * Pass return value to SendReply.__exit__ ([#127](https://github.com/Bluetooth-Devices/dbus-fast/issues/127)) ([`f8c67ed`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f8c67ed00fa8fe58a85b6ba73b5fa5974f802004))
