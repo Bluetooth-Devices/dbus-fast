@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.61.1 (2022-11-01)
+### Fix
+* Re-release due to pypi not seeing the new version ([#134](https://github.com/Bluetooth-Devices/dbus-fast/issues/134)) ([`2f21ee8`](https://github.com/Bluetooth-Devices/dbus-fast/commit/2f21ee8b8d52975624c19b6593a96976fa19047b))
+
 ## v1.61.0 (2022-11-01)
 ### Feature
 * Add support and workarounds for cpython3.11 ([#31](https://github.com/Bluetooth-Devices/dbus-fast/issues/31)) ([`b53a467`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b53a4675d78f8e4e37be322ebda3eeec80f15723))
