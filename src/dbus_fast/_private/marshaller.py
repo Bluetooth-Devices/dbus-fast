@@ -29,7 +29,8 @@ class Marshaller:
         offset = n - len(self._buf) % n
         if offset == 0 or offset == n:
             return 0
-        self._buf.extend(bytes(offset))
+        for _ in range(offset):
+            self._buf.append(0)
         return offset
 
     def write_boolean(self, boolean: bool, type_: SignatureType) -> int:
