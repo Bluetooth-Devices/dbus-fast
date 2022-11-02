@@ -27,16 +27,7 @@ packages = [
 python = "^3.7"
 async-timeout = {version = ">=3.0.0", python = "<3.11"}
 
-# Documentation Dependencies
-sphinxcontrib-asyncio = {version = "^0.3.0", optional = true}
-sphinxcontrib-fulltoc = {version = "^1.2.0", optional = true}
-Sphinx = {version = "^5.1.1", optional = true}
-myst-parser = {version = "^0.18.0", optional = true}
-sphinx-rtd-theme = {version = "^1.0.0", optional = true}
-
-[tool.poetry.extras]
-docs = ["myst-parser", "sphinx", "sphinx-rtd-theme", "sphinxcontrib-asyncio", "sphinxcontrib-fulltoc"]
-
+# duplicated in docs/requirements.txt for readthedocs compatibility
 [tool.poetry.group.docs.dependencies]
 myst-parser = "^0.18.0"
 sphinx = "^5.1.1"
@@ -44,12 +35,10 @@ sphinx-rtd-theme = "^1.0.0"
 sphinxcontrib-asyncio = "^0.3.0"
 sphinxcontrib-fulltoc = "^1.2.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest = "^7.0"
 pytest-cov = "^3.0"
 pytest-asyncio = "^0.19.0"
-
-[tool.poetry.group.dev.dependencies]
 pycairo = "^1.21.0"
 PyGObject = "^3.42.2"
 Cython = "^0.29.32"
