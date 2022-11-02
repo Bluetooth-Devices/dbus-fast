@@ -31,8 +31,13 @@ class MessageFlag(IntFlag):
     ALLOW_INTERACTIVE_AUTHORIZATION = 4
 
 
-# Wrapped in `tuple()` because of https://github.com/python/cpython/issues/98976
-MESSAGE_FLAG_MAP = {field.value: field for field in tuple(MessageFlag)}
+# This is written out because of https://github.com/python/cpython/issues/98976
+MESSAGE_FLAG_MAP = {
+    0: MessageFlag.NONE,
+    1: MessageFlag.NO_REPLY_EXPECTED,
+    2: MessageFlag.NO_AUTOSTART,
+    4: MessageFlag.ALLOW_INTERACTIVE_AUTHORIZATION,
+}
 
 
 class NameFlag(IntFlag):
