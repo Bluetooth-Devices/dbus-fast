@@ -27,6 +27,7 @@ packages = [
 python = "^3.7"
 async-timeout = {version = ">=3.0.0", python = "<3.11"}
 
+# duplicated in docs/requirements.txt for readthedocs compatibility
 [tool.poetry.group.docs.dependencies]
 myst-parser = "^0.18.0"
 sphinx = "^5.1.1"
