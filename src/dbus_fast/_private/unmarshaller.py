@@ -235,7 +235,6 @@ class Unmarshaller:
     def _read_sock(self, length: int) -> bytes:
         """reads from the socket, storing any fds sent and handling errors
         from the read itself"""
-        unix_fd_list = ARRAY("i")
 
         try:
             msg, ancdata, *_ = self._sock.recvmsg(length, UNIX_FDS_CMSG_LENGTH)
@@ -245,8 +244,9 @@ class Unmarshaller:
         for level, type_, data in ancdata:
             if not (level == SOL_SOCKET and type_ == SCM_RIGHTS):
                 continue
-            unix_fd_list.frombytes(data[: len(data) - (len(data) % MAX_UNIX_FDS_SIZE)])
-            self._unix_fds.extend(list(unix_fd_list))
+            self._unix_fds.extend(
+                ARRAY("i", data[: len(data) - (len(data) % MAX_UNIX_FDS_SIZE)])
+            )
 
         return msg
 
