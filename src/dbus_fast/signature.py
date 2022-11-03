@@ -421,11 +421,10 @@ class Variant:
             )
         self.value = value
         if verify:
-            if signature_tree:
-                if len(signature_tree.types) != 1:
-                    raise ValueError(
-                        "variants must have a signature for a single complete type"
-                    )
+            if signature_tree and len(signature_tree.types) != 1:
+                raise ValueError(
+                    "variants must have a signature for a single complete type"
+                )
             self.type.verify(value)
 
     def __eq__(self, other: Any) -> bool:
