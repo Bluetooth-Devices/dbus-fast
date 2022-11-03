@@ -71,6 +71,7 @@ cdef unsigned int TOKEN_O_AS_INT
 cdef unsigned int TOKEN_S_AS_INT
 cdef unsigned int TOKEN_G_AS_INT
 
+cdef object MARSHALL_STREAM_END_ERROR
 
 cpdef get_signature_tree
 
@@ -87,8 +88,6 @@ cdef inline unsigned short _cast_uint16_native(const char *  payload, unsigned i
     return u16p[0]
 
 
-cdef class MarshallerStreamEndError(Exception):
-    pass
 
 cdef class Unmarshaller:
 
