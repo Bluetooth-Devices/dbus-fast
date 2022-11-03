@@ -242,7 +242,7 @@ class Unmarshaller:
         """
         Read from underlying socket into buffer.
 
-        Raises MarshallerStreamEndError if there is not enough data to be read.
+        Raises BlockingIOError if there is not enough data to be read.
 
         :arg pos:
             The pos to read to. If not enough bytes are available in the
