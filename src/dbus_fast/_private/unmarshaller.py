@@ -12,6 +12,8 @@ from ..signature import SignatureType, Variant, get_signature_tree
 from .constants import BIG_ENDIAN, LITTLE_ENDIAN, PROTOCOL_VERSION
 
 MAX_UNIX_FDS = 16
+MAX_UNIX_FDS_SIZE = array.array("i").itemsize
+UNIX_FDS_CMSG_LENGTH = socket.CMSG_LEN(MAX_UNIX_FDS_SIZE)
 
 UNPACK_SYMBOL = {LITTLE_ENDIAN: "<", BIG_ENDIAN: ">"}
 
@@ -87,6 +89,10 @@ SIGNATURE_TREE_OA_SA_SV_TYPES_1 = SIGNATURE_TREE_OA_SA_SV.types[1]
 TOKEN_O_AS_INT = ord("o")
 TOKEN_S_AS_INT = ord("s")
 TOKEN_G_AS_INT = ord("g")
+
+ARRAY = array.array
+SOL_SOCKET = socket.SOL_SOCKET
+SCM_RIGHTS = socket.SCM_RIGHTS
 
 HEADER_MESSAGE_ARG_NAME = {
     1: "path",
@@ -229,21 +235,17 @@ class Unmarshaller:
     def _read_sock(self, length: int) -> bytes:
         """reads from the socket, storing any fds sent and handling errors
         from the read itself"""
-        unix_fd_list = array.array("i")
+        unix_fd_list = ARRAY("i")
 
         try:
-            msg, ancdata, *_ = self._sock.recvmsg(
-                length, socket.CMSG_LEN(MAX_UNIX_FDS * unix_fd_list.itemsize)
-            )
+            msg, ancdata, *_ = self._sock.recvmsg(length, UNIX_FDS_CMSG_LENGTH)
         except BlockingIOError:
             raise MarshallerStreamEndError()
 
         for level, type_, data in ancdata:
-            if not (level == socket.SOL_SOCKET and type_ == socket.SCM_RIGHTS):
+            if not (level == SOL_SOCKET and type_ == SCM_RIGHTS):
                 continue
-            unix_fd_list.frombytes(
-                data[: len(data) - (len(data) % unix_fd_list.itemsize)]
-            )
+            unix_fd_list.frombytes(data[: len(data) - (len(data) % MAX_UNIX_FDS_SIZE)])
             self._unix_fds.extend(list(unix_fd_list))
 
         return msg
