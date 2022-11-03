@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v1.63.0 (2022-11-03)
+### Feature
+* Speed up marshall align ([#137](https://github.com/Bluetooth-Devices/dbus-fast/issues/137)) ([`d7d301c`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d7d301c773beb312be752accf7018a3dacecde02))
+* Speed up marshall write_string and write_variant ([#138](https://github.com/Bluetooth-Devices/dbus-fast/issues/138)) ([`71cf524`](https://github.com/Bluetooth-Devices/dbus-fast/commit/71cf52430bd3ece01083309c5f0f5d934dca3d59))
+
 ## v1.62.0 (2022-11-03)
 ### Feature
 * Speed up marshaller by pre-packing bools ([#139](https://github.com/Bluetooth-Devices/dbus-fast/issues/139)) ([`c10a241`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c10a241dc5e889fd58323789dc4af45ec1e5616a))
