@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.65.0 (2022-11-03)
+### Feature
+* Add cython def for unmarshaller read_sock for fd passing ([#143](https://github.com/Bluetooth-Devices/dbus-fast/issues/143)) ([`f438c36`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f438c369bd86956f50fb839ec4a0a8069de7d018))
+
 ## v1.64.0 (2022-11-03)
 ### Feature
 * Speed up marshalling headers ([#142](https://github.com/Bluetooth-Devices/dbus-fast/issues/142)) ([`7d6fb63`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7d6fb63dc011404955fc1219924cd2c6f6634ccd))
