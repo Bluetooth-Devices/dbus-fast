@@ -3,8 +3,11 @@
 import cython
 
 
-cdef bytes PACKED_UINT32_ZERO
 cdef object PACK_UINT32
+
+cdef bytes PACKED_UINT32_ZERO
+cdef bytes PACKED_BOOL_TRUE
+cdef bytes PACKED_BOOL_FALSE
 
 cdef class Marshaller:
 
@@ -24,7 +27,7 @@ cdef class Marshaller:
         signature_len=cython.uint,
         written=cython.uint,
     )
-    cpdef write_string(self, object value, object _type)
+    cpdef write_string(self, str value, object _type)
 
     @cython.locals(
         signature_len=cython.uint,
@@ -56,6 +59,8 @@ cdef class Marshaller:
 
     @cython.locals(
         written=cython.uint,
+        signature=cython.str,
+        signature_bytes=cython.bytes,
     )
     cpdef write_variant(self, object variant, object type)
 

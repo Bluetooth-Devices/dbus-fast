@@ -5,6 +5,8 @@ from ..signature import SignatureType, Variant, get_signature_tree
 
 PACK_UINT32 = Struct("<I").pack
 PACKED_UINT32_ZERO = PACK_UINT32(0)
+PACKED_BOOL_FALSE = PACK_UINT32(int(0))
+PACKED_BOOL_TRUE = PACK_UINT32(int(1))
 
 
 class Marshaller:
@@ -35,7 +37,7 @@ class Marshaller:
 
     def write_boolean(self, boolean: bool, type_: SignatureType) -> int:
         written = self._align(4)
-        self._buf.extend(PACK_UINT32(int(boolean)))
+        self._buf += PACKED_BOOL_TRUE if boolean else PACKED_BOOL_FALSE
         return written + 4
 
     def write_signature(self, signature: str, type_: SignatureType) -> int:
@@ -62,7 +64,9 @@ class Marshaller:
         return written
 
     def write_variant(self, variant: Variant, type_: SignatureType) -> int:
-        written = self._write_signature(variant.signature.encode())
+        signature = variant.signature
+        signature_bytes = signature.encode()
+        written = self._write_signature(signature_bytes)
         written += self._write_single(variant.type, variant.value)
         return written
 
