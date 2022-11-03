@@ -3,8 +3,11 @@
 import cython
 
 
-cdef bytes PACKED_UINT32_ZERO
 cdef object PACK_UINT32
+
+cdef bytes PACKED_UINT32_ZERO
+cdef bytes PACKED_BOOL_TRUE
+cdef bytes PACKED_BOOL_FALSE
 
 cdef class Marshaller:
 
