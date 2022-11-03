@@ -237,7 +237,9 @@ class Unmarshaller:
         from the read itself"""
 
         try:
-            msg, ancdata, *_ = self._sock.recvmsg(length, UNIX_FDS_CMSG_LENGTH)
+            msg, ancdata, _flags, _addr = self._sock.recvmsg(
+                length, UNIX_FDS_CMSG_LENGTH
+            )
         except BlockingIOError:
             raise MarshallerStreamEndError()
 
