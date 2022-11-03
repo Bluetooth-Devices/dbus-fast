@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.64.0 (2022-11-03)
+### Feature
+* Speed up marshalling headers ([#142](https://github.com/Bluetooth-Devices/dbus-fast/issues/142)) ([`7d6fb63`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7d6fb63dc011404955fc1219924cd2c6f6634ccd))
+
 ## v1.63.0 (2022-11-03)
 ### Feature
 * Speed up marshall align ([#137](https://github.com/Bluetooth-Devices/dbus-fast/issues/137)) ([`d7d301c`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d7d301c773beb312be752accf7018a3dacecde02))
