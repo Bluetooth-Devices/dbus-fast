@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.66.0 (2022-11-03)
+### Feature
+* Speed up creating Variant objects ([#144](https://github.com/Bluetooth-Devices/dbus-fast/issues/144)) ([`2ff84e3`](https://github.com/Bluetooth-Devices/dbus-fast/commit/2ff84e3ac56f4348c8276515ac398fcbda8a0657))
+
 ## v1.65.0 (2022-11-03)
 ### Feature
 * Add cython def for unmarshaller read_sock for fd passing ([#143](https://github.com/Bluetooth-Devices/dbus-fast/issues/143)) ([`f438c36`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f438c369bd86956f50fb839ec4a0a8069de7d018))
