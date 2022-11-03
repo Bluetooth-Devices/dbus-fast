@@ -15,19 +15,28 @@ cdef class Marshaller:
     cdef bytearray _buf
     cdef object body
 
-    cpdef unsigned int align(self, unsigned int n)
+    cpdef align(self, unsigned int n)
 
     @cython.locals(
         offset=cython.ulong,
     )
     cdef unsigned int _align(self, unsigned int n)
 
+    cpdef write_boolean(self, object boolean, object _type)
+
+    @cython.locals(
+        written=cython.uint,
+    )
+    cdef unsigned int _write_boolean(self, object boolean)
+
+    cpdef write_string(self, str value, object _type)
+
     @cython.locals(
         value_len=cython.uint,
         signature_len=cython.uint,
         written=cython.uint,
     )
-    cpdef write_string(self, str value, object _type)
+    cdef unsigned int _write_string(self, str value)
 
     @cython.locals(
         signature_len=cython.uint,
@@ -57,12 +66,14 @@ cdef class Marshaller:
     )
     cdef unsigned int _write_struct(self, object array, object type)
 
+    cpdef write_variant(self, object variant, object type)
+
     @cython.locals(
         written=cython.uint,
         signature=cython.str,
         signature_bytes=cython.bytes,
     )
-    cpdef write_variant(self, object variant, object type)
+    cdef unsigned int _write_variant(self, object variant, object type)
 
     @cython.locals(
         written=cython.uint,
