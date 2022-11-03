@@ -109,6 +109,8 @@ HEADER_MESSAGE_ARG_NAME = {
 
 READER_TYPE = Callable[["Unmarshaller", SignatureType], Any]
 
+MARSHALL_STREAM_END_ERROR = BlockingIOError
+
 
 def unpack_parser_factory(unpack_from: Callable, size: int) -> READER_TYPE:
     """Build a parser that unpacks the bytes using the given unpack_from function."""
@@ -132,17 +134,6 @@ def build_simple_parsers(
             Struct(f"{UNPACK_SYMBOL[endian]}{ctype}").unpack_from, size
         )
     return parsers
-
-
-class MarshallerStreamEndError(Exception):
-    """This exception is raised when the end of the stream is reached.
-
-    This means more data is expected on the wire that has not yet been
-    received. The caller should call unmarshall later when more data is
-    available.
-    """
-
-    pass
 
 
 try:
@@ -235,14 +226,9 @@ class Unmarshaller:
     def _read_sock(self, length: int) -> bytes:
         """reads from the socket, storing any fds sent and handling errors
         from the read itself"""
-
-        try:
-            msg, ancdata, _flags, _addr = self._sock.recvmsg(
-                length, UNIX_FDS_CMSG_LENGTH
-            )
-        except BlockingIOError:
-            raise MarshallerStreamEndError()
-
+        # This will raise BlockingIOError if there is no data to read
+        # which we store in the MARSHALL_STREAM_END_ERROR object
+        msg, ancdata, _flags, _addr = self._sock.recvmsg(length, UNIX_FDS_CMSG_LENGTH)
         for level, type_, data in ancdata:
             if not (level == SOL_SOCKET and type_ == SCM_RIGHTS):
                 continue
@@ -274,10 +260,10 @@ class Unmarshaller:
         if data == b"":
             raise EOFError()
         if data is None:
-            raise MarshallerStreamEndError()
+            raise MARSHALL_STREAM_END_ERROR
         self._buf += data
         if len(data) + start_len != pos:
-            raise MarshallerStreamEndError()
+            raise MARSHALL_STREAM_END_ERROR
 
     def read_uint32_unpack(self, type_: SignatureType) -> int:
         return self._read_uint32_unpack()
@@ -610,7 +596,7 @@ class Unmarshaller:
     def unmarshall(self) -> Optional[Message]:
         """Unmarshall the message.
 
-        The underlying read function will raise MarshallerStreamEndError
+        The underlying read function will raise BlockingIOError if the
         if there are not enough bytes in the buffer. This allows unmarshall
         to be resumed when more data comes in over the wire.
         """
@@ -618,7 +604,7 @@ class Unmarshaller:
             if not self._msg_len:
                 self._read_header()
             self._read_body()
-        except MarshallerStreamEndError:
+        except MARSHALL_STREAM_END_ERROR:
             return None
         return self._message
 
