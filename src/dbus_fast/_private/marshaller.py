@@ -63,7 +63,9 @@ class Marshaller:
         return written
 
     def write_variant(self, variant: Variant, type_: SignatureType) -> int:
-        written = self._write_signature(variant.signature.encode())
+        signature = variant.signature
+        signature_bytes = signature.encode()
+        written = self._write_signature(signature_bytes)
         written += self._write_single(variant.type, variant.value)
         return written
 
