@@ -5,6 +5,12 @@ import cython
 from ..signature import SignatureType
 
 
+cdef object MAX_UNIX_FDS_SIZE
+cdef object ARRAY
+cdef object UNIX_FDS_CMSG_LENGTH
+cdef object SOL_SOCKET
+cdef object SCM_RIGHTS
+
 cdef unsigned int UINT32_SIZE
 cdef unsigned int INT16_SIZE
 cdef unsigned int UINT16_SIZE
@@ -106,7 +112,10 @@ cdef class Unmarshaller:
 
     cpdef reset(self)
 
-    cdef bytes _read_sock(self, unsigned long length)
+    @cython.locals(
+        msg=cython.bytes,
+    )
+    cdef bytes _read_sock(self, object length)
 
     @cython.locals(
         start_len=cython.ulong,
