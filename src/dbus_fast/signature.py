@@ -405,31 +405,27 @@ class Variant:
         """Init a new Variant."""
         if type(signature) is SignatureTree:
             signature_tree = signature
+            self.signature = signature_tree.signature
+            self.type = signature_tree.types[0]
         elif type(signature) is SignatureType:
-            signature_type = signature
-            signature_str = signature.signature
             signature_tree = None
+            self.signature = signature.signature
+            self.type = signature
         elif type(signature) is str:
             signature_tree = get_signature_tree(signature)
+            self.signature = signature
+            self.type = signature_tree.types[0]
         else:
             raise TypeError(
                 "signature must be a SignatureTree, SignatureType, or a string"
             )
-
-        if signature_tree:
-            if verify and len(signature_tree.types) != 1:
+        self.value = value
+        if verify:
+            if signature_tree and len(signature_tree.types) != 1:
                 raise ValueError(
                     "variants must have a signature for a single complete type"
                 )
-            signature_str = signature_tree.signature
-            signature_type = signature_tree.types[0]
-
-        if verify:
-            signature_type.verify(value)
-
-        self.type = signature_type
-        self.signature = signature_str
-        self.value = value
+            self.type.verify(value)
 
     def __eq__(self, other: Any) -> bool:
         if type(other) is Variant:

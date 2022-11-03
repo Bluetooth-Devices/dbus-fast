@@ -220,3 +220,14 @@ def test_invalid_variants():
 
     with pytest.raises(SignatureBodyMismatchError):
         tree.verify([con])
+
+
+def test_variant_signature_type():
+    tree = SignatureTree("as")
+    var = Variant(tree.types[0], ["foo", "bar"])
+    assert var.type == tree.types[0]
+    assert var.value == ["foo", "bar"]
+    assert var.signature == "as"
+
+    with pytest.raises(SignatureBodyMismatchError):
+        Variant(tree.types[0], "wrong")
