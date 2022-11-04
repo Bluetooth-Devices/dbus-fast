@@ -2,7 +2,8 @@
 
 import cython
 
-from ..signature import SignatureType
+from ..message cimport Message
+from ..signature cimport Variant
 
 
 cdef object MAX_UNIX_FDS_SIZE
@@ -40,8 +41,6 @@ cdef object INT16_UNPACK_BIG_ENDIAN
 cdef object UINT16_UNPACK_LITTLE_ENDIAN
 cdef object UINT16_UNPACK_BIG_ENDIAN
 
-cdef object Variant
-cdef object Message
 cdef object MESSAGE_TYPE_MAP
 cdef object MESSAGE_FLAG_MAP
 cdef object HEADER_MESSAGE_ARG_NAME
@@ -72,8 +71,6 @@ cdef unsigned int TOKEN_S_AS_INT
 cdef unsigned int TOKEN_G_AS_INT
 
 cdef object MARSHALL_STREAM_END_ERROR
-
-cpdef get_signature_tree
 
 cdef inline unsigned long _cast_uint32_native(const char * payload, unsigned int offset):
     cdef unsigned long *u32p = <unsigned long *> &payload[offset]
