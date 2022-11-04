@@ -50,8 +50,13 @@ cdef object SIGNATURE_TREE_B
 cdef object SIGNATURE_TREE_N
 cdef object SIGNATURE_TREE_O
 cdef object SIGNATURE_TREE_S
+cdef object SIGNATURE_TREE_U
+cdef object SIGNATURE_TREE_Y
+
 cdef object SIGNATURE_TREE_AS
 cdef object SIGNATURE_TREE_AS_TYPES_0
+cdef object SIGNATURE_TREE_AO
+cdef object SIGNATURE_TREE_AO_TYPES_0
 cdef object SIGNATURE_TREE_A_SV
 cdef object SIGNATURE_TREE_A_SV_TYPES_0
 cdef object SIGNATURE_TREE_SA_SV_AS
@@ -65,6 +70,8 @@ cdef object SIGNATURE_TREE_AY
 cdef object SIGNATURE_TREE_AY_TYPES_0
 cdef object SIGNATURE_TREE_A_QV
 cdef object SIGNATURE_TREE_A_QV_TYPES_0
+cdef object SIGNATURE_TREE_A_OA_SA_SV
+cdef object SIGNATURE_TREE_A_OA_SA_SV_TYPES_0
 
 cdef unsigned int TOKEN_O_AS_INT
 cdef unsigned int TOKEN_S_AS_INT
