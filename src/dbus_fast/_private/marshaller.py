@@ -3,7 +3,9 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 from ..signature import SignatureType, Variant, get_signature_tree
 
-PACK_UINT32 = Struct("<I").pack
+PACK_LITTLE_ENDIAN = "<"
+
+PACK_UINT32 = Struct(f"{PACK_LITTLE_ENDIAN}I").pack
 PACKED_UINT32_ZERO = PACK_UINT32(0)
 PACKED_BOOL_FALSE = PACK_UINT32(int(0))
 PACKED_BOOL_TRUE = PACK_UINT32(int(1))
@@ -198,16 +200,16 @@ class Marshaller:
             int,
         ],
     ] = {
-        "y": (None, Struct("<B").pack, 1),
+        "y": (None, Struct(f"{PACK_LITTLE_ENDIAN}B").pack, 1),
         "b": (write_boolean, None, 0),
-        "n": (None, Struct("<h").pack, 2),
-        "q": (None, Struct("<H").pack, 2),
-        "i": (None, Struct("<i").pack, 4),
+        "n": (None, Struct(f"{PACK_LITTLE_ENDIAN}h").pack, 2),
+        "q": (None, Struct(f"{PACK_LITTLE_ENDIAN}H").pack, 2),
+        "i": (None, Struct(f"{PACK_LITTLE_ENDIAN}i").pack, 4),
         "u": (None, PACK_UINT32, 4),
-        "x": (None, Struct("<q").pack, 8),
-        "t": (None, Struct("<Q").pack, 8),
-        "d": (None, Struct("<d").pack, 8),
-        "h": (None, Struct("<I").pack, 4),
+        "x": (None, Struct(f"{PACK_LITTLE_ENDIAN}q").pack, 8),
+        "t": (None, Struct(f"{PACK_LITTLE_ENDIAN}Q").pack, 8),
+        "d": (None, Struct(f"{PACK_LITTLE_ENDIAN}d").pack, 8),
+        "h": (None, Struct(f"{PACK_LITTLE_ENDIAN}I").pack, 4),
         "o": (write_string, None, 0),
         "s": (write_string, None, 0),
         "g": (write_signature, None, 0),
