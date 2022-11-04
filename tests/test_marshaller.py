@@ -105,8 +105,8 @@ def test_marshalling_with_table():
 def test_unmarshalling_with_table_endians(unmarshall_table, endians):
     from dbus_fast._private import unmarshaller
 
-    with patch.object(unmarshaller, "IS_BIG_ENDIAN", endians[0]), patch.object(
-        unmarshaller, "IS_LITTLE_ENDIAN", endians[1]
+    with patch.object(unmarshaller, "SYS_IS_BIG_ENDIAN", endians[0]), patch.object(
+        unmarshaller, "SYS_IS_LITTLE_ENDIAN", endians[1]
     ):
 
         for item in unmarshall_table:
