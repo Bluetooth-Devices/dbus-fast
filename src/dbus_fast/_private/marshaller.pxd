@@ -9,6 +9,8 @@ cdef bytes PACKED_UINT32_ZERO
 cdef bytes PACKED_BOOL_TRUE
 cdef bytes PACKED_BOOL_FALSE
 
+cdef get_signature_tree
+
 cdef class Marshaller:
 
     cdef object signature_tree
