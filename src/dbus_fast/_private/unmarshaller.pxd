@@ -72,6 +72,9 @@ cdef unsigned int TOKEN_G_AS_INT
 
 cdef object MARSHALL_STREAM_END_ERROR
 
+cdef get_signature_tree
+
+
 cdef inline unsigned long _cast_uint32_native(const char * payload, unsigned int offset):
     cdef unsigned long *u32p = <unsigned long *> &payload[offset]
     return u32p[0]
