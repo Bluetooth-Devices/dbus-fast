@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.72.0 (2022-11-04)
+### Feature
+* Add optimized reader for GetManagedObjects ([#152](https://github.com/Bluetooth-Devices/dbus-fast/issues/152)) ([`7ed453f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7ed453f31a654f8cc9b99eb17f872370f4b06a4e))
+
 ## v1.71.0 (2022-11-04)
 ### Feature
 * Small speed up to _unpack_variants ([#148](https://github.com/Bluetooth-Devices/dbus-fast/issues/148)) ([`ef7acdc`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ef7acdcbe59123bfa3b17d5dafc9f8235ac0f360))
