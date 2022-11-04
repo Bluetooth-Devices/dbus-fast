@@ -24,6 +24,9 @@ class Marshaller:
     def buffer(self) -> bytearray:
         return self._buf
 
+    def _buffer(self) -> bytearray:
+        return self._buf
+
     def align(self, n):
         return self._align(n)
 
@@ -168,6 +171,10 @@ class Marshaller:
             return writer(self, body, type_)
 
     def marshall(self) -> bytearray:
+        """Marshalls the body into a byte array"""
+        return self._marshall()
+
+    def _marshall(self) -> bytearray:
         """Marshalls the body into a byte array"""
         try:
             self._construct_buffer()

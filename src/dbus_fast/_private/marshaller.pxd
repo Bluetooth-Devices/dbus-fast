@@ -9,11 +9,15 @@ cdef bytes PACKED_UINT32_ZERO
 cdef bytes PACKED_BOOL_TRUE
 cdef bytes PACKED_BOOL_FALSE
 
+cdef get_signature_tree
+
 cdef class Marshaller:
 
     cdef object signature_tree
     cdef bytearray _buf
     cdef object body
+
+    cdef _buffer(self)
 
     cpdef align(self, unsigned int n)
 
@@ -88,6 +92,8 @@ cdef class Marshaller:
     cpdef write_dict_entry(self, object type_, object body)
 
     cpdef marshall(self)
+
+    cdef _marshall(self)
 
     @cython.locals(
         offset=cython.ulong,

@@ -204,6 +204,13 @@ class Unmarshaller:
 
         Call this before processing a new message.
         """
+        self._reset()
+
+    def _reset(self) -> None:
+        """Reset the unmarshaller to its initial state.
+
+        Call this before processing a new message.
+        """
         self._unix_fds = []
         self._buf.clear()
         self._message = None
@@ -594,6 +601,15 @@ class Unmarshaller:
         )
 
     def unmarshall(self) -> Optional[Message]:
+        """Unmarshall the message.
+
+        The underlying read function will raise BlockingIOError if the
+        if there are not enough bytes in the buffer. This allows unmarshall
+        to be resumed when more data comes in over the wire.
+        """
+        return self._unmarshall()
+
+    def _unmarshall(self) -> Optional[Message]:
         """Unmarshall the message.
 
         The underlying read function will raise BlockingIOError if the
