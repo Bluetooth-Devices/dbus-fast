@@ -19,5 +19,6 @@ def _unpack_variants(data: Any) -> Any:
     if type(data) is list:
         return [_unpack_variants(item) for item in data]
     if type(data) is Variant:
-        return _unpack_variants(data.value)
+        var = data
+        return _unpack_variants(var.value)
     return data
