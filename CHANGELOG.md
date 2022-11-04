@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.70.0 (2022-11-04)
+### Feature
+* Use cimports for message marshalling ([#149](https://github.com/Bluetooth-Devices/dbus-fast/issues/149)) ([`ef7d9d4`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ef7d9d440775cf0ddcb6b3bc6115b3884be35792))
+
 ## v1.69.0 (2022-11-04)
 ### Feature
 * Refactor message_reader to avoid python wrappers ([#147](https://github.com/Bluetooth-Devices/dbus-fast/issues/147)) ([`b81de45`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b81de4553fc1414476ff8a1c2b73db7b1a497841))
