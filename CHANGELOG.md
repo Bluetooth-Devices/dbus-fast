@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.68.0 (2022-11-04)
+### Feature
+* Use cimports for unmarshaller Variant and Message ([#146](https://github.com/Bluetooth-Devices/dbus-fast/issues/146)) ([`6418ed4`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6418ed4bb69a835768596f66ab5b514ea48b82cc))
+
 ## v1.67.0 (2022-11-03)
 ### Feature
 * Optimize unmarshaller by dropping exception that was only used internally ([#145](https://github.com/Bluetooth-Devices/dbus-fast/issues/145)) ([`79d52a5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/79d52a50bd9651fa489e81935bda04d53285b2c1))
