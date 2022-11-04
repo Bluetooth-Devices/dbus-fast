@@ -8,7 +8,7 @@ import pytest
 
 from dbus_fast import Message, MessageFlag, MessageType, SignatureTree, Variant
 from dbus_fast._private._cython_compat import FakeCython
-from dbus_fast._private.unmarshaller import Unmarshaller
+from dbus_fast._private.unmarshaller import IS_COMPILED, Unmarshaller
 from dbus_fast.unpack import unpack_variants
 
 
@@ -97,6 +97,50 @@ def test_marshalling_with_table():
             print_buf(data)
 
         assert buf == data
+
+
+@pytest.mark.parametrize("unmarshall_table", (table,))
+@pytest.mark.parametrize("endians", ((True, False), (False, True)))
+@pytest.mark.skipif(IS_COMPILED, reason="Cannot patch on cython")
+def test_unmarshalling_with_table_endians(unmarshall_table, endians):
+    from dbus_fast._private import unmarshaller
+
+    with patch.object(unmarshaller, "IS_BIG_ENDIAN", endians[0]), patch.object(
+        unmarshaller, "IS_LITTLE_ENDIAN", endians[1]
+    ):
+
+        for item in unmarshall_table:
+
+            stream = io.BytesIO(bytes.fromhex(item["data"]))
+            unmarshaller = Unmarshaller(stream)
+            try:
+                unmarshaller.unmarshall()
+            except Exception as e:
+                print("message failed to unmarshall:")
+                print(json_dump(item["message"]))
+                raise e
+
+            message = json_to_message(item["message"])
+
+            body = []
+            for i, type_ in enumerate(message.signature_tree.types):
+                body.append(replace_variants(type_, message.body[i]))
+            message.body = body
+
+            for attr in [
+                "body",
+                "signature",
+                "message_type",
+                "destination",
+                "path",
+                "interface",
+                "member",
+                "flags",
+                "serial",
+            ]:
+                assert getattr(unmarshaller.message, attr) == getattr(
+                    message, attr
+                ), f"attr doesnt match: {attr}"
 
 
 @pytest.mark.parametrize("unmarshall_table", (table,))
