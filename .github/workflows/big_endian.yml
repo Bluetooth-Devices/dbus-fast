@@ -1,8 +1,9 @@
 name: Test BIG endian
 
 on:
-  push:
   workflow_dispatch:
+
+timeout-minutes: 30
 
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
