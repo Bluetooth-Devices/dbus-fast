@@ -26,6 +26,9 @@ def print_buf(buf):
 with open(os.path.dirname(__file__) + "/data/messages.json") as f:
     table = json.load(f)
 
+with open(os.path.dirname(__file__) + "/get_managed_objects.hex") as fp:
+    get_managed_objects_msg = fp.read()
+
 
 def json_to_message(message: Dict[str, Any]) -> Message:
     copy = dict(message)
@@ -483,3 +486,13 @@ def test_ay_buffer():
 
 def tests_fallback_no_cython():
     assert FakeCython().compiled is False
+
+
+def test_unmarshall_large_message():
+
+    stream = io.BytesIO(bytes.fromhex(get_managed_objects_msg))
+    unmarshaller = Unmarshaller(stream)
+    unmarshaller.unmarshall()
+    message = unmarshaller.message
+    unpacked = unpack_variants(message.body)
+    print(json.dumps(unpacked))
