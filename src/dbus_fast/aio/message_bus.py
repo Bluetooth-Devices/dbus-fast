@@ -170,7 +170,6 @@ class MessageBus(BaseMessageBus):
         super().__init__(bus_address, bus_type, ProxyObject)
         self._negotiate_unix_fd = negotiate_unix_fd
         self._loop = asyncio.get_running_loop()
-        self._unmarshaller = self._create_unmarshaller()
 
         self._writer = _MessageWriter(self)
 
@@ -201,7 +200,8 @@ class MessageBus(BaseMessageBus):
         self._loop.add_reader(
             self._fd,
             build_message_reader(
-                self._unmarshaller,
+                self._stream,
+                self._sock if self._negotiate_unix_fd else None,
                 self._process_message,
                 self._finalize,
             ),
@@ -476,12 +476,6 @@ class MessageBus(BaseMessageBus):
             self._sock.close()
         except Exception:
             logging.warning("could not close socket", exc_info=True)
-
-    def _create_unmarshaller(self) -> Unmarshaller:
-        sock = None
-        if self._negotiate_unix_fd:
-            sock = self._sock
-        return Unmarshaller(self._stream, sock)
 
     def _finalize(self, err: Optional[Exception] = None) -> None:
         try:

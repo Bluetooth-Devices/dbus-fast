@@ -106,6 +106,8 @@ cdef class Unmarshaller:
     cdef object _int16_unpack
     cdef object _uint16_unpack
 
+    cdef _reset(self)
+
     cpdef reset(self)
 
     @cython.locals(
@@ -172,6 +174,8 @@ cdef class Unmarshaller:
         body=cython.list
     )
     cdef _read_body(self)
+
+    cdef _unmarshall(self)
 
     cpdef unmarshall(self)
 
