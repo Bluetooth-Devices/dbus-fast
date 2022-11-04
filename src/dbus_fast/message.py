@@ -28,6 +28,8 @@ HEADER_DESTINATION = HeaderField.DESTINATION.value
 HEADER_SIGNATURE = HeaderField.SIGNATURE.value
 HEADER_UNIX_FDS = HeaderField.UNIX_FDS.value
 
+MESSAGE_FLAG = MessageFlag
+
 
 class Message:
     """A class for sending and receiving messages through the
@@ -115,7 +117,7 @@ class Message:
         self.interface = interface
         self.member = member
         self.message_type = message_type
-        self.flags = flags if type(flags) is MessageFlag else MessageFlag(flags)
+        self.flags = flags if type(flags) is MESSAGE_FLAG else MESSAGE_FLAG(flags)
         self.error_name = (
             str(error_name.value) if type(error_name) is ErrorType else error_name
         )
@@ -258,7 +260,7 @@ class Message:
         """Marshall this message into a byte array."""
         # TODO maximum message size is 134217728 (128 MiB)
         body_block = Marshaller(self.signature, self.body)
-        body_block.marshall()
+        body_buffer = body_block._marshall()
 
         fields = []
 
@@ -287,11 +289,12 @@ class Message:
             self.message_type.value,
             self.flags.value,
             PROTOCOL_VERSION,
-            len(body_block.buffer),
+            len(body_buffer),
             self.serial,
             fields,
         ]
         header_block = Marshaller("yyyyuua(yv)", header_body)
-        header_block.marshall()
-        header_block.align(8)
-        return header_block.buffer + body_block.buffer
+        header_block._marshall()
+        header_block._align(8)
+        header_buffer = header_block._buffer()
+        return header_buffer + body_buffer

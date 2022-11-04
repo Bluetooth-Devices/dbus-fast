@@ -15,6 +15,8 @@ cdef class Marshaller:
     cdef bytearray _buf
     cdef object body
 
+    cdef _buffer(self)
+
     cpdef align(self, unsigned int n)
 
     @cython.locals(
@@ -88,6 +90,8 @@ cdef class Marshaller:
     cpdef write_dict_entry(self, object type_, object body)
 
     cpdef marshall(self)
+
+    cdef _marshall(self)
 
     @cython.locals(
         offset=cython.ulong,
