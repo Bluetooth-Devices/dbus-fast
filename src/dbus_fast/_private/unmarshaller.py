@@ -269,7 +269,14 @@ class Unmarshaller:
         start_len = len(self._buf)
         missing_bytes = pos - (start_len - self._pos)
         if self._sock is None:
-            data = self._stream.read(missing_bytes)
+            # It would be a bit more optimized if we could use
+            # getsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF) instead
+            # of hardcoding the buffer size, but that would require
+            # more refactoring
+            if missing_bytes < 1024:
+                data = self._stream.read1(missing_bytes)
+            else:
+                data = self._stream.read(missing_bytes)
         else:
             data = self._read_sock(missing_bytes)
         if data == b"":
