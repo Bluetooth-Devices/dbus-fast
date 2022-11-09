@@ -130,7 +130,7 @@ cdef class Unmarshaller:
         missing_bytes=cython.ulong,
         data=cython.bytes
     )
-    cdef bint _read_to_pos(self, unsigned long pos)
+    cdef  _read_to_pos(self, unsigned long pos)
 
     cpdef read_boolean(self, object type_)
 
