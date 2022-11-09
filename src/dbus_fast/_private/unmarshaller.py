@@ -238,22 +238,29 @@ class Unmarshaller:
         """Return the message that has been unmarshalled."""
         return self._message
 
-    def _read_sock(self, length: int) -> bytes:
+    def _read_sock(self, length: int) -> Optional[bytes]:
         """reads from the socket, storing any fds sent and handling errors
         from the read itself"""
         # This will raise BlockingIOError if there is no data to read
         # which we store in the MARSHALL_STREAM_END_ERROR object
-        msg, ancdata, _flags, _addr = self._sock.recvmsg(length, UNIX_FDS_CMSG_LENGTH)
-        for level, type_, data in ancdata:
-            if not (level == SOL_SOCKET and type_ == SCM_RIGHTS):
-                continue
-            self._unix_fds.extend(
-                ARRAY("i", data[: len(data) - (len(data) % MAX_UNIX_FDS_SIZE)])
+        try:
+            msg, ancdata, _flags, _addr = self._sock.recvmsg(
+                length, UNIX_FDS_CMSG_LENGTH
             )
+        except MARSHALL_STREAM_END_ERROR:
+            return None
+
+        if ancdata:
+            for level, type_, data in ancdata:
+                if not (level == SOL_SOCKET and type_ == SCM_RIGHTS):
+                    continue
+                self._unix_fds.extend(
+                    ARRAY("i", data[: len(data) - (len(data) % MAX_UNIX_FDS_SIZE)])
+                )
 
         return msg
 
-    def _read_to_pos(self, pos: int) -> None:
+    def _read_to_pos(self, pos: int) -> bool:
         """
         Read from underlying socket into buffer.
 
@@ -275,10 +282,9 @@ class Unmarshaller:
         if data == b"":
             raise EOFError()
         if data is None:
-            raise MARSHALL_STREAM_END_ERROR
+            return False
         self._buf += data
-        if len(data) + start_len != pos:
-            raise MARSHALL_STREAM_END_ERROR
+        return len(data) + start_len == pos
 
     def read_uint32_unpack(self, type_: SignatureType) -> int:
         return self._read_uint32_unpack()
@@ -521,7 +527,6 @@ class Unmarshaller:
         """Read the header of the message."""
         # Signature is of the header is
         # BYTE, BYTE, BYTE, BYTE, UINT32, UINT32, ARRAY of STRUCT of (BYTE,VARIANT)
-        self._read_to_pos(HEADER_SIGNATURE_SIZE)
         buffer = self._buf
         endian = buffer[0]
         self._message_type = buffer[1]
@@ -569,7 +574,6 @@ class Unmarshaller:
 
     def _read_body(self) -> None:
         """Read the body of the message."""
-        self._read_to_pos(HEADER_SIGNATURE_SIZE + self._msg_len)
         self._pos = HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
         header_fields = self.header_fields(self._header_len)
         self._pos += -self._pos & 7  # align 8
@@ -636,12 +640,13 @@ class Unmarshaller:
         if there are not enough bytes in the buffer. This allows unmarshall
         to be resumed when more data comes in over the wire.
         """
-        try:
-            if not self._msg_len:
-                self._read_header()
-            self._read_body()
-        except MARSHALL_STREAM_END_ERROR:
+        if not self._msg_len:
+            if not self._read_to_pos(HEADER_SIGNATURE_SIZE):
+                return None
+            self._read_header()
+        if not self._read_to_pos(HEADER_SIGNATURE_SIZE + self._msg_len):
             return None
+        self._read_body()
         return self._message
 
     _complex_parsers_unpack: Dict[
