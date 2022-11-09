@@ -123,7 +123,7 @@ MARSHALL_STREAM_END_ERROR = BlockingIOError
 def unpack_parser_factory(unpack_from: Callable, size: int) -> READER_TYPE:
     """Build a parser that unpacks the bytes using the given unpack_from function."""
 
-    def _unpack_from_parser(self: "Unmarshaller", signature: SignatureType) -> Any:
+    def _unpack_from_parser(self: "Unmarshaller", signature) -> Any:
         self._pos += size + (-self._pos & (size - 1))  # align
         return unpack_from(self._buf, self._pos - size)[0]
 
@@ -280,7 +280,7 @@ class Unmarshaller:
         if len(data) + start_len != pos:
             raise MARSHALL_STREAM_END_ERROR
 
-    def read_uint32_unpack(self, type_: SignatureType) -> int:
+    def read_uint32_unpack(self, type_) -> int:
         return self._read_uint32_unpack()
 
     def _read_uint32_unpack(self) -> int:
@@ -291,7 +291,7 @@ class Unmarshaller:
             )
         return self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
 
-    def read_uint16_unpack(self, type_: SignatureType) -> int:
+    def read_uint16_unpack(self, type_) -> int:
         return self._read_uint16_unpack()
 
     def _read_uint16_unpack(self) -> int:
@@ -302,7 +302,7 @@ class Unmarshaller:
             )
         return self._uint16_unpack(self._buf, self._pos - UINT16_SIZE)[0]
 
-    def read_int16_unpack(self, type_: SignatureType) -> int:
+    def read_int16_unpack(self, type_) -> int:
         return self._read_int16_unpack()
 
     def _read_int16_unpack(self) -> int:
@@ -313,13 +313,13 @@ class Unmarshaller:
             )
         return self._int16_unpack(self._buf, self._pos - INT16_SIZE)[0]
 
-    def read_boolean(self, type_: SignatureType) -> bool:
+    def read_boolean(self, type_) -> bool:
         return self._read_boolean()
 
     def _read_boolean(self) -> bool:
         return bool(self._read_uint32_unpack())
 
-    def read_string_unpack(self, type_: SignatureType) -> str:
+    def read_string_unpack(self, type_) -> str:
         return self._read_string_unpack()
 
     def _read_string_unpack(self) -> str:
@@ -335,7 +335,7 @@ class Unmarshaller:
             self._pos += self._uint32_unpack(self._buf, str_start - UINT32_SIZE)[0] + 1
         return self._buf[str_start : self._pos - 1].decode()
 
-    def read_signature(self, type_: SignatureType) -> str:
+    def read_signature(self, type_) -> str:
         return self._read_signature()
 
     def _read_signature(self) -> str:
@@ -345,7 +345,7 @@ class Unmarshaller:
         self._pos = o + signature_len + 1
         return self._buf[o : o + signature_len].decode()
 
-    def read_variant(self, type_: SignatureType) -> Variant:
+    def read_variant(self, type_) -> Variant:
         return self._read_variant()
 
     def _read_variant(self) -> Variant:
@@ -396,23 +396,23 @@ class Unmarshaller:
             False,
         )
 
-    def read_struct(self, type_: SignatureType) -> List[Any]:
+    def read_struct(self, type_) -> List[Any]:
         self._pos += -self._pos & 7  # align 8
         readers = self._readers
         return [
             readers[child_type.token](self, child_type) for child_type in type_.children
         ]
 
-    def read_dict_entry(self, type_: SignatureType) -> Tuple[Any, Any]:
+    def read_dict_entry(self, type_) -> Tuple[Any, Any]:
         self._pos += -self._pos & 7  # align 8
         return self._readers[type_.children[0].token](
             self, type_.children[0]
         ), self._readers[type_.children[1].token](self, type_.children[1])
 
-    def read_array(self, type_: SignatureType) -> Iterable[Any]:
+    def read_array(self, type_) -> Iterable[Any]:
         return self._read_array(type_)
 
-    def _read_array(self, type_: SignatureType) -> Iterable[Any]:
+    def _read_array(self, type_) -> Iterable[Any]:
         self._pos += -self._pos & 3  # align 4 for the array
         self._pos += (
             -self._pos & (UINT32_SIZE - 1)
@@ -437,31 +437,30 @@ class Unmarshaller:
 
         if token == "{":
             result_dict = {}
+            signature = child_type.signature
             beginning_pos = self._pos
-            children = child_type.children
-            child_0 = children[0]
-            child_1 = children[1]
-            child_0_token = child_0.token
-            child_1_token = child_1.token
-            # Strings with variant values are the most common case
-            # so we optimize for that by inlining the string reading
-            # and the variant reading here
-            if child_0_token in "os" and child_1_token == "v":
+            if signature == "{sv}" or signature == "{ov}":
                 while self._pos - beginning_pos < array_length:
                     self._pos += -self._pos & 7  # align 8
                     key = self._read_string_unpack()
                     result_dict[key] = self._read_variant()
-            elif child_0_token == "q" and child_1_token == "v":
+            elif signature == "{qv}":
                 while self._pos - beginning_pos < array_length:
                     self._pos += -self._pos & 7  # align 8
                     key = self._read_uint16_unpack()
                     result_dict[key] = self._read_variant()
-            elif child_0_token in "os" and child_1_token == "a":
+            elif signature == "{sa}" or signature == "{sa}":
+                child_1 = child_type.children[1]
                 while self._pos - beginning_pos < array_length:
                     self._pos += -self._pos & 7  # align 8
                     key = self._read_string_unpack()
                     result_dict[key] = self._read_array(child_1)
             else:
+                children = child_type.children
+                child_0 = children[0]
+                child_1 = children[1]
+                child_0_token = child_0.token
+                child_1_token = child_1.token
                 reader_1 = self._readers[child_1_token]
                 reader_0 = self._readers[child_0_token]
                 while self._pos - beginning_pos < array_length:
@@ -490,7 +489,6 @@ class Unmarshaller:
         beginning_pos = self._pos
         headers = {}
         buf = self._buf
-        readers = self._readers
         while self._pos - beginning_pos < header_length:
             # Now read the y (byte) of struct (yv)
             self._pos += (-self._pos & 7) + 1  # align 8 + 1 for 'y' byte
@@ -514,7 +512,9 @@ class Unmarshaller:
                 token = buf[o : o + signature_len].decode()
                 # There shouldn't be any other types in the header
                 # but just in case, we'll read it using the slow path
-                headers[key] = readers[token](self, get_signature_tree(token).types[0])
+                headers[key] = self._readers[token](
+                    self, get_signature_tree(token).types[0]
+                )
         return headers
 
     def _read_header(self) -> None:

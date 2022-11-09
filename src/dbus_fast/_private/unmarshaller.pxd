@@ -3,7 +3,7 @@
 import cython
 
 from ..message cimport Message
-from ..signature cimport Variant
+from ..signature cimport SignatureType, Variant
 
 
 cdef object MAX_UNIX_FDS_SIZE
@@ -162,8 +162,10 @@ cdef class Unmarshaller:
     @cython.locals(
         beginning_pos=cython.ulong,
         array_length=cython.uint,
+        child_type=SignatureType,
+        child_1=SignatureType,
     )
-    cdef _read_array(self, object type_)
+    cdef _read_array(self, SignatureType type_)
 
     cpdef read_signature(self, object type_)
 
