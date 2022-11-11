@@ -620,7 +620,7 @@ class BaseMessageBus:
                 if "path" in options:
                     filename = options["path"]
                 elif "abstract" in options:
-                    filename = f'\0{options["abstract"]}'
+                    filename = b"\0" + options["abstract"].encode()
                 else:
                     raise InvalidAddressError(
                         "got unix transport with unknown path specifier"
