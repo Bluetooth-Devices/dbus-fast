@@ -56,6 +56,22 @@ class BaseMessageBus:
     :vartype connected: bool
     """
 
+    __slots__ = (
+        "unique_name",
+        "_disconnected",
+        "_user_disconnect",
+        "_method_return_handlers",
+        "_serial",
+        "_user_message_handlers",
+        "_name_owners",
+        "_bus_address",
+        "_name_owner_match_rule",
+        "_match_rules",
+        "_high_level_client_initialized",
+        "_ProxyObject",
+        "_machine_id",
+    )
+
     def __init__(
         self,
         bus_address: Optional[str] = None,
@@ -770,8 +786,9 @@ class BaseMessageBus:
 
         return SendReply()
 
-    def _process_message(self, msg: Message) -> None:
+    def _process_message(self, msg) -> None:
         handled = False
+        message_type = msg.message_type
 
         for user_handler in self._user_message_handlers:
             try:
@@ -782,7 +799,7 @@ class BaseMessageBus:
                     handled = True
                     break
             except DBusError as e:
-                if msg.message_type == MessageType.METHOD_CALL:
+                if message_type == MessageType.METHOD_CALL:
                     self.send(e._as_message(msg))
                     handled = True
                     break
@@ -805,7 +822,7 @@ class BaseMessageBus:
                     handled = True
                     break
 
-        if msg.message_type == MessageType.SIGNAL:
+        if message_type == MessageType.SIGNAL:
             if (
                 msg.member == "NameOwnerChanged"
                 and msg.sender == "org.freedesktop.DBus"
@@ -818,7 +835,7 @@ class BaseMessageBus:
                 elif name in self._name_owners:
                     del self._name_owners[name]
 
-        elif msg.message_type == MessageType.METHOD_CALL:
+        elif message_type == MessageType.METHOD_CALL:
             if not handled:
                 handler = self._find_message_handler(msg)
 
