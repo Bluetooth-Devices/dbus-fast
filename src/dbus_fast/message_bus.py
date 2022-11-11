@@ -25,6 +25,9 @@ from .service import ServiceInterface, _Method
 from .signature import Variant
 from .validators import assert_bus_name_valid, assert_object_path_valid
 
+MESSAGE_TYPE_CALL = MessageType.METHOD_CALL
+MESSAGE_TYPE_SIGNAL = MessageType.SIGNAL
+
 
 class BaseMessageBus:
     """An abstract class to manage a connection to a DBus message bus.
@@ -55,6 +58,22 @@ class BaseMessageBus:
         and receive messages.
     :vartype connected: bool
     """
+
+    __slots__ = (
+        "unique_name",
+        "_disconnected",
+        "_user_disconnect",
+        "_method_return_handlers",
+        "_serial",
+        "_user_message_handlers",
+        "_name_owners",
+        "_bus_address",
+        "_name_owner_match_rule",
+        "_match_rules",
+        "_high_level_client_initialized",
+        "_ProxyObject",
+        "_machine_id",
+    )
 
     def __init__(
         self,
@@ -620,7 +639,7 @@ class BaseMessageBus:
                 if "path" in options:
                     filename = options["path"]
                 elif "abstract" in options:
-                    filename = f'\0{options["abstract"]}'
+                    filename = b"\0" + options["abstract"].encode()
                 else:
                     raise InvalidAddressError(
                         "got unix transport with unknown path specifier"
@@ -770,9 +789,8 @@ class BaseMessageBus:
 
         return SendReply()
 
-    def _process_message(self, msg: Message) -> None:
+    def _process_message(self, msg) -> None:
         handled = False
-
         for user_handler in self._user_message_handlers:
             try:
                 result = user_handler(msg)
@@ -782,7 +800,7 @@ class BaseMessageBus:
                     handled = True
                     break
             except DBusError as e:
-                if msg.message_type == MessageType.METHOD_CALL:
+                if msg.message_type is MESSAGE_TYPE_CALL:
                     self.send(e._as_message(msg))
                     handled = True
                     break
@@ -794,7 +812,7 @@ class BaseMessageBus:
                 logging.error(
                     f"A message handler raised an exception: {e}.\n{traceback.format_exc()}"
                 )
-                if msg.message_type == MessageType.METHOD_CALL:
+                if msg.message_type is MESSAGE_TYPE_CALL:
                     self.send(
                         Message.new_error(
                             msg,
@@ -805,7 +823,7 @@ class BaseMessageBus:
                     handled = True
                     break
 
-        if msg.message_type == MessageType.SIGNAL:
+        if msg.message_type is MESSAGE_TYPE_SIGNAL:
             if (
                 msg.member == "NameOwnerChanged"
                 and msg.sender == "org.freedesktop.DBus"
@@ -817,8 +835,9 @@ class BaseMessageBus:
                     self._name_owners[name] = new_owner
                 elif name in self._name_owners:
                     del self._name_owners[name]
+            return
 
-        elif msg.message_type == MessageType.METHOD_CALL:
+        if msg.message_type is MESSAGE_TYPE_CALL:
             if not handled:
                 handler = self._find_message_handler(msg)
 
@@ -835,14 +854,14 @@ class BaseMessageBus:
                                 f'{msg.interface}.{msg.member} with signature "{msg.signature}" could not be found',
                             )
                         )
+            return
 
-        else:
-            # An ERROR or a METHOD_RETURN
-            if msg.reply_serial in self._method_return_handlers:
-                if not handled:
-                    return_handler = self._method_return_handlers[msg.reply_serial]
-                    return_handler(msg, None)
-                del self._method_return_handlers[msg.reply_serial]
+        # An ERROR or a METHOD_RETURN
+        if msg.reply_serial in self._method_return_handlers:
+            if not handled:
+                return_handler = self._method_return_handlers[msg.reply_serial]
+                return_handler(msg, None)
+            del self._method_return_handlers[msg.reply_serial]
 
     def _make_method_handler(
         self, interface: ServiceInterface, method: _Method
