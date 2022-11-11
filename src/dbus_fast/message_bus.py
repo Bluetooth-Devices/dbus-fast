@@ -25,6 +25,9 @@ from .service import ServiceInterface, _Method
 from .signature import Variant
 from .validators import assert_bus_name_valid, assert_object_path_valid
 
+MESSAGE_TYPE_CALL = MessageType.METHOD_CALL
+MESSAGE_TYPE_SIGNAL = MessageType.SIGNAL
+
 
 class BaseMessageBus:
     """An abstract class to manage a connection to a DBus message bus.
@@ -799,7 +802,7 @@ class BaseMessageBus:
                     handled = True
                     break
             except DBusError as e:
-                if message_type == MessageType.METHOD_CALL:
+                if message_type is MESSAGE_TYPE_CALL:
                     self.send(e._as_message(msg))
                     handled = True
                     break
@@ -811,7 +814,7 @@ class BaseMessageBus:
                 logging.error(
                     f"A message handler raised an exception: {e}.\n{traceback.format_exc()}"
                 )
-                if msg.message_type == MessageType.METHOD_CALL:
+                if msg.message_type is MESSAGE_TYPE_CALL:
                     self.send(
                         Message.new_error(
                             msg,
@@ -822,7 +825,7 @@ class BaseMessageBus:
                     handled = True
                     break
 
-        if message_type == MessageType.SIGNAL:
+        if message_type is MESSAGE_TYPE_SIGNAL:
             if (
                 msg.member == "NameOwnerChanged"
                 and msg.sender == "org.freedesktop.DBus"
@@ -835,7 +838,7 @@ class BaseMessageBus:
                 elif name in self._name_owners:
                     del self._name_owners[name]
 
-        elif message_type == MessageType.METHOD_CALL:
+        elif message_type is MESSAGE_TYPE_CALL:
             if not handled:
                 handler = self._find_message_handler(msg)
 

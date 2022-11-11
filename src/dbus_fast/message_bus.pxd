@@ -7,6 +7,8 @@ cdef object MessageType
 cdef object DBusError
 cdef object MessageFlag
 
+cdef object MESSAGE_TYPE_CALL
+cdef object MESSAGE_TYPE_SIGNAL
 
 cdef class BaseMessageBus:
 
