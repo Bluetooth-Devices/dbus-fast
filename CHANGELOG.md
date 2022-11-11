@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.73.0 (2022-11-11)
+### Feature
+* Reduce latency to process messages ([#161](https://github.com/Bluetooth-Devices/dbus-fast/issues/161)) ([`113f0c9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/113f0c9a325d538592555ae89e1df1ea29398aa9))
+
 ## v1.72.0 (2022-11-04)
 ### Feature
 * Add optimized reader for GetManagedObjects ([#152](https://github.com/Bluetooth-Devices/dbus-fast/issues/152)) ([`7ed453f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7ed453f31a654f8cc9b99eb17f872370f4b06a4e))
