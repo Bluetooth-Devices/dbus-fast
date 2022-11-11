@@ -626,6 +626,9 @@ class BaseMessageBus:
                         "got unix transport with unknown path specifier"
                     )
 
+                import pprint
+
+                pprint.pprint(["filename", filename])
                 try:
                     self._sock.connect(filename)
                     self._sock.setblocking(False)
