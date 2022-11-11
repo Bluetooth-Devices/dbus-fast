@@ -1,0 +1,2 @@
+
+cdef object DBusError
