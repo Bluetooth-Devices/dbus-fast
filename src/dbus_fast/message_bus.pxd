@@ -11,17 +11,17 @@ cdef object MessageFlag
 cdef class BaseMessageBus:
 
     cdef public object unique_name
-    cdef object _disconnected
-    cdef object _user_disconnect
-    cdef object _method_return_handlers
-    cdef object _serial
-    cdef object _user_message_handlers
-    cdef object _name_owners
-    cdef object _bus_address
-    cdef object _name_owner_match_rule
-    cdef object _match_rules
-    cdef object _high_level_client_initialized
-    cdef object _ProxyObject
-    cdef object _machine_id
+    cdef public object _disconnected
+    cdef public object _user_disconnect
+    cdef public object _method_return_handlers
+    cdef public object _serial
+    cdef public object _user_message_handlers
+    cdef public object _name_owners
+    cdef public object _bus_address
+    cdef public object _name_owner_match_rule
+    cdef public object _match_rules
+    cdef public object _high_level_client_initialized
+    cdef public object _ProxyObject
+    cdef public object _machine_id
 
     cpdef _process_message(self, msg: Message)
