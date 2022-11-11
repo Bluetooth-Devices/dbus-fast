@@ -645,7 +645,7 @@ class BaseMessageBus:
                 try:
                     self._sock.connect(filename)
                     self._sock.setblocking(False)
-                    return
+                    break
                 except Exception as e:
                     err = e
 
@@ -662,7 +662,7 @@ class BaseMessageBus:
                 try:
                     self._sock.connect((ip_addr, ip_port))
                     self._sock.setblocking(False)
-                    return
+                    break
                 except Exception as e:
                     err = e
 
