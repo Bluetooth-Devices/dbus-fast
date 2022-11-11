@@ -17,7 +17,7 @@ cdef class BaseMessageBus:
     cdef public object _user_disconnect
     cdef public object _method_return_handlers
     cdef public object _serial
-    cdef public object _user_message_handlers
+    cdef public cython.list _user_message_handlers
     cdef public object _name_owners
     cdef public object _bus_address
     cdef public object _name_owner_match_rule
@@ -26,4 +26,4 @@ cdef class BaseMessageBus:
     cdef public object _ProxyObject
     cdef public object _machine_id
 
-    cpdef _process_message(self, msg: Message)
+    cpdef _process_message(self, Message msg)
