@@ -15,7 +15,10 @@ def unpack_variants(data: Any) -> Any:
 
 def _unpack_variants(data: Any) -> Any:
     if type(data) is dict:
-        return {k: _unpack_variants(v) for k, v in data.items()}
+        return {
+            k: v.value if type(v) is Variant else _unpack_variants(v)
+            for k, v in data.items()
+        }
     if type(data) is list:
         return [_unpack_variants(item) for item in data]
     if type(data) is Variant:
