@@ -586,4 +586,4 @@ def test_marshalling_enum():
     )
     marshalled = msg._marshall(False)
     unmarshalled_msg = Unmarshaller(io.BytesIO(marshalled)).unmarshall()
-    assert unmarshalled_msg.body[0] == RaucState.GOOD
+    assert unpack_variants(unmarshalled_msg.body)[0] == RaucState.GOOD.value

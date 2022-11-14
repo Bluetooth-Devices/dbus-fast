@@ -179,18 +179,18 @@ class Marshaller:
     def _marshall(self) -> bytearray:
         """Marshalls the body into a byte array"""
         try:
-            self._construct_buffer()
+            return self._construct_buffer()
         except KeyError as ex:
             raise NotImplementedError(f'type is not implemented yet: "{ex.args}"')
-        except error:
+        except error as ex:
             self.signature_tree.verify(self.body)
-        return self._buf
 
-    def _construct_buffer(self) -> None:
+    def _construct_buffer(self) -> bytearray:
         self._buf.clear()
         body = self.body
         for i, type_ in enumerate(self.signature_tree.types):
             self._write_single(type_, body[i])
+        return self._buf
 
     _writers: Dict[
         str,
