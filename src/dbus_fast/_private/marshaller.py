@@ -182,7 +182,7 @@ class Marshaller:
             return self._construct_buffer()
         except KeyError as ex:
             raise NotImplementedError(f'type is not implemented yet: "{ex.args}"')
-        except error as ex:
+        except error:
             self.signature_tree.verify(self.body)
 
     def _construct_buffer(self) -> bytearray:
