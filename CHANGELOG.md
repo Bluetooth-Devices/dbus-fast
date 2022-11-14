@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.74.0 (2022-11-14)
+### Feature
+* Improve cdef types for marshaller ([#164](https://github.com/Bluetooth-Devices/dbus-fast/issues/164)) ([`9fb4440`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9fb4440b805fa5bf432fa1b23d9b1fac1de31b96))
+
 ## v1.73.1 (2022-11-14)
 ### Fix
 * Allow non-string objects to be marshalled by write_string ([#163](https://github.com/Bluetooth-Devices/dbus-fast/issues/163)) ([`46f1d6b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/46f1d6bbc09860185db04c7985b9fd7c23e7a1bf))
