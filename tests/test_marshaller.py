@@ -1,8 +1,8 @@
 import io
 import json
 import os
+from enum import Enum
 from typing import Any, Dict
-from unittest.mock import patch
 
 import pytest
 
@@ -566,3 +566,24 @@ def test_unmarshall_big_endian_message():
     message = unmarshaller.message
     unpacked = unpack_variants(message.body)
     assert unpacked == [42, "zip", "Trusted", True]
+
+
+class RaucState(str, Enum):
+    """Rauc slot states."""
+
+    GOOD = "good"
+    BAD = "bad"
+    ACTIVE = "active"
+
+
+def test_marshalling_enum():
+    """Test marshalling an enum."""
+    msg = Message(
+        path="/test",
+        member="test",
+        signature="s",
+        body=[RaucState.GOOD],
+    )
+    marshalled = msg._marshall(False)
+    unmarshalled_msg = Unmarshaller(io.BytesIO(marshalled)).unmarshall()
+    assert unmarshalled_msg.body[0] == RaucState.GOOD
