@@ -33,14 +33,14 @@ cdef class Marshaller:
     )
     cdef unsigned int _write_boolean(self, object boolean)
 
-    cpdef write_string(self, str value, object _type)
+    cpdef write_string(self, object value, object _type)
 
     @cython.locals(
         value_len=cython.uint,
         signature_len=cython.uint,
         written=cython.uint,
     )
-    cdef unsigned int _write_string(self, str value)
+    cdef unsigned int _write_string(self, object value)
 
     @cython.locals(
         signature_len=cython.uint,
