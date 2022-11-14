@@ -2,6 +2,8 @@
 
 import cython
 
+from ..signature cimport SignatureTree
+
 
 cdef object PACK_UINT32
 
@@ -13,9 +15,9 @@ cdef get_signature_tree
 
 cdef class Marshaller:
 
-    cdef object signature_tree
+    cdef SignatureTree signature_tree
     cdef bytearray _buf
-    cdef object body
+    cdef cython.list body
 
     cdef _buffer(self)
 
