@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.74.1 (2022-11-16)
+### Fix
+* Building via PEP 517 ([#166](https://github.com/Bluetooth-Devices/dbus-fast/issues/166)) ([`6694fda`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6694fda49f966814ebc900a52812b4c5e4ff1980))
+
 ## v1.74.0 (2022-11-14)
 ### Feature
 * Improve cdef types for marshaller ([#164](https://github.com/Bluetooth-Devices/dbus-fast/issues/164)) ([`9fb4440`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9fb4440b805fa5bf432fa1b23d9b1fac1de31b96))
