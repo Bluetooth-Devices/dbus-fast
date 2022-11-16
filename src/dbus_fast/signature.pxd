@@ -27,3 +27,8 @@ cdef class Variant:
     cdef public SignatureType type
     cdef public object signature
     cdef public object value
+
+    @cython.locals(
+        signature_tree=SignatureTree
+    )
+    cdef void _init_signature(self, object signature, object value, bint verify)

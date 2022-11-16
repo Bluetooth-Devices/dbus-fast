@@ -403,6 +403,15 @@ class Variant:
         verify: bool = True,
     ) -> None:
         """Init a new Variant."""
+        self._init_signature(signature, value, verify)
+
+    def _init_signature(
+        self,
+        signature: Union[str, SignatureTree, SignatureType],
+        value: Any,
+        verify: bool,
+    ) -> None:
+        self.value = value
         if type(signature) is SignatureTree:
             signature_tree = signature
             self.signature = signature_tree.signature
@@ -419,7 +428,6 @@ class Variant:
             raise TypeError(
                 "signature must be a SignatureTree, SignatureType, or a string"
             )
-        self.value = value
         if verify:
             if signature_tree and len(signature_tree.types) != 1:
                 raise ValueError(
