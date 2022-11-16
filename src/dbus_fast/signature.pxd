@@ -9,6 +9,12 @@ cdef class SignatureType:
     cdef public list children
     cdef str _signature
 
+    @cython.locals(
+        child=SignatureType,
+        signature=cython.list
+    )
+    cdef _collapse(self)
+
 
 cdef class SignatureTree:
 
@@ -18,6 +24,6 @@ cdef class SignatureTree:
 
 cdef class Variant:
 
-    cdef public object type
+    cdef public SignatureType type
     cdef public object signature
     cdef public object value
