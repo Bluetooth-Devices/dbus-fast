@@ -14,7 +14,7 @@ classifiers = [
     "Operating System :: OS Independent",
     "Topic :: Software Development :: Libraries",
 ]
-build = "build.py"
+build = "build_ext.py"
 packages = [
     { include = "dbus_fast", from = "src" },
 ]
