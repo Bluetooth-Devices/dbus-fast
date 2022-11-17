@@ -186,6 +186,7 @@ class Unmarshaller:
         "_int16_unpack",
         "_uint16_unpack",
         "_is_native",
+        "_stream_reader",
     )
 
     def __init__(self, stream: io.BufferedRWPair, sock: Optional[socket.socket] = None):
@@ -203,9 +204,14 @@ class Unmarshaller:
         self._flag = 0
         self._msg_len = 0
         self._is_native = 0
-        self._uint32_unpack: Callable | None = None
-        self._int16_unpack: Callable | None = None
-        self._uint16_unpack: Callable | None = None
+        self._uint32_unpack: Optional[Callable] = None
+        self._int16_unpack: Optional[Callable] = None
+        self._uint16_unpack: Optional[Callable] = None
+        self._stream_reader: Optional[Callable] = None
+        if self._sock is None:
+            if isinstance(stream, io.BufferedRWPair) and hasattr(stream, "reader"):
+                self._stream_reader = stream.reader.read
+            self._stream_reader = stream.read
 
     def reset(self) -> None:
         """Reset the unmarshaller to its initial state.
@@ -269,7 +275,7 @@ class Unmarshaller:
         start_len = len(self._buf)
         missing_bytes = pos - (start_len - self._pos)
         if self._sock is None:
-            data = self._stream.read(missing_bytes)
+            data = self._stream_reader(missing_bytes)
         else:
             data = self._read_sock(missing_bytes)
         if data == b"":
