@@ -3,7 +3,7 @@
 import cython
 
 from ..message cimport Message
-from ..signature cimport Variant
+from ..signature cimport SignatureTree, SignatureType, Variant
 
 
 cdef object MAX_UNIX_FDS_SIZE
@@ -45,33 +45,33 @@ cdef object MESSAGE_TYPE_MAP
 cdef object MESSAGE_FLAG_MAP
 cdef object HEADER_MESSAGE_ARG_NAME
 
-cdef object SIGNATURE_TREE_EMPTY
-cdef object SIGNATURE_TREE_B
-cdef object SIGNATURE_TREE_N
-cdef object SIGNATURE_TREE_O
-cdef object SIGNATURE_TREE_S
-cdef object SIGNATURE_TREE_U
-cdef object SIGNATURE_TREE_Y
+cdef SignatureTree SIGNATURE_TREE_EMPTY
+cdef SignatureTree SIGNATURE_TREE_B
+cdef SignatureTree SIGNATURE_TREE_N
+cdef SignatureTree SIGNATURE_TREE_O
+cdef SignatureTree SIGNATURE_TREE_S
+cdef SignatureTree SIGNATURE_TREE_U
+cdef SignatureTree SIGNATURE_TREE_Y
 
-cdef object SIGNATURE_TREE_AS
-cdef object SIGNATURE_TREE_AS_TYPES_0
-cdef object SIGNATURE_TREE_AO
-cdef object SIGNATURE_TREE_AO_TYPES_0
-cdef object SIGNATURE_TREE_A_SV
-cdef object SIGNATURE_TREE_A_SV_TYPES_0
-cdef object SIGNATURE_TREE_SA_SV_AS
-cdef object SIGNATURE_TREE_SA_SV_AS_TYPES_1
-cdef object SIGNATURE_TREE_SA_SV_AS_TYPES_2
-cdef object SIGNATURE_TREE_OAS
-cdef object SIGNATURE_TREE_OAS_TYPES_1
-cdef object SIGNATURE_TREE_OA_SA_SV
-cdef object SIGNATURE_TREE_OA_SA_SV_TYPES_1
-cdef object SIGNATURE_TREE_AY
-cdef object SIGNATURE_TREE_AY_TYPES_0
-cdef object SIGNATURE_TREE_A_QV
-cdef object SIGNATURE_TREE_A_QV_TYPES_0
-cdef object SIGNATURE_TREE_A_OA_SA_SV
-cdef object SIGNATURE_TREE_A_OA_SA_SV_TYPES_0
+cdef SignatureTree SIGNATURE_TREE_AS
+cdef SignatureType SIGNATURE_TREE_AS_TYPES_0
+cdef SignatureTree SIGNATURE_TREE_AO
+cdef SignatureType SIGNATURE_TREE_AO_TYPES_0
+cdef SignatureTree SIGNATURE_TREE_A_SV
+cdef SignatureType SIGNATURE_TREE_A_SV_TYPES_0
+cdef SignatureTree SIGNATURE_TREE_SA_SV_AS
+cdef SignatureType SIGNATURE_TREE_SA_SV_AS_TYPES_1
+cdef SignatureType SIGNATURE_TREE_SA_SV_AS_TYPES_2
+cdef SignatureTree SIGNATURE_TREE_OAS
+cdef SignatureType SIGNATURE_TREE_OAS_TYPES_1
+cdef SignatureTree SIGNATURE_TREE_OA_SA_SV
+cdef SignatureType SIGNATURE_TREE_OA_SA_SV_TYPES_1
+cdef SignatureTree SIGNATURE_TREE_AY
+cdef SignatureType SIGNATURE_TREE_AY_TYPES_0
+cdef SignatureTree SIGNATURE_TREE_A_QV
+cdef SignatureType SIGNATURE_TREE_A_QV_TYPES_0
+cdef SignatureTree SIGNATURE_TREE_A_OA_SA_SV
+cdef SignatureType SIGNATURE_TREE_A_OA_SA_SV_TYPES_0
 
 cdef unsigned int TOKEN_O_AS_INT
 cdef unsigned int TOKEN_S_AS_INT
@@ -133,23 +133,23 @@ cdef class Unmarshaller:
     )
     cdef _read_to_pos(self, unsigned long pos)
 
-    cpdef read_boolean(self, object type_)
+    cpdef read_boolean(self, SignatureType type_)
 
     cdef _read_boolean(self)
 
-    cpdef read_uint32_unpack(self, object type_)
+    cpdef read_uint32_unpack(self, SignatureType type_)
 
     cdef unsigned int _read_uint32_unpack(self)
 
-    cpdef read_int16_unpack(self, object type_)
+    cpdef read_int16_unpack(self, SignatureType type_)
 
     cdef int _read_int16_unpack(self)
 
-    cpdef read_uint16_unpack(self, object type_)
+    cpdef read_uint16_unpack(self, SignatureType type_)
 
     cdef unsigned int _read_uint16_unpack(self)
 
-    cpdef read_string_unpack(self, object type_)
+    cpdef read_string_unpack(self, SignatureType type_)
 
     @cython.locals(
         str_start=cython.uint,
@@ -158,15 +158,16 @@ cdef class Unmarshaller:
 
     cdef _read_variant(self)
 
-    cpdef read_array(self, object type_)
+    cpdef read_array(self, SignatureType type_)
 
     @cython.locals(
         beginning_pos=cython.ulong,
         array_length=cython.uint,
+        child_type=SignatureType,
     )
-    cdef _read_array(self, object type_)
+    cdef _read_array(self, SignatureType type_)
 
-    cpdef read_signature(self, object type_)
+    cpdef read_signature(self, SignatureType type_)
 
     @cython.locals(
         o=cython.ulong,
