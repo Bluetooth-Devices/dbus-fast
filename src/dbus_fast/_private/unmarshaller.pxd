@@ -115,6 +115,7 @@ cdef class Unmarshaller:
     cdef object _uint32_unpack
     cdef object _int16_unpack
     cdef object _uint16_unpack
+    cdef object _stream_reader
 
     cdef _reset(self)
 
