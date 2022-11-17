@@ -41,8 +41,8 @@ cdef object INT16_UNPACK_BIG_ENDIAN
 cdef object UINT16_UNPACK_LITTLE_ENDIAN
 cdef object UINT16_UNPACK_BIG_ENDIAN
 
-cdef object MESSAGE_TYPE_MAP
-cdef object MESSAGE_FLAG_MAP
+cdef cython.dict MESSAGE_TYPE_MAP
+cdef cython.dict MESSAGE_FLAG_MAP
 cdef object HEADER_MESSAGE_ARG_NAME
 
 cdef SignatureTree SIGNATURE_TREE_EMPTY
