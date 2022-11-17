@@ -286,7 +286,7 @@ class Unmarshaller:
         if len(data) + start_len != pos:
             raise MARSHALL_STREAM_END_ERROR
 
-    def read_uint32_unpack(self, type_: SignatureType) -> int:
+    def read_uint32_unpack(self, type_) -> int:
         return self._read_uint32_unpack()
 
     def _read_uint32_unpack(self) -> int:
@@ -297,7 +297,7 @@ class Unmarshaller:
             )
         return self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
 
-    def read_uint16_unpack(self, type_: SignatureType) -> int:
+    def read_uint16_unpack(self, type_) -> int:
         return self._read_uint16_unpack()
 
     def _read_uint16_unpack(self) -> int:
@@ -308,7 +308,7 @@ class Unmarshaller:
             )
         return self._uint16_unpack(self._buf, self._pos - UINT16_SIZE)[0]
 
-    def read_int16_unpack(self, type_: SignatureType) -> int:
+    def read_int16_unpack(self, type_) -> int:
         return self._read_int16_unpack()
 
     def _read_int16_unpack(self) -> int:
@@ -319,13 +319,13 @@ class Unmarshaller:
             )
         return self._int16_unpack(self._buf, self._pos - INT16_SIZE)[0]
 
-    def read_boolean(self, type_: SignatureType) -> bool:
+    def read_boolean(self, type_) -> bool:
         return self._read_boolean()
 
     def _read_boolean(self) -> bool:
         return bool(self._read_uint32_unpack())
 
-    def read_string_unpack(self, type_: SignatureType) -> str:
+    def read_string_unpack(self, type_) -> str:
         return self._read_string_unpack()
 
     def _read_string_unpack(self) -> str:
@@ -341,7 +341,7 @@ class Unmarshaller:
             self._pos += self._uint32_unpack(self._buf, str_start - UINT32_SIZE)[0] + 1
         return self._buf[str_start : self._pos - 1].decode()
 
-    def read_signature(self, type_: SignatureType) -> str:
+    def read_signature(self, type_) -> str:
         return self._read_signature()
 
     def _read_signature(self) -> str:
@@ -351,7 +351,7 @@ class Unmarshaller:
         self._pos = o + signature_len + 1
         return self._buf[o : o + signature_len].decode()
 
-    def read_variant(self, type_: SignatureType) -> Variant:
+    def read_variant(self, type_) -> Variant:
         return self._read_variant()
 
     def _read_variant(self) -> Variant:
@@ -402,23 +402,23 @@ class Unmarshaller:
             False,
         )
 
-    def read_struct(self, type_: SignatureType) -> List[Any]:
+    def read_struct(self, type_) -> List[Any]:
         self._pos += -self._pos & 7  # align 8
         readers = self._readers
         return [
             readers[child_type.token](self, child_type) for child_type in type_.children
         ]
 
-    def read_dict_entry(self, type_: SignatureType) -> Tuple[Any, Any]:
+    def read_dict_entry(self, type_) -> Tuple[Any, Any]:
         self._pos += -self._pos & 7  # align 8
         return self._readers[type_.children[0].token](
             self, type_.children[0]
         ), self._readers[type_.children[1].token](self, type_.children[1])
 
-    def read_array(self, type_: SignatureType) -> Iterable[Any]:
+    def read_array(self, type_) -> Iterable[Any]:
         return self._read_array(type_)
 
-    def _read_array(self, type_: SignatureType) -> Iterable[Any]:
+    def _read_array(self, type_) -> Iterable[Any]:
         self._pos += -self._pos & 3  # align 4 for the array
         self._pos += (
             -self._pos & (UINT32_SIZE - 1)
