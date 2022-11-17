@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.75.0 (2022-11-17)
+### Feature
+* Add unmarshaller cython typing for SignatureType and SignatureTree ([#168](https://github.com/Bluetooth-Devices/dbus-fast/issues/168)) ([`98d5c5a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/98d5c5aec2c800351666921c14aaa64741ca2831))
+
 ## v1.74.2 (2022-11-17)
 ### Fix
 * Small fixes for typing with older python versions ([#167](https://github.com/Bluetooth-Devices/dbus-fast/issues/167)) ([`1e32f28`](https://github.com/Bluetooth-Devices/dbus-fast/commit/1e32f284cd7a15da81d278ffa9f5abe34563aafc))
