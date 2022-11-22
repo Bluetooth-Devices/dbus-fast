@@ -1,8 +1,8 @@
 import ast
 import inspect
-from typing import Any, List, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from ..signature import SignatureTree, Variant, get_signature_tree
+from ..signature import SignatureTree, SignatureType, Variant, get_signature_tree
 
 
 def signature_contains_type(
@@ -10,12 +10,14 @@ def signature_contains_type(
 ) -> bool:
     """For a given signature and body, check to see if it contains any members
     with the given token"""
-    if type(signature) is str:
-        signature = get_signature_tree(signature)
+    if type(signature) is SignatureTree:
+        sig = signature
+    else:
+        sig = get_signature_tree(signature)
 
     queue = []
     contains_variants = False
-    for st in signature.types:
+    for st in sig.types:
         queue.append(st)
 
     while True:
@@ -50,27 +52,29 @@ def signature_contains_type(
 
 def replace_fds_with_idx(
     signature: Union[str, SignatureTree], body: List[Any]
-) -> (List[Any], List[int]):
+) -> Tuple[List[Any], List[int]]:
     """Take the high level body format and convert it into the low level body
     format. Type 'h' refers directly to the fd in the body. Replace that with
     an index and return the corresponding list of unix fds that can be set on
     the Message"""
-    if type(signature) is str:
-        signature = get_signature_tree(signature)
+    if type(signature) is SignatureTree:
+        sig = signature
+    else:
+        sig = get_signature_tree(signature)
 
     if not signature_contains_type(signature, body, "h"):
         return body, []
 
-    unix_fds = []
+    unix_fds: List[int] = []
 
-    def _replace(fd):
+    def _replace(fd: int) -> int:
         try:
             return unix_fds.index(fd)
         except ValueError:
             unix_fds.append(fd)
             return len(unix_fds) - 1
 
-    _replace_fds(body, signature.types, _replace)
+    _replace_fds(body, sig.types, _replace)
 
     return body, unix_fds
 
@@ -81,19 +85,21 @@ def replace_idx_with_fds(
     """Take the low level body format and return the high level body format.
     Type 'h' refers to an index in the unix_fds array. Replace those with the
     actual file descriptor or `None` if one does not exist."""
-    if type(signature) is str:
-        signature = get_signature_tree(signature)
+    if type(signature) is SignatureTree:
+        sig = signature
+    else:
+        sig = get_signature_tree(signature)
 
     if not signature_contains_type(signature, body, "h"):
         return body
 
-    def _replace(idx):
+    def _replace(idx: int) -> Optional[int]:
         try:
             return unix_fds[idx]
         except IndexError:
             return None
 
-    _replace_fds(body, signature.types, _replace)
+    _replace_fds(body, sig.types, _replace)
 
     return body
 
@@ -107,7 +113,7 @@ def parse_annotation(annotation: str) -> str:
     constant.
     """
 
-    def raise_value_error():
+    def raise_value_error() -> None:
         raise ValueError(
             f"service annotations must be a string constant (got {annotation})"
         )
@@ -118,17 +124,21 @@ def parse_annotation(annotation: str) -> str:
         raise_value_error()
     try:
         body = ast.parse(annotation).body
-        if len(body) == 1 and type(body[0].value) is ast.Constant:
-            if type(body[0].value.value) is not str:
+        if len(body) == 1 and type(body[0].value) is ast.Constant:  # type: ignore[attr-defined]
+            if type(body[0].value.value) is not str:  # type: ignore[attr-defined]
                 raise_value_error()
-            return body[0].value.value
+            return body[0].value.value  # type: ignore[attr-defined]
     except SyntaxError:
         pass
 
     return annotation
 
 
-def _replace_fds(body_obj: List[Any], children, replace_fn):
+def _replace_fds(
+    body_obj: Union[Dict[Any, Any], List[Any]],
+    children: List[SignatureType],
+    replace_fn: Callable[[Any], Any],
+) -> None:
     """Replace any type 'h' with the value returned by replace_fn() given the
     value of the fd field. This is used by the high level interfaces which
     allow type 'h' to be the fd directly instead of an index in an external
@@ -150,7 +160,7 @@ def _replace_fds(body_obj: List[Any], children, replace_fn):
         elif st.token in "(":
             _replace_fds(body_obj[index], st.children, replace_fn)
         elif st.token in "{":
-            for key, value in list(body_obj.items()):
+            for key, value in list(body_obj.items()):  # type: ignore[union-attr]
                 body_obj.pop(key)
                 if st.children[0].signature == "h":
                     key = replace_fn(key)
