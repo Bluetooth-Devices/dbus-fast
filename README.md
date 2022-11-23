@@ -201,7 +201,7 @@ asyncio.run(main())
 
 ## Contributing
 
-Contributions are welcome. Development happens on [Github](https://github.com/altdesktop/python-dbus-fast).
+Contributions are welcome. Development happens on [Github](https://github.com/Bluetooth-Devices/dbus-fast).
 
 Before you commit, run `pre-commit run --all-files` to run the linter, code formatter, and the test suite.
 
