@@ -53,22 +53,7 @@ class ReadOnlyContextProxy:
         self._obj.set(value)
 
 
-current_message = Annotated[
-    ReadOnlyContextProxy("current_message"),
-    """
-The :class:`Message <dbus.message.Message>` object currently being handled.
-Client code can use this to obtain access to details from the message without
-modifying their public API.  Typical use is:
-```
-from dbus_next.message_bus import current_message
-@method()
-def echo_sender() -> 's':
-    return current_message.sender
-```
-Attempts to access any attribute of `current_message` outside of a message context
-will result in a `LookupError` being raised.
-""",
-]
+current_message = ReadOnlyContextProxy("current_message")
 
 
 class BaseMessageBus:
