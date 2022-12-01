@@ -5,7 +5,7 @@ import socket
 import traceback
 import xml.etree.ElementTree as ET
 from types import TracebackType
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+from typing import Annotated, Any, Callable, Dict, List, Optional, Type, Union
 
 from . import introspection as intr
 from ._private.address import get_bus_address, parse_address
@@ -53,7 +53,9 @@ class ReadOnlyContextProxy:
         self._obj.set(value)
 
 
-"""
+current_message = Annotated[
+    ReadOnlyContextProxy("current_message"),
+    """
 The :class:`Message <dbus.message.Message>` object currently being handled.
 Client code can use this to obtain access to details from the message without
 modifying their public API.  Typical use is:
@@ -65,8 +67,8 @@ def echo_sender() -> 's':
 ```
 Attempts to access any attribute of `current_message` outside of a message context
 will result in a `LookupError` being raised.
-"""
-current_message = ReadOnlyContextProxy("current_message")
+""",
+]
 
 
 class BaseMessageBus:
