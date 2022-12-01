@@ -10,6 +10,7 @@ from dbus_fast import (
     Variant,
 )
 from dbus_fast.aio import MessageBus
+from dbus_fast.message_bus import current_message
 from dbus_fast.service import ServiceInterface, method
 
 
@@ -33,6 +34,10 @@ class ExampleInterface(ServiceInterface):
     ) -> "asva{sv}(s(s(v)))":
         assert type(self) is ExampleInterface
         return [array, variant, dict_entries, struct]
+
+    @method()
+    def echo_sender(self) -> 's':
+        return current_message.sender
 
     @method()
     def ping(self):
@@ -80,6 +85,10 @@ class AsyncInterface(ServiceInterface):
     ) -> "asva{sv}(s(s(v)))":
         assert type(self) is AsyncInterface
         return [array, variant, dict_entries, struct]
+
+    @method()
+    def echo_sender(self) -> 's':
+        return current_message.sender
 
     @method()
     async def ping(self):
@@ -179,6 +188,10 @@ async def test_methods(interface_class):
 
     reply = await call("throws_dbus_error", flags=MessageFlag.NO_REPLY_EXPECTED)
     assert reply is None
+
+    reply = await call("echo_sender")
+    assert reply.message_type == MessageType.METHOD_RETURN
+    assert reply.signature == "s"
 
     bus1.disconnect()
     bus2.disconnect()

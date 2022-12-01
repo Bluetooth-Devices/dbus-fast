@@ -1,3 +1,4 @@
+import contextvars
 import inspect
 import logging
 import socket
@@ -27,6 +28,44 @@ from .validators import assert_bus_name_valid, assert_object_path_valid
 
 MESSAGE_TYPE_CALL = MessageType.METHOD_CALL
 MESSAGE_TYPE_SIGNAL = MessageType.SIGNAL
+
+
+class ReadOnlyContextProxy:
+    """
+    A convenience class for making a context variable accessible as though it
+    were a local.  Any request for an attribute (other than `set_value`) on the
+    proxy will be passed through to the underlying variable.  Attributes are
+    immutable.
+    :param name: The name of the context variable.
+    """
+    def __init__(self, name: str):
+        self._obj = contextvars.ContextVar(name)
+
+    def __getattr__(self, name: str) -> Any:
+        proxy = self._obj.get()
+        return getattr(proxy, name)
+
+    def set_value(self, value: Any):
+        """
+        Set the value of the underlying context variable.
+        """
+        self._obj.set(value)
+
+
+"""
+The :class:`Message <dbus.message.Message>` object currently being handled.
+Client code can use this to obtain access to details from the message without
+modifying their public API.  Typical use is:
+```
+from dbus_next.message_bus import current_message
+@method()
+def echo_sender() -> 's':
+    return current_message.sender
+```
+Attempts to access any attribute of `current_message` outside of a message context
+will result in a `LookupError` being raised.
+"""
+current_message = ReadOnlyContextProxy("current_message")
 
 
 class BaseMessageBus:
@@ -790,6 +829,7 @@ class BaseMessageBus:
         return SendReply()
 
     def _process_message(self, msg) -> None:
+        current_message.set_value(msg)
         handled = False
         for user_handler in self._user_message_handlers:
             try:
