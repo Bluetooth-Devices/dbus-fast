@@ -36,7 +36,7 @@ class ExampleInterface(ServiceInterface):
         return [array, variant, dict_entries, struct]
 
     @method()
-    def echo_sender(self) -> 's':
+    def echo_sender(self) -> "s":
         return current_message.sender
 
     @method()
@@ -87,7 +87,7 @@ class AsyncInterface(ServiceInterface):
         return [array, variant, dict_entries, struct]
 
     @method()
-    def echo_sender(self) -> 's':
+    def echo_sender(self) -> "s":
         return current_message.sender
 
     @method()

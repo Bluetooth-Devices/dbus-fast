@@ -38,6 +38,7 @@ class ReadOnlyContextProxy:
     immutable.
     :param name: The name of the context variable.
     """
+
     def __init__(self, name: str):
         self._obj = contextvars.ContextVar(name)
 
