@@ -123,7 +123,9 @@ async def test_aio_proxy_object():
     bus2.disconnect()
 
 
-@pytest.mark.skipif(sys.version_info[:3][1] in (11,), reason="segfaults on py3.11")
+@pytest.mark.skipif(
+    sys.version_info[:3][1] in (10, 11), reason="segfaults on py3.10/py3.11"
+)
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
 def test_glib_proxy_object():
     bus_name = "glib.client.test.methods"
