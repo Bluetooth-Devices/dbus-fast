@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.75.1 (2022-11-23)
+### Fix
+* Fix remaining altdesktop links ([#169](https://github.com/Bluetooth-Devices/dbus-fast/issues/169)) ([`67255f7`](https://github.com/Bluetooth-Devices/dbus-fast/commit/67255f7e01f7970e4acdd57c9a399f9452fc1d0c))
+
 ## v1.75.0 (2022-11-17)
 ### Feature
 * Add unmarshaller cython typing for SignatureType and SignatureTree ([#168](https://github.com/Bluetooth-Devices/dbus-fast/issues/168)) ([`98d5c5a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/98d5c5aec2c800351666921c14aaa64741ca2831))

@@ -55,12 +55,12 @@ This library is available on PyPi as `dbus-fast <https://pypi.org/project/dbus-f
 Contributing
 ++++++++++++
 
-Development for this library happens on `Github <https://github.com/altdesktop/python-dbus-fast>`_. Report bugs or request features there. Contributions are welcome.
+Development for this library happens on `Github <https://github.com/Bluetooth-Devices/dbus-fast>`_. Report bugs or request features there. Contributions are welcome.
 
 License
 ++++++++
 
-This library is available under an `MIT License <https://github.com/altdesktop/python-dbus-fast/blob/master/LICENSE>`_.
+This library is available under an `MIT License <https://github.com/Bluetooth-Devices/dbus-fast/blob/main/LICENSE>`_.
 
 © 2022, Bluetooth Devices authors
 © 2019, Tony Crisci
