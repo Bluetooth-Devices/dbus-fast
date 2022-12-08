@@ -801,15 +801,11 @@ class BaseMessageBus:
                 return
 
             handler = self._find_message_handler(msg)
+            reply_expected = not (msg.flags & MessageFlag.NO_REPLY_EXPECTED)
             try:
                 if handler:
-                    handler(
-                        msg,
-                        lambda reply: None
-                        if msg.flags & MessageFlag.NO_REPLY_EXPECTED
-                        else self.send,
-                    )
-                else:
+                    handler(msg, self.send if reply_expected else lambda reply: None)
+                elif reply_expected:
                     self.send(
                         Message.new_error(
                             msg,
