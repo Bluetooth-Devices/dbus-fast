@@ -460,7 +460,7 @@ class ServiceInterface:
         bus: "BaseMessageBus",
         maker: Callable[
             ["BaseMessageBus", "ServiceInterface", _Method],
-            Callable[[Message, Callable[[Message], None]], None],
+            Callable[["Message", Callable[["Message"], None]], None],
         ],
     ) -> None:
         interface.__buses.add(bus)
