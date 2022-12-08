@@ -504,7 +504,7 @@ class ServiceInterface:
 
     @staticmethod
     def _fn_result_to_body(
-        result: List[Any], signature_tree: SignatureTree, replace_fds: bool = True
+        result: List[Any], signature_tree: SignatureTree
     ) -> Tuple[List[Any], List[int]]:
         """The high level interfaces may return single values which may be
         wrapped in a list to be a message body. Also they may return fds
@@ -526,8 +526,6 @@ class ServiceInterface:
                 f"Signature and function return mismatch, expected {len(signature_tree.types)} arguments but got {len(result)}"
             )
 
-        if not replace_fds:
-            return result, []
         return replace_fds_with_idx(signature_tree, result)
 
     @staticmethod
