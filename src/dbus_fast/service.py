@@ -13,10 +13,10 @@ from ._private.util import (
 )
 from .constants import PropertyAccess
 from .errors import SignalDisabledError
+from .message import Message
 from .signature import SignatureBodyMismatchError, Variant, get_signature_tree
 
 if TYPE_CHECKING:
-    from .message import Message
     from .message_bus import BaseMessageBus
 
 
@@ -433,6 +433,20 @@ class ServiceInterface:
         )
 
     @staticmethod
+    def _make_method_handler(
+        interface: "ServiceInterface", method: _Method
+    ) -> Callable[[Message, Callable[[Message], None]], None]:
+        def handler(msg: Message, send_reply: Callable[[Message], None]) -> None:
+            args = ServiceInterface._msg_body_to_args(msg)
+            result = method.fn(interface, *args)
+            body, fds = ServiceInterface._fn_result_to_body(
+                result, signature_tree=method.out_signature_tree
+            )
+            send_reply(Message.new_method_return(msg, method.out_signature, body, fds))
+
+        return handler
+
+    @staticmethod
     def _get_properties(interface: "ServiceInterface") -> List[_Property]:
         return interface.__properties
 
@@ -458,15 +472,12 @@ class ServiceInterface:
     def _add_bus(
         interface: "ServiceInterface",
         bus: "BaseMessageBus",
-        maker: Callable[
-            ["BaseMessageBus", "ServiceInterface", _Method],
-            Callable[["Message", Callable[["Message"], None]], None],
-        ],
     ) -> None:
         interface.__buses.add(bus)
-        for method in ServiceInterface._get_methods(interface):
-            handler = maker(bus, interface, method)
-            interface.__handlers.setdefault(bus, {})[method] = handler
+        interface.__handlers[bus] = {
+            method: ServiceInterface._make_method_handler(interface, method)
+            for method in ServiceInterface._get_methods(interface)
+        }
 
     @staticmethod
     def _remove_bus(interface: "ServiceInterface", bus: "BaseMessageBus") -> None:
