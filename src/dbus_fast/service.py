@@ -459,13 +459,13 @@ class ServiceInterface:
         interface: "ServiceInterface",
         bus: "BaseMessageBus",
         maker: Callable[
-            ["BaseMessageBus", "ServiceInterface", _Method],
+            ["ServiceInterface", _Method],
             Callable[[Message, Callable[[Message], None]], None],
         ],
     ) -> None:
         interface.__buses.add(bus)
         interface.__handlers[bus] = {
-            method: maker(bus, interface, method)
+            method: maker(interface, method)
             for method in ServiceInterface._get_methods(interface)
         }
 
