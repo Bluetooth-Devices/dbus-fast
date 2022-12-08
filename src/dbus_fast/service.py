@@ -13,10 +13,10 @@ from ._private.util import (
 )
 from .constants import PropertyAccess
 from .errors import SignalDisabledError
+from .message import Message
 from .signature import SignatureBodyMismatchError, Variant, get_signature_tree
 
 if TYPE_CHECKING:
-    from .message import Message
     from .message_bus import BaseMessageBus
 
 
@@ -460,7 +460,7 @@ class ServiceInterface:
         bus: "BaseMessageBus",
         maker: Callable[
             ["BaseMessageBus", "ServiceInterface", _Method],
-            Callable[["Message", Callable[["Message"], None]], None],
+            Callable[[Message, Callable[[Message], None]], None],
         ],
     ) -> None:
         interface.__buses.add(bus)
