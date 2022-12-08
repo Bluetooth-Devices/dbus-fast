@@ -872,7 +872,6 @@ class BaseMessageBus:
             body, fds = ServiceInterface._fn_result_to_body(
                 result,
                 signature_tree=method.out_signature_tree,
-                replace_fds=bool(msg.unix_fds),
             )
             send_reply(Message.new_method_return(msg, method.out_signature, body, fds))
 
