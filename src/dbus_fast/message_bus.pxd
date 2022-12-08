@@ -17,6 +17,7 @@ cdef class BaseMessageBus:
     cdef public object _user_disconnect
     cdef public object _method_return_handlers
     cdef public object _serial
+    cdef public object _path_exports
     cdef public cython.list _user_message_handlers
     cdef public object _name_owners
     cdef public object _bus_address
@@ -25,5 +26,7 @@ cdef class BaseMessageBus:
     cdef public object _high_level_client_initialized
     cdef public object _ProxyObject
     cdef public object _machine_id
+    cdef public object _negotiate_unix_fd
+    cdef public object _sock
 
     cpdef _process_message(self, Message msg)
