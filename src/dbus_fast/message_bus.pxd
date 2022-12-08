@@ -6,6 +6,7 @@ from .message cimport Message
 cdef object MessageType
 cdef object DBusError
 cdef object MessageFlag
+cdef object ServiceInterface
 
 cdef object MESSAGE_TYPE_CALL
 cdef object MESSAGE_TYPE_SIGNAL
@@ -30,3 +31,5 @@ cdef class BaseMessageBus:
     cdef public object _sock
 
     cpdef _process_message(self, Message msg)
+
+    cdef _find_message_handler(self, Message msg)

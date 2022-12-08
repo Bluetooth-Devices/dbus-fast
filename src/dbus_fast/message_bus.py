@@ -884,7 +884,7 @@ class BaseMessageBus:
         return handler
 
     def _find_message_handler(
-        self, msg: Message
+        self, msg
     ) -> Optional[Callable[[Message, Callable], None]]:
         handler: Optional[Callable[[Message, Callable], None]] = None
 
