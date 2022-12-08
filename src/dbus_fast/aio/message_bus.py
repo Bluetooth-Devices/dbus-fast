@@ -160,15 +160,16 @@ class MessageBus(BaseMessageBus):
     :vartype connected: bool
     """
 
+    __slots__ = ("_loop", "_auth", "_writer", "_disconnect_future")
+
     def __init__(
         self,
         bus_address: str = None,
         bus_type: BusType = BusType.SESSION,
         auth: Authenticator = None,
-        negotiate_unix_fd=False,
-    ):
-        super().__init__(bus_address, bus_type, ProxyObject)
-        self._negotiate_unix_fd = negotiate_unix_fd
+        negotiate_unix_fd: bool = False,
+    ) -> None:
+        super().__init__(bus_address, bus_type, ProxyObject, negotiate_unix_fd)
         self._loop = asyncio.get_running_loop()
 
         self._writer = _MessageWriter(self)

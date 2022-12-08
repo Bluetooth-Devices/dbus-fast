@@ -73,6 +73,7 @@ class BaseMessageBus:
         "_high_level_client_initialized",
         "_ProxyObject",
         "_machine_id",
+        "_negotiate_unix_fd",
     )
 
     def __init__(
@@ -80,9 +81,11 @@ class BaseMessageBus:
         bus_address: Optional[str] = None,
         bus_type: BusType = BusType.SESSION,
         ProxyObject: Optional[Type[BaseProxyObject]] = None,
+        negotiate_unix_fd: bool = False,
     ) -> None:
         self.unique_name: Optional[str] = None
         self._disconnected = False
+        self._negotiate_unix_fd = negotiate_unix_fd
 
         # True if the user disconnected himself, so don't throw errors out of
         # the main loop.
@@ -872,6 +875,7 @@ class BaseMessageBus:
             body, fds = ServiceInterface._fn_result_to_body(
                 result,
                 signature_tree=method.out_signature_tree,
+                replace_fds=self._negotiate_unix_fd,
             )
             send_reply(Message.new_method_return(msg, method.out_signature, body, fds))
 
