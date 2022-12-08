@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.78.0 (2022-12-08)
+### Feature
+* Simplify creation of SendReply in message_bus ([#178](https://github.com/Bluetooth-Devices/dbus-fast/issues/178)) ([`24faa00`](https://github.com/Bluetooth-Devices/dbus-fast/commit/24faa00062237cbee83ea118e4c11f319899538f))
+
 ## v1.77.0 (2022-12-08)
 ### Feature
 * Avoid replacing unix_fds if there are no unix_fds ([#176](https://github.com/Bluetooth-Devices/dbus-fast/issues/176)) ([`06647d7`](https://github.com/Bluetooth-Devices/dbus-fast/commit/06647d7e49aa29b40146c7655f0edd4979a5500d))
