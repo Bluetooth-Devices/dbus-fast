@@ -75,6 +75,7 @@ class BaseMessageBus:
         "_ProxyObject",
         "_machine_id",
         "_negotiate_unix_fd",
+        "_sock",
     )
 
     def __init__(
