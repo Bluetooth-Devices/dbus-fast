@@ -450,7 +450,7 @@ class ServiceInterface:
 
     @staticmethod
     def _get_handler(
-        interface: "ServiceInterface", method: _Method, bus: BaseMessageBus
+        interface: "ServiceInterface", method: _Method, bus: "BaseMessageBus"
     ):
         return interface.__handlers[bus][method]
 
