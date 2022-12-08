@@ -465,8 +465,7 @@ class ServiceInterface:
     ) -> None:
         interface.__buses.add(bus)
         interface.__handlers[bus] = {
-            method: maker(interface, method)
-            for method in ServiceInterface._get_methods(interface)
+            method: maker(interface, method) for method in interface.__methods
         }
 
     @staticmethod
