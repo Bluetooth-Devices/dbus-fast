@@ -464,9 +464,10 @@ class ServiceInterface:
         ],
     ) -> None:
         interface.__buses.add(bus)
-        for method in ServiceInterface._get_methods(interface):
-            handler = maker(bus, interface, method)
-            interface.__handlers.setdefault(bus, {})[method] = handler
+        interface.__handlers[bus] = {
+            method: maker(bus, interface, method)
+            for method in ServiceInterface._get_methods(interface)
+        }
 
     @staticmethod
     def _remove_bus(interface: "ServiceInterface", bus: "BaseMessageBus") -> None:
