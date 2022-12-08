@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.77.0 (2022-12-08)
+### Feature
+* Avoid replacing unix_fds if there are no unix_fds ([#176](https://github.com/Bluetooth-Devices/dbus-fast/issues/176)) ([`06647d7`](https://github.com/Bluetooth-Devices/dbus-fast/commit/06647d7e49aa29b40146c7655f0edd4979a5500d))
+
 ## v1.76.0 (2022-12-08)
 ### Feature
 * Only construct handlers once ([#175](https://github.com/Bluetooth-Devices/dbus-fast/issues/175)) ([`fb4d540`](https://github.com/Bluetooth-Devices/dbus-fast/commit/fb4d5402ba254e62989cbd0e36c3ad510bb0d358))
