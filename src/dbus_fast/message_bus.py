@@ -67,6 +67,7 @@ class BaseMessageBus:
         "_serial",
         "_user_message_handlers",
         "_name_owners",
+        "_path_exports",
         "_bus_address",
         "_name_owner_match_rule",
         "_match_rules",
