@@ -886,7 +886,16 @@ class BaseMessageBus:
                 signature_tree=method.out_signature_tree,
                 replace_fds=self._negotiate_unix_fd,
             )
-            send_reply(Message.new_method_return(msg, method.out_signature, body, fds))
+            send_reply(
+                Message(
+                    message_type=MessageType.METHOD_RETURN,
+                    reply_serial=msg.serial,
+                    destination=msg.sender,
+                    signature=method.out_signature,
+                    body=body,
+                    unix_fds=fds,
+                )
+            )
 
         return handler
 
