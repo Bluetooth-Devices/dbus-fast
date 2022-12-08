@@ -155,7 +155,7 @@ class BaseMessageBus:
                 )
 
         self._path_exports[path].append(interface)
-        ServiceInterface._add_bus(interface, self)
+        ServiceInterface._add_bus(interface, self, self._make_method_handler)
         self._emit_interface_added(path, interface)
 
     def unexport(
@@ -862,6 +862,19 @@ class BaseMessageBus:
                 return_handler = self._method_return_handlers[msg.reply_serial]
                 return_handler(msg, None)
             del self._method_return_handlers[msg.reply_serial]
+
+    def _make_method_handler(
+        self, interface: ServiceInterface, method: _Method
+    ) -> Callable[[Message, Callable[[Message], None]], None]:
+        def handler(msg: Message, send_reply: Callable[[Message], None]) -> None:
+            args = ServiceInterface._msg_body_to_args(msg)
+            result = method.fn(interface, *args)
+            body, fds = ServiceInterface._fn_result_to_body(
+                result, signature_tree=method.out_signature_tree
+            )
+            send_reply(Message.new_method_return(msg, method.out_signature, body, fds))
+
+        return handler
 
     def _find_message_handler(
         self, msg: Message
