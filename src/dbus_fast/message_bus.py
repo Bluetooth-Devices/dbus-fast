@@ -820,12 +820,14 @@ class BaseMessageBus:
             except DBusError as e:
                 self.send(e._as_message(msg))
             except Exception as e:
-                _, _, exc_traceback = sys.exc_info()
+                logging.error(
+                    f"A message handler raised an exception: {e}.\n{traceback.format_exc()}"
+                )
                 self.send(
                     Message.new_error(
                         msg,
                         ErrorType.SERVICE_ERROR,
-                        f"The service interface raised an error: {e}.\n{traceback.format_tb(exc_traceback)}",
+                        f"The service interface raised an error: {e}.\n{traceback.format_tb()}",
                     )
                 )
 
