@@ -2,7 +2,7 @@ import asyncio
 import copy
 import inspect
 from functools import wraps
-from typing import Any, Dict, List, no_type_check_decorator
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, no_type_check_decorator
 
 from . import introspection as intr
 from ._private.util import (
@@ -14,6 +14,10 @@ from ._private.util import (
 from .constants import PropertyAccess
 from .errors import SignalDisabledError
 from .signature import SignatureBodyMismatchError, Variant, get_signature_tree
+
+if TYPE_CHECKING:
+    from .message import Message
+    from .message_bus import BaseMessageBus
 
 
 class _Method:
@@ -331,6 +335,10 @@ class ServiceInterface:
         self.__properties: List[_Property] = []
         self.__signals: List[_Signal] = []
         self.__buses = set()
+        self.__handlers: dict[
+            BaseMessageBus,
+            dict[_Method, Callable[[Message, Callable[[Message], None]], None]],
+        ] = {}
 
         for name, member in inspect.getmembers(type(self)):
             member_dict = getattr(member, "__dict__", {})
@@ -441,12 +449,32 @@ class ServiceInterface:
         return interface.__buses
 
     @staticmethod
-    def _add_bus(interface: "ServiceInterface", bus) -> None:
-        interface.__buses.add(bus)
+    def _get_handler(
+        interface: "ServiceInterface", method: _Method, bus: BaseMessageBus
+    ):
+        return interface.__handlers[bus][method]
 
     @staticmethod
-    def _remove_bus(interface: "ServiceInterface", bus) -> None:
+    def _add_bus(
+        interface: "ServiceInterface",
+        bus: BaseMessageBus,
+        path: str,
+        maker: Callable[
+            [BaseMessageBus, "ServiceInterface", _Method],
+            Callable[[Message, Callable[[Message], None]], None],
+        ],
+    ) -> None:
+        interface.__buses.add(bus)
+        for method in ServiceInterface._get_methods(interface):
+            handler = maker(bus, interface, method)
+            interface.__handlers.setdefault(bus, {})[method] = handler
+
+    @staticmethod
+    def _remove_bus(
+        interface: "ServiceInterface", bus: BaseMessageBus, path: str
+    ) -> None:
         interface.__buses.remove(bus)
+        del interface.__handlers[bus]
 
     @staticmethod
     def _msg_body_to_args(msg):
