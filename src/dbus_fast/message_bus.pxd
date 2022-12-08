@@ -29,6 +29,8 @@ cdef class BaseMessageBus:
     cdef public object _machine_id
     cdef public object _negotiate_unix_fd
     cdef public object _sock
+    cdef public object _stream
+    cdef public object _fd
 
     cpdef _process_message(self, Message msg)
 
