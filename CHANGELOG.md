@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.76.0 (2022-12-08)
+### Feature
+* Only construct handlers once ([#175](https://github.com/Bluetooth-Devices/dbus-fast/issues/175)) ([`fb4d540`](https://github.com/Bluetooth-Devices/dbus-fast/commit/fb4d5402ba254e62989cbd0e36c3ad510bb0d358))
+
 ## v1.75.1 (2022-11-23)
 ### Fix
 * Fix remaining altdesktop links ([#169](https://github.com/Bluetooth-Devices/dbus-fast/issues/169)) ([`67255f7`](https://github.com/Bluetooth-Devices/dbus-fast/commit/67255f7e01f7970e4acdd57c9a399f9452fc1d0c))
