@@ -76,7 +76,8 @@ class BaseMessageBus:
         "_machine_id",
         "_negotiate_unix_fd",
         "_sock",
-        "_stream" "_fd",
+        "_stream",
+        "_fd",
     )
 
     def __init__(
