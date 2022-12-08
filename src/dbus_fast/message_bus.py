@@ -1,6 +1,7 @@
 import inspect
 import logging
 import socket
+import sys
 import traceback
 import xml.etree.ElementTree as ET
 from types import TracebackType
@@ -747,55 +748,6 @@ class BaseMessageBus:
                 ErrorType.INTERNAL_ERROR, "invalid message type for method call", msg
             )
 
-    def _send_reply(self, msg: Message):
-        bus = self
-
-        class SendReply:
-            def __enter__(self) -> "SendReply":
-                return self
-
-            def __call__(self, reply: Message) -> None:
-                if msg.flags & MessageFlag.NO_REPLY_EXPECTED:
-                    return
-
-                bus.send(reply)
-
-            def _exit(
-                self,
-                exc_type: Optional[Type[Exception]],
-                exc_value: Optional[Exception],
-                tb: Optional[TracebackType],
-            ) -> bool:
-                if exc_type is None:
-                    return False
-
-                if issubclass(exc_type, DBusError):
-                    self(exc_value._as_message(msg))  # type: ignore[union-attr]
-                    return True
-
-                if issubclass(exc_type, Exception):
-                    self(
-                        Message.new_error(
-                            msg,
-                            ErrorType.SERVICE_ERROR,
-                            f"The service interface raised an error: {exc_value}.\n{traceback.format_tb(tb)}",
-                        )
-                    )
-                    return True
-
-            def __exit__(
-                self,
-                exc_type: Optional[Type[Exception]],
-                exc_value: Optional[Exception],
-                tb: Optional[TracebackType],
-            ) -> bool:
-                return self._exit(exc_type, exc_value, tb)
-
-            def send_error(self, exc: Exception) -> None:
-                self._exit(exc.__class__, exc, exc.__traceback__)
-
-        return SendReply()
-
     def _process_message(self, msg) -> None:
         handled = False
         for user_handler in self._user_message_handlers:
@@ -845,22 +797,38 @@ class BaseMessageBus:
             return
 
         if msg.message_type is MESSAGE_TYPE_CALL:
-            if not handled:
-                handler = self._find_message_handler(msg)
+            if handled:
+                return
 
-                send_reply = self._send_reply(msg)
-
-                with send_reply:
-                    if handler:
-                        handler(msg, send_reply)
-                    else:
-                        send_reply(
-                            Message.new_error(
-                                msg,
-                                ErrorType.UNKNOWN_METHOD,
-                                f'{msg.interface}.{msg.member} with signature "{msg.signature}" could not be found',
-                            )
+            handler = self._find_message_handler(msg)
+            try:
+                if handler:
+                    handler(
+                        msg,
+                        lambda reply: None
+                        if msg.flags & MessageFlag.NO_REPLY_EXPECTED
+                        else self.send,
+                    )
+                else:
+                    self.send(
+                        Message.new_error(
+                            msg,
+                            ErrorType.UNKNOWN_METHOD,
+                            f'{msg.interface}.{msg.member} with signature "{msg.signature}" could not be found',
                         )
+                    )
+            except DBusError as e:
+                self.send(e._as_message(msg))
+            except Exception as e:
+                _, _, exc_traceback = sys.exc_info()
+                self.send(
+                    Message.new_error(
+                        msg,
+                        ErrorType.SERVICE_ERROR,
+                        f"The service interface raised an error: {e}.\n{traceback.format_tb(exc_traceback)}",
+                    )
+                )
+
             return
 
         # An ERROR or a METHOD_RETURN
@@ -881,7 +849,16 @@ class BaseMessageBus:
                 signature_tree=method.out_signature_tree,
                 replace_fds=self._negotiate_unix_fd,
             )
-            send_reply(Message.new_method_return(msg, method.out_signature, body, fds))
+            send_reply(
+                Message(
+                    message_type=MessageType.METHOD_RETURN,
+                    reply_serial=msg.serial,
+                    destination=msg.sender,
+                    signature=method.out_signature,
+                    body=body,
+                    unix_fds=fds,
+                )
+            )
 
         return handler
 
