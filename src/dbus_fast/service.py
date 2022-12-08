@@ -2,7 +2,15 @@ import asyncio
 import copy
 import inspect
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, no_type_check_decorator
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    List,
+    Set,
+    no_type_check_decorator,
+)
 
 from . import introspection as intr
 from ._private.util import (
@@ -445,13 +453,13 @@ class ServiceInterface:
         return interface.__signals
 
     @staticmethod
-    def _get_buses(interface: "ServiceInterface"):
+    def _get_buses(interface: "ServiceInterface") -> Set["BaseMessageBus"]:
         return interface.__buses
 
     @staticmethod
     def _get_handler(
         interface: "ServiceInterface", method: _Method, bus: "BaseMessageBus"
-    ):
+    ) -> Callable[[Message, Callable[[Message], None]], None]:
         return interface.__handlers[bus][method]
 
     @staticmethod
