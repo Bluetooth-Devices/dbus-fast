@@ -862,8 +862,8 @@ class BaseMessageBus:
 
     def _find_message_handler(
         self, msg
-    ) -> Optional[Callable[[Message, Callable], None]]:
-        handler: Optional[Callable[[Message, Callable], None]] = None
+    ) -> Optional[Callable[[Message, Callable[[Message], None]], None]]:
+        handler: Optional[Callable[[Message, Callable[[Message], None]], None]] = None
 
         if (
             msg.interface == "org.freedesktop.DBus.Introspectable"
