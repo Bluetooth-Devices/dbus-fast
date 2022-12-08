@@ -155,7 +155,7 @@ class BaseMessageBus:
                 )
 
         self._path_exports[path].append(interface)
-        ServiceInterface._add_bus(interface, self, path, self._make_method_handler)
+        ServiceInterface._add_bus(interface, self, self._make_method_handler)
         self._emit_interface_added(path, interface)
 
     def unexport(
@@ -196,7 +196,7 @@ class BaseMessageBus:
             del self._path_exports[path]
             for iface in filter(lambda e: not self._has_interface(e), exports):
                 removed_interfaces.append(iface.name)
-                ServiceInterface._remove_bus(iface, self, path)
+                ServiceInterface._remove_bus(iface, self)
         else:
             for i, iface in enumerate(exports):
                 if iface is interface:
@@ -205,7 +205,7 @@ class BaseMessageBus:
                     if not self._path_exports[path]:
                         del self._path_exports[path]
                     if not self._has_interface(iface):
-                        ServiceInterface._remove_bus(iface, self, path)
+                        ServiceInterface._remove_bus(iface, self)
                     break
         self._emit_interface_removed(path, removed_interfaces)
 

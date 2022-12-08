@@ -457,10 +457,9 @@ class ServiceInterface:
     @staticmethod
     def _add_bus(
         interface: "ServiceInterface",
-        bus: BaseMessageBus,
-        path: str,
+        bus: "BaseMessageBus",
         maker: Callable[
-            [BaseMessageBus, "ServiceInterface", _Method],
+            ["BaseMessageBus", "ServiceInterface", _Method],
             Callable[[Message, Callable[[Message], None]], None],
         ],
     ) -> None:
@@ -470,9 +469,7 @@ class ServiceInterface:
             interface.__handlers.setdefault(bus, {})[method] = handler
 
     @staticmethod
-    def _remove_bus(
-        interface: "ServiceInterface", bus: BaseMessageBus, path: str
-    ) -> None:
+    def _remove_bus(interface: "ServiceInterface", bus: "BaseMessageBus") -> None:
         interface.__buses.remove(bus)
         del interface.__handlers[bus]
 
