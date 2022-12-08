@@ -1,6 +1,6 @@
 import ast
 import inspect
-from typing import Any, List, Union
+from typing import Any, List, Tuple, Union
 
 from ..signature import SignatureTree, Variant, get_signature_tree
 
@@ -50,7 +50,7 @@ def signature_contains_type(
 
 def replace_fds_with_idx(
     signature: Union[str, SignatureTree], body: List[Any]
-) -> (List[Any], List[int]):
+) -> Tuple[List[Any], List[int]]:
     """Take the high level body format and convert it into the low level body
     format. Type 'h' refers directly to the fd in the body. Replace that with
     an index and return the corresponding list of unix fds that can be set on

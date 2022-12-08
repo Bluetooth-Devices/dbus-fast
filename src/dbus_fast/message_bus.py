@@ -67,12 +67,17 @@ class BaseMessageBus:
         "_serial",
         "_user_message_handlers",
         "_name_owners",
+        "_path_exports",
         "_bus_address",
         "_name_owner_match_rule",
         "_match_rules",
         "_high_level_client_initialized",
         "_ProxyObject",
         "_machine_id",
+        "_negotiate_unix_fd",
+        "_sock",
+        "_stream",
+        "_fd",
     )
 
     def __init__(
@@ -80,9 +85,11 @@ class BaseMessageBus:
         bus_address: Optional[str] = None,
         bus_type: BusType = BusType.SESSION,
         ProxyObject: Optional[Type[BaseProxyObject]] = None,
+        negotiate_unix_fd: bool = False,
     ) -> None:
         self.unique_name: Optional[str] = None
         self._disconnected = False
+        self._negotiate_unix_fd = negotiate_unix_fd
 
         # True if the user disconnected himself, so don't throw errors out of
         # the main loop.
@@ -870,14 +877,16 @@ class BaseMessageBus:
             args = ServiceInterface._msg_body_to_args(msg)
             result = method.fn(interface, *args)
             body, fds = ServiceInterface._fn_result_to_body(
-                result, signature_tree=method.out_signature_tree
+                result,
+                signature_tree=method.out_signature_tree,
+                replace_fds=self._negotiate_unix_fd,
             )
             send_reply(Message.new_method_return(msg, method.out_signature, body, fds))
 
         return handler
 
     def _find_message_handler(
-        self, msg: Message
+        self, msg
     ) -> Optional[Callable[[Message, Callable], None]]:
         handler: Optional[Callable[[Message, Callable], None]] = None
 
