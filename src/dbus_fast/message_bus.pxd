@@ -11,6 +11,11 @@ cdef object ServiceInterface
 cdef object MESSAGE_TYPE_CALL
 cdef object MESSAGE_TYPE_SIGNAL
 
+cdef class SendReply:
+
+    cdef object _bus
+    cdef object _msg
+
 cdef class BaseMessageBus:
 
     cdef public object unique_name
