@@ -155,7 +155,7 @@ class BaseMessageBus:
                 )
 
         self._path_exports[path].append(interface)
-        ServiceInterface._add_bus(interface, self)
+        ServiceInterface._add_bus(interface, self, self._make_method_handler)
         self._emit_interface_added(path, interface)
 
     def unexport(
@@ -912,7 +912,7 @@ class BaseMessageBus:
                         and msg.member == method.name
                         and msg.signature == method.in_signature
                     ):
-                        handler = self._make_method_handler(interface, method)
+                        handler = ServiceInterface._get_handler(interface, method, self)
                         break
                 if handler:
                     break
