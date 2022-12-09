@@ -27,6 +27,11 @@ from .validators import assert_bus_name_valid, assert_object_path_valid
 
 MESSAGE_TYPE_CALL = MessageType.METHOD_CALL
 MESSAGE_TYPE_SIGNAL = MessageType.SIGNAL
+NO_REPLY_EXPECTED_VALUE = MessageFlag.NO_REPLY_EXPECTED.value
+
+
+def _expects_reply(msg) -> bool:
+    return not (msg.flags.value & NO_REPLY_EXPECTED_VALUE)
 
 
 class SendReply:
@@ -43,10 +48,8 @@ class SendReply:
         return self
 
     def __call__(self, reply: Message) -> None:
-        if self._msg.flags & MessageFlag.NO_REPLY_EXPECTED:
-            return
-
-        self._bus.send(reply)
+        if _expects_reply(self._msg):
+            self._bus.send(reply)
 
     def _exit(
         self,
@@ -753,7 +756,7 @@ class BaseMessageBus:
                 self._name_owners[msg.destination] = reply.sender
             callback(reply, err)  # type: ignore[misc]
 
-        no_reply_expected = msg.flags & MessageFlag.NO_REPLY_EXPECTED
+        no_reply_expected = not _expects_reply(msg)
 
         # Make sure the return reply handler is installed
         # before sending the message to avoid a race condition
