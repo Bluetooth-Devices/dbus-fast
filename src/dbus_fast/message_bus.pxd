@@ -10,8 +10,11 @@ cdef object MessageFlag
 
 cdef object MESSAGE_TYPE_CALL
 cdef object MESSAGE_TYPE_SIGNAL
+cdef object NO_REPLY_EXPECTED_VALUE
 cdef object assert_object_path_valid
 cdef object assert_bus_name_valid
+
+cdef _expects_reply(Message msg)
 
 cdef class SendReply:
 
