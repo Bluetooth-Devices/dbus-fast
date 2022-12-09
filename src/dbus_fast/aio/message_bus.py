@@ -352,7 +352,7 @@ class MessageBus(BaseMessageBus):
         """
         if (
             msg.flags.value & NO_REPLY_EXPECTED_VALUE
-            or msg.message_type.value is not MessageType.METHOD_CALL
+            or msg.message_type is not MessageType.METHOD_CALL
         ):
             await self.send(msg)
             return None
