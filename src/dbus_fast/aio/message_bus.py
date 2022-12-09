@@ -26,7 +26,7 @@ from ..constants import (
 )
 from ..errors import AuthError
 from ..message import Message
-from ..message_bus import BaseMessageBus
+from ..message_bus import NO_REPLY_EXPECTED_VALUE, BaseMessageBus
 from ..service import ServiceInterface
 from .message_reader import build_message_reader
 from .proxy_object import ProxyObject
@@ -351,8 +351,8 @@ class MessageBus(BaseMessageBus):
             - :class:`Exception` - If a connection error occurred.
         """
         if (
-            msg.flags & MessageFlag.NO_REPLY_EXPECTED
-            or msg.message_type is not MessageType.METHOD_CALL
+            msg.flags.value & NO_REPLY_EXPECTED_VALUE
+            or msg.message_type.value is not MessageType.METHOD_CALL
         ):
             await self.send(msg)
             return None
