@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.81.0 (2022-12-09)
+### Feature
+* Speed up processing bluez passive advertisements ([#186](https://github.com/Bluetooth-Devices/dbus-fast/issues/186)) ([`fb0cc35`](https://github.com/Bluetooth-Devices/dbus-fast/commit/fb0cc3584888bd307db3eb689f0dd81a025a1396))
+
 ## v1.80.0 (2022-12-09)
 ### Feature
 * Speed up checking if a message needs a reply ([#181](https://github.com/Bluetooth-Devices/dbus-fast/issues/181)) ([`d1366ac`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d1366aca644d78f446f47b8fd607b82f73299fb8))
