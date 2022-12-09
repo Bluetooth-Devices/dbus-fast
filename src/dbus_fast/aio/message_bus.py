@@ -26,10 +26,12 @@ from ..constants import (
 )
 from ..errors import AuthError
 from ..message import Message
-from ..message_bus import NO_REPLY_EXPECTED_VALUE, BaseMessageBus
+from ..message_bus import BaseMessageBus
 from ..service import ServiceInterface
 from .message_reader import build_message_reader
 from .proxy_object import ProxyObject
+
+NO_REPLY_EXPECTED_VALUE = MessageFlag.NO_REPLY_EXPECTED.value
 
 
 def _future_set_exception(fut: asyncio.Future, exc: Exception) -> None:
