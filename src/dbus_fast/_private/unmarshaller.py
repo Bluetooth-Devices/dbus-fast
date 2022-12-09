@@ -609,6 +609,9 @@ class Unmarshaller:
         elif signature == "a{oa{sa{sv}}}":
             tree = SIGNATURE_TREE_A_OA_SA_SV
             body = [self._read_array(SIGNATURE_TREE_A_OA_SA_SV_TYPES_0)]
+        elif signature == "o":
+            tree = SIGNATURE_TREE_O
+            body = [self._read_string_unpack()]
         else:
             tree = get_signature_tree(signature)
             body = [self._readers[t.token](self, t) for t in tree.types]
