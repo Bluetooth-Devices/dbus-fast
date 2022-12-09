@@ -102,7 +102,7 @@ class ProxyInterface(BaseProxyInterface):
                 )
             )
 
-            if msg.flags.value & NO_REPLY_EXPECTED_VALUE:
+            if flags is not None and flags.value & NO_REPLY_EXPECTED_VALUE:
                 return None
 
             BaseProxyInterface._check_method_return(msg, intr_method.out_signature)
