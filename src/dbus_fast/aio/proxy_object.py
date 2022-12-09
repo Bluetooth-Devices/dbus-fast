@@ -14,6 +14,8 @@ from ..unpack import unpack_variants as unpack
 if TYPE_CHECKING:
     from .message_bus import MessageBus as AioMessageBus
 
+NO_REPLY_EXPECTED_VALUE = MessageFlag.NO_REPLY_EXPECTED.value
+
 
 class ProxyInterface(BaseProxyInterface):
     """A class representing a proxy to an interface exported on the bus by
@@ -100,7 +102,7 @@ class ProxyInterface(BaseProxyInterface):
                 )
             )
 
-            if flags & MessageFlag.NO_REPLY_EXPECTED:
+            if flags is not None and flags.value & NO_REPLY_EXPECTED_VALUE:
                 return None
 
             BaseProxyInterface._check_method_return(msg, intr_method.out_signature)

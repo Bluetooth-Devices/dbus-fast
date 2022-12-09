@@ -3,7 +3,6 @@ import asyncio
 import logging
 import socket
 import sys
-import traceback
 from collections import deque
 from copy import copy
 from typing import Any, Optional
@@ -14,7 +13,6 @@ else:
     from asyncio import timeout as asyncio_timeout
 
 from .. import introspection as intr
-from .._private.unmarshaller import Unmarshaller
 from ..auth import Authenticator, AuthExternal
 from ..constants import (
     BusType,
@@ -30,6 +28,8 @@ from ..message_bus import BaseMessageBus
 from ..service import ServiceInterface
 from .message_reader import build_message_reader
 from .proxy_object import ProxyObject
+
+NO_REPLY_EXPECTED_VALUE = MessageFlag.NO_REPLY_EXPECTED.value
 
 
 def _future_set_exception(fut: asyncio.Future, exc: Exception) -> None:
@@ -351,7 +351,7 @@ class MessageBus(BaseMessageBus):
             - :class:`Exception` - If a connection error occurred.
         """
         if (
-            msg.flags & MessageFlag.NO_REPLY_EXPECTED
+            msg.flags.value & NO_REPLY_EXPECTED_VALUE
             or msg.message_type is not MessageType.METHOD_CALL
         ):
             await self.send(msg)
