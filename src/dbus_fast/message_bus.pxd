@@ -1,15 +1,17 @@
 import cython
 
 from .message cimport Message
+from .service cimport ServiceInterface, _Method
 
 
 cdef object MessageType
 cdef object DBusError
 cdef object MessageFlag
-cdef object ServiceInterface
 
 cdef object MESSAGE_TYPE_CALL
 cdef object MESSAGE_TYPE_SIGNAL
+cdef object assert_object_path_valid
+cdef object assert_bus_name_valid
 
 cdef class SendReply:
 
@@ -39,4 +41,8 @@ cdef class BaseMessageBus:
 
     cpdef _process_message(self, Message msg)
 
+    @cython.locals(
+        method=_Method,
+        interface=ServiceInterface
+    )
     cdef _find_message_handler(self, Message msg)
