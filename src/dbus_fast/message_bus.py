@@ -28,6 +28,7 @@ from .validators import assert_bus_name_valid, assert_object_path_valid
 MESSAGE_TYPE_CALL = MessageType.METHOD_CALL
 MESSAGE_TYPE_SIGNAL = MessageType.SIGNAL
 NO_REPLY_EXPECTED_VALUE = MessageFlag.NO_REPLY_EXPECTED.value
+BUFFER_SIZE = 1024 * 1024  # Set buffer limit to 1MB
 
 
 def _expects_reply(msg) -> bool:
@@ -735,6 +736,17 @@ class BaseMessageBus:
 
             else:
                 raise InvalidAddressError(f"got unknown address transport: {transport}")
+
+            # Try to reduce the pressure on bus so we can read
+            # larger chunks of data at once.
+            try:
+                self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, BUFFER_SIZE)
+            except OSError as err:
+                logging.warning(
+                    "%s: Failed to set socket receive buffer size: %s",
+                    self.unique_name,
+                    err,
+                )
 
         if err:
             raise err
