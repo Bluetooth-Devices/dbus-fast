@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.82.0 (2022-12-09)
+### Feature
+* Avoid enum dunder overhead in message_bus calls ([#187](https://github.com/Bluetooth-Devices/dbus-fast/issues/187)) ([`b3c7d51`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b3c7d5139d4cfa5bcea2435b6acdb6e1e059ceb4))
+
 ## v1.81.0 (2022-12-09)
 ### Feature
 * Speed up processing bluez passive advertisements ([#186](https://github.com/Bluetooth-Devices/dbus-fast/issues/186)) ([`fb0cc35`](https://github.com/Bluetooth-Devices/dbus-fast/commit/fb0cc3584888bd307db3eb689f0dd81a025a1396))
