@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.80.0 (2022-12-09)
+### Feature
+* Speed up checking if a message needs a reply ([#181](https://github.com/Bluetooth-Devices/dbus-fast/issues/181)) ([`d1366ac`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d1366aca644d78f446f47b8fd607b82f73299fb8))
+
 ## v1.79.0 (2022-12-09)
 ### Feature
 * Add a cython pxd for services ([#180](https://github.com/Bluetooth-Devices/dbus-fast/issues/180)) ([`f3c9250`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f3c925079a1ea632ed850f71aaf26ba1e57f2ca8))
