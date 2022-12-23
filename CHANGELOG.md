@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.83.0 (2022-12-23)
+### Feature
+* Allow hardcoding uid in auth ([#189](https://github.com/Bluetooth-Devices/dbus-fast/issues/189)) ([`091c262`](https://github.com/Bluetooth-Devices/dbus-fast/commit/091c262e2747be5170596ea9e84b2cd884d01762))
+
 ## v1.82.0 (2022-12-09)
 ### Feature
 * Avoid enum dunder overhead in message_bus calls ([#187](https://github.com/Bluetooth-Devices/dbus-fast/issues/187)) ([`b3c7d51`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b3c7d5139d4cfa5bcea2435b6acdb6e1e059ceb4))
