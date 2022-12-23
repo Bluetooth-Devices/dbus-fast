@@ -1,6 +1,6 @@
 import enum
 import os
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from .errors import AuthError
 
@@ -60,13 +60,17 @@ class AuthExternal(Authenticator):
     :sealso: https://dbus.freedesktop.org/doc/dbus-specification.html#auth-protocol
     """
 
-    def __init__(self) -> None:
+    def __init__(self, uid: int = None) -> None:
         self.negotiate_unix_fd: bool = False
         self.negotiating_fds: bool = False
+        self.uid: Optional[int] = uid
 
     def _authentication_start(self, negotiate_unix_fd: bool = False) -> str:
         self.negotiate_unix_fd = negotiate_unix_fd
-        hex_uid = str(os.getuid()).encode().hex()
+        uid = self.uid
+        if uid is None:
+            uid = os.getuid()
+        hex_uid = str(uid).encode().hex()
         return f"AUTH EXTERNAL {hex_uid}"
 
     def _receive_line(self, line: str) -> str:
