@@ -10,6 +10,10 @@ PACKED_UINT32_ZERO = PACK_UINT32(0)
 PACKED_BOOL_FALSE = PACK_UINT32(int(0))
 PACKED_BOOL_TRUE = PACK_UINT32(int(1))
 
+_int = int
+_bytes = bytes
+_str = str
+
 
 class Marshaller:
     """Marshall data for Dbus."""
@@ -29,10 +33,10 @@ class Marshaller:
     def _buffer(self) -> bytearray:
         return self._buf
 
-    def align(self, n):
+    def align(self, n: _int) -> int:
         return self._align(n)
 
-    def _align(self, n):
+    def _align(self, n: _int) -> _int:
         offset = n - len(self._buf) % n
         if offset == 0 or offset == n:
             return 0
@@ -51,7 +55,7 @@ class Marshaller:
     def write_signature(self, signature: str, type_: SignatureType) -> int:
         return self._write_signature(signature.encode())
 
-    def _write_signature(self, signature_bytes) -> int:
+    def _write_signature(self, signature_bytes: _bytes) -> int:
         signature_len = len(signature_bytes)
         buf = self._buf
         buf.append(signature_len)
@@ -59,10 +63,10 @@ class Marshaller:
         buf.append(0)
         return signature_len + 2
 
-    def write_string(self, value, type_: SignatureType) -> int:
+    def write_string(self, value: _str, type_: SignatureType) -> int:
         return self._write_string(value)
 
-    def _write_string(self, value) -> int:
+    def _write_string(self, value: _str) -> int:
         value_bytes = value.encode()
         value_len = len(value)
         written = self._align(4) + 4
@@ -81,7 +85,7 @@ class Marshaller:
         signature = variant.signature
         signature_bytes = signature.encode()
         written = self._write_signature(signature_bytes)
-        written += self._write_single(variant.type, variant.value)
+        written += self._write_single(variant.type, variant.value)  # type: ignore[has-type]
         return written
 
     def write_array(
@@ -184,6 +188,7 @@ class Marshaller:
             raise NotImplementedError(f'type is not implemented yet: "{ex.args}"')
         except error:
             self.signature_tree.verify(self.body)
+        raise RuntimeError("should not reach here")
 
     def _construct_buffer(self) -> bytearray:
         self._buf.clear()
