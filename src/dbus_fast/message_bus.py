@@ -28,6 +28,7 @@ from .validators import assert_bus_name_valid, assert_object_path_valid
 MESSAGE_TYPE_CALL = MessageType.METHOD_CALL
 MESSAGE_TYPE_SIGNAL = MessageType.SIGNAL
 NO_REPLY_EXPECTED_VALUE = MessageFlag.NO_REPLY_EXPECTED.value
+BUFFER_SIZE = 64 * 1024
 
 
 def _expects_reply(msg) -> bool:
@@ -697,7 +698,7 @@ class BaseMessageBus:
 
             if transport == "unix":
                 self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-                self._stream = self._sock.makefile("rwb")
+                self._stream = self._sock.makefile("rwb", buffering=BUFFER_SIZE)
                 self._fd = self._sock.fileno()
 
                 if "path" in options:
@@ -718,7 +719,7 @@ class BaseMessageBus:
 
             elif transport == "tcp":
                 self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self._stream = self._sock.makefile("rwb")
+                self._stream = self._sock.makefile("rwb", buffering=BUFFER_SIZE)
                 self._fd = self._sock.fileno()
 
                 if "host" in options:
