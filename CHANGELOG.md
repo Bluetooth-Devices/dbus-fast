@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.83.1 (2022-12-24)
+### Fix
+* Cleanup typing in marshaller and unmarshaller ([#190](https://github.com/Bluetooth-Devices/dbus-fast/issues/190)) ([`830183e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/830183e1887a7abb876813098f17e22550453569))
+
 ## v1.83.0 (2022-12-23)
 ### Feature
 * Allow hardcoding uid in auth ([#189](https://github.com/Bluetooth-Devices/dbus-fast/issues/189)) ([`091c262`](https://github.com/Bluetooth-Devices/dbus-fast/commit/091c262e2747be5170596ea9e84b2cd884d01762))
