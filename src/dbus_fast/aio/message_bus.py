@@ -30,9 +30,13 @@ from .message_reader import build_message_reader
 from .proxy_object import ProxyObject
 
 NO_REPLY_EXPECTED_VALUE = MessageFlag.NO_REPLY_EXPECTED.value
+MESSAGE_TYPE_CALL = MessageType.METHOD_CALL
+
+_Exception = Exception
+_Message = Message
 
 
-def _future_set_exception(fut: asyncio.Future, exc: Exception) -> None:
+def _future_set_exception(fut: asyncio.Future, exc: _Exception) -> None:
     if fut is not None and not fut.done():
         fut.set_exception(exc)
 
@@ -40,94 +44,6 @@ def _future_set_exception(fut: asyncio.Future, exc: Exception) -> None:
 def _future_set_result(fut: asyncio.Future, result: Any) -> None:
     if fut is not None and not fut.done():
         fut.set_result(result)
-
-
-class _MessageWriter:
-    def __init__(self, bus: "MessageBus") -> None:
-        self.messages = deque()
-        self.negotiate_unix_fd = bus._negotiate_unix_fd
-        self.bus = bus
-        self.sock = bus._sock
-        self.loop = bus._loop
-        self.buf = None
-        self.fd = bus._fd
-        self.offset = 0
-        self.unix_fds = None
-        self.fut: Optional[asyncio.Future] = None
-
-    def write_callback(self, remove_writer: bool = True) -> None:
-        try:
-            while True:
-                if self.buf is None:
-                    if not self.messages:
-                        # nothing more to write
-                        if remove_writer:
-                            self.loop.remove_writer(self.fd)
-                        return
-                    buf, unix_fds, fut = self.messages.pop()
-                    self.unix_fds = unix_fds
-                    self.buf = memoryview(buf)
-                    self.offset = 0
-                    self.fut = fut
-
-                if self.unix_fds and self.negotiate_unix_fd:
-                    ancdata = [
-                        (
-                            socket.SOL_SOCKET,
-                            socket.SCM_RIGHTS,
-                            array.array("i", self.unix_fds),
-                        )
-                    ]
-                    self.offset += self.sock.sendmsg([self.buf[self.offset :]], ancdata)
-                    self.unix_fds = None
-                else:
-                    self.offset += self.sock.send(self.buf[self.offset :])
-
-                if self.offset >= len(self.buf):
-                    # finished writing
-                    self.buf = None
-                    _future_set_result(self.fut, None)
-                else:
-                    # wait for writable
-                    return
-        except Exception as e:
-            if self.bus._user_disconnect:
-                _future_set_result(self.fut, None)
-            else:
-                _future_set_exception(self.fut, e)
-            self.bus._finalize(e)
-
-    def buffer_message(self, msg: Message, future=None) -> None:
-        self.messages.append(
-            (
-                msg._marshall(self.negotiate_unix_fd),
-                copy(msg.unix_fds),
-                future,
-            )
-        )
-
-    def _write_without_remove_writer(self) -> None:
-        """Call the write callback without removing the writer."""
-        self.write_callback(remove_writer=False)
-
-    def schedule_write(self, msg: Message = None, future=None) -> None:
-        queue_is_empty = not self.messages
-        if msg is not None:
-            self.buffer_message(msg, future)
-        if self.bus.unique_name:
-            # Optimization: try to send now if the queue
-            # is empty. With bleak this usually means we
-            # can send right away 99% of the time which
-            # is a huge improvement in latency.
-            if queue_is_empty:
-                self._write_without_remove_writer()
-            if (
-                self.buf is not None
-                or self.messages
-                or not self.fut
-                or not self.fut.done()
-            ):
-                self.loop.add_writer(self.fd, self.write_callback)
 
 
 class MessageBus(BaseMessageBus):
@@ -336,7 +252,7 @@ class MessageBus(BaseMessageBus):
 
         return await future
 
-    async def call(self, msg: Message) -> Optional[Message]:
+    async def call(self, msg: _Message) -> Optional[Message]:
         """Send a method call and wait for a reply from the DBus daemon.
 
         :param msg: The method call message to send.
@@ -352,7 +268,7 @@ class MessageBus(BaseMessageBus):
         """
         if (
             msg.flags.value & NO_REPLY_EXPECTED_VALUE
-            or msg.message_type is not MessageType.METHOD_CALL
+            or msg.message_type is not MESSAGE_TYPE_CALL
         ):
             await self.send(msg)
             return None
@@ -372,7 +288,7 @@ class MessageBus(BaseMessageBus):
 
         return future.result()
 
-    def send(self, msg: Message) -> asyncio.Future:
+    def send(self, msg: _Message) -> asyncio.Future:
         """Asynchronously send a message on the message bus.
 
         .. note:: This method may change to a couroutine function in the 1.0
@@ -497,3 +413,94 @@ class MessageBus(BaseMessageBus):
             _future_set_exception(self._disconnect_future, err)
         else:
             _future_set_result(self._disconnect_future, None)
+
+
+class _MessageWriter:
+    """A class to handle writing messages to the socket."""
+
+    def __init__(self, bus: MessageBus) -> None:
+        """Create a new message writer."""
+        self.messages = deque()
+        self.negotiate_unix_fd = bus._negotiate_unix_fd
+        self.bus = bus
+        self.sock = bus._sock
+        self.loop = bus._loop
+        self.buf = None
+        self.fd = bus._fd
+        self.offset = 0
+        self.unix_fds = None
+        self.fut: Optional[asyncio.Future] = None
+
+    def write_callback(self, remove_writer: bool = True) -> None:
+        try:
+            while True:
+                if self.buf is None:
+                    if not self.messages:
+                        # nothing more to write
+                        if remove_writer:
+                            self.loop.remove_writer(self.fd)
+                        return
+                    buf, unix_fds, fut = self.messages.pop()
+                    self.unix_fds = unix_fds
+                    self.buf = memoryview(buf)
+                    self.offset = 0
+                    self.fut = fut
+
+                if self.unix_fds and self.negotiate_unix_fd:
+                    self.offset += self.sock.sendmsg(
+                        [self.buf[self.offset :]],
+                        [
+                            (
+                                socket.SOL_SOCKET,
+                                socket.SCM_RIGHTS,
+                                array.array("i", self.unix_fds),
+                            )
+                        ],
+                    )
+                    self.unix_fds = None
+                else:
+                    self.offset += self.sock.send(self.buf[self.offset :])
+
+                if self.offset >= len(self.buf):
+                    # finished writing
+                    self.buf = None
+                    _future_set_result(self.fut, None)
+                else:
+                    # wait for writable
+                    return
+        except Exception as e:
+            if self.bus._user_disconnect:
+                _future_set_result(self.fut, None)
+            else:
+                _future_set_exception(self.fut, e)
+            self.bus._finalize(e)
+
+    def _buffer_message(self, msg: _Message, future: Optional[asyncio.Future]) -> None:
+        self.messages.append(
+            (
+                msg._marshall(self.negotiate_unix_fd),
+                copy(msg.unix_fds),
+                future,
+            )
+        )
+
+    def schedule_write(
+        self, msg: Optional[Message] = None, future: Optional[asyncio.Future] = None
+    ) -> None:
+        queue_is_empty = not self.messages
+        if msg is not None:
+            self._buffer_message(msg, future)
+        if self.bus.unique_name:
+            # Optimization: try to send now if the queue
+            # is empty. With bleak this usually means we
+            # can send right away 99% of the time which
+            # is a huge improvement in latency.
+            if queue_is_empty:
+                self.write_callback(remove_writer=False)
+            if (
+                self.buf is not None
+                or self.messages
+                or not self.fut
+                or not self.fut.done()
+            ):
+                self.loop.add_writer(self.fd, self.write_callback)
