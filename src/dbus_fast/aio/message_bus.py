@@ -484,6 +484,10 @@ class _MessageWriter:
             )
         )
 
+    def _write_without_remove_writer(self) -> None:
+        """Call the write callback without removing the writer."""
+        self.write_callback(remove_writer=False)
+
     def schedule_write(
         self, msg: Optional[Message] = None, future: Optional[asyncio.Future] = None
     ) -> None:
@@ -496,7 +500,7 @@ class _MessageWriter:
             # can send right away 99% of the time which
             # is a huge improvement in latency.
             if queue_is_empty:
-                self.write_callback(remove_writer=False)
+                self._write_without_remove_writer()
             if (
                 self.buf is not None
                 or self.messages
