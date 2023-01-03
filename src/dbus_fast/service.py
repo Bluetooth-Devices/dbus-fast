@@ -71,7 +71,7 @@ class _Method:
         self.out_signature_tree = get_signature_tree(out_signature)
 
 
-def method(name: str = None, disabled: bool = False):
+def method(name: str = None, disabled: bool = False) -> Any:
     """A decorator to mark a class method of a :class:`ServiceInterface` to be a DBus service method.
 
     The parameters and return value must each be annotated with a signature
@@ -86,6 +86,10 @@ def method(name: str = None, disabled: bool = False):
 
     The decorated method may raise a :class:`DBusError <dbus_fast.DBusError>`
     to return an error to the client.
+
+    The decorator returns the return value of the decorated method; this allows
+    local calls to the decorated method to work as though the decorator were not
+    there.
 
     :param name: The member name that DBus clients will use to call this method. Defaults to the name of the class method.
     :type name: str
@@ -113,7 +117,7 @@ def method(name: str = None, disabled: bool = False):
     def decorator(fn):
         @wraps(fn)
         def wrapped(*args, **kwargs):
-            fn(*args, **kwargs)
+            return fn(*args, **kwargs)
 
         fn_name = name if name else fn.__name__
         wrapped.__dict__["__DBUS_METHOD"] = _Method(fn, fn_name, disabled=disabled)
