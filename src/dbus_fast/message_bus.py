@@ -1,10 +1,11 @@
+import contextvars
 import inspect
 import logging
 import socket
 import traceback
 import xml.etree.ElementTree as ET
 from types import TracebackType
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+from typing import Annotated, Any, Callable, Dict, List, Optional, Type, Union
 
 from . import introspection as intr
 from ._private.address import get_bus_address, parse_address
@@ -84,6 +85,32 @@ class SendReply:
 
     def send_error(self, exc: Exception) -> None:
         self._exit(exc.__class__, exc, exc.__traceback__)
+
+
+class ReadOnlyContextProxy:
+    """
+    A convenience class for making a context variable accessible as though it
+    were a local.  Any request for an attribute (other than `set_value`) on the
+    proxy will be passed through to the underlying variable.  Attributes are
+    immutable.
+    :param name: The name of the context variable.
+    """
+
+    def __init__(self, name: str):
+        self._obj = contextvars.ContextVar(name)
+
+    def __getattr__(self, name: str) -> Any:
+        proxy = self._obj.get()
+        return getattr(proxy, name)
+
+    def set_value(self, value: Any):
+        """
+        Set the value of the underlying context variable.
+        """
+        self._obj.set(value)
+
+
+current_message = ReadOnlyContextProxy("current_message")
 
 
 class BaseMessageBus:
@@ -805,6 +832,7 @@ class BaseMessageBus:
             )
 
     def _process_message(self, msg) -> None:
+        current_message.set_value(msg)
         handled = False
         for user_handler in self._user_message_handlers:
             try:
