@@ -89,7 +89,7 @@ class AuthExternal(Authenticator):
             return "BEGIN"
 
         if response is _AuthResponse.DATA and self.uid == -1:
-            return _AuthResponse.DATA
+            return "DATA"
 
         raise AuthError(f"authentication failed: {response.value}: {args}")
 

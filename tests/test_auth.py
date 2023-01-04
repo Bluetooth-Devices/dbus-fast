@@ -14,3 +14,4 @@ def test_uid_is_set():
 def test_no_uid():
     auth = AuthExternal(uid=-1)
     assert auth._authentication_start() == "AUTH EXTERNAL"
+    assert auth._receive_line("DATA") == "DATA"
