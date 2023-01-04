@@ -68,6 +68,8 @@ class AuthExternal(Authenticator):
     def _authentication_start(self, negotiate_unix_fd: bool = False) -> str:
         self.negotiate_unix_fd = negotiate_unix_fd
         uid = self.uid
+        if uid == -1:
+            return "AUTH EXTERNAL"
         if uid is None:
             uid = os.getuid()
         hex_uid = str(uid).encode().hex()
@@ -85,6 +87,9 @@ class AuthExternal(Authenticator):
 
         if response is _AuthResponse.AGREE_UNIX_FD:
             return "BEGIN"
+
+        if response is _AuthResponse.DATA and self.uid == -1:
+            return _AuthResponse.DATA
 
         raise AuthError(f"authentication failed: {response.value}: {args}")
 
