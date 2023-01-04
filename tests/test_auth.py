@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from dbus_fast.auth import AuthExternal, UID_NOT_SPECIFIED
+from dbus_fast.auth import UID_NOT_SPECIFIED, AuthExternal
 
 
 def test_uid_is_set():
