@@ -59,6 +59,9 @@ class AuthExternal(Authenticator):
     """An authenticator class for the external auth protocol for use with the
     :class:`MessageBus <dbus_fast.message_bus.BaseMessageBus>`.
 
+    :param uid: The uid to use when connecting to the message bus. Use UID_NOT_SPECIFIED to use the uid known to the kernel.
+    :vartype uid: int
+
     :sealso: https://dbus.freedesktop.org/doc/dbus-specification.html#auth-protocol
     """
 
