@@ -4,6 +4,7 @@ import os
 import pytest
 
 from dbus_fast.auth import UID_NOT_SPECIFIED, AuthExternal
+from dbus_fast.errors import AuthError
 
 
 def test_uid_is_set():
@@ -11,7 +12,10 @@ def test_uid_is_set():
     assert auth._authentication_start() == "AUTH EXTERNAL 393939"
 
 
-def test_no_uid():
+def test_auth_external_no_uid():
+    """Test AuthExternal with UID_NOT_SPECIFIED"""
     auth = AuthExternal(uid=UID_NOT_SPECIFIED)
     assert auth._authentication_start() == "AUTH EXTERNAL"
     assert auth._receive_line("DATA") == "DATA"
+    with pytest.raises(AuthError):
+        auth._receive_line("REJECTED")
