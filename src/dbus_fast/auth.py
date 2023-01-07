@@ -4,6 +4,8 @@ from typing import List, Optional, Tuple
 
 from .errors import AuthError
 
+UID_NOT_SPECIFIED = -1
+
 # The auth interface here is unstable. I would like to eventually open this up
 # for people to define their own custom authentication protocols, but I'm not
 # familiar with what's needed for that exactly. To work with any message bus
@@ -57,6 +59,9 @@ class AuthExternal(Authenticator):
     """An authenticator class for the external auth protocol for use with the
     :class:`MessageBus <dbus_fast.message_bus.BaseMessageBus>`.
 
+    :param uid: The uid to use when connecting to the message bus. Use UID_NOT_SPECIFIED to use the uid known to the kernel.
+    :vartype uid: int
+
     :sealso: https://dbus.freedesktop.org/doc/dbus-specification.html#auth-protocol
     """
 
@@ -68,6 +73,8 @@ class AuthExternal(Authenticator):
     def _authentication_start(self, negotiate_unix_fd: bool = False) -> str:
         self.negotiate_unix_fd = negotiate_unix_fd
         uid = self.uid
+        if uid == UID_NOT_SPECIFIED:
+            return "AUTH EXTERNAL"
         if uid is None:
             uid = os.getuid()
         hex_uid = str(uid).encode().hex()
@@ -85,6 +92,9 @@ class AuthExternal(Authenticator):
 
         if response is _AuthResponse.AGREE_UNIX_FD:
             return "BEGIN"
+
+        if response is _AuthResponse.DATA and self.uid == UID_NOT_SPECIFIED:
+            return "DATA"
 
         raise AuthError(f"authentication failed: {response.value}: {args}")
 
