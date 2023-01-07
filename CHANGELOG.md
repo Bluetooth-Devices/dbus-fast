@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.84.0 (2023-01-07)
+### Feature
+* Add support for EXTERNAL auth without uid ([#193](https://github.com/Bluetooth-Devices/dbus-fast/issues/193)) ([`4939ef8`](https://github.com/Bluetooth-Devices/dbus-fast/commit/4939ef80e523af8a08900fe78abc2f3c54ec835e))
+
 ## v1.83.1 (2022-12-24)
 ### Fix
 * Cleanup typing in marshaller and unmarshaller ([#190](https://github.com/Bluetooth-Devices/dbus-fast/issues/190)) ([`830183e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/830183e1887a7abb876813098f17e22550453569))
