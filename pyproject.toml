@@ -14,10 +14,13 @@ classifiers = [
     "Operating System :: OS Independent",
     "Topic :: Software Development :: Libraries",
 ]
-build = "build_ext.py"
 packages = [
     { include = "dbus_fast", from = "src" },
 ]
+
+[tool.poetry.build]
+generate-setup-file = true
+script = "build_ext.py"
 
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/bluetooth-devices/dbus-fast/issues"
