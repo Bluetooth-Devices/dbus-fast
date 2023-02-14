@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.84.1 (2023-02-14)
+### Fix
+* Missing c extensions with newer poetry ([#194](https://github.com/Bluetooth-Devices/dbus-fast/issues/194)) ([`72ddb15`](https://github.com/Bluetooth-Devices/dbus-fast/commit/72ddb156f0ac0fe0910ea41360f32f75a13cc7e4))
+
 ## v1.84.0 (2023-01-07)
 ### Feature
 * Add support for EXTERNAL auth without uid ([#193](https://github.com/Bluetooth-Devices/dbus-fast/issues/193)) ([`4939ef8`](https://github.com/Bluetooth-Devices/dbus-fast/commit/4939ef80e523af8a08900fe78abc2f3c54ec835e))
