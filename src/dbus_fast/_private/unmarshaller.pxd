@@ -2,37 +2,99 @@
 
 import cython
 
-from ..signature import SignatureType
+from ..message cimport Message
+from ..signature cimport SignatureTree, SignatureType, Variant
 
+
+cdef object MAX_UNIX_FDS_SIZE
+cdef object ARRAY
+cdef object UNIX_FDS_CMSG_LENGTH
+cdef object SOL_SOCKET
+cdef object SCM_RIGHTS
 
 cdef unsigned int UINT32_SIZE
 cdef unsigned int INT16_SIZE
+cdef unsigned int UINT16_SIZE
+
 cdef unsigned int HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
 cdef unsigned int HEADER_SIGNATURE_SIZE
 cdef unsigned int LITTLE_ENDIAN
 cdef unsigned int BIG_ENDIAN
 cdef unsigned int PROTOCOL_VERSION
+
 cdef str UINT32_CAST
 cdef str INT16_CAST
+cdef str UINT16_CAST
+
+cdef bint SYS_IS_LITTLE_ENDIAN
+cdef bint SYS_IS_BIG_ENDIAN
 
 cdef object UNPACK_HEADER_LITTLE_ENDIAN
 cdef object UNPACK_HEADER_BIG_ENDIAN
+
 cdef object UINT32_UNPACK_LITTLE_ENDIAN
 cdef object UINT32_UNPACK_BIG_ENDIAN
+
 cdef object INT16_UNPACK_LITTLE_ENDIAN
 cdef object INT16_UNPACK_BIG_ENDIAN
 
-cdef object Variant
-cdef object Message
-cdef object MESSAGE_TYPE_MAP
-cdef object MESSAGE_FLAG_MAP
+cdef object UINT16_UNPACK_LITTLE_ENDIAN
+cdef object UINT16_UNPACK_BIG_ENDIAN
+
+cdef cython.dict MESSAGE_TYPE_MAP
+cdef cython.dict MESSAGE_FLAG_MAP
 cdef object HEADER_MESSAGE_ARG_NAME
 
-cpdef get_signature_tree
+cdef SignatureTree SIGNATURE_TREE_EMPTY
+cdef SignatureTree SIGNATURE_TREE_B
+cdef SignatureTree SIGNATURE_TREE_N
+cdef SignatureTree SIGNATURE_TREE_O
+cdef SignatureTree SIGNATURE_TREE_S
+cdef SignatureTree SIGNATURE_TREE_U
+cdef SignatureTree SIGNATURE_TREE_Y
+
+cdef SignatureTree SIGNATURE_TREE_AS
+cdef SignatureType SIGNATURE_TREE_AS_TYPES_0
+cdef SignatureTree SIGNATURE_TREE_AO
+cdef SignatureType SIGNATURE_TREE_AO_TYPES_0
+cdef SignatureTree SIGNATURE_TREE_A_SV
+cdef SignatureType SIGNATURE_TREE_A_SV_TYPES_0
+cdef SignatureTree SIGNATURE_TREE_SA_SV_AS
+cdef SignatureType SIGNATURE_TREE_SA_SV_AS_TYPES_1
+cdef SignatureType SIGNATURE_TREE_SA_SV_AS_TYPES_2
+cdef SignatureTree SIGNATURE_TREE_OAS
+cdef SignatureType SIGNATURE_TREE_OAS_TYPES_1
+cdef SignatureTree SIGNATURE_TREE_OA_SA_SV
+cdef SignatureType SIGNATURE_TREE_OA_SA_SV_TYPES_1
+cdef SignatureTree SIGNATURE_TREE_AY
+cdef SignatureType SIGNATURE_TREE_AY_TYPES_0
+cdef SignatureTree SIGNATURE_TREE_A_QV
+cdef SignatureType SIGNATURE_TREE_A_QV_TYPES_0
+cdef SignatureTree SIGNATURE_TREE_A_OA_SA_SV
+cdef SignatureType SIGNATURE_TREE_A_OA_SA_SV_TYPES_0
+
+cdef unsigned int TOKEN_O_AS_INT
+cdef unsigned int TOKEN_S_AS_INT
+cdef unsigned int TOKEN_G_AS_INT
+
+cdef object MARSHALL_STREAM_END_ERROR
+
+cdef get_signature_tree
 
 
-cdef class MarshallerStreamEndError(Exception):
-    pass
+cdef inline unsigned long _cast_uint32_native(const char * payload, unsigned int offset):
+    cdef unsigned long *u32p = <unsigned long *> &payload[offset]
+    return u32p[0]
+
+cdef inline short _cast_int16_native(const char *  payload, unsigned int offset):
+    cdef short *s16p = <short *> &payload[offset]
+    return s16p[0]
+
+cdef inline unsigned short _cast_uint16_native(const char *  payload, unsigned int offset):
+    cdef unsigned short *u16p = <unsigned short *> &payload[offset]
+    return u16p[0]
+
+
 
 cdef class Unmarshaller:
 
@@ -49,12 +111,20 @@ cdef class Unmarshaller:
     cdef unsigned int _message_type
     cdef unsigned int _flag
     cdef unsigned int _msg_len
+    cdef unsigned int _is_native
     cdef object _uint32_unpack
     cdef object _int16_unpack
+    cdef object _uint16_unpack
+    cdef object _stream_reader
+
+    cdef _reset(self)
 
     cpdef reset(self)
 
-    cdef bytes _read_sock(self, unsigned long length)
+    @cython.locals(
+        msg=cython.bytes,
+    )
+    cdef bytes _read_sock(self, object length)
 
     @cython.locals(
         start_len=cython.ulong,
@@ -63,34 +133,41 @@ cdef class Unmarshaller:
     )
     cdef _read_to_pos(self, unsigned long pos)
 
-    cpdef read_uint32_unpack(self, object type_)
+    cpdef read_boolean(self, SignatureType type_)
+
+    cdef _read_boolean(self)
+
+    cpdef read_uint32_unpack(self, SignatureType type_)
 
     cdef unsigned int _read_uint32_unpack(self)
 
-    cpdef read_int16_unpack(self, object type_)
+    cpdef read_int16_unpack(self, SignatureType type_)
 
     cdef int _read_int16_unpack(self)
 
-    cpdef read_string_unpack(self, object type_)
+    cpdef read_uint16_unpack(self, SignatureType type_)
 
-    cdef _read_string_unpack(self)
+    cdef unsigned int _read_uint16_unpack(self)
+
+    cpdef read_string_unpack(self, SignatureType type_)
 
     @cython.locals(
-        buf_bytes=cython.bytearray,
+        str_start=cython.uint,
     )
     cdef _read_string_unpack(self)
 
     cdef _read_variant(self)
 
-    cpdef read_array(self, object type_)
+    cpdef read_array(self, SignatureType type_)
 
     @cython.locals(
         beginning_pos=cython.ulong,
         array_length=cython.uint,
+        child_type=SignatureType,
     )
-    cdef _read_array(self, object type_)
+    cdef _read_array(self, SignatureType type_)
 
-    cpdef read_signature(self, object type_)
+    cpdef read_signature(self, SignatureType type_)
 
     @cython.locals(
         o=cython.ulong,
@@ -110,12 +187,15 @@ cdef class Unmarshaller:
     )
     cdef _read_body(self)
 
+    cdef _unmarshall(self)
+
     cpdef unmarshall(self)
 
     @cython.locals(
         beginning_pos=cython.ulong,
         o=cython.ulong,
         field_0=cython.uint,
+        token_as_int=cython.uint,
         signature_len=cython.uint,
     )
     cdef header_fields(self, unsigned int header_length)

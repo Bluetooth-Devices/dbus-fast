@@ -28,6 +28,8 @@ HEADER_DESTINATION = HeaderField.DESTINATION.value
 HEADER_SIGNATURE = HeaderField.SIGNATURE.value
 HEADER_UNIX_FDS = HeaderField.UNIX_FDS.value
 
+MESSAGE_FLAG = MessageFlag
+
 
 class Message:
     """A class for sending and receiving messages through the
@@ -115,7 +117,7 @@ class Message:
         self.interface = interface
         self.member = member
         self.message_type = message_type
-        self.flags = flags if type(flags) is MessageFlag else MessageFlag(flags)
+        self.flags = flags if type(flags) is MESSAGE_FLAG else MESSAGE_FLAG(flags)
         self.error_name = (
             str(error_name.value) if type(error_name) is ErrorType else error_name
         )
@@ -258,7 +260,7 @@ class Message:
         """Marshall this message into a byte array."""
         # TODO maximum message size is 134217728 (128 MiB)
         body_block = Marshaller(self.signature, self.body)
-        body_block.marshall()
+        body_buffer = body_block._marshall()
 
         fields = []
 
@@ -266,44 +268,33 @@ class Message:
         # Variant is invalid.
 
         if self.path:
-            fields.append([HEADER_PATH, Variant("o", self.path, verify=False)])
+            fields.append([HEADER_PATH, Variant("o", self.path, False)])
         if self.interface:
-            fields.append(
-                [HEADER_INTERFACE, Variant("s", self.interface, verify=False)]
-            )
+            fields.append([HEADER_INTERFACE, Variant("s", self.interface, False)])
         if self.member:
-            fields.append([HEADER_MEMBER, Variant("s", self.member, verify=False)])
+            fields.append([HEADER_MEMBER, Variant("s", self.member, False)])
         if self.error_name:
-            fields.append(
-                [HEADER_ERROR_NAME, Variant("s", self.error_name, verify=False)]
-            )
+            fields.append([HEADER_ERROR_NAME, Variant("s", self.error_name, False)])
         if self.reply_serial:
-            fields.append(
-                [HEADER_REPLY_SERIAL, Variant("u", self.reply_serial, verify=False)]
-            )
+            fields.append([HEADER_REPLY_SERIAL, Variant("u", self.reply_serial, False)])
         if self.destination:
-            fields.append(
-                [HEADER_DESTINATION, Variant("s", self.destination, verify=False)]
-            )
+            fields.append([HEADER_DESTINATION, Variant("s", self.destination, False)])
         if self.signature:
-            fields.append(
-                [HEADER_SIGNATURE, Variant("g", self.signature, verify=False)]
-            )
+            fields.append([HEADER_SIGNATURE, Variant("g", self.signature, False)])
         if self.unix_fds and negotiate_unix_fd:
-            fields.append(
-                [HEADER_UNIX_FDS, Variant("u", len(self.unix_fds), verify=False)]
-            )
+            fields.append([HEADER_UNIX_FDS, Variant("u", len(self.unix_fds), False)])
 
         header_body = [
             LITTLE_ENDIAN,
             self.message_type.value,
             self.flags.value,
             PROTOCOL_VERSION,
-            len(body_block.buffer),
+            len(body_buffer),
             self.serial,
             fields,
         ]
         header_block = Marshaller("yyyyuua(yv)", header_body)
-        header_block.marshall()
-        header_block.align(8)
-        return header_block.buffer + body_block.buffer
+        header_block._marshall()
+        header_block._align(8)
+        header_buffer = header_block._buffer()
+        return header_buffer + body_buffer

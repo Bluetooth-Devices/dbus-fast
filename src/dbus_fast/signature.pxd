@@ -19,5 +19,5 @@ cdef class SignatureTree:
 cdef class Variant:
 
     cdef public object type
-    cdef public str signature
+    cdef public object signature
     cdef public object value

@@ -3,9 +3,9 @@ from typing import TYPE_CHECKING, Any, List, Union
 
 from .. import introspection as intr
 from .._private.util import replace_fds_with_idx, replace_idx_with_fds
-from ..constants import ErrorType
+from ..constants import ErrorType, MessageFlag
 from ..errors import DBusError
-from ..message import Message, MessageFlag
+from ..message import Message
 from ..message_bus import BaseMessageBus
 from ..proxy_object import BaseProxyInterface, BaseProxyObject
 from ..signature import Variant
@@ -13,6 +13,8 @@ from ..unpack import unpack_variants as unpack
 
 if TYPE_CHECKING:
     from .message_bus import MessageBus as AioMessageBus
+
+NO_REPLY_EXPECTED_VALUE = MessageFlag.NO_REPLY_EXPECTED.value
 
 
 class ProxyInterface(BaseProxyInterface):
@@ -100,7 +102,7 @@ class ProxyInterface(BaseProxyInterface):
                 )
             )
 
-            if flags & MessageFlag.NO_REPLY_EXPECTED:
+            if flags is not None and flags.value & NO_REPLY_EXPECTED_VALUE:
                 return None
 
             BaseProxyInterface._check_method_return(msg, intr_method.out_signature)

@@ -1,0 +1,35 @@
+name: Test BIG endian
+
+on:
+  workflow_dispatch:
+
+timeout-minutes: 30
+
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  big_endian:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup multiarch/qemu-user-static
+        run: |
+          docker run --rm --privileged multiarch/qemu-user-static:register --reset
+      - name: ubuntu-core:s390x-focal
+        uses: docker://multiarch/ubuntu-core:s390x-focal
+        with:
+          args: >
+            bash -c
+            "uname -a &&
+            lscpu | grep Endian &&
+            apt-get -y update &&
+            apt-get -y install python3 git python3.8-venv dbus dbus-x11 python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0 &&
+            python3 --version &&
+            python3 -c 'import sys; print(sys.byteorder)' &&
+            pip3 install poetry &&
+            git clone https://github.com/bluetooth-devices/dbus-fast &&
+            cd dbus-fast &&
+            poetry install --only=main,dev &&
+            export $(dbus-launch); poetry run pytest --cov-report=xml --timeout=5
+            "

@@ -24,6 +24,8 @@ def build(setup_kwargs):
                     [
                         "src/dbus_fast/aio/message_reader.py",
                         "src/dbus_fast/message.py",
+                        "src/dbus_fast/message_bus.py",
+                        "src/dbus_fast/service.py",
                         "src/dbus_fast/signature.py",
                         "src/dbus_fast/unpack.py",
                         "src/dbus_fast/_private/marshaller.py",

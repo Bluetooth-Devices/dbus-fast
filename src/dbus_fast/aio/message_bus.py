@@ -2,15 +2,17 @@ import array
 import asyncio
 import logging
 import socket
-import traceback
+import sys
 from collections import deque
 from copy import copy
 from typing import Any, Optional
 
-import async_timeout
+if sys.version_info[:2] < (3, 11):
+    from async_timeout import timeout as asyncio_timeout
+else:
+    from asyncio import timeout as asyncio_timeout
 
 from .. import introspection as intr
-from .._private.unmarshaller import Unmarshaller
 from ..auth import Authenticator, AuthExternal
 from ..constants import (
     BusType,
@@ -26,6 +28,8 @@ from ..message_bus import BaseMessageBus
 from ..service import ServiceInterface
 from .message_reader import build_message_reader
 from .proxy_object import ProxyObject
+
+NO_REPLY_EXPECTED_VALUE = MessageFlag.NO_REPLY_EXPECTED.value
 
 
 def _future_set_exception(fut: asyncio.Future, exc: Exception) -> None:
@@ -156,17 +160,17 @@ class MessageBus(BaseMessageBus):
     :vartype connected: bool
     """
 
+    __slots__ = ("_loop", "_auth", "_writer", "_disconnect_future")
+
     def __init__(
         self,
         bus_address: str = None,
         bus_type: BusType = BusType.SESSION,
         auth: Authenticator = None,
-        negotiate_unix_fd=False,
-    ):
-        super().__init__(bus_address, bus_type, ProxyObject)
-        self._negotiate_unix_fd = negotiate_unix_fd
+        negotiate_unix_fd: bool = False,
+    ) -> None:
+        super().__init__(bus_address, bus_type, ProxyObject, negotiate_unix_fd)
         self._loop = asyncio.get_running_loop()
-        self._unmarshaller = self._create_unmarshaller()
 
         self._writer = _MessageWriter(self)
 
@@ -197,7 +201,8 @@ class MessageBus(BaseMessageBus):
         self._loop.add_reader(
             self._fd,
             build_message_reader(
-                self._unmarshaller,
+                self._stream,
+                self._sock if self._negotiate_unix_fd else None,
                 self._process_message,
                 self._finalize,
             ),
@@ -268,7 +273,7 @@ class MessageBus(BaseMessageBus):
 
         super().introspect(bus_name, path, reply_handler)
 
-        async with async_timeout.timeout(timeout):
+        async with asyncio_timeout(timeout):
             return await future
 
     async def request_name(
@@ -346,7 +351,7 @@ class MessageBus(BaseMessageBus):
             - :class:`Exception` - If a connection error occurred.
         """
         if (
-            msg.flags & MessageFlag.NO_REPLY_EXPECTED
+            msg.flags.value & NO_REPLY_EXPECTED_VALUE
             or msg.message_type is not MessageType.METHOD_CALL
         ):
             await self.send(msg)
@@ -430,7 +435,9 @@ class MessageBus(BaseMessageBus):
     async def _auth_readline(self) -> str:
         buf = b""
         while buf[-2:] != b"\r\n":
-            buf += await self._loop.sock_recv(self._sock, 2)
+            # The auth protocol is line based, so we can read until we get a
+            # newline.
+            buf += await self._loop.sock_recv(self._sock, 1024)
         return buf[:-2].decode()
 
     async def _authenticate(self) -> None:
@@ -455,6 +462,9 @@ class MessageBus(BaseMessageBus):
                 )
                 self._stream.flush()
             if response == "BEGIN":
+                # The first octet received by the server after the \r\n of the BEGIN command
+                # from the client must be the first octet of the authenticated/encrypted stream
+                # of D-Bus messages.
                 break
 
     def disconnect(self) -> None:
@@ -467,12 +477,6 @@ class MessageBus(BaseMessageBus):
             self._sock.close()
         except Exception:
             logging.warning("could not close socket", exc_info=True)
-
-    def _create_unmarshaller(self) -> Unmarshaller:
-        sock = None
-        if self._negotiate_unix_fd:
-            sock = self._sock
-        return Unmarshaller(self._stream, sock)
 
     def _finalize(self, err: Optional[Exception] = None) -> None:
         try:

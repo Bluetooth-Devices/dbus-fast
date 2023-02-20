@@ -2,7 +2,17 @@ import asyncio
 import copy
 import inspect
 from functools import wraps
-from typing import Any, Dict, List, no_type_check_decorator
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    no_type_check_decorator,
+)
 
 from . import introspection as intr
 from ._private.util import (
@@ -13,7 +23,16 @@ from ._private.util import (
 )
 from .constants import PropertyAccess
 from .errors import SignalDisabledError
-from .signature import SignatureBodyMismatchError, Variant, get_signature_tree
+from .message import Message
+from .signature import (
+    SignatureBodyMismatchError,
+    SignatureTree,
+    Variant,
+    get_signature_tree,
+)
+
+if TYPE_CHECKING:
+    from .message_bus import BaseMessageBus
 
 
 class _Method:
@@ -331,6 +350,10 @@ class ServiceInterface:
         self.__properties: List[_Property] = []
         self.__signals: List[_Signal] = []
         self.__buses = set()
+        self.__handlers: dict[
+            BaseMessageBus,
+            dict[_Method, Callable[[Message, Callable[[Message], None]], None]],
+        ] = {}
 
         for name, member in inspect.getmembers(type(self)):
             member_dict = getattr(member, "__dict__", {})
@@ -437,31 +460,52 @@ class ServiceInterface:
         return interface.__signals
 
     @staticmethod
-    def _get_buses(interface: "ServiceInterface"):
+    def _get_buses(interface: "ServiceInterface") -> Set["BaseMessageBus"]:
         return interface.__buses
 
     @staticmethod
-    def _add_bus(interface: "ServiceInterface", bus) -> None:
+    def _get_handler(
+        interface: "ServiceInterface", method: _Method, bus: "BaseMessageBus"
+    ) -> Callable[[Message, Callable[[Message], None]], None]:
+        return interface.__handlers[bus][method]
+
+    @staticmethod
+    def _add_bus(
+        interface: "ServiceInterface",
+        bus: "BaseMessageBus",
+        maker: Callable[
+            ["ServiceInterface", _Method],
+            Callable[[Message, Callable[[Message], None]], None],
+        ],
+    ) -> None:
         interface.__buses.add(bus)
+        interface.__handlers[bus] = {
+            method: maker(interface, method) for method in interface.__methods
+        }
 
     @staticmethod
-    def _remove_bus(interface: "ServiceInterface", bus) -> None:
+    def _remove_bus(interface: "ServiceInterface", bus: "BaseMessageBus") -> None:
         interface.__buses.remove(bus)
+        del interface.__handlers[bus]
 
     @staticmethod
-    def _msg_body_to_args(msg):
-        if signature_contains_type(msg.signature_tree, msg.body, "h"):
-            # XXX: This deep copy could be expensive if messages are very
-            # large. We could optimize this by only copying what we change
-            # here.
-            return replace_idx_with_fds(
-                msg.signature_tree, copy.deepcopy(msg.body), msg.unix_fds
-            )
-        else:
+    def _msg_body_to_args(msg: Message) -> List[Any]:
+        if not msg.unix_fds or not signature_contains_type(
+            msg.signature_tree, msg.body, "h"
+        ):
             return msg.body
 
+        # XXX: This deep copy could be expensive if messages are very
+        # large. We could optimize this by only copying what we change
+        # here.
+        return replace_idx_with_fds(
+            msg.signature_tree, copy.deepcopy(msg.body), msg.unix_fds
+        )
+
     @staticmethod
-    def _fn_result_to_body(result, signature_tree):
+    def _fn_result_to_body(
+        result: List[Any], signature_tree: SignatureTree, replace_fds: bool = True
+    ) -> Tuple[List[Any], List[int]]:
         """The high level interfaces may return single values which may be
         wrapped in a list to be a message body. Also they may return fds
         directly for type 'h' which need to be put into an external list."""
@@ -482,10 +526,14 @@ class ServiceInterface:
                 f"Signature and function return mismatch, expected {len(signature_tree.types)} arguments but got {len(result)}"
             )
 
+        if not replace_fds:
+            return result, []
         return replace_fds_with_idx(signature_tree, result)
 
     @staticmethod
-    def _handle_signal(interface, signal, result):
+    def _handle_signal(
+        interface: "ServiceInterface", signal: _Signal, result: List[Any]
+    ) -> None:
         body, fds = ServiceInterface._fn_result_to_body(result, signal.signature_tree)
         for bus in ServiceInterface._get_buses(interface):
             bus._interface_signal_notify(
@@ -493,7 +541,7 @@ class ServiceInterface:
             )
 
     @staticmethod
-    def _get_property_value(interface, prop, callback):
+    def _get_property_value(interface: "ServiceInterface", prop: _Property, callback):
         # XXX MUST CHECK TYPE RETURNED BY GETTER
         try:
             if asyncio.iscoroutinefunction(prop.prop_getter):
@@ -518,7 +566,7 @@ class ServiceInterface:
             callback(interface, prop, None, e)
 
     @staticmethod
-    def _set_property_value(interface, prop, value, callback):
+    def _set_property_value(interface: "ServiceInterface", prop, value, callback):
         # XXX MUST CHECK TYPE TO SET
         try:
             if asyncio.iscoroutinefunction(prop.prop_setter):
@@ -542,7 +590,9 @@ class ServiceInterface:
             callback(interface, prop, e)
 
     @staticmethod
-    def _get_all_property_values(interface, callback, user_data=None):
+    def _get_all_property_values(
+        interface: "ServiceInterface", callback, user_data=None
+    ):
         result = {}
         result_error = None
 
@@ -555,7 +605,12 @@ class ServiceInterface:
             callback(interface, result, user_data, None)
             return
 
-        def get_property_callback(interface, prop, value, e):
+        def get_property_callback(
+            interface: "ServiceInterface",
+            prop: _Property,
+            value: Any,
+            e: Optional[Exception],
+        ) -> None:
             nonlocal result_error
             if e is not None:
                 result_error = e

@@ -2,6 +2,191 @@
 
 <!--next-version-placeholder-->
 
+## v1.84.2 (2023-02-20)
+### Fix
+* Corrects Variant documentation ([#197](https://github.com/Bluetooth-Devices/dbus-fast/issues/197)) ([`9c6a472`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9c6a472100a471c8f41d495707182eca8d5d25a1))
+
+## v1.84.1 (2023-02-14)
+### Fix
+* Missing c extensions with newer poetry ([#194](https://github.com/Bluetooth-Devices/dbus-fast/issues/194)) ([`72ddb15`](https://github.com/Bluetooth-Devices/dbus-fast/commit/72ddb156f0ac0fe0910ea41360f32f75a13cc7e4))
+
+## v1.84.0 (2023-01-07)
+### Feature
+* Add support for EXTERNAL auth without uid ([#193](https://github.com/Bluetooth-Devices/dbus-fast/issues/193)) ([`4939ef8`](https://github.com/Bluetooth-Devices/dbus-fast/commit/4939ef80e523af8a08900fe78abc2f3c54ec835e))
+
+## v1.83.1 (2022-12-24)
+### Fix
+* Cleanup typing in marshaller and unmarshaller ([#190](https://github.com/Bluetooth-Devices/dbus-fast/issues/190)) ([`830183e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/830183e1887a7abb876813098f17e22550453569))
+
+## v1.83.0 (2022-12-23)
+### Feature
+* Allow hardcoding uid in auth ([#189](https://github.com/Bluetooth-Devices/dbus-fast/issues/189)) ([`091c262`](https://github.com/Bluetooth-Devices/dbus-fast/commit/091c262e2747be5170596ea9e84b2cd884d01762))
+
+## v1.82.0 (2022-12-09)
+### Feature
+* Avoid enum dunder overhead in message_bus calls ([#187](https://github.com/Bluetooth-Devices/dbus-fast/issues/187)) ([`b3c7d51`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b3c7d5139d4cfa5bcea2435b6acdb6e1e059ceb4))
+
+## v1.81.0 (2022-12-09)
+### Feature
+* Speed up processing bluez passive advertisements ([#186](https://github.com/Bluetooth-Devices/dbus-fast/issues/186)) ([`fb0cc35`](https://github.com/Bluetooth-Devices/dbus-fast/commit/fb0cc3584888bd307db3eb689f0dd81a025a1396))
+
+## v1.80.0 (2022-12-09)
+### Feature
+* Speed up checking if a message needs a reply ([#181](https://github.com/Bluetooth-Devices/dbus-fast/issues/181)) ([`d1366ac`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d1366aca644d78f446f47b8fd607b82f73299fb8))
+
+## v1.79.0 (2022-12-09)
+### Feature
+* Add a cython pxd for services ([#180](https://github.com/Bluetooth-Devices/dbus-fast/issues/180)) ([`f3c9250`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f3c925079a1ea632ed850f71aaf26ba1e57f2ca8))
+
+## v1.78.0 (2022-12-08)
+### Feature
+* Simplify creation of SendReply in message_bus ([#178](https://github.com/Bluetooth-Devices/dbus-fast/issues/178)) ([`24faa00`](https://github.com/Bluetooth-Devices/dbus-fast/commit/24faa00062237cbee83ea118e4c11f319899538f))
+
+## v1.77.0 (2022-12-08)
+### Feature
+* Avoid replacing unix_fds if there are no unix_fds ([#176](https://github.com/Bluetooth-Devices/dbus-fast/issues/176)) ([`06647d7`](https://github.com/Bluetooth-Devices/dbus-fast/commit/06647d7e49aa29b40146c7655f0edd4979a5500d))
+
+## v1.76.0 (2022-12-08)
+### Feature
+* Only construct handlers once ([#175](https://github.com/Bluetooth-Devices/dbus-fast/issues/175)) ([`fb4d540`](https://github.com/Bluetooth-Devices/dbus-fast/commit/fb4d5402ba254e62989cbd0e36c3ad510bb0d358))
+
+## v1.75.1 (2022-11-23)
+### Fix
+* Fix remaining altdesktop links ([#169](https://github.com/Bluetooth-Devices/dbus-fast/issues/169)) ([`67255f7`](https://github.com/Bluetooth-Devices/dbus-fast/commit/67255f7e01f7970e4acdd57c9a399f9452fc1d0c))
+
+## v1.75.0 (2022-11-17)
+### Feature
+* Add unmarshaller cython typing for SignatureType and SignatureTree ([#168](https://github.com/Bluetooth-Devices/dbus-fast/issues/168)) ([`98d5c5a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/98d5c5aec2c800351666921c14aaa64741ca2831))
+
+## v1.74.2 (2022-11-17)
+### Fix
+* Small fixes for typing with older python versions ([#167](https://github.com/Bluetooth-Devices/dbus-fast/issues/167)) ([`1e32f28`](https://github.com/Bluetooth-Devices/dbus-fast/commit/1e32f284cd7a15da81d278ffa9f5abe34563aafc))
+
+## v1.74.1 (2022-11-16)
+### Fix
+* Building via PEP 517 ([#166](https://github.com/Bluetooth-Devices/dbus-fast/issues/166)) ([`6694fda`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6694fda49f966814ebc900a52812b4c5e4ff1980))
+
+## v1.74.0 (2022-11-14)
+### Feature
+* Improve cdef types for marshaller ([#164](https://github.com/Bluetooth-Devices/dbus-fast/issues/164)) ([`9fb4440`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9fb4440b805fa5bf432fa1b23d9b1fac1de31b96))
+
+## v1.73.1 (2022-11-14)
+### Fix
+* Allow non-string objects to be marshalled by write_string ([#163](https://github.com/Bluetooth-Devices/dbus-fast/issues/163)) ([`46f1d6b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/46f1d6bbc09860185db04c7985b9fd7c23e7a1bf))
+
+## v1.73.0 (2022-11-11)
+### Feature
+* Reduce latency to process messages ([#161](https://github.com/Bluetooth-Devices/dbus-fast/issues/161)) ([`113f0c9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/113f0c9a325d538592555ae89e1df1ea29398aa9))
+
+## v1.72.0 (2022-11-04)
+### Feature
+* Add optimized reader for GetManagedObjects ([#152](https://github.com/Bluetooth-Devices/dbus-fast/issues/152)) ([`7ed453f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7ed453f31a654f8cc9b99eb17f872370f4b06a4e))
+
+## v1.71.0 (2022-11-04)
+### Feature
+* Small speed up to _unpack_variants ([#148](https://github.com/Bluetooth-Devices/dbus-fast/issues/148)) ([`ef7acdc`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ef7acdcbe59123bfa3b17d5dafc9f8235ac0f360))
+
+## v1.70.0 (2022-11-04)
+### Feature
+* Use cimports for message marshalling ([#149](https://github.com/Bluetooth-Devices/dbus-fast/issues/149)) ([`ef7d9d4`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ef7d9d440775cf0ddcb6b3bc6115b3884be35792))
+
+## v1.69.0 (2022-11-04)
+### Feature
+* Refactor message_reader to avoid python wrappers ([#147](https://github.com/Bluetooth-Devices/dbus-fast/issues/147)) ([`b81de45`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b81de4553fc1414476ff8a1c2b73db7b1a497841))
+
+## v1.68.0 (2022-11-04)
+### Feature
+* Use cimports for unmarshaller Variant and Message ([#146](https://github.com/Bluetooth-Devices/dbus-fast/issues/146)) ([`6418ed4`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6418ed4bb69a835768596f66ab5b514ea48b82cc))
+
+## v1.67.0 (2022-11-03)
+### Feature
+* Optimize unmarshaller by dropping exception that was only used internally ([#145](https://github.com/Bluetooth-Devices/dbus-fast/issues/145)) ([`79d52a5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/79d52a50bd9651fa489e81935bda04d53285b2c1))
+
+## v1.66.0 (2022-11-03)
+### Feature
+* Speed up creating Variant objects ([#144](https://github.com/Bluetooth-Devices/dbus-fast/issues/144)) ([`2ff84e3`](https://github.com/Bluetooth-Devices/dbus-fast/commit/2ff84e3ac56f4348c8276515ac398fcbda8a0657))
+
+## v1.65.0 (2022-11-03)
+### Feature
+* Add cython def for unmarshaller read_sock for fd passing ([#143](https://github.com/Bluetooth-Devices/dbus-fast/issues/143)) ([`f438c36`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f438c369bd86956f50fb839ec4a0a8069de7d018))
+
+## v1.64.0 (2022-11-03)
+### Feature
+* Speed up marshalling headers ([#142](https://github.com/Bluetooth-Devices/dbus-fast/issues/142)) ([`7d6fb63`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7d6fb63dc011404955fc1219924cd2c6f6634ccd))
+
+## v1.63.0 (2022-11-03)
+### Feature
+* Speed up marshall align ([#137](https://github.com/Bluetooth-Devices/dbus-fast/issues/137)) ([`d7d301c`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d7d301c773beb312be752accf7018a3dacecde02))
+* Speed up marshall write_string and write_variant ([#138](https://github.com/Bluetooth-Devices/dbus-fast/issues/138)) ([`71cf524`](https://github.com/Bluetooth-Devices/dbus-fast/commit/71cf52430bd3ece01083309c5f0f5d934dca3d59))
+
+## v1.62.0 (2022-11-03)
+### Feature
+* Speed up marshaller by pre-packing bools ([#139](https://github.com/Bluetooth-Devices/dbus-fast/issues/139)) ([`c10a241`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c10a241dc5e889fd58323789dc4af45ec1e5616a))
+
+## v1.61.1 (2022-11-01)
+### Fix
+* Re-release due to pypi not seeing the new version ([#134](https://github.com/Bluetooth-Devices/dbus-fast/issues/134)) ([`2f21ee8`](https://github.com/Bluetooth-Devices/dbus-fast/commit/2f21ee8b8d52975624c19b6593a96976fa19047b))
+
+## v1.61.0 (2022-11-01)
+### Feature
+* Add support and workarounds for cpython3.11 ([#31](https://github.com/Bluetooth-Devices/dbus-fast/issues/31)) ([`b53a467`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b53a4675d78f8e4e37be322ebda3eeec80f15723))
+
+## v1.60.0 (2022-10-31)
+### Feature
+* Speed up auth phase ([#131](https://github.com/Bluetooth-Devices/dbus-fast/issues/131)) ([`3eef636`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3eef6368268c2d46db3b31bf907959da36dbf2a4))
+
+## v1.59.2 (2022-10-31)
+### Fix
+* Correctly fallback to pure python when cython is missing ([#130](https://github.com/Bluetooth-Devices/dbus-fast/issues/130)) ([`8ab1f9d`](https://github.com/Bluetooth-Devices/dbus-fast/commit/8ab1f9d0b380293294a0f847664e0c459061c2d9))
+
+## v1.59.1 (2022-10-29)
+### Fix
+* Pass return value to SendReply.__exit__ ([#127](https://github.com/Bluetooth-Devices/dbus-fast/issues/127)) ([`f8c67ed`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f8c67ed00fa8fe58a85b6ba73b5fa5974f802004))
+
+## v1.59.0 (2022-10-29)
+### Feature
+* Speed up decoding headers by avoiding unicode checks ([#125](https://github.com/Bluetooth-Devices/dbus-fast/issues/125)) ([`6121781`](https://github.com/Bluetooth-Devices/dbus-fast/commit/61217819fbbe073007a44db69328008941d6bb4c))
+
+## v1.58.0 (2022-10-29)
+### Feature
+* Add optimized parser for properties changed messages with service data ([#124](https://github.com/Bluetooth-Devices/dbus-fast/issues/124)) ([`c8a9452`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c8a945210ae3ea8d25e4547f70b25d61b778ffe1))
+
+## v1.57.0 (2022-10-29)
+### Feature
+* Add optimized parser for InterfacesRemoved ([#123](https://github.com/Bluetooth-Devices/dbus-fast/issues/123)) ([`09822a5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/09822a59ffad07b8dcb6d216d98e6dccbe338b06))
+
+## v1.56.0 (2022-10-29)
+### Feature
+* Optimize for interfaces added messages ([#122](https://github.com/Bluetooth-Devices/dbus-fast/issues/122)) ([`c05a27a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c05a27aef9395eb688385109c4ff7204d5103dda))
+
+## v1.55.0 (2022-10-29)
+### Feature
+* Add optimized reader for uint16 ([#121](https://github.com/Bluetooth-Devices/dbus-fast/issues/121)) ([`52881d9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/52881d9054e35ae3d727c4adafd7e0958b1c99af))
+
+## v1.54.0 (2022-10-28)
+### Feature
+* Speed up unmarshaller with common signature trees ([#120](https://github.com/Bluetooth-Devices/dbus-fast/issues/120)) ([`5b32072`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5b32072934a7269ffc7186aaaed77a0eb6872cd9))
+
+## v1.53.0 (2022-10-28)
+### Feature
+* Add additional pxd defs for message ([#118](https://github.com/Bluetooth-Devices/dbus-fast/issues/118)) ([`3eb123b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3eb123b0366ed143d395e0609540c580398cd896))
+
+## v1.52.0 (2022-10-28)
+### Feature
+* Small speed up to unpack_variants ([#117](https://github.com/Bluetooth-Devices/dbus-fast/issues/117)) ([`3c164a9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3c164a9291b9fb6e75aed0fc5aab1dfc7b79c376))
+
+## v1.51.0 (2022-10-27)
+### Feature
+* Inline cast uint32 and int16 to speed up unmarshall ([#115](https://github.com/Bluetooth-Devices/dbus-fast/issues/115)) ([`24dd9d9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/24dd9d9742e8c779b9c8aa751ba8b2815b61b15b))
+
+## v1.50.0 (2022-10-27)
+### Feature
+* Speed up unmarshall ([#114](https://github.com/Bluetooth-Devices/dbus-fast/issues/114)) ([`e1836b2`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e1836b2034ca4bfbb004027f98b42c68f6c6edce))
+
+## v1.49.0 (2022-10-26)
+### Feature
+* Speed up unmarshaller ([#113](https://github.com/Bluetooth-Devices/dbus-fast/issues/113)) ([`8f7f982`](https://github.com/Bluetooth-Devices/dbus-fast/commit/8f7f982a75fe9c998e5a983090e361ba52e2e6a3))
+
 ## v1.48.0 (2022-10-20)
 ### Feature
 * Add typing to auth module ([#110](https://github.com/Bluetooth-Devices/dbus-fast/issues/110)) ([`e07e281`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e07e281ded44f9ded3002c34803f802146a9e3c9))
