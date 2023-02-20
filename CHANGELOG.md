@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.84.2 (2023-02-20)
+### Fix
+* Corrects Variant documentation ([#197](https://github.com/Bluetooth-Devices/dbus-fast/issues/197)) ([`9c6a472`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9c6a472100a471c8f41d495707182eca8d5d25a1))
+
 ## v1.84.1 (2023-02-14)
 ### Fix
 * Missing c extensions with newer poetry ([#194](https://github.com/Bluetooth-Devices/dbus-fast/issues/194)) ([`72ddb15`](https://github.com/Bluetooth-Devices/dbus-fast/commit/72ddb156f0ac0fe0910ea41360f32f75a13cc7e4))
