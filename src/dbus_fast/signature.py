@@ -381,10 +381,7 @@ class Variant:
     construct this class directly for use in message bodies sent over the bus.
 
     :ivar signature: The signature for this variant. Must be a single complete type.
-    :vartype signature: str
-
-    :ivar signature_type: The parsed signature of this variant.
-    :vartype signature_type: :class:`SignatureType`
+    :vartype signature: str or SignatureTree or SignatureType
 
     :ivar value: The value of this variant. Must correspond to the signature.
     :vartype value: Any
