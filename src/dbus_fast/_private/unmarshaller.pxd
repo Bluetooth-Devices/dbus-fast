@@ -22,6 +22,8 @@ cdef unsigned int LITTLE_ENDIAN
 cdef unsigned int BIG_ENDIAN
 cdef unsigned int PROTOCOL_VERSION
 
+cdef object DBUS_EOF_ERROR
+
 cdef str UINT32_CAST
 cdef str INT16_CAST
 cdef str UINT16_CAST

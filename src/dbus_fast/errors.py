@@ -82,3 +82,8 @@ class DBusError(Exception):
 
     def _as_message(self, msg: Message) -> Message:
         return Message.new_error(msg, self.type, self.text)
+
+
+class DBusEOFError(DBusError, EOFError):
+    def __init__(self, text: str = "EOF") -> None:
+        super().__init__(ErrorType.DISCONNECTED, text)

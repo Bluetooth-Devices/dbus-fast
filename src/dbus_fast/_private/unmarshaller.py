@@ -6,7 +6,7 @@ from struct import Struct
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP
-from ..errors import InvalidMessageError
+from ..errors import DBusEOFError, InvalidMessageError
 from ..message import Message
 from ..signature import SignatureType, Variant, get_signature_tree
 from .constants import BIG_ENDIAN, LITTLE_ENDIAN, PROTOCOL_VERSION
@@ -119,6 +119,8 @@ _SignatureType = SignatureType
 READER_TYPE = Callable[["Unmarshaller", SignatureType], Any]
 
 MARSHALL_STREAM_END_ERROR = BlockingIOError
+
+DBUS_EOF_ERROR = DBusEOFError
 
 
 def unpack_parser_factory(unpack_from: Callable, size: int) -> READER_TYPE:
@@ -280,7 +282,7 @@ class Unmarshaller:
         else:
             data = self._read_sock(missing_bytes)
         if data == b"":
-            raise EOFError()
+            raise DBusEOFError()
         if data is None:
             raise MARSHALL_STREAM_END_ERROR
         self._buf += data
