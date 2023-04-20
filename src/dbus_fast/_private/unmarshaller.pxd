@@ -183,13 +183,13 @@ cdef class Unmarshaller:
         protocol_version=cython.uint,
         key=cython.str,
     )
-    cdef void _read_header(self)
+    cdef _read_header(self)
 
     @cython.locals(
         body=cython.list,
         header_fields=cython.dict
     )
-    cdef void _read_body(self)
+    cdef _read_body(self)
 
     cdef _unmarshall(self)
 
