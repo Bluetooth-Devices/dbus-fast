@@ -106,7 +106,7 @@ cdef class Unmarshaller:
     cdef object _message
     cdef object _readers
     cdef unsigned int _body_len
-    cdef object _serial
+    cdef unsigned int _serial
     cdef unsigned int _header_len
     cdef object _message_type
     cdef object _flag
