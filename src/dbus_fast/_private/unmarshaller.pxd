@@ -131,7 +131,7 @@ cdef class Unmarshaller:
         missing_bytes=cython.ulong,
         data=cython.bytes
     )
-    cdef void _read_to_pos(self, unsigned long pos)
+    cdef _read_to_pos(self, unsigned long pos)
 
     cpdef read_boolean(self, SignatureType type_)
 
