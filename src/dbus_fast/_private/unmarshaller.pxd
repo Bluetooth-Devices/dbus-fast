@@ -191,7 +191,7 @@ cdef class Unmarshaller:
     )
     cdef void _read_body(self)
 
-    cdef void _unmarshall(self)
+    cdef _unmarshall(self)
 
     cpdef unmarshall(self)
 
