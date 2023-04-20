@@ -645,22 +645,22 @@ class Unmarshaller:
         if there are not enough bytes in the buffer. This allows unmarshall
         to be resumed when more data comes in over the wire.
         """
-        try:
-            self._unmarshall()
-        except MARSHALL_STREAM_END_ERROR:
-            return None
-        return self._message
+        return self._unmarshall()
 
-    def _unmarshall(self) -> None:
+    def _unmarshall(self) -> Optional[Message]:
         """Unmarshall the message.
 
         The underlying read function will raise BlockingIOError if the
         if there are not enough bytes in the buffer. This allows unmarshall
         to be resumed when more data comes in over the wire.
         """
-        if not self._msg_len:
-            self._read_header()
-        self._read_body()
+        try:
+            if not self._msg_len:
+                self._read_header()
+            self._read_body()
+        except MARSHALL_STREAM_END_ERROR:
+            return None
+        return self._message
 
     _complex_parsers_unpack: Dict[
         str, Callable[["Unmarshaller", SignatureType], Any]
