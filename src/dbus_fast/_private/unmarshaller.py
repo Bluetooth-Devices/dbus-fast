@@ -494,7 +494,7 @@ class Unmarshaller:
             result_list.append(reader(self, child_type))
         return result_list
 
-    def header_fields(self, header_length: int) -> Dict[str, Any]:
+    def _header_fields(self, header_length: int) -> Dict[str, Any]:
         """Header fields are always a(yv)."""
         beginning_pos = self._pos
         headers = {}
@@ -586,7 +586,7 @@ class Unmarshaller:
         """Read the body of the message."""
         self._read_to_pos(HEADER_SIGNATURE_SIZE + self._msg_len)
         self._pos = HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
-        header_fields = self.header_fields(self._header_len)
+        header_fields = self._header_fields(self._header_len)
         self._pos += -self._pos & 7  # align 8
         header_fields.pop("unix_fds", None)  # defined by self._unix_fds
         signature = header_fields.pop("signature", "")
@@ -645,22 +645,22 @@ class Unmarshaller:
         if there are not enough bytes in the buffer. This allows unmarshall
         to be resumed when more data comes in over the wire.
         """
-        return self._unmarshall()
+        try:
+            self._unmarshall()
+        except MARSHALL_STREAM_END_ERROR:
+            return None
+        return self._message
 
-    def _unmarshall(self) -> Optional[Message]:
+    def _unmarshall(self) -> None:
         """Unmarshall the message.
 
         The underlying read function will raise BlockingIOError if the
         if there are not enough bytes in the buffer. This allows unmarshall
         to be resumed when more data comes in over the wire.
         """
-        try:
-            if not self._msg_len:
-                self._read_header()
-            self._read_body()
-        except MARSHALL_STREAM_END_ERROR:
-            return None
-        return self._message
+        if not self._msg_len:
+            self._read_header()
+        self._read_body()
 
     _complex_parsers_unpack: Dict[
         str, Callable[["Unmarshaller", SignatureType], Any]
