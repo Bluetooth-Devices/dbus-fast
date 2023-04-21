@@ -43,7 +43,7 @@ cdef object UINT16_UNPACK_BIG_ENDIAN
 
 cdef cython.dict MESSAGE_TYPE_MAP
 cdef cython.dict MESSAGE_FLAG_MAP
-cdef object HEADER_MESSAGE_ARG_NAME
+cdef dict HEADER_MESSAGE_ARG_NAME
 
 cdef SignatureTree SIGNATURE_TREE_EMPTY
 cdef SignatureTree SIGNATURE_TREE_B
@@ -108,8 +108,8 @@ cdef class Unmarshaller:
     cdef unsigned int _body_len
     cdef unsigned int _serial
     cdef unsigned int _header_len
-    cdef unsigned int _message_type
-    cdef unsigned int _flag
+    cdef object _message_type
+    cdef object _flag
     cdef unsigned int _msg_len
     cdef unsigned int _is_native
     cdef object _uint32_unpack
@@ -154,9 +154,12 @@ cdef class Unmarshaller:
     @cython.locals(
         str_start=cython.uint,
     )
-    cdef _read_string_unpack(self)
+    cdef str _read_string_unpack(self)
 
-    cdef _read_variant(self)
+    @cython.locals(
+        tree=SignatureTree,
+    )
+    cdef Variant _read_variant(self)
 
     cpdef read_array(self, SignatureType type_)
 
@@ -165,7 +168,7 @@ cdef class Unmarshaller:
         array_length=cython.uint,
         child_type=SignatureType,
     )
-    cdef _read_array(self, SignatureType type_)
+    cdef object _read_array(self, SignatureType type_)
 
     cpdef read_signature(self, SignatureType type_)
 
@@ -173,17 +176,18 @@ cdef class Unmarshaller:
         o=cython.ulong,
         signature_len=cython.uint,
     )
-    cdef _read_signature(self)
+    cdef str _read_signature(self)
 
     @cython.locals(
         endian=cython.uint,
         protocol_version=cython.uint,
-        key=cython.str
+        key=cython.str,
     )
     cdef _read_header(self)
 
     @cython.locals(
-        body=cython.list
+        body=cython.list,
+        header_fields=cython.dict
     )
     cdef _read_body(self)
 
@@ -194,8 +198,7 @@ cdef class Unmarshaller:
     @cython.locals(
         beginning_pos=cython.ulong,
         o=cython.ulong,
-        field_0=cython.uint,
         token_as_int=cython.uint,
         signature_len=cython.uint,
     )
-    cdef header_fields(self, unsigned int header_length)
+    cdef cython.dict _header_fields(self, unsigned int header_length)
