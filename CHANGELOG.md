@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.85.0 (2023-04-21)
+### Feature
+* Improve unmarshall performance ([#199](https://github.com/Bluetooth-Devices/dbus-fast/issues/199)) ([`3dc98be`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3dc98be7e948d61cd98b326ece4bc9eef7803684))
+
 ## v1.84.2 (2023-02-20)
 ### Fix
 * Corrects Variant documentation ([#197](https://github.com/Bluetooth-Devices/dbus-fast/issues/197)) ([`9c6a472`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9c6a472100a471c8f41d495707182eca8d5d25a1))
