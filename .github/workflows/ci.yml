@@ -65,7 +65,7 @@ jobs:
           if [ "${{ matrix.extension }}" = "skip_cython" ]; then
             SKIP_CYTHON=1 poetry install --only=main,dev
           else
-            poetry install --only=main,dev
+            REQUIRE_CYTHON=1 poetry install --only=main,dev
           fi
       - name: Test with Pytest
         run: export $(dbus-launch); poetry run pytest --cov-report=xml --timeout=5
