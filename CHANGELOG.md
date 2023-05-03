@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.86.0 (2023-05-03)
+### Feature
+* Improve performance of reading from the socket during unmarshall ([#200](https://github.com/Bluetooth-Devices/dbus-fast/issues/200)) ([`e5d355f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e5d355ff407baf58a8e5b03c3e9ca25213a95e05))
+
 ## v1.85.0 (2023-04-21)
 ### Feature
 * Improve unmarshall performance ([#199](https://github.com/Bluetooth-Devices/dbus-fast/issues/199)) ([`3dc98be`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3dc98be7e948d61cd98b326ece4bc9eef7803684))
