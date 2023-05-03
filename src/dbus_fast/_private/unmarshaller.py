@@ -1,5 +1,6 @@
 import array
 import io
+import logging
 import socket
 import sys
 from struct import Struct
@@ -10,6 +11,8 @@ from ..errors import InvalidMessageError
 from ..message import Message
 from ..signature import SignatureType, Variant, get_signature_tree
 from .constants import BIG_ENDIAN, LITTLE_ENDIAN, PROTOCOL_VERSION
+
+_LOGGER = logging.getLogger(__name__)
 
 MAX_UNIX_FDS = 16
 MAX_UNIX_FDS_SIZE = array.array("i").itemsize
@@ -253,6 +256,7 @@ class Unmarshaller:
         recv = self._sock.recvmsg(length, UNIX_FDS_CMSG_LENGTH)  # type: ignore[union-attr]
         msg = recv[0]
         ancdata = recv[1]
+        _LOGGER.error("Received %s", recv)
         if ancdata:
             for level, type_, data in ancdata:
                 if not (level == SOL_SOCKET and type_ == SCM_RIGHTS):
