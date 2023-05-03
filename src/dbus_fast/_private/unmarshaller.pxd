@@ -123,6 +123,7 @@ cdef class Unmarshaller:
 
     @cython.locals(
         msg=cython.bytes,
+        recv=cython.tuple
     )
     cdef bytes _read_sock(self, object length)
 
