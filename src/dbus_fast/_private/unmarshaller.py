@@ -250,13 +250,16 @@ class Unmarshaller:
         from the read itself"""
         # This will raise BlockingIOError if there is no data to read
         # which we store in the MARSHALL_STREAM_END_ERROR object
-        msg, ancdata, _flags, _addr = self._sock.recvmsg(length, UNIX_FDS_CMSG_LENGTH)  # type: ignore[union-attr]
-        for level, type_, data in ancdata:
-            if not (level == SOL_SOCKET and type_ == SCM_RIGHTS):
-                continue
-            self._unix_fds.extend(
-                ARRAY("i", data[: len(data) - (len(data) % MAX_UNIX_FDS_SIZE)])
-            )
+        recv = self._sock.recvmsg(length, UNIX_FDS_CMSG_LENGTH)  # type: ignore[union-attr]
+        msg = recv[0]
+        ancdata = recv[1]
+        if ancdata:
+            for level, type_, data in ancdata:
+                if not (level == SOL_SOCKET and type_ == SCM_RIGHTS):
+                    continue
+                self._unix_fds.extend(
+                    ARRAY("i", data[: len(data) - (len(data) % MAX_UNIX_FDS_SIZE)])
+                )
 
         return msg
 
