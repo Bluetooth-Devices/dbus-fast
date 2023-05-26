@@ -359,7 +359,7 @@ class Unmarshaller:
         return self._buf[str_start : self._pos - 1].decode()
 
     def read_signature(self, type_: _SignatureType) -> str:
-        return self._read_signature().decode()
+        return bytes(self._read_signature()).decode()
 
     def _read_signature(self) -> bytes:
         signature_len = self._buf[self._pos]  # byte
@@ -411,7 +411,7 @@ class Unmarshaller:
         elif signature == SIGNATURE_Y_BYTES:
             self._pos += 1
             return Variant(SIGNATURE_TREE_Y, self._buf[self._pos - 1], False)
-        tree = get_signature_tree(signature.decode())
+        tree = get_signature_tree(bytes(signature).decode())
         signature_type = tree.types[0]
         return Variant(
             tree,
