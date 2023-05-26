@@ -106,7 +106,7 @@ cdef inline unsigned short _cast_uint16_native(const char *  payload, unsigned i
     cdef unsigned short *u16p = <unsigned short *> &payload[offset]
     return u16p[0]
 
-cdef cython.str _as_unicode_string(const char * value)
+cdef cython.str _as_latin1_string(const char * value)
 
 
 cdef class Unmarshaller:
