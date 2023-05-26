@@ -183,7 +183,7 @@ except ImportError:
 _bytes = bytes
 
 
-def _as_unicode_string(value: _bytes) -> str:
+def _as_ascii_string(value: _bytes) -> str:
     return value.decode("ascii")
 
 
@@ -366,7 +366,7 @@ class Unmarshaller:
         return self._buf[str_start : self._pos - 1].decode()
 
     def read_signature(self, type_: _SignatureType) -> str:
-        return _as_unicode_string(self._read_signature())
+        return _as_ascii_string(self._read_signature())
 
     def _read_signature(self) -> bytes:
         signature_len = self._buf[self._pos]  # byte
@@ -418,7 +418,7 @@ class Unmarshaller:
         elif signature == SIGNATURE_Y_BYTES:
             self._pos += 1
             return Variant(SIGNATURE_TREE_Y, self._buf[self._pos - 1], False)
-        tree = get_signature_tree(_as_unicode_string(signature))
+        tree = get_signature_tree(_as_ascii_string(signature))
         signature_type = tree.types[0]
         return Variant(
             tree,
@@ -541,7 +541,7 @@ class Unmarshaller:
             if token_as_int == TOKEN_O_AS_INT or token_as_int == TOKEN_S_AS_INT:
                 headers[key] = self._read_string_unpack()
             elif token_as_int == TOKEN_G_AS_INT:
-                headers[key] = _as_unicode_string(self._read_signature())
+                headers[key] = _as_ascii_string(self._read_signature())
             else:
                 token = buf[o : o + signature_len].decode()
                 # There shouldn't be any other types in the header
