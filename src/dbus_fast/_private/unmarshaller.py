@@ -183,12 +183,6 @@ except ImportError:
 _bytes = bytes
 
 
-def _as_pystring(value: _bytes) -> str:
-    if cython.compiled:  # pragma: no cover
-        return _cast_bytes_decode_utf8(value)  # type: ignore[name-defined] # pragma: no cover
-    return value.decode()
-
-
 class Unmarshaller:
 
     __slots__ = (
@@ -368,59 +362,61 @@ class Unmarshaller:
         return self._buf[str_start : self._pos - 1].decode()
 
     def read_signature(self, type_: _SignatureType) -> str:
-        return _as_pystring(self._read_signature())
+        return self._read_signature()
 
-    def _read_signature(self) -> bytes:
+    def _read_signature(self) -> bytearray:
         signature_len = self._buf[self._pos]  # byte
         o = self._pos + 1
         # read terminating '\0' byte as well (str_length + 1)
         self._pos = o + signature_len + 1
-        return self._buf[o : o + signature_len]
+        return self._buf[o : o + signature_len].decode()
 
     def read_variant(self, type_: _SignatureType) -> Variant:
         return self._read_variant()
 
     def _read_variant(self) -> Variant:
         signature = self._read_signature()
+        signature_bytes = signature.encode()
+        signature_char = signature_bytes
         # verify in Variant is only useful on construction not unmarshalling
-        if signature == SIGNATURE_N_BYTES:
+        if signature_char == SIGNATURE_N_BYTES:
             return Variant(SIGNATURE_TREE_N, self._read_int16_unpack(), False)
-        elif signature == SIGNATURE_AY_BYTES:
+        elif signature_char == SIGNATURE_AY_BYTES:
             return Variant(
                 SIGNATURE_TREE_AY, self._read_array(SIGNATURE_TREE_AY_TYPES_0), False
             )
-        elif signature == SIGNATURE_A_QV_BYTES:
+        elif signature_char == SIGNATURE_A_QV_BYTES:
             return Variant(
                 SIGNATURE_TREE_A_QV,
                 self._read_array(SIGNATURE_TREE_A_QV_TYPES_0),
                 False,
             )
-        elif signature == SIGNATURE_S_BYTES:
+        elif signature_char == SIGNATURE_S_BYTES:
             return Variant(SIGNATURE_TREE_S, self._read_string_unpack(), False)
-        elif signature == SIGNATURE_B_BYTES:
+        elif signature_char == SIGNATURE_B_BYTES:
             return Variant(SIGNATURE_TREE_B, self._read_boolean(), False)
-        elif signature == SIGNATURE_O_BYTES:
+        elif signature_char == SIGNATURE_O_BYTES:
             return Variant(SIGNATURE_TREE_O, self._read_string_unpack(), False)
-        elif signature == SIGNATURE_AS_BYTES:
+        elif signature_char == SIGNATURE_AS_BYTES:
             return Variant(
                 SIGNATURE_TREE_AS, self._read_array(SIGNATURE_TREE_AS_TYPES_0), False
             )
-        elif signature == SIGNATURE_A_SV_BYTES:
+        elif signature_char == SIGNATURE_A_SV_BYTES:
             return Variant(
                 SIGNATURE_TREE_A_SV,
                 self._read_array(SIGNATURE_TREE_A_SV_TYPES_0),
                 False,
             )
-        elif signature == SIGNATURE_AO_BYTES:
+        elif signature_char == SIGNATURE_AO_BYTES:
             return Variant(
                 SIGNATURE_TREE_AO, self._read_array(SIGNATURE_TREE_AO_TYPES_0), False
             )
-        elif signature == SIGNATURE_U_BYTES:
+        elif signature_char == SIGNATURE_U_BYTES:
             return Variant(SIGNATURE_TREE_U, self._read_uint32_unpack(), False)
-        elif signature == SIGNATURE_Y_BYTES:
+        elif signature_char == SIGNATURE_Y_BYTES:
             self._pos += 1
             return Variant(SIGNATURE_TREE_Y, self._buf[self._pos - 1], False)
-        tree = get_signature_tree(_as_pystring(signature))
+        tree = get_signature_tree(signature_bytes.decode())
         signature_type = tree.types[0]
         return Variant(
             tree,
@@ -543,7 +539,7 @@ class Unmarshaller:
             if token_as_int == TOKEN_O_AS_INT or token_as_int == TOKEN_S_AS_INT:
                 headers[key] = self._read_string_unpack()
             elif token_as_int == TOKEN_G_AS_INT:
-                headers[key] = _as_pystring(self._read_signature())
+                headers[key] = self._read_signature()
             else:
                 token = buf[o : o + signature_len].decode()
                 # There shouldn't be any other types in the header
