@@ -1,5 +1,8 @@
 """cdefs for unmarshaller.py"""
 
+# cython: c_string_type=unicode, c_string_encoding=utf8
+
+
 import cython
 
 from ..message cimport Message
