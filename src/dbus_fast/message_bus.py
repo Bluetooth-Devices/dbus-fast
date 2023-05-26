@@ -29,6 +29,9 @@ MESSAGE_TYPE_CALL = MessageType.METHOD_CALL
 MESSAGE_TYPE_SIGNAL = MessageType.SIGNAL
 NO_REPLY_EXPECTED_VALUE = MessageFlag.NO_REPLY_EXPECTED.value
 
+_SERVICE_INTERFACE_GET_METHODS = ServiceInterface._get_methods
+_SERVICE_INTERFACE_GET_HANDLER = ServiceInterface._get_handler
+
 
 def _expects_reply(msg) -> bool:
     return not (msg.flags.value & NO_REPLY_EXPECTED_VALUE)
@@ -905,45 +908,45 @@ class BaseMessageBus:
     def _find_message_handler(
         self, msg
     ) -> Optional[Callable[[Message, Callable], None]]:
-        handler: Optional[Callable[[Message, Callable], None]] = None
-
+        """Find the handler for a message."""
         if (
             msg.interface == "org.freedesktop.DBus.Introspectable"
             and msg.member == "Introspect"
             and msg.signature == ""
         ):
-            handler = self._default_introspect_handler
+            return self._default_introspect_handler
 
         elif msg.interface == "org.freedesktop.DBus.Properties":
-            handler = self._default_properties_handler
+            return self._default_properties_handler
 
         elif msg.interface == "org.freedesktop.DBus.Peer":
             if msg.member == "Ping" and msg.signature == "":
-                handler = self._default_ping_handler
+                return self._default_ping_handler
             elif msg.member == "GetMachineId" and msg.signature == "":
-                handler = self._default_get_machine_id_handler
+                return self._default_get_machine_id_handler
         elif (
             msg.interface == "org.freedesktop.DBus.ObjectManager"
             and msg.member == "GetManagedObjects"
         ):
-            handler = self._default_get_managed_objects_handler
-
+            return self._default_get_managed_objects_handler
         elif msg.path:
-            for interface in self._path_exports.get(msg.path, []):
-                for method in ServiceInterface._get_methods(interface):
-                    if method.disabled:
-                        continue
-                    if (
-                        msg.interface == interface.name
-                        and msg.member == method.name
-                        and msg.signature == method.in_signature
-                    ):
-                        handler = ServiceInterface._get_handler(interface, method, self)
-                        break
-                if handler:
-                    break
+            interfaces = self._path_exports.get(msg.path)
+            if interfaces:
+                for interface in interfaces:
+                    for method in _SERVICE_INTERFACE_GET_METHODS(interface):
+                        if (
+                            not method.disabled
+                            and msg.interface == interface.name
+                            and msg.member == method.name
+                            and msg.signature == method.in_signature
+                        ):
+                            handler = _SERVICE_INTERFACE_GET_HANDLER(
+                                interface, method, self
+                            )
+                            if handler:
+                                return handler
 
-        return handler
+        return None
 
     def _default_introspect_handler(
         self, msg: Message, send_reply: Callable[[Message], None]
