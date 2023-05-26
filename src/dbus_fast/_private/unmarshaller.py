@@ -184,6 +184,8 @@ _bytes = bytes
 
 
 def _as_pystring(value: _bytes) -> str:
+    if cython.compiled:  # pragma: no cover
+        return _cast_unicode(value)  # type: ignore[name-defined] # pragma: no cover
     return value.decode()
 
 
