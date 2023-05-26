@@ -415,7 +415,7 @@ class Unmarshaller:
         elif signature_char == SIGNATURE_Y_BYTES:
             self._pos += 1
             return Variant(SIGNATURE_TREE_Y, self._buf[self._pos - 1], False)
-        tree = get_signature_tree(signature_bytes.decode())
+        tree = get_signature_tree(signature)
         signature_type = tree.types[0]
         return Variant(
             tree,
