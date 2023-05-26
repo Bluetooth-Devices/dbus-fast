@@ -106,8 +106,8 @@ cdef inline unsigned short _cast_uint16_native(const char *  payload, unsigned i
     cdef unsigned short *u16p = <unsigned short *> &payload[offset]
     return u16p[0]
 
-cdef inline cython.str _cast_unicode(const char * value):
-    return (<bytes>value).decode('utf-8')
+cdef inline cython.str _cast_bytes_decode_utf8(const char * value):
+    return (<bytes>value).encode('utf-8')
 
 cdef cython.str _as_pystring(const char * value)
 
