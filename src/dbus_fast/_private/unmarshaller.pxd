@@ -73,6 +73,18 @@ cdef SignatureType SIGNATURE_TREE_A_QV_TYPES_0
 cdef SignatureTree SIGNATURE_TREE_A_OA_SA_SV
 cdef SignatureType SIGNATURE_TREE_A_OA_SA_SV_TYPES_0
 
+cdef char * SIGNATURE_N_BYTES
+cdef char * SIGNATURE_AY_BYTES
+cdef char * SIGNATURE_A_QV_BYTES
+cdef char * SIGNATURE_S_BYTES
+cdef char * SIGNATURE_B_BYTES
+cdef char * SIGNATURE_O_BYTES
+cdef char * SIGNATURE_AS_BYTES
+cdef char * SIGNATURE_A_SV_BYTES
+cdef char * SIGNATURE_AO_BYTES
+cdef char * SIGNATURE_U_BYTES
+cdef char * SIGNATURE_Y_BYTES
+
 cdef unsigned int TOKEN_O_AS_INT
 cdef unsigned int TOKEN_S_AS_INT
 cdef unsigned int TOKEN_G_AS_INT
@@ -177,7 +189,7 @@ cdef class Unmarshaller:
         o=cython.ulong,
         signature_len=cython.uint,
     )
-    cdef str _read_signature(self)
+    cdef char * _read_signature(self)
 
     @cython.locals(
         endian=cython.uint,
