@@ -180,7 +180,6 @@ except ImportError:
 #    (-pos) & (align - 1)
 #
 #
-_bytes = bytes
 
 
 class Unmarshaller:
@@ -364,7 +363,7 @@ class Unmarshaller:
     def read_signature(self, type_: _SignatureType) -> str:
         return self._read_signature()
 
-    def _read_signature(self) -> bytearray:
+    def _read_signature(self) -> str:
         signature_len = self._buf[self._pos]  # byte
         o = self._pos + 1
         # read terminating '\0' byte as well (str_length + 1)
