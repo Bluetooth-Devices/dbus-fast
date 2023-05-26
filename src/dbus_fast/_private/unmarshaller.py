@@ -184,7 +184,7 @@ _bytes = bytes
 
 
 def _as_unicode_string(value: _bytes) -> str:
-    return value.decode("utf-8")
+    return value.decode("ascii")
 
 
 class Unmarshaller:
