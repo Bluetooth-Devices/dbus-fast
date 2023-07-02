@@ -115,6 +115,10 @@ HEADER_MESSAGE_ARG_NAME = {
     9: "unix_fds",
 }
 
+import logging
+
+_LOGGER = logging.getLogger(__name__)
+
 _SignatureType = SignatureType
 
 READER_TYPE = Callable[["Unmarshaller", SignatureType], Any]
@@ -151,6 +155,7 @@ try:
 except ImportError:
     from ._cython_compat import FAKE_CYTHON as cython
 
+
 #
 # Alignment padding is handled with the following formula below
 #
@@ -169,7 +174,6 @@ except ImportError:
 #
 #
 class Unmarshaller:
-
     __slots__ = (
         "_unix_fds",
         "_buf",
@@ -591,15 +595,20 @@ class Unmarshaller:
         end_position = HEADER_SIGNATURE_SIZE + self._msg_len
         self._read_to_pos(end_position)
         if end_position < 8192:
-            decoded = self._decode_message_cached(bytes(self._buf[:end_position]))
+            raw_bytes = bytes(self._buf[:end_position])
+            decoded = self._decode_message_cached(raw_bytes)
+            _LOGGER.warning(
+                "raw_bytes: %s decoded: %s serial %s", raw_bytes, decoded, self._serial
+            )
             self._pos = end_position
             return decoded
         return self._decode_message()
 
     @lru_cache(maxsize=512)
-    def _decode_message_cached(self, msg_bytes: bytes) -> None:
+    def _decode_message_cached(self, msg_bytes: bytes) -> Optional[Message]:
         """Decode the message."""
-        return self._decode_message()
+        self._decode_message()
+        return self._message
 
     def _decode_message(self) -> None:
         self._pos = HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
