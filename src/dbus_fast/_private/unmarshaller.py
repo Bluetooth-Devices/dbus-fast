@@ -2,6 +2,7 @@ import array
 import io
 import socket
 import sys
+from functools import lru_cache
 from struct import Struct
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
@@ -587,7 +588,13 @@ class Unmarshaller:
 
     def _read_body(self) -> None:
         """Read the body of the message."""
-        self._read_to_pos(HEADER_SIGNATURE_SIZE + self._msg_len)
+        end_position = HEADER_SIGNATURE_SIZE + self._msg_len
+        self._read_to_pos(end_position)
+        bytes_ = self._buf[:end_position]
+        return self._decode_message(bytes(bytes_))
+
+    @lru_cache(maxsize=512)
+    def _decode_message(self, msg_bytes: bytes) -> None:
         self._pos = HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
         header_fields = self._header_fields(self._header_len)
         self._pos += -self._pos & 7  # align 8
