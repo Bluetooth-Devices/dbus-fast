@@ -590,9 +590,8 @@ class Unmarshaller:
         """Read the body of the message."""
         end_position = HEADER_SIGNATURE_SIZE + self._msg_len
         self._read_to_pos(end_position)
-        bytes_ = self._buf[:end_position]
         if end_position < 8192:
-            decoded = self._decode_message_cached(bytes(bytes_))
+            decoded = self._decode_message_cached(bytes(self._buf[:end_position]))
             self._pos = end_position
             return decoded
         return self._decode_message()

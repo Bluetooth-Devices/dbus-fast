@@ -192,6 +192,8 @@ cdef class Unmarshaller:
     )
     cdef _read_body(self)
 
+    cdef _decode_message(self)
+
     cdef _unmarshall(self)
 
     cpdef unmarshall(self)
