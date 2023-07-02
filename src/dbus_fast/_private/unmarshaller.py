@@ -600,7 +600,7 @@ class Unmarshaller:
             msg_copy = copy(decoded)
             msg_copy.serial = self._serial
             self._message = msg_copy
-            return msg_copy
+            return
         return self._decode_message()
 
     @lru_cache(maxsize=512)
