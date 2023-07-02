@@ -2,6 +2,7 @@ import array
 import io
 import socket
 import sys
+from copy import copy
 from functools import lru_cache
 from struct import Struct
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
@@ -595,17 +596,22 @@ class Unmarshaller:
         end_position = HEADER_SIGNATURE_SIZE + self._msg_len
         self._read_to_pos(end_position)
         if end_position < 8192:
-            raw_bytes = bytes(self._buf[:end_position])
+            raw_bytes = bytes(
+                self._buf[HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION:end_position]
+            )
             decoded = self._decode_message_cached(raw_bytes)
             _LOGGER.warning(
                 "raw_bytes: %s decoded: %s serial %s", raw_bytes, decoded, self._serial
             )
             self._pos = end_position
-            return decoded
+            msg_copy = copy(decoded)
+            msg_copy.serial = self._serial
+            self._message = msg_copy
+            return msg_copy
         return self._decode_message()
 
     @lru_cache(maxsize=512)
-    def _decode_message_cached(self, msg_bytes: bytes) -> Optional[Message]:
+    def _decode_message_cached(self, msg_bytes: bytes) -> Message:
         """Decode the message."""
         self._decode_message()
         return self._message
