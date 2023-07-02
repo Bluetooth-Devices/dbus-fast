@@ -116,10 +116,6 @@ HEADER_MESSAGE_ARG_NAME = {
     9: "unix_fds",
 }
 
-import logging
-
-_LOGGER = logging.getLogger(__name__)
-
 _SignatureType = SignatureType
 
 READER_TYPE = Callable[["Unmarshaller", SignatureType], Any]
@@ -600,9 +596,6 @@ class Unmarshaller:
                 self._buf[HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION:end_position]
             )
             decoded = self._decode_message_cached(raw_bytes)
-            _LOGGER.warning(
-                "raw_bytes: %s decoded: %s serial %s", raw_bytes, decoded, self._serial
-            )
             self._pos = end_position
             msg_copy = copy(decoded)
             msg_copy.serial = self._serial
