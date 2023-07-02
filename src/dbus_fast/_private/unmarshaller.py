@@ -591,10 +591,18 @@ class Unmarshaller:
         end_position = HEADER_SIGNATURE_SIZE + self._msg_len
         self._read_to_pos(end_position)
         bytes_ = self._buf[:end_position]
-        return self._decode_message(bytes(bytes_))
+        if end_position < 8192:
+            decoded = self._decode_message_cached(bytes(bytes_))
+            self._pos = end_position
+            return decoded
+        return self._decode_message()
 
     @lru_cache(maxsize=512)
-    def _decode_message(self, msg_bytes: bytes) -> None:
+    def _decode_message_cached(self, msg_bytes: bytes) -> None:
+        """Decode the message."""
+        return self._decode_message()
+
+    def _decode_message(self) -> None:
         self._pos = HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
         header_fields = self._header_fields(self._header_len)
         self._pos += -self._pos & 7  # align 8
