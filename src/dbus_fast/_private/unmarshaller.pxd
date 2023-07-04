@@ -130,7 +130,8 @@ cdef class Unmarshaller:
     @cython.locals(
         start_len=cython.ulong,
         missing_bytes=cython.ulong,
-        data=cython.bytes
+        data=cython.bytes,
+        bytes_read=cython.ulong,
     )
     cdef _read_to_pos(self, unsigned long pos)
 

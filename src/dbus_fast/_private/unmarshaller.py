@@ -211,8 +211,8 @@ class Unmarshaller:
         self._stream_reader: Optional[Callable] = None
         if self._sock is None:
             if isinstance(stream, io.BufferedRWPair) and hasattr(stream, "reader"):
-                self._stream_reader = stream.reader.read  # type: ignore[attr-defined]
-            self._stream_reader = stream.read
+                self._stream_reader = stream.reader.readinto  # type: ignore[attr-defined]
+            self._stream_reader = stream.readinto
 
     def reset(self) -> None:
         """Reset the unmarshaller to its initial state.
@@ -279,15 +279,22 @@ class Unmarshaller:
         start_len = len(self._buf)
         missing_bytes = pos - (start_len - self._pos)
         if self._sock is None:
-            data = self._stream_reader(missing_bytes)  # type: ignore[misc]
+            data = bytearray(missing_bytes)
+            bytes_read = self._stream_reader(data)  # type: ignore[misc]
+            if bytes_read is None:
+                raise MARSHALL_STREAM_END_ERROR
+            if bytes_read == 0:
+                raise EOFError()
+            del data[bytes_read:]
         else:
             data = self._read_sock(missing_bytes)
-        if data == b"":
-            raise EOFError()
-        if data is None:
-            raise MARSHALL_STREAM_END_ERROR
+            if data == b"":
+                raise EOFError()
+            if data is None:
+                raise MARSHALL_STREAM_END_ERROR
+            bytes_read = len(data)
         self._buf += data
-        if len(data) + start_len != pos:
+        if bytes_read + start_len != pos:
             raise MARSHALL_STREAM_END_ERROR
 
     def read_uint32_unpack(self, type_: _SignatureType) -> int:
