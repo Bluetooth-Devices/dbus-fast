@@ -279,13 +279,13 @@ class Unmarshaller:
         start_len = len(self._buf)
         missing_bytes = pos - (start_len - self._pos)
         if self._sock is None:
-            data = bytearray(missing_bytes)
-            bytes_read = self._stream_reader(data)  # type: ignore[misc]
+            target_data = bytearray(missing_bytes)
+            bytes_read = self._stream_reader(target_data)  # type: ignore[misc]
             if bytes_read is None:
                 raise MARSHALL_STREAM_END_ERROR
             if bytes_read == 0:
                 raise EOFError()
-            del data[bytes_read:]
+            self._buf += target_data[:bytes_read]
         else:
             data = self._read_sock(missing_bytes)
             if data == b"":
@@ -293,7 +293,7 @@ class Unmarshaller:
             if data is None:
                 raise MARSHALL_STREAM_END_ERROR
             bytes_read = len(data)
-        self._buf += data
+            self._buf += data
         if bytes_read + start_len != pos:
             raise MARSHALL_STREAM_END_ERROR
 
