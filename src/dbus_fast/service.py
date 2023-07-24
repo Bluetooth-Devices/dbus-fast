@@ -1,6 +1,7 @@
 import asyncio
 import copy
 import inspect
+import logging
 from functools import wraps
 from typing import (
     TYPE_CHECKING,
@@ -30,6 +31,8 @@ from .signature import (
     Variant,
     get_signature_tree,
 )
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from .message_bus import BaseMessageBus
@@ -509,26 +512,34 @@ class ServiceInterface:
         """The high level interfaces may return single values which may be
         wrapped in a list to be a message body. Also they may return fds
         directly for type 'h' which need to be put into an external list."""
-        out_len = len(signature_tree.types)
-        if result is None:
-            result = []
-        else:
-            if out_len == 1:
-                result = [result]
+
+        try:
+            out_len = len(signature_tree.types)
+            if result is None:
+                result = []
             else:
-                if type(result) is not list:
-                    raise SignatureBodyMismatchError(
-                        "Expected signal to return a list of arguments"
-                    )
+                if out_len == 1:
+                    result = [result]
+                else:
+                    if type(result) is not list:
+                        raise SignatureBodyMismatchError(
+                            "Expected signal to return a list of arguments"
+                        )
 
-        if out_len != len(result):
-            raise SignatureBodyMismatchError(
-                f"Signature and function return mismatch, expected {len(signature_tree.types)} arguments but got {len(result)}"
+            if out_len != len(result):
+                raise SignatureBodyMismatchError(
+                    f"Signature and function return mismatch, expected {len(signature_tree.types)} arguments but got {len(result)}"
+                )
+
+            if not replace_fds:
+                return result, []
+            return replace_fds_with_idx(signature_tree, result)
+        except Exception as e:
+            print(e)
+            logger.error(
+                f"Error converting function result to message body: {e}", exc_info=True
             )
-
-        if not replace_fds:
-            return result, []
-        return replace_fds_with_idx(signature_tree, result)
+            raise
 
     @staticmethod
     def _handle_signal(
