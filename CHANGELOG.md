@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.87.1 (2023-07-24)
+
+### Fix
+
+* Cython3 compat ([#208](https://github.com/Bluetooth-Devices/dbus-fast/issues/208)) ([`43b3d48`](https://github.com/Bluetooth-Devices/dbus-fast/commit/43b3d48c8934a5274e4fae9b2c65c8ce6477a65b))
+
 ## v1.87.0 (2023-07-24)
 
 ### Feature
