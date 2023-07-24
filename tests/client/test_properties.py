@@ -97,7 +97,7 @@ async def test_aio_properties():
 
 
 @pytest.mark.skipif(
-    sys.version_info[:3][1] in (10, 11), reason="segfaults on py3.10,py3.11"
+    sys.version_info[:3][1] in (10, 11, 12), reason="segfaults on py3.10,py3.11,py3.12"
 )
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
 def test_glib_properties():
