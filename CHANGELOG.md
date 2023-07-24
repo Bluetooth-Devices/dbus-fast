@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.87.0 (2023-07-24)
+
+### Feature
+
+* Initial cpython 3.12 support ([#207](https://github.com/Bluetooth-Devices/dbus-fast/issues/207)) ([`c755193`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c755193ee038e4d35ad25d5d02e0a1a8cecd9d6d))
+
 ## v1.86.0 (2023-05-03)
 ### Feature
 * Improve performance of reading from the socket during unmarshall ([#200](https://github.com/Bluetooth-Devices/dbus-fast/issues/200)) ([`e5d355f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e5d355ff407baf58a8e5b03c3e9ca25213a95e05))
