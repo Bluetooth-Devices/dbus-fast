@@ -115,6 +115,7 @@ HEADER_MESSAGE_ARG_NAME = {
 }
 
 _SignatureType = SignatureType
+_int = int
 
 READER_TYPE = Callable[["Unmarshaller", SignatureType], Any]
 
@@ -245,7 +246,7 @@ class Unmarshaller:
         """Return the message that has been unmarshalled."""
         return self._message
 
-    def _read_sock(self, length: int) -> bytes:
+    def _read_sock(self, length: _int) -> bytes:
         """reads from the socket, storing any fds sent and handling errors
         from the read itself"""
         # This will raise BlockingIOError if there is no data to read
@@ -263,7 +264,7 @@ class Unmarshaller:
 
         return msg
 
-    def _read_to_pos(self, pos: int) -> None:
+    def _read_to_pos(self, pos: _int) -> None:
         """
         Read from underlying socket into buffer.
 
@@ -497,7 +498,7 @@ class Unmarshaller:
             result_list.append(reader(self, child_type))
         return result_list
 
-    def _header_fields(self, header_length: int) -> Dict[str, Any]:
+    def _header_fields(self, header_length: _int) -> Dict[str, Any]:
         """Header fields are always a(yv)."""
         beginning_pos = self._pos
         headers = {}
