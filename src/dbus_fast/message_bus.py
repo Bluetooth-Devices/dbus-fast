@@ -29,6 +29,8 @@ MESSAGE_TYPE_CALL = MessageType.METHOD_CALL
 MESSAGE_TYPE_SIGNAL = MessageType.SIGNAL
 NO_REPLY_EXPECTED_VALUE = MessageFlag.NO_REPLY_EXPECTED.value
 
+logger = logging.getLogger(__name__)
+
 
 def _expects_reply(msg) -> bool:
     return not (msg.flags.value & NO_REPLY_EXPECTED_VALUE)
@@ -882,23 +884,31 @@ class BaseMessageBus:
         self, interface: ServiceInterface, method: _Method
     ) -> Callable[[Message, Callable[[Message], None]], None]:
         def handler(msg: Message, send_reply: Callable[[Message], None]) -> None:
-            args = ServiceInterface._msg_body_to_args(msg)
-            result = method.fn(interface, *args)
-            body, fds = ServiceInterface._fn_result_to_body(
-                result,
-                signature_tree=method.out_signature_tree,
-                replace_fds=self._negotiate_unix_fd,
-            )
-            send_reply(
-                Message(
-                    message_type=MessageType.METHOD_RETURN,
-                    reply_serial=msg.serial,
-                    destination=msg.sender,
-                    signature=method.out_signature,
-                    body=body,
-                    unix_fds=fds,
+            try:
+                args = ServiceInterface._msg_body_to_args(msg)
+                result = method.fn(interface, *args)
+                body, fds = ServiceInterface._fn_result_to_body(
+                    result,
+                    signature_tree=method.out_signature_tree,
+                    replace_fds=self._negotiate_unix_fd,
                 )
-            )
+                send_reply(
+                    Message(
+                        message_type=MessageType.METHOD_RETURN,
+                        reply_serial=msg.serial,
+                        destination=msg.sender,
+                        signature=method.out_signature,
+                        body=body,
+                        unix_fds=fds,
+                    )
+                )
+            except Exception as ex:
+                print(ex)
+                logger.exception(
+                    "An exception occurred when calling method %s.%s",
+                    interface.name,
+                    method.name,
+                )
 
         return handler
 
