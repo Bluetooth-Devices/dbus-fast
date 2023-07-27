@@ -33,6 +33,8 @@ def build_message_reader(
                     )
                 unmarshaller._reset()
                 if _peek and not _peek():
+                    # If there is no data left in the buffer, we can stop reading
+                    # and wait for the asyncio loop to call us again.
                     return
         except Exception as e:
             finalize(e)
