@@ -151,6 +151,7 @@ try:
 except ImportError:
     from ._cython_compat import FAKE_CYTHON as cython
 
+
 #
 # Alignment padding is handled with the following formula below
 #
@@ -169,7 +170,6 @@ except ImportError:
 #
 #
 class Unmarshaller:
-
     __slots__ = (
         "_unix_fds",
         "_buf",

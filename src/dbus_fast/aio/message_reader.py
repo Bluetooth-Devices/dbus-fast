@@ -29,7 +29,7 @@ def build_message_reader(
                     process(message)
                 except Exception as e:
                     logging.error(
-                        f"got unexpected error processing a message: {e}.\n{traceback.format_exc()}"
+                        "Unexpected error processing message: %s", e, exc_info=True
                     )
                 unmarshaller._reset()
                 if _peek and not _peek():
