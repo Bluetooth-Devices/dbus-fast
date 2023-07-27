@@ -32,7 +32,7 @@ def build_message_reader(
                         f"got unexpected error processing a message: {e}.\n{traceback.format_exc()}"
                     )
                 unmarshaller._reset()
-                if _peek and _peek() == b"":
+                if _peek and not _peek():
                     return
         except Exception as e:
             finalize(e)
