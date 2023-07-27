@@ -205,6 +205,7 @@ class MessageBus(BaseMessageBus):
                 self._sock,
                 self._process_message,
                 self._finalize,
+                self._negotiate_unix_fd,
             ),
         )
 

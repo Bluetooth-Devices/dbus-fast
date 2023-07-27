@@ -189,9 +189,15 @@ class Unmarshaller:
         "_uint16_unpack",
         "_is_native",
         "_stream_reader",
+        "_negotiate_unix_fd",
     )
 
-    def __init__(self, stream: io.BufferedRWPair, sock: Optional[socket.socket] = None):
+    def __init__(
+        self,
+        stream: io.BufferedRWPair,
+        sock: Optional[socket.socket] = None,
+        negotiate_unix_fd: bool = True,
+    ) -> None:
         self._unix_fds: List[int] = []
         self._buf = bytearray()  # Actual buffer
         self._stream = stream
@@ -210,6 +216,7 @@ class Unmarshaller:
         self._int16_unpack: Optional[Callable] = None
         self._uint16_unpack: Optional[Callable] = None
         self._stream_reader: Optional[Callable] = None
+        self._negotiate_unix_fd = negotiate_unix_fd
         if self._sock is None:
             if isinstance(stream, io.BufferedRWPair) and hasattr(stream, "reader"):
                 self._stream_reader = stream.reader.read  # type: ignore[attr-defined]
@@ -281,8 +288,10 @@ class Unmarshaller:
         missing_bytes = pos - (start_len - self._pos)
         if self._sock is None:
             data = self._stream_reader(missing_bytes)  # type: ignore[misc]
-        else:
+        elif self._receive_fds:
             data = self._read_sock(missing_bytes)
+        else:
+            data = self._sock.recv(missing_bytes)
         if data == b"":
             raise EOFError()
         if data is None:
