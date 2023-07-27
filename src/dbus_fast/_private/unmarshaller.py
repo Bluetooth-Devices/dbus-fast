@@ -288,7 +288,7 @@ class Unmarshaller:
         missing_bytes = pos - (start_len - self._pos)
         if self._sock is None:
             data = self._stream_reader(missing_bytes)  # type: ignore[misc]
-        elif self._receive_fds:
+        elif self._negotiate_unix_fd:
             data = self._read_sock(missing_bytes)
         else:
             data = self._sock.recv(missing_bytes)
