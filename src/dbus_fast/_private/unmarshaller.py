@@ -211,7 +211,9 @@ class Unmarshaller:
         self._uint16_unpack: Optional[Callable] = None
         self._stream_reader: Optional[Callable] = None
         if self._sock is None:
-            self._stream_reader = stream.read
+            if isinstance(stream, io.BufferedRWPair) and hasattr(stream, "reader"):
+                self._stream_reader = stream.reader.read1  # type: ignore[attr-defined]
+            self._stream_reader = stream.read1
 
     def reset(self) -> None:
         """Reset the unmarshaller to its initial state.
