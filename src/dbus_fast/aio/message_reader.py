@@ -16,20 +16,26 @@ def build_message_reader(
 ) -> None:
     """Build a callable that reads messages from the unmarshaller and passes them to the process function."""
     unmarshaller = Unmarshaller(stream, sock)
+    _peek = stream.peek if not sock else None
 
     def _message_reader() -> None:
         """Reads messages from the unmarshaller and passes them to the process function."""
         try:
-            message = unmarshaller._unmarshall()
-            if not message:
+            while True:
+                message = unmarshaller._unmarshall()
+                if not message:
+                    return
+                try:
+                    process(message)
+                except Exception as e:
+                    logging.error(
+                        "Unexpected error processing message: %s", e, exc_info=True
+                    )
+                unmarshaller._reset()
+            if _peek and not _peek():
+                # No more data to read, avoid calling _unmarshall() again
+                # since we know it will raise an exception internally
                 return
-            try:
-                process(message)
-            except Exception as e:
-                logging.error(
-                    "Unexpected error processing message: %s", e, exc_info=True
-                )
-            unmarshaller._reset()
         except Exception as e:
             finalize(e)
 
