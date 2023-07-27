@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.87.3 (2023-07-27)
+
+### Fix
+
+* Relax typing on _fn_result_to_body to allow Any ([#212](https://github.com/Bluetooth-Devices/dbus-fast/issues/212)) ([`2f5fc38`](https://github.com/Bluetooth-Devices/dbus-fast/commit/2f5fc3800702f6eb680d94de94b997ed5d8b9b77))
+
 ## v1.87.2 (2023-07-24)
 
 ### Fix
