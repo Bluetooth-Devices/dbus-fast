@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.87.2 (2023-07-24)
+
+### Fix
+
+* Typing on _fn_result_to_body was incorrect which was caused an exception with cython3 ([#210](https://github.com/Bluetooth-Devices/dbus-fast/issues/210)) ([`c40c7bc`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c40c7bcc4a8bbbce73d4d090ac840f8fe95d943e))
+
 ## v1.87.1 (2023-07-24)
 
 ### Fix
