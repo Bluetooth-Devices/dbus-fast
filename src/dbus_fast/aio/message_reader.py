@@ -16,15 +16,13 @@ def build_message_reader(
 ) -> None:
     """Build a callable that reads messages from the unmarshaller and passes them to the process function."""
     unmarshaller = Unmarshaller(stream, sock)
-    _unmarshall = unmarshaller._unmarshall
-    _reset = unmarshaller._reset
     _peek = stream.peek if not sock else None
 
     def _message_reader() -> None:
         """Reads messages from the unmarshaller and passes them to the process function."""
         try:
             while True:
-                message = _unmarshall()
+                message = unmarshaller._unmarshall()
                 if not message:
                     return
                 try:
@@ -33,7 +31,7 @@ def build_message_reader(
                     logging.error(
                         f"got unexpected error processing a message: {e}.\n{traceback.format_exc()}"
                     )
-                _reset()
+                unmarshaller._reset()
                 if _peek and _peek() == b"":
                     return
         except Exception as e:
