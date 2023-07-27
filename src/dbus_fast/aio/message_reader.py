@@ -33,9 +33,9 @@ def build_message_reader(
                     )
                 unmarshaller._reset()
             # stream.peek will try to do a read call if the buffer is empty
-            # but we really don't want that to happen but there is no public
-            # API to check if the buffer is empty so we cannot optimize this
-            # case
+            # but we don't want that to happen but there is no public
+            # API to check if the buffer is empty so we cannot fully optimize
+            # this case
             if _peek and not _peek():
                 # No more data to read, avoid calling _unmarshall() again
                 # since we know it will raise an exception internally
