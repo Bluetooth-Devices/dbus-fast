@@ -211,8 +211,6 @@ class Unmarshaller:
         self._uint16_unpack: Optional[Callable] = None
         self._stream_reader: Optional[Callable] = None
         if self._sock is None:
-            if isinstance(stream, io.BufferedRWPair) and hasattr(stream, "reader"):
-                self._stream_reader = stream.reader.read  # type: ignore[attr-defined]
             self._stream_reader = stream.read
 
     def reset(self) -> None:
