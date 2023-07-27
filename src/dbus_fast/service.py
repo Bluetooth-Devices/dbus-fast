@@ -504,7 +504,7 @@ class ServiceInterface:
 
     @staticmethod
     def _fn_result_to_body(
-        result: Optional[List[Any]],
+        result: Optional[Any],
         signature_tree: SignatureTree,
         replace_fds: bool = True,
     ) -> Tuple[List[Any], List[int]]:
