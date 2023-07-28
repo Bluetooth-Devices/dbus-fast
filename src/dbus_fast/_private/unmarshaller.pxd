@@ -123,17 +123,23 @@ cdef class Unmarshaller:
     cpdef reset(self)
 
     @cython.locals(
-        msg=cython.bytes,
+        data=cython.bytes,
         recv=cython.tuple
     )
-    cdef bytes _read_sock(self, object length)
+    cdef _read_sock_with_fds(self, unsigned int pos)
 
     @cython.locals(
-        start_len=cython.ulong,
-        missing_bytes=cython.ulong,
+        data=cython.bytes,
+    )
+    cdef _read_sock_without_fds(self, unsigned int pos)
+
+    @cython.locals(
+        missing_bytes=cython.uint,
         data=cython.bytes
     )
-    cdef _read_to_pos(self, unsigned long pos)
+    cdef _read_stream(self, unsigned int pos)
+
+    cdef _read_to_pos(self, unsigned int pos)
 
     cpdef read_boolean(self, SignatureType type_)
 

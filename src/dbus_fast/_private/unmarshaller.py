@@ -121,6 +121,8 @@ READER_TYPE = Callable[["Unmarshaller", SignatureType], Any]
 
 MARSHALL_STREAM_END_ERROR = BlockingIOError
 
+DEFAULT_BUFFER_SIZE = io.DEFAULT_BUFFER_SIZE
+
 
 def unpack_parser_factory(unpack_from: Callable, size: int) -> READER_TYPE:
     """Build a parser that unpacks the bytes using the given unpack_from function."""
@@ -246,29 +248,66 @@ class Unmarshaller:
         """Return the message that has been unmarshalled."""
         return self._message
 
-    def _read_sock(self, length: _int) -> bytes:
+    def _read_sock_with_fds(self, pos: _int) -> None:
         """reads from the socket, storing any fds sent and handling errors
         from the read itself"""
         # This will raise BlockingIOError if there is no data to read
         # which we store in the MARSHALL_STREAM_END_ERROR object
-        recv = self._sock.recvmsg(length, UNIX_FDS_CMSG_LENGTH)  # type: ignore[union-attr]
-        msg = recv[0]
-        ancdata = recv[1]
-        if ancdata:
-            for level, type_, data in ancdata:
-                if not (level == SOL_SOCKET and type_ == SCM_RIGHTS):
-                    continue
-                self._unix_fds.extend(
-                    ARRAY("i", data[: len(data) - (len(data) % MAX_UNIX_FDS_SIZE)])
-                )
+        while True:
+            recv = self._sock.recvmsg(DEFAULT_BUFFER_SIZE, UNIX_FDS_CMSG_LENGTH)  # type: ignore[union-attr]
+            data = recv[0]
+            ancdata = recv[1]
+            if ancdata:
+                for level, type_, data in ancdata:
+                    if not (level == SOL_SOCKET and type_ == SCM_RIGHTS):
+                        continue
+                    self._unix_fds.extend(
+                        ARRAY("i", data[: len(data) - (len(data) % MAX_UNIX_FDS_SIZE)])
+                    )
+            if data == b"":
+                raise EOFError()
+            if data is None:
+                raise MARSHALL_STREAM_END_ERROR
+            self._buf += data
+            if len(self._buf) >= pos:
+                return
 
-        return msg
+    def _read_sock_without_fds(self, pos: _int) -> None:
+        """reads from the socket and handling errors from the read itself"""
+        # This will raise BlockingIOError if there is no data to read
+        # which we store in the MARSHALL_STREAM_END_ERROR object
+        while True:
+            data = self._sock.recv(DEFAULT_BUFFER_SIZE)  # type: ignore[union-attr]
+            if data == b"":
+                raise EOFError()
+            if data is None:
+                raise MARSHALL_STREAM_END_ERROR
+            self._buf += data
+            if len(self._buf) >= pos:
+                return
+
+    def _read_stream(self, pos: _int) -> bytes:
+        """Read from the stream."""
+        missing_bytes = pos - len(self._buf)
+        if missing_bytes <= 0:
+            return
+        data = self._stream_reader(missing_bytes)  # type: ignore[misc]
+        if data == b"":
+            raise EOFError()
+        if data is None:
+            raise MARSHALL_STREAM_END_ERROR
+        self._buf += data
+        if len(self._buf) < pos:
+            raise MARSHALL_STREAM_END_ERROR
 
     def _read_to_pos(self, pos: _int) -> None:
         """
         Read from underlying socket into buffer.
 
         Raises BlockingIOError if there is not enough data to be read.
+
+        This function is greedy and will read as much data as possible
+        from the underlying socket.
 
         :arg pos:
             The pos to read to. If not enough bytes are available in the
@@ -277,21 +316,12 @@ class Unmarshaller:
         :returns:
             None
         """
-        start_len = len(self._buf)
-        missing_bytes = pos - (start_len - self._pos)
         if self._sock is None:
-            data = self._stream_reader(missing_bytes)  # type: ignore[misc]
+            self._read_stream(pos)
         elif self._negotiate_unix_fd:
-            data = self._read_sock(missing_bytes)
+            self._read_sock_with_fds(pos)
         else:
-            data = self._sock.recv(missing_bytes)
-        if data == b"":
-            raise EOFError()
-        if data is None:
-            raise MARSHALL_STREAM_END_ERROR
-        self._buf += data
-        if len(data) + start_len != pos:
-            raise MARSHALL_STREAM_END_ERROR
+            self._read_sock_without_fds(pos)
 
     def read_uint32_unpack(self, type_: _SignatureType) -> int:
         return self._read_uint32_unpack()
