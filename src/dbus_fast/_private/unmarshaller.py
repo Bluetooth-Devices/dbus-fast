@@ -295,8 +295,6 @@ class Unmarshaller:
                 self._unix_fds.extend(
                     ARRAY("i", data[: len(data) - (len(data) % MAX_UNIX_FDS_SIZE)])
                 )
-        if msg is None:
-            raise MARSHALL_STREAM_END_ERROR
         if msg == b"":
             raise EOFError()
         self._buf += msg
@@ -319,8 +317,6 @@ class Unmarshaller:
                 if errno == EAGAIN or errno == EWOULDBLOCK:
                     raise MARSHALL_STREAM_END_ERROR
                 raise
-            if data is None:
-                raise MARSHALL_STREAM_END_ERROR
             if data == b"":
                 raise EOFError()
             self._buf += data
