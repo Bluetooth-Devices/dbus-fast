@@ -534,7 +534,7 @@ class ServiceInterface:
 
     @staticmethod
     def _handle_signal(
-        interface: "ServiceInterface", signal: _Signal, result: List[Any]
+        interface: "ServiceInterface", signal: _Signal, result: Optional[Any]
     ) -> None:
         body, fds = ServiceInterface._fn_result_to_body(result, signal.signature_tree)
         for bus in ServiceInterface._get_buses(interface):
