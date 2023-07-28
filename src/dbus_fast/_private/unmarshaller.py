@@ -1,4 +1,5 @@
 import array
+import errno
 import io
 import socket
 import sys
@@ -101,6 +102,10 @@ TOKEN_G_AS_INT = ord("g")
 ARRAY = array.array
 SOL_SOCKET = socket.SOL_SOCKET
 SCM_RIGHTS = socket.SCM_RIGHTS
+
+EAGAIN = errno.EAGAIN
+EWOULDBLOCK = errno.EWOULDBLOCK
+
 
 HEADER_MESSAGE_ARG_NAME = {
     1: "path",
@@ -273,7 +278,12 @@ class Unmarshaller:
         # This will raise BlockingIOError if there is no data to read
         # which we store in the MARSHALL_STREAM_END_ERROR object
         while True:
-            recv = self._sock.recvmsg(DEFAULT_BUFFER_SIZE, UNIX_FDS_CMSG_LENGTH)  # type: ignore[union-attr]
+            try:
+                recv = self._sock.recvmsg(DEFAULT_BUFFER_SIZE, UNIX_FDS_CMSG_LENGTH)  # type: ignore[union-attr]
+            except OSError as e:
+                if e.errno == EAGAIN or e.errno == EWOULDBLOCK:
+                    raise MARSHALL_STREAM_END_ERROR
+                raise
             data = recv[0]
             ancdata = recv[1]
             if ancdata:
@@ -303,7 +313,12 @@ class Unmarshaller:
 
         while True:
             pprint.pprint(["_read_sock_without_fds", pos, len(self._buf)])
-            data = self._sock.recv(DEFAULT_BUFFER_SIZE)  # type: ignore[union-attr]
+            try:
+                data = self._sock.recv(DEFAULT_BUFFER_SIZE)  # type: ignore[union-attr]
+            except OSError as e:
+                if e.errno == EAGAIN or e.errno == EWOULDBLOCK:
+                    raise MARSHALL_STREAM_END_ERROR
+                raise
             pprint.pprint(["_read_sock_without_fds", pos, len(self._buf), data])
             if data is None:
                 raise MARSHALL_STREAM_END_ERROR

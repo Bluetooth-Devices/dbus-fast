@@ -80,6 +80,9 @@ cdef unsigned int TOKEN_G_AS_INT
 cdef object MARSHALL_STREAM_END_ERROR
 cdef object DEFAULT_BUFFER_SIZE
 
+cdef object EAGAIN
+cdef object EWOULDBLOCK
+
 cdef get_signature_tree
 
 
