@@ -277,7 +277,10 @@ class Unmarshaller:
         """
         # This will raise BlockingIOError if there is no data to read
         # which we store in the MARSHALL_STREAM_END_ERROR object
+        import pprint
+
         while True:
+            pprint.pprint(["_read_sock_with_fds", pos, len(self._buf)])
             try:
                 recv = self._sock.recvmsg(DEFAULT_BUFFER_SIZE, UNIX_FDS_CMSG_LENGTH)  # type: ignore[union-attr]
             except OSError as e:
@@ -286,6 +289,9 @@ class Unmarshaller:
                     raise MARSHALL_STREAM_END_ERROR
                 raise
             data = recv[0]
+            pprint.pprint(
+                ["_read_sock_with_fds - read", pos, len(self._buf), data, ancdata]
+            )
             ancdata = recv[1]
             if ancdata:
                 for level, type_, data in ancdata:
@@ -310,8 +316,6 @@ class Unmarshaller:
         """
         # This will raise BlockingIOError if there is no data to read
         # which we store in the MARSHALL_STREAM_END_ERROR object
-        import pprint
-
         while True:
             try:
                 data = self._sock.recv(DEFAULT_BUFFER_SIZE)  # type: ignore[union-attr]
