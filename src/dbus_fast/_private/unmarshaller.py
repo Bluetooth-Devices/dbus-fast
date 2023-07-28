@@ -271,7 +271,7 @@ class Unmarshaller:
 
     def _has_another_message_in_buffer(self) -> bool:
         """Check if there is another message in the buffer."""
-        _LOGGER.warning(
+        logging.error(
             "has_another_message_in_buffer: buf_len=%s message_size=%s",
             len(self._buf),
             HEADER_SIGNATURE_SIZE + self._msg_len,
