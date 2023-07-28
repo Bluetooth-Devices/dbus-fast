@@ -140,10 +140,9 @@ cdef class Unmarshaller:
     cdef _read_sock_without_fds(self, unsigned int pos)
 
     @cython.locals(
-        missing_bytes=cython.uint,
         data=cython.bytes
     )
-    cdef _read_stream(self, unsigned int pos)
+    cdef _read_stream(self, unsigned int pos, unsigned int missing_bytes)
 
     cdef _read_to_pos(self, unsigned int pos)
 

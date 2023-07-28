@@ -342,11 +342,8 @@ class Unmarshaller:
                 )
                 return
 
-    def _read_stream(self, pos: _int) -> bytes:
+    def _read_stream(self, pos: _int, missing_bytes: _int) -> bytes:
         """Read from the stream."""
-        missing_bytes = pos - len(self._buf)
-        if missing_bytes <= 0:
-            return
         data = self._stream_reader(missing_bytes)  # type: ignore[misc]
         if data is None:
             raise MARSHALL_STREAM_END_ERROR
@@ -369,8 +366,11 @@ class Unmarshaller:
         :returns:
             None
         """
+        missing_bytes = pos - len(self._buf)
+        if missing_bytes <= 0:
+            return
         if self._sock is None:
-            self._read_stream(pos)
+            self._read_stream(pos, missing_bytes)
         elif self._negotiate_unix_fd:
             self._read_sock_with_fds(pos)
         else:
