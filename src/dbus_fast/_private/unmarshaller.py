@@ -266,7 +266,7 @@ class Unmarshaller:
         """Return the message that has been unmarshalled."""
         return self._message
 
-    def _has_another_message_in_buffer(self) -> None:
+    def _has_another_message_in_buffer(self) -> bool:
         """Check if there is another message in the buffer."""
         return len(self._buf) > HEADER_SIGNATURE_SIZE + self._msg_len
 
