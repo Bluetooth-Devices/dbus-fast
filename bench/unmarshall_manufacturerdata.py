@@ -21,7 +21,6 @@ unmarshaller = Unmarshaller(stream)
 
 def unmarshall_mfr_data_message():
     stream.seek(0)
-    unmarshaller.reset()
     unmarshaller.unmarshall()
 
 

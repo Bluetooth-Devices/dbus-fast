@@ -201,10 +201,10 @@ class MessageBus(BaseMessageBus):
         self._loop.add_reader(
             self._fd,
             build_message_reader(
-                self._stream,
-                self._sock if self._negotiate_unix_fd else None,
+                self._sock,
                 self._process_message,
                 self._finalize,
+                self._negotiate_unix_fd,
             ),
         )
 

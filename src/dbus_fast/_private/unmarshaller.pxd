@@ -78,6 +78,10 @@ cdef unsigned int TOKEN_S_AS_INT
 cdef unsigned int TOKEN_G_AS_INT
 
 cdef object MARSHALL_STREAM_END_ERROR
+cdef object DEFAULT_BUFFER_SIZE
+
+cdef cython.uint EAGAIN
+cdef cython.uint EWOULDBLOCK
 
 cdef get_signature_tree
 
@@ -116,23 +120,32 @@ cdef class Unmarshaller:
     cdef object _int16_unpack
     cdef object _uint16_unpack
     cdef object _stream_reader
+    cdef bint _negotiate_unix_fd
+    cdef bint _read_complete
 
-    cdef _reset(self)
+    cdef _next_message(self)
 
-    cpdef reset(self)
+    cdef _has_another_message_in_buffer(self)
 
     @cython.locals(
         msg=cython.bytes,
-        recv=cython.tuple
+        recv=cython.tuple,
+        errno=cython.uint
     )
-    cdef bytes _read_sock(self, object length)
+    cdef _read_sock_with_fds(self, unsigned int pos, unsigned int missing_bytes)
 
     @cython.locals(
-        start_len=cython.ulong,
-        missing_bytes=cython.ulong,
+        data=cython.bytes,
+        errno=cython.uint
+    )
+    cdef _read_sock_without_fds(self, unsigned int pos)
+
+    @cython.locals(
         data=cython.bytes
     )
-    cdef _read_to_pos(self, unsigned long pos)
+    cdef _read_stream(self, unsigned int pos, unsigned int missing_bytes)
+
+    cdef _read_to_pos(self, unsigned int pos)
 
     cpdef read_boolean(self, SignatureType type_)
 
