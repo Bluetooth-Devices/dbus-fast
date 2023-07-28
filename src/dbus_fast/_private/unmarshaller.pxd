@@ -119,7 +119,7 @@ cdef class Unmarshaller:
     cdef object _stream_reader
     cdef object _negotiate_unix_fd
 
-    cdef _reset(self)
+    cdef _next_message(self)
 
     @cython.locals(
         data=cython.bytes,

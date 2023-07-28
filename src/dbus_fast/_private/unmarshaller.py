@@ -173,7 +173,7 @@ except ImportError:
 class Unmarshaller:
     """Unmarshall messages from a stream.
 
-    When calling with sock, _reset must be called before processing a new message.
+    When calling with sock, _next_message must be called before processing a new message.
     """
 
     __slots__ = (
@@ -228,7 +228,7 @@ class Unmarshaller:
                 self._stream_reader = stream.reader.read  # type: ignore[attr-defined]
             self._stream_reader = stream.read
 
-    def _reset(self) -> None:
+    def _next_message(self) -> None:
         """Reset the unmarshaller to its initial state.
 
         Call this before processing a new message.
