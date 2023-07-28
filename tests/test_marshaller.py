@@ -457,21 +457,21 @@ def test_unmarshall_multiple_messages():
     unpacked = unpack_variants(message.body)
     assert unpacked == ["org.bluez.Device1", {"RSSI": -76}, []]
 
-    unmarshaller.reset()
+    unmarshaller.next_message()
     assert unmarshaller.unmarshall()
     message = unmarshaller.message
     assert message is not None
     unpacked = unpack_variants(message.body)
     assert unpacked == ["org.bluez.Device1", {"RSSI": -80}, []]
 
-    unmarshaller.reset()
+    unmarshaller.next_message()
     assert unmarshaller.unmarshall()
     message = unmarshaller.message
     assert message is not None
     unpacked = unpack_variants(message.body)
     assert unpacked == ["org.bluez.Device1", {"RSSI": -94}, []]
 
-    unmarshaller.reset()
+    unmarshaller.next_message()
     with pytest.raises(EOFError):
         unmarshaller.unmarshall()
 

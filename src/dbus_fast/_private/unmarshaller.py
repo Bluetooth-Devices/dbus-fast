@@ -228,6 +228,13 @@ class Unmarshaller:
                 self._stream_reader = stream.reader.read  # type: ignore[attr-defined]
             self._stream_reader = stream.read
 
+    def next_message(self) -> None:
+        """Reset the unmarshaller to its initial state.
+
+        Call this before processing a new message.
+        """
+        self._next_message()
+
     def _next_message(self) -> None:
         """Reset the unmarshaller to its initial state.
 

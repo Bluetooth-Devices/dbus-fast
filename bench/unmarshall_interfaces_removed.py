@@ -22,7 +22,7 @@ unmarshaller = Unmarshaller(stream)
 
 def unmarshall_interfaces_removed_message():
     stream.seek(0)
-    unmarshaller.reset()
+    unmarshaller.next_message()
     unmarshaller.unmarshall()
 
 

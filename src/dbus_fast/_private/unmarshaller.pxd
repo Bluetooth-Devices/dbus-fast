@@ -119,6 +119,8 @@ cdef class Unmarshaller:
     cdef object _stream_reader
     cdef object _negotiate_unix_fd
 
+    cpdef next_message(self)
+
     cdef _next_message(self)
 
     @cython.locals(

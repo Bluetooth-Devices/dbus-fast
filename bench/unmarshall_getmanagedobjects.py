@@ -16,7 +16,7 @@ unmarshaller = Unmarshaller(stream)
 
 def unmarhsall_bluez_get_managed_objects_message():
     stream.seek(0)
-    unmarshaller.reset()
+    unmarshaller.next_message()
     unmarshaller.unmarshall()
 
 
