@@ -289,10 +289,10 @@ class Unmarshaller:
                     raise MARSHALL_STREAM_END_ERROR
                 raise
             data = recv[0]
+            ancdata = recv[1]
             pprint.pprint(
                 ["_read_sock_with_fds - read", pos, len(self._buf), data, ancdata]
             )
-            ancdata = recv[1]
             if ancdata:
                 for level, type_, data in ancdata:
                     if not (level == SOL_SOCKET and type_ == SCM_RIGHTS):
