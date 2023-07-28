@@ -32,7 +32,10 @@ def build_message_reader(
                     )
                 # If we are not negotiating unix fds, we can stop reading as soon as we have
                 # the buffer is empty as asyncio will call us again when there is more data.
-                if not negotiate_unix_fd and not unmarshaller._has_data_in_buffer():
+                if (
+                    not negotiate_unix_fd
+                    and not unmarshaller._has_another_message_in_buffer()
+                ):
                     return
         except Exception as e:
             finalize(e)

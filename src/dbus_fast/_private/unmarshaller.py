@@ -266,9 +266,9 @@ class Unmarshaller:
         """Return the message that has been unmarshalled."""
         return self._message
 
-    def _has_data_in_buffer(self) -> None:
-        """Check if there is data in the buffer."""
-        return len(self._buf) > 0
+    def _has_another_message_in_buffer(self) -> None:
+        """Check if there is another message in the buffer."""
+        return len(self._buf) > HEADER_SIGNATURE_SIZE + self._msg_len
 
     def _read_sock_with_fds(self, pos: _int, missing_bytes: _int) -> None:
         """reads from the socket, storing any fds sent and handling errors
