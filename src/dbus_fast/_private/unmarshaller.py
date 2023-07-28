@@ -235,7 +235,7 @@ class Unmarshaller:
         Call this before processing a new message.
         """
         self._unix_fds = []
-        self._buf.clear()
+        del self._buf[: self._pos]
         self._message = None
         self._pos = 0
         self._body_len = 0
