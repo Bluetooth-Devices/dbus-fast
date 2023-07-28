@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.87.4 (2023-07-28)
+
+### Fix
+
+* Avoid double buffering when using asyncio reader without negotiate_unix_fd ([#213](https://github.com/Bluetooth-Devices/dbus-fast/issues/213)) ([`c933be7`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c933be709508e0504e97254247bec70eb9e8c6d4))
+
 ## v1.87.3 (2023-07-27)
 
 ### Fix
