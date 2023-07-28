@@ -23,7 +23,6 @@ unmarshaller = Unmarshaller(stream)
 
 def unmarshall_properties_changed_message():
     stream.seek(0)
-    unmarshaller.next_message()
     unmarshaller.unmarshall()
 
 

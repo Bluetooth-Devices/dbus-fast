@@ -201,6 +201,7 @@ class Unmarshaller:
         "_is_native",
         "_stream_reader",
         "_negotiate_unix_fd",
+        "_read_complete",
     )
 
     def __init__(
@@ -228,17 +229,11 @@ class Unmarshaller:
         self._uint16_unpack: Optional[Callable] = None
         self._stream_reader: Optional[Callable] = None
         self._negotiate_unix_fd = negotiate_unix_fd
+        self._read_complete = False
         if stream:
             if isinstance(stream, io.BufferedRWPair) and hasattr(stream, "reader"):
                 self._stream_reader = stream.reader.read  # type: ignore[attr-defined]
             self._stream_reader = stream.read
-
-    def next_message(self) -> None:
-        """Reset the unmarshaller to its initial state.
-
-        Call this before processing a new message.
-        """
-        self._next_message()
 
     def _next_message(self) -> None:
         """Reset the unmarshaller to its initial state.
@@ -260,6 +255,7 @@ class Unmarshaller:
         self._flag = 0
         self._msg_len = 0
         self._is_native = 0
+        self._read_complete = False
         # No need to reset the unpack functions, they are set in _read_header
         # every time a new message is processed.
 
@@ -709,6 +705,7 @@ class Unmarshaller:
             validate=False,
             **header_fields,
         )
+        self._read_complete = True
 
     def unmarshall(self) -> Optional[Message]:
         """Unmarshall the message.
@@ -726,6 +723,8 @@ class Unmarshaller:
         if there are not enough bytes in the buffer. This allows unmarshall
         to be resumed when more data comes in over the wire.
         """
+        if self._read_complete:
+            self._next_message()
         try:
             if not self._msg_len:
                 self._read_header()

@@ -30,7 +30,6 @@ def build_message_reader(
                     logging.error(
                         f"got unexpected error processing a message: {e}.\n{traceback.format_exc()}"
                     )
-                unmarshaller._next_message()
         except Exception as e:
             finalize(e)
 

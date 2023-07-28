@@ -20,7 +20,6 @@ unmarshaller = Unmarshaller(stream)
 
 def unmarhsall_bluez_rssi_message():
     stream.seek(0)
-    unmarshaller.next_message()
     unmarshaller.unmarshall()
 
 
