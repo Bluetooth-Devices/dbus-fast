@@ -241,7 +241,11 @@ class Unmarshaller:
         Call this before processing a new message.
         """
         self._unix_fds = []
-        del self._buf[: HEADER_SIGNATURE_SIZE + self._msg_len]
+        to_clear = HEADER_SIGNATURE_SIZE + self._msg_len
+        if len(self._buf) == to_clear:
+            self._buf = bytearray()
+        else:
+            del self._buf[:to_clear]
         self._message = None
         self._pos = 0
         self._body_len = 0
