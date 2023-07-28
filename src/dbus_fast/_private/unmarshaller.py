@@ -313,16 +313,6 @@ class Unmarshaller:
         import pprint
 
         while True:
-            missing_bytes = pos - len(self._buf)
-            pprint.pprint(
-                [
-                    "_read_sock_without_fds",
-                    pos,
-                    "missing_bytes",
-                    missing_bytes,
-                    len(self._buf),
-                ]
-            )
             try:
                 data = self._sock.recv(DEFAULT_BUFFER_SIZE)  # type: ignore[union-attr]
             except OSError as e:
@@ -330,16 +320,12 @@ class Unmarshaller:
                 if errno == EAGAIN or errno == EWOULDBLOCK:
                     raise MARSHALL_STREAM_END_ERROR
                 raise
-            pprint.pprint(["_read_sock_without_fds", pos, len(self._buf), data])
             if data is None:
                 raise MARSHALL_STREAM_END_ERROR
             if data == b"":
                 raise EOFError()
             self._buf += data
             if len(self._buf) >= pos:
-                pprint.pprint(
-                    ["_read_sock_without_fds got enough", pos, len(self._buf)]
-                )
                 return
 
     def _read_stream(self, pos: _int, missing_bytes: _int) -> bytes:
