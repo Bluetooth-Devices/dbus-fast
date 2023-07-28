@@ -127,7 +127,7 @@ cdef class Unmarshaller:
     cdef _next_message(self)
 
     @cython.locals(
-        data=cython.bytes,
+        msg=cython.bytes,
         recv=cython.tuple,
         errno=cython.uint
     )

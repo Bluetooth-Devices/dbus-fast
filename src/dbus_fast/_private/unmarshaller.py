@@ -288,10 +288,10 @@ class Unmarshaller:
                 if errno == EAGAIN or errno == EWOULDBLOCK:
                     raise MARSHALL_STREAM_END_ERROR
                 raise
-            data = recv[0]
+            msg = recv[0]
             ancdata = recv[1]
             pprint.pprint(
-                ["_read_sock_with_fds - read", pos, len(self._buf), data, ancdata]
+                ["_read_sock_with_fds - read", pos, len(self._buf), msg, ancdata]
             )
             if ancdata:
                 for level, type_, data in ancdata:
@@ -300,11 +300,11 @@ class Unmarshaller:
                     self._unix_fds.extend(
                         ARRAY("i", data[: len(data) - (len(data) % MAX_UNIX_FDS_SIZE)])
                     )
-            if data is None:
+            if msg is None:
                 raise MARSHALL_STREAM_END_ERROR
-            if data == b"":
+            if msg == b"":
                 raise EOFError()
-            self._buf += data
+            self._buf += msg
             if len(self._buf) >= pos:
                 return
 
