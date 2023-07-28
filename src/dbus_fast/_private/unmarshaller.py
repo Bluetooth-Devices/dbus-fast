@@ -171,6 +171,10 @@ except ImportError:
 #
 #
 class Unmarshaller:
+    """Unmarshall messages from a stream.
+
+    When calling with sock, _reset must be called before processing a new message.
+    """
 
     __slots__ = (
         "_unix_fds",
