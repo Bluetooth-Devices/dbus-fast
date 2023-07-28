@@ -178,7 +178,9 @@ except ImportError:
 class Unmarshaller:
     """Unmarshall messages from a stream.
 
-    When calling with sock, _next_message must be called before processing a new message.
+    When calling with sock and _negotiate_unix_fd False, the unmashaller must
+    be called continuously for each new message as it will buffer the data
+    until a complete message is available.
     """
 
     __slots__ = (
