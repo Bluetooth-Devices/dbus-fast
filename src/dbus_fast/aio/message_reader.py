@@ -30,6 +30,8 @@ def build_message_reader(
                     logging.error(
                         f"got unexpected error processing a message: {e}.\n{traceback.format_exc()}"
                     )
+                if not negotiate_unix_fd and not unmarshaller._has_data_in_buffer():
+                    return
         except Exception as e:
             finalize(e)
 

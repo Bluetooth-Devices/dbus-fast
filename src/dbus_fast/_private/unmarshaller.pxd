@@ -125,6 +125,8 @@ cdef class Unmarshaller:
 
     cdef _next_message(self)
 
+    cdef _has_data_in_buffer(self)
+
     @cython.locals(
         msg=cython.bytes,
         recv=cython.tuple,
