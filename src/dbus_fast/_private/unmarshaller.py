@@ -268,7 +268,7 @@ class Unmarshaller:
         """Return the message that has been unmarshalled."""
         return self._message
 
-    def _read_sock_with_fds(self, pos: _int) -> None:
+    def _read_sock_with_fds(self, pos: _int, missing_bytes: _int) -> None:
         """reads from the socket, storing any fds sent and handling errors
         from the read itself.
 
@@ -277,36 +277,29 @@ class Unmarshaller:
         """
         # This will raise BlockingIOError if there is no data to read
         # which we store in the MARSHALL_STREAM_END_ERROR object
-        import pprint
-
-        while True:
-            pprint.pprint(["_read_sock_with_fds", pos, len(self._buf)])
-            try:
-                recv = self._sock.recvmsg(DEFAULT_BUFFER_SIZE, UNIX_FDS_CMSG_LENGTH)  # type: ignore[union-attr]
-            except OSError as e:
-                errno = e.errno
-                if errno == EAGAIN or errno == EWOULDBLOCK:
-                    raise MARSHALL_STREAM_END_ERROR
-                raise
-            msg = recv[0]
-            ancdata = recv[1]
-            pprint.pprint(
-                ["_read_sock_with_fds - read", pos, len(self._buf), msg, ancdata]
-            )
-            if ancdata:
-                for level, type_, data in ancdata:
-                    if not (level == SOL_SOCKET and type_ == SCM_RIGHTS):
-                        continue
-                    self._unix_fds.extend(
-                        ARRAY("i", data[: len(data) - (len(data) % MAX_UNIX_FDS_SIZE)])
-                    )
-            if msg is None:
+        try:
+            recv = self._sock.recvmsg(missing_bytes, UNIX_FDS_CMSG_LENGTH)  # type: ignore[union-attr]
+        except OSError as e:
+            errno = e.errno
+            if errno == EAGAIN or errno == EWOULDBLOCK:
                 raise MARSHALL_STREAM_END_ERROR
-            if msg == b"":
-                raise EOFError()
-            self._buf += msg
-            if len(self._buf) >= pos:
-                return
+            raise
+        msg = recv[0]
+        ancdata = recv[1]
+        if ancdata:
+            for level, type_, data in ancdata:
+                if not (level == SOL_SOCKET and type_ == SCM_RIGHTS):
+                    continue
+                self._unix_fds.extend(
+                    ARRAY("i", data[: len(data) - (len(data) % MAX_UNIX_FDS_SIZE)])
+                )
+        if msg is None:
+            raise MARSHALL_STREAM_END_ERROR
+        if msg == b"":
+            raise EOFError()
+        self._buf += msg
+        if len(self._buf) < pos:
+            raise MARSHALL_STREAM_END_ERROR
 
     def _read_sock_without_fds(self, pos: _int) -> None:
         """reads from the socket and handling errors from the read itself.
@@ -349,7 +342,7 @@ class Unmarshaller:
 
         Raises BlockingIOError if there is not enough data to be read.
 
-                :arg pos:
+        :arg pos:
             The pos to read to. If not enough bytes are available in the
             buffer, read more from it.
 
@@ -362,7 +355,7 @@ class Unmarshaller:
         if self._sock is None:
             self._read_stream(pos, missing_bytes)
         elif self._negotiate_unix_fd:
-            self._read_sock_with_fds(pos)
+            self._read_sock_with_fds(pos, missing_bytes)
         else:
             self._read_sock_without_fds(pos)
 

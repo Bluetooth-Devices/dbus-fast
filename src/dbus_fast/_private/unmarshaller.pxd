@@ -131,7 +131,7 @@ cdef class Unmarshaller:
         recv=cython.tuple,
         errno=cython.uint
     )
-    cdef _read_sock_with_fds(self, unsigned int pos)
+    cdef _read_sock_with_fds(self, unsigned int pos, unsigned int missing_bytes)
 
     @cython.locals(
         data=cython.bytes,
