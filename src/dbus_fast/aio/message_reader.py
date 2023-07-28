@@ -30,6 +30,8 @@ def build_message_reader(
                     logging.error(
                         f"got unexpected error processing a message: {e}.\n{traceback.format_exc()}"
                     )
+                # If we are not negotiating unix fds, we can stop reading as soon as we have
+                # the buffer is empty as asyncio will call us again when there is more data.
                 if not negotiate_unix_fd and not unmarshaller._has_data_in_buffer():
                     return
         except Exception as e:
