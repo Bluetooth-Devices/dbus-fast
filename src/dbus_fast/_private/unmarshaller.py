@@ -1,6 +1,7 @@
 import array
 import errno
 import io
+import logging
 import socket
 import sys
 from struct import Struct
@@ -11,6 +12,8 @@ from ..errors import InvalidMessageError
 from ..message import Message
 from ..signature import SignatureType, Variant, get_signature_tree
 from .constants import BIG_ENDIAN, LITTLE_ENDIAN, PROTOCOL_VERSION
+
+_LOGGER = logging.getLogger(__name__)
 
 MAX_UNIX_FDS = 16
 MAX_UNIX_FDS_SIZE = array.array("i").itemsize
@@ -268,6 +271,11 @@ class Unmarshaller:
 
     def _has_another_message_in_buffer(self) -> bool:
         """Check if there is another message in the buffer."""
+        _LOGGER.warning(
+            "has_another_message_in_buffer: buf_len=%s message_size=%s",
+            len(self._buf),
+            HEADER_SIGNATURE_SIZE + self._msg_len,
+        )
         return len(self._buf) > HEADER_SIGNATURE_SIZE + self._msg_len
 
     def _read_sock_with_fds(self, pos: _int, missing_bytes: _int) -> None:
