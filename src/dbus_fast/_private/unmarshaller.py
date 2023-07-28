@@ -200,7 +200,7 @@ class Unmarshaller:
 
     def __init__(
         self,
-        stream: io.BufferedRWPair,
+        stream: Optional[io.BufferedRWPair] = None,
         sock: Optional[socket.socket] = None,
         negotiate_unix_fd: bool = True,
     ) -> None:
@@ -223,7 +223,7 @@ class Unmarshaller:
         self._uint16_unpack: Optional[Callable] = None
         self._stream_reader: Optional[Callable] = None
         self._negotiate_unix_fd = negotiate_unix_fd
-        if self._sock is None:
+        if stream:
             if isinstance(stream, io.BufferedRWPair) and hasattr(stream, "reader"):
                 self._stream_reader = stream.reader.read  # type: ignore[attr-defined]
             self._stream_reader = stream.read
