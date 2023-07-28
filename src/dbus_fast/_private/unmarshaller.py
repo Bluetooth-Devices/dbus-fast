@@ -222,13 +222,6 @@ class Unmarshaller:
                 self._stream_reader = stream.reader.read  # type: ignore[attr-defined]
             self._stream_reader = stream.read
 
-    def reset(self) -> None:
-        """Reset the unmarshaller to its initial state.
-
-        Call this before processing a new message.
-        """
-        self._reset()
-
     def _reset(self) -> None:
         """Reset the unmarshaller to its initial state.
 
@@ -673,7 +666,9 @@ class Unmarshaller:
             self._read_body()
         except MARSHALL_STREAM_END_ERROR:
             return None
-        return self._message
+        message = self._message
+        self._reset()
+        return message
 
     _complex_parsers_unpack: Dict[
         str, Callable[["Unmarshaller", SignatureType], Any]
