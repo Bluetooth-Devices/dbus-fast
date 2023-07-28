@@ -78,6 +78,7 @@ cdef unsigned int TOKEN_S_AS_INT
 cdef unsigned int TOKEN_G_AS_INT
 
 cdef object MARSHALL_STREAM_END_ERROR
+cdef object DEFAULT_BUFFER_SIZE
 
 cdef get_signature_tree
 
@@ -119,8 +120,6 @@ cdef class Unmarshaller:
     cdef object _negotiate_unix_fd
 
     cdef _reset(self)
-
-    cpdef reset(self)
 
     @cython.locals(
         data=cython.bytes,

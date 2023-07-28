@@ -250,7 +250,11 @@ class Unmarshaller:
 
     def _read_sock_with_fds(self, pos: _int) -> None:
         """reads from the socket, storing any fds sent and handling errors
-        from the read itself"""
+        from the read itself.
+
+        This function is greedy and will read as much data as possible
+        from the underlying socket.
+        """
         # This will raise BlockingIOError if there is no data to read
         # which we store in the MARSHALL_STREAM_END_ERROR object
         while True:
@@ -264,24 +268,29 @@ class Unmarshaller:
                     self._unix_fds.extend(
                         ARRAY("i", data[: len(data) - (len(data) % MAX_UNIX_FDS_SIZE)])
                     )
-            if data == b"":
-                raise EOFError()
             if data is None:
                 raise MARSHALL_STREAM_END_ERROR
+            if data == b"":
+                raise EOFError()
             self._buf += data
             if len(self._buf) >= pos:
                 return
 
     def _read_sock_without_fds(self, pos: _int) -> None:
-        """reads from the socket and handling errors from the read itself"""
+        """reads from the socket and handling errors from the read itself.
+
+        This function is greedy and will read as much data as possible
+        from the underlying socket.
+        """
         # This will raise BlockingIOError if there is no data to read
         # which we store in the MARSHALL_STREAM_END_ERROR object
+
         while True:
             data = self._sock.recv(DEFAULT_BUFFER_SIZE)  # type: ignore[union-attr]
-            if data == b"":
-                raise EOFError()
             if data is None:
                 raise MARSHALL_STREAM_END_ERROR
+            if data == b"":
+                raise EOFError()
             self._buf += data
             if len(self._buf) >= pos:
                 return
@@ -292,10 +301,10 @@ class Unmarshaller:
         if missing_bytes <= 0:
             return
         data = self._stream_reader(missing_bytes)  # type: ignore[misc]
-        if data == b"":
-            raise EOFError()
         if data is None:
             raise MARSHALL_STREAM_END_ERROR
+        if data == b"":
+            raise EOFError()
         self._buf += data
         if len(self._buf) < pos:
             raise MARSHALL_STREAM_END_ERROR
@@ -306,10 +315,7 @@ class Unmarshaller:
 
         Raises BlockingIOError if there is not enough data to be read.
 
-        This function is greedy and will read as much data as possible
-        from the underlying socket.
-
-        :arg pos:
+                :arg pos:
             The pos to read to. If not enough bytes are available in the
             buffer, read more from it.
 
@@ -696,9 +702,7 @@ class Unmarshaller:
             self._read_body()
         except MARSHALL_STREAM_END_ERROR:
             return None
-        message = self._message
-        self._reset()
-        return message
+        return self._message
 
     _complex_parsers_unpack: Dict[
         str, Callable[["Unmarshaller", SignatureType], Any]
