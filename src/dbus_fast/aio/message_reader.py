@@ -1,4 +1,3 @@
-import io
 import logging
 import socket
 import traceback
@@ -6,6 +5,8 @@ from typing import Callable, Optional
 
 from .._private.unmarshaller import Unmarshaller
 from ..message import Message
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def build_message_reader(
@@ -16,6 +17,10 @@ def build_message_reader(
 ) -> None:
     """Build a callable that reads messages from the unmarshaller and passes them to the process function."""
     unmarshaller = Unmarshaller(None, sock, negotiate_unix_fd)
+
+    _LOGGER.warning(
+        "build_message_reader: sock=%s negotiate_unix_fd=%s", sock, negotiate_unix_fd
+    )
 
     def _message_reader() -> None:
         """Reads messages from the unmarshaller and passes them to the process function."""
