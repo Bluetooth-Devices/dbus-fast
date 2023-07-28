@@ -299,9 +299,12 @@ class Unmarshaller:
         """
         # This will raise BlockingIOError if there is no data to read
         # which we store in the MARSHALL_STREAM_END_ERROR object
+        import pprint
 
         while True:
+            pprint.pprint(["_read_sock_without_fds", pos, len(self._buf)])
             data = self._sock.recv(DEFAULT_BUFFER_SIZE)  # type: ignore[union-attr]
+            pprint.pprint(["_read_sock_without_fds", pos, len(self._buf), data])
             if data is None:
                 raise MARSHALL_STREAM_END_ERROR
             if data == b"":
