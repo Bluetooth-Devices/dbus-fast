@@ -281,7 +281,8 @@ class Unmarshaller:
             try:
                 recv = self._sock.recvmsg(DEFAULT_BUFFER_SIZE, UNIX_FDS_CMSG_LENGTH)  # type: ignore[union-attr]
             except OSError as e:
-                if e.errno == EAGAIN or e.errno == EWOULDBLOCK:
+                errno = e.errno
+                if errno == EAGAIN or errno == EWOULDBLOCK:
                     raise MARSHALL_STREAM_END_ERROR
                 raise
             data = recv[0]
@@ -316,7 +317,8 @@ class Unmarshaller:
             try:
                 data = self._sock.recv(DEFAULT_BUFFER_SIZE)  # type: ignore[union-attr]
             except OSError as e:
-                if e.errno == EAGAIN or e.errno == EWOULDBLOCK:
+                errno = e.errno
+                if errno == EAGAIN or errno == EWOULDBLOCK:
                     raise MARSHALL_STREAM_END_ERROR
                 raise
             pprint.pprint(["_read_sock_without_fds", pos, len(self._buf), data])

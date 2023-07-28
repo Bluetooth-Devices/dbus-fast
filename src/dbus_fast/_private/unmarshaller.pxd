@@ -80,8 +80,8 @@ cdef unsigned int TOKEN_G_AS_INT
 cdef object MARSHALL_STREAM_END_ERROR
 cdef object DEFAULT_BUFFER_SIZE
 
-cdef object EAGAIN
-cdef object EWOULDBLOCK
+cdef cython.uint EAGAIN
+cdef cython.uint EWOULDBLOCK
 
 cdef get_signature_tree
 
@@ -128,12 +128,14 @@ cdef class Unmarshaller:
 
     @cython.locals(
         data=cython.bytes,
-        recv=cython.tuple
+        recv=cython.tuple,
+        errno=cython.uint
     )
     cdef _read_sock_with_fds(self, unsigned int pos)
 
     @cython.locals(
         data=cython.bytes,
+        errno=cython.uint
     )
     cdef _read_sock_without_fds(self, unsigned int pos)
 
