@@ -241,7 +241,7 @@ class Unmarshaller:
         Call this before processing a new message.
         """
         self._unix_fds = []
-        del self._buf[: self._pos]
+        del self._buf[: HEADER_SIGNATURE_SIZE + self._msg_len]
         self._message = None
         self._pos = 0
         self._body_len = 0
