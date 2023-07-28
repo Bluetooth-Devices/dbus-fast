@@ -117,7 +117,7 @@ cdef class Unmarshaller:
     cdef object _int16_unpack
     cdef object _uint16_unpack
     cdef object _stream_reader
-    cdef object _negotiate_unix_fd
+    cdef bint _negotiate_unix_fd
 
     cpdef next_message(self)
 
