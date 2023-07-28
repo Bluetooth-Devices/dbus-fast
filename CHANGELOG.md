@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.87.5 (2023-07-28)
+
+### Fix
+
+* Result typing in ServiceInterface._handle_signal ([#214](https://github.com/Bluetooth-Devices/dbus-fast/issues/214)) ([`5bda04b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5bda04b089b5f089c90c333ca0db02d40d38a8ca))
+
 ## v1.87.4 (2023-07-28)
 
 ### Fix
