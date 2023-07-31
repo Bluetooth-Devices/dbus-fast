@@ -29,8 +29,10 @@ MESSAGE_TYPE_CALL = MessageType.METHOD_CALL
 MESSAGE_TYPE_SIGNAL = MessageType.SIGNAL
 NO_REPLY_EXPECTED_VALUE = MessageFlag.NO_REPLY_EXPECTED.value
 
+_Message = Message
 
-def _expects_reply(msg) -> bool:
+
+def _expects_reply(msg: _Message) -> bool:
     return not (msg.flags.value & NO_REPLY_EXPECTED_VALUE)
 
 
@@ -57,22 +59,20 @@ class SendReply:
         exc_value: Optional[Exception],
         tb: Optional[TracebackType],
     ) -> bool:
-        if exc_type is None:
-            return False
-
-        if issubclass(exc_type, DBusError):
-            self(exc_value._as_message(self._msg))  # type: ignore[union-attr]
-            return True
-
-        if issubclass(exc_type, Exception):
-            self(
-                Message.new_error(
-                    self._msg,
-                    ErrorType.SERVICE_ERROR,
-                    f"The service interface raised an error: {exc_value}.\n{traceback.format_tb(tb)}",
+        if exc_value:
+            if isinstance(exc_value, DBusError):
+                self(exc_value._as_message(self._msg))
+            else:
+                self(
+                    Message.new_error(
+                        self._msg,
+                        ErrorType.SERVICE_ERROR,
+                        f"The service interface raised an error: {exc_value}.\n{traceback.format_tb(tb)}",
+                    )
                 )
-            )
             return True
+
+        return False
 
     def __exit__(
         self,
@@ -804,7 +804,7 @@ class BaseMessageBus:
                 ErrorType.INTERNAL_ERROR, "invalid message type for method call", msg
             )
 
-    def _process_message(self, msg) -> None:
+    def _process_message(self, msg: _Message) -> None:
         handled = False
         for user_handler in self._user_message_handlers:
             try:
