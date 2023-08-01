@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.87.6 (2023-08-01)
+
+### Fix
+
+* Exception handler failure when exception is not DBusError ([#215](https://github.com/Bluetooth-Devices/dbus-fast/issues/215)) ([`d771bcf`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d771bcf6a2ed08486affe0e2c30bd8dd95ccbb5d))
+
 ## v1.87.5 (2023-07-28)
 
 ### Fix
