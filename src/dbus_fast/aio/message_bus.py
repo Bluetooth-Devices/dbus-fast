@@ -104,7 +104,7 @@ class _MessageWriter:
         """Call the write callback without removing the writer."""
         self.write_callback(remove_writer=False)
 
-    def schedule_write(self, msg: Message = None, future=None) -> None:
+    def schedule_write(self, msg: Optional[Message] = None, future=None) -> None:
         queue_is_empty = not self.messages
         if msg is not None:
             self.buffer_message(msg, future)
@@ -158,9 +158,9 @@ class MessageBus(BaseMessageBus):
 
     def __init__(
         self,
-        bus_address: str = None,
+        bus_address: Optional[str] = None,
         bus_type: BusType = BusType.SESSION,
-        auth: Authenticator = None,
+        auth: Optional[Authenticator] = None,
         negotiate_unix_fd: bool = False,
     ) -> None:
         super().__init__(bus_address, bus_type, ProxyObject, negotiate_unix_fd)

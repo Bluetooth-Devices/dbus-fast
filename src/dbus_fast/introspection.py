@@ -1,5 +1,5 @@
 import xml.etree.ElementTree as ET
-from typing import List, Union
+from typing import List, Optional, Union
 
 from .constants import ArgDirection, PropertyAccess
 from .errors import InvalidIntrospectionError
@@ -31,8 +31,8 @@ class Arg:
     def __init__(
         self,
         signature: Union[SignatureType, str],
-        direction: List[ArgDirection] = None,
-        name: str = None,
+        direction: Optional[List[ArgDirection]] = None,
+        name: Optional[str] = None,
     ):
         if name is not None:
             assert_member_name_valid(name)
@@ -105,7 +105,7 @@ class Signal:
         - :class:`InvalidMemberNameError <dbus_fast.InvalidMemberNameError>` - If the name of the signal is not a valid member name.
     """
 
-    def __init__(self, name: str, args: List[Arg] = None):
+    def __init__(self, name: Optional[str], args: Optional[List[Arg]] = None):
         if name is not None:
             assert_member_name_valid(name)
 
@@ -312,9 +312,9 @@ class Interface:
     def __init__(
         self,
         name: str,
-        methods: List[Method] = None,
-        signals: List[Signal] = None,
-        properties: List[Property] = None,
+        methods: Optional[List[Method]] = None,
+        signals: Optional[List[Signal]] = None,
+        properties: Optional[List[Property]] = None,
     ):
         assert_interface_name_valid(name)
 
@@ -395,7 +395,10 @@ class Node:
     """
 
     def __init__(
-        self, name: str = None, interfaces: List[Interface] = None, is_root: bool = True
+        self,
+        name: Optional[str] = None,
+        interfaces: Optional[List[Interface]] = None,
+        is_root: bool = True,
     ):
         if not is_root and not name:
             raise InvalidIntrospectionError('child nodes must have a "name" attribute')
@@ -487,7 +490,7 @@ class Node:
         return header + ET.tostring(xml, encoding="unicode").rstrip()
 
     @staticmethod
-    def default(name: str = None) -> "Node":
+    def default(name: Optional[str] = None) -> "Node":
         """Create a :class:`Node` with the default interfaces supported by this library.
 
         The default interfaces include:
