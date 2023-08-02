@@ -892,10 +892,8 @@ class BaseMessageBus:
         def _callback_method_handler(
             msg: Message, send_reply: Callable[[Message], None]
         ) -> None:
-            args = msg_body_to_args(msg)
-            result = method_fn(interface, *args)
             body, fds = fn_result_to_body(
-                result,
+                method_fn(interface, *msg_body_to_args(msg)),
                 signature_tree=out_signature_tree,
                 replace_fds=negotiate_unix_fd,
             )
