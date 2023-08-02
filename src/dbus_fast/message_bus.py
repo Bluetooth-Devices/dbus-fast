@@ -881,26 +881,34 @@ class BaseMessageBus:
     def _make_method_handler(
         self, interface: ServiceInterface, method: _Method
     ) -> Callable[[Message, Callable[[Message], None]], None]:
-        def handler(msg: Message, send_reply: Callable[[Message], None]) -> None:
+        method_fn = method.fn
+        out_signature_tree = (method.out_signature_tree,)
+        negotiate_unix_fd = self._negotiate_unix_fd
+        out_signature = method.out_signature
+        message_type_method_return = MessageType.METHOD_RETURN
+
+        def _callback_method_handler(
+            msg: Message, send_reply: Callable[[Message], None]
+        ) -> None:
             args = ServiceInterface._msg_body_to_args(msg)
-            result = method.fn(interface, *args)
+            result = method_fn(interface, *args)
             body, fds = ServiceInterface._fn_result_to_body(
                 result,
-                signature_tree=method.out_signature_tree,
-                replace_fds=self._negotiate_unix_fd,
+                signature_tree=out_signature_tree,
+                replace_fds=negotiate_unix_fd,
             )
             send_reply(
                 Message(
-                    message_type=MessageType.METHOD_RETURN,
+                    message_type=message_type_method_return,
                     reply_serial=msg.serial,
                     destination=msg.sender,
-                    signature=method.out_signature,
+                    signature=out_signature,
                     body=body,
                     unix_fds=fds,
                 )
             )
 
-        return handler
+        return _callback_method_handler
 
     def _find_message_handler(
         self, msg
