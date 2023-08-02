@@ -913,45 +913,43 @@ class BaseMessageBus:
     def _find_message_handler(
         self, msg
     ) -> Optional[Callable[[Message, Callable], None]]:
-        handler: Optional[Callable[[Message, Callable], None]] = None
-
         if (
             msg.interface == "org.freedesktop.DBus.Introspectable"
             and msg.member == "Introspect"
             and msg.signature == ""
         ):
-            handler = self._default_introspect_handler
+            return self._default_introspect_handler
 
-        elif msg.interface == "org.freedesktop.DBus.Properties":
-            handler = self._default_properties_handler
+        if msg.interface == "org.freedesktop.DBus.Properties":
+            return self._default_properties_handler
 
-        elif msg.interface == "org.freedesktop.DBus.Peer":
+        if msg.interface == "org.freedesktop.DBus.Peer":
             if msg.member == "Ping" and msg.signature == "":
-                handler = self._default_ping_handler
+                return self._default_ping_handler
             elif msg.member == "GetMachineId" and msg.signature == "":
-                handler = self._default_get_machine_id_handler
-        elif (
+                return self._default_get_machine_id_handler
+
+        if (
             msg.interface == "org.freedesktop.DBus.ObjectManager"
             and msg.member == "GetManagedObjects"
         ):
-            handler = self._default_get_managed_objects_handler
+            return self._default_get_managed_objects_handler
 
-        elif msg.path:
-            for interface in self._path_exports.get(msg.path, []):
+        msg_path = msg.path
+        if msg_path:
+            for interface in self._path_exports.get(msg_path, []):
                 for method in ServiceInterface._get_methods(interface):
                     if method.disabled:
                         continue
+
                     if (
                         msg.interface == interface.name
                         and msg.member == method.name
                         and msg.signature == method.in_signature
                     ):
-                        handler = ServiceInterface._get_handler(interface, method, self)
-                        break
-                if handler:
-                    break
+                        return ServiceInterface._get_handler(interface, method, self)
 
-        return handler
+        return None
 
     def _default_introspect_handler(
         self, msg: Message, send_reply: Callable[[Message], None]
