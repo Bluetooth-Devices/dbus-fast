@@ -65,7 +65,7 @@ class AuthExternal(Authenticator):
     :sealso: https://dbus.freedesktop.org/doc/dbus-specification.html#auth-protocol
     """
 
-    def __init__(self, uid: int = None) -> None:
+    def __init__(self, uid: Optional[int] = None) -> None:
         self.negotiate_unix_fd: bool = False
         self.negotiating_fds: bool = False
         self.uid: Optional[int] = uid

@@ -2,6 +2,18 @@
 
 <!--next-version-placeholder-->
 
+## v1.90.1 (2023-08-02)
+
+### Fix
+
+* More cython3 optional fixes ([#219](https://github.com/Bluetooth-Devices/dbus-fast/issues/219)) ([`5b6cbc5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5b6cbc560e6add5a0f3f20fc9d37716cb30e9121))
+
+## v1.90.0 (2023-08-02)
+
+### Feature
+
+* Remove async_timeout dependency ([#218](https://github.com/Bluetooth-Devices/dbus-fast/issues/218)) ([`7826897`](https://github.com/Bluetooth-Devices/dbus-fast/commit/78268973591985695cb3fa76dd502bb1ef1895ec))
+
 ## v1.89.0 (2023-08-02)
 
 ### Feature

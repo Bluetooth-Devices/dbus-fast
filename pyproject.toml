@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dbus-fast"
-version = "1.89.0"
+version = "1.90.1"
 description = "A faster version of dbus-next"
 authors = ["Bluetooth Devices Authors <bluetooth@koston.org>"]
 license = "MIT"
@@ -28,7 +28,6 @@ script = "build_ext.py"
 
 [tool.poetry.dependencies]
 python = "^3.7"
-async-timeout = {version = ">=3.0.0", python = "<3.11"}
 
 # duplicated in docs/requirements.txt for readthedocs compatibility
 [tool.poetry.group.docs.dependencies]

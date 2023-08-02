@@ -71,7 +71,7 @@ class _Method:
         self.out_signature_tree = get_signature_tree(out_signature)
 
 
-def method(name: str = None, disabled: bool = False):
+def method(name: Optional[str] = None, disabled: bool = False):
     """A decorator to mark a class method of a :class:`ServiceInterface` to be a DBus service method.
 
     The parameters and return value must each be annotated with a signature
@@ -149,7 +149,7 @@ class _Signal:
         self.introspection = intr.Signal(self.name, args)
 
 
-def signal(name: str = None, disabled: bool = False):
+def signal(name: Optional[str] = None, disabled: bool = False):
     """A decorator to mark a class method of a :class:`ServiceInterface` to be a DBus signal.
 
     The signal is broadcast on the bus when the decorated class method is
@@ -271,7 +271,7 @@ class _Property(property):
 
 def dbus_property(
     access: PropertyAccess = PropertyAccess.READWRITE,
-    name: str = None,
+    name: Optional[str] = None,
     disabled: bool = False,
 ):
     """A decorator to mark a class method of a :class:`ServiceInterface` to be a DBus property.
@@ -350,9 +350,9 @@ class ServiceInterface:
         self.__properties: List[_Property] = []
         self.__signals: List[_Signal] = []
         self.__buses = set()
-        self.__handlers: dict[
+        self.__handlers: Dict[
             BaseMessageBus,
-            dict[_Method, Callable[[Message, Callable[[Message], None]], None]],
+            Dict[_Method, Callable[[Message, Callable[[Message], None]], None]],
         ] = {}
 
         for name, member in inspect.getmembers(type(self)):

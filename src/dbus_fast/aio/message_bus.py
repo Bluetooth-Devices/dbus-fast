@@ -2,15 +2,9 @@ import array
 import asyncio
 import logging
 import socket
-import sys
 from collections import deque
 from copy import copy
 from typing import Any, Optional
-
-if sys.version_info[:2] < (3, 11):
-    from async_timeout import timeout as asyncio_timeout
-else:
-    from asyncio import timeout as asyncio_timeout
 
 from .. import introspection as intr
 from ..auth import Authenticator, AuthExternal
@@ -110,7 +104,7 @@ class _MessageWriter:
         """Call the write callback without removing the writer."""
         self.write_callback(remove_writer=False)
 
-    def schedule_write(self, msg: Message = None, future=None) -> None:
+    def schedule_write(self, msg: Optional[Message] = None, future=None) -> None:
         queue_is_empty = not self.messages
         if msg is not None:
             self.buffer_message(msg, future)
@@ -164,9 +158,9 @@ class MessageBus(BaseMessageBus):
 
     def __init__(
         self,
-        bus_address: str = None,
+        bus_address: Optional[str] = None,
         bus_type: BusType = BusType.SESSION,
-        auth: Authenticator = None,
+        auth: Optional[Authenticator] = None,
         negotiate_unix_fd: bool = False,
     ) -> None:
         super().__init__(bus_address, bus_type, ProxyObject, negotiate_unix_fd)
@@ -273,8 +267,13 @@ class MessageBus(BaseMessageBus):
 
         super().introspect(bus_name, path, reply_handler)
 
-        async with asyncio_timeout(timeout):
+        timer_handle = self._loop.call_later(
+            timeout, _future_set_exception, future, asyncio.TimeoutError
+        )
+        try:
             return await future
+        finally:
+            timer_handle.cancel()
 
     async def request_name(
         self, name: str, flags: NameFlag = NameFlag.NONE

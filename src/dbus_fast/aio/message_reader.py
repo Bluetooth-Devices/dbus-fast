@@ -11,7 +11,7 @@ def build_message_reader(
     process: Callable[[Message], None],
     finalize: Callable[[Optional[Exception]], None],
     negotiate_unix_fd: bool,
-) -> None:
+) -> Callable[[], None]:
     """Build a callable that reads messages from the unmarshaller and passes them to the process function."""
     unmarshaller = Unmarshaller(None, sock, negotiate_unix_fd)
 
