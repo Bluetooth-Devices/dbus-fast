@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.89.0 (2023-08-02)
+
+### Feature
+
+* Speed up Message creation and callbacks ([#217](https://github.com/Bluetooth-Devices/dbus-fast/issues/217)) ([`04d6451`](https://github.com/Bluetooth-Devices/dbus-fast/commit/04d64511579be08c7d416664c66d527a7d6d12b6))
+
 ## v1.88.0 (2023-08-02)
 
 ### Feature
