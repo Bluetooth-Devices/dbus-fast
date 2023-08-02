@@ -886,13 +886,15 @@ class BaseMessageBus:
         negotiate_unix_fd = self._negotiate_unix_fd
         out_signature = method.out_signature
         message_type_method_return = MessageType.METHOD_RETURN
+        msg_body_to_args = ServiceInterface._msg_body_to_args
+        fn_result_to_body = ServiceInterface._fn_result_to_body
 
         def _callback_method_handler(
             msg: Message, send_reply: Callable[[Message], None]
         ) -> None:
-            args = ServiceInterface._msg_body_to_args(msg)
+            args = msg_body_to_args(msg)
             result = method_fn(interface, *args)
-            body, fds = ServiceInterface._fn_result_to_body(
+            body, fds = fn_result_to_body(
                 result,
                 signature_tree=out_signature_tree,
                 replace_fds=negotiate_unix_fd,
