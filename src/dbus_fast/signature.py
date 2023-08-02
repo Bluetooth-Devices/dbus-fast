@@ -435,14 +435,12 @@ class Variant:
         )
 
 
-@lru_cache(maxsize=None)
-def get_signature_tree(signature: str) -> SignatureTree:
-    """Get a signature tree for the given signature.
+get_signature_tree = lru_cache(maxsize=None)(SignatureTree)
+"""Get a signature tree for the given signature.
 
-    :param signature: The signature to get a tree for.
-    :type signature: str
+:param signature: The signature to get a tree for.
+:type signature: str
 
-    :returns: The signature tree for the given signature.
-    :rtype: :class:`SignatureTree`
-    """
-    return SignatureTree(signature)
+:returns: The signature tree for the given signature.
+:rtype: :class:`SignatureTree`
+"""
