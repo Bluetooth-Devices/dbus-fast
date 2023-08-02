@@ -112,16 +112,18 @@ cdef class Unmarshaller:
     cdef unsigned int _body_len
     cdef unsigned int _serial
     cdef unsigned int _header_len
-    cdef object _message_type
-    cdef object _flag
+    cdef unsigned int _message_type
+    cdef unsigned int _flag
     cdef unsigned int _msg_len
     cdef unsigned int _is_native
     cdef object _uint32_unpack
     cdef object _int16_unpack
     cdef object _uint16_unpack
     cdef object _stream_reader
+    cdef object _sock_reader
     cdef bint _negotiate_unix_fd
     cdef bint _read_complete
+    cdef unsigned int _endian
 
     cdef _next_message(self)
 
