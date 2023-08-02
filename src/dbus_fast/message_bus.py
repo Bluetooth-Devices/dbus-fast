@@ -882,7 +882,7 @@ class BaseMessageBus:
         self, interface: ServiceInterface, method: _Method
     ) -> Callable[[Message, Callable[[Message], None]], None]:
         method_fn = method.fn
-        out_signature_tree = (method.out_signature_tree,)
+        out_signature_tree = method.out_signature_tree
         negotiate_unix_fd = self._negotiate_unix_fd
         out_signature = method.out_signature
         message_type_method_return = MessageType.METHOD_RETURN
