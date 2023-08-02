@@ -413,7 +413,7 @@ class MessageBus(BaseMessageBus):
         if not asyncio.iscoroutinefunction(method.fn):
             return super()._make_method_handler(interface, method)
 
-        def handler(msg, send_reply):
+        def _coro_method_handler(msg, send_reply):
             def done(fut):
                 with send_reply:
                     result = fut.result()
@@ -430,7 +430,7 @@ class MessageBus(BaseMessageBus):
             fut = asyncio.ensure_future(method.fn(interface, *args))
             fut.add_done_callback(done)
 
-        return handler
+        return _coro_method_handler
 
     async def _auth_readline(self) -> str:
         buf = b""

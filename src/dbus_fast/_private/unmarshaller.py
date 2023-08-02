@@ -158,6 +158,7 @@ try:
 except ImportError:
     from ._cython_compat import FAKE_CYTHON as cython
 
+
 #
 # Alignment padding is handled with the following formula below
 #

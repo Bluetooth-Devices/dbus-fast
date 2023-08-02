@@ -13,10 +13,10 @@ from .validators import (
 )
 
 REQUIRED_FIELDS = {
-    MessageType.METHOD_CALL: ("path", "member"),
-    MessageType.SIGNAL: ("path", "member", "interface"),
-    MessageType.ERROR: ("error_name", "reply_serial"),
-    MessageType.METHOD_RETURN: ("reply_serial",),
+    MessageType.METHOD_CALL.value: ("path", "member"),
+    MessageType.SIGNAL.value: ("path", "member", "interface"),
+    MessageType.ERROR.value: ("error_name", "reply_serial"),
+    MessageType.METHOD_RETURN.value: ("reply_serial",),
 }
 
 HEADER_PATH = HeaderField.PATH.value
@@ -146,7 +146,7 @@ class Message:
         if self.error_name is not None:
             assert_interface_name_valid(self.error_name)  # type: ignore[arg-type]
 
-        required_fields = REQUIRED_FIELDS.get(self.message_type)
+        required_fields = REQUIRED_FIELDS.get(self.message_type.value)
         if not required_fields:
             raise InvalidMessageError(f"got unknown message type: {self.message_type}")
         for field in required_fields:
