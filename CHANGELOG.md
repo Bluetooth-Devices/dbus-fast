@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.90.0 (2023-08-02)
+
+### Feature
+
+* Remove async_timeout dependency ([#218](https://github.com/Bluetooth-Devices/dbus-fast/issues/218)) ([`7826897`](https://github.com/Bluetooth-Devices/dbus-fast/commit/78268973591985695cb3fa76dd502bb1ef1895ec))
+
 ## v1.89.0 (2023-08-02)
 
 ### Feature
