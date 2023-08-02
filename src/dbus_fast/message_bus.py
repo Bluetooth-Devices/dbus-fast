@@ -29,8 +29,10 @@ MESSAGE_TYPE_CALL = MessageType.METHOD_CALL
 MESSAGE_TYPE_SIGNAL = MessageType.SIGNAL
 NO_REPLY_EXPECTED_VALUE = MessageFlag.NO_REPLY_EXPECTED.value
 
+_Message = Message
 
-def _expects_reply(msg) -> bool:
+
+def _expects_reply(msg: _Message) -> bool:
     return not (msg.flags.value & NO_REPLY_EXPECTED_VALUE)
 
 
@@ -57,22 +59,20 @@ class SendReply:
         exc_value: Optional[Exception],
         tb: Optional[TracebackType],
     ) -> bool:
-        if exc_type is None:
-            return False
-
-        if issubclass(exc_type, DBusError):
-            self(exc_value._as_message(self._msg))  # type: ignore[union-attr]
-            return True
-
-        if issubclass(exc_type, Exception):
-            self(
-                Message.new_error(
-                    self._msg,
-                    ErrorType.SERVICE_ERROR,
-                    f"The service interface raised an error: {exc_value}.\n{traceback.format_tb(tb)}",
+        if exc_value:
+            if isinstance(exc_value, DBusError):
+                self(exc_value._as_message(self._msg))
+            else:
+                self(
+                    Message.new_error(
+                        self._msg,
+                        ErrorType.SERVICE_ERROR,
+                        f"The service interface raised an error: {exc_value}.\n{traceback.format_tb(tb)}",
+                    )
                 )
-            )
             return True
+
+        return False
 
     def __exit__(
         self,
@@ -803,7 +803,7 @@ class BaseMessageBus:
                 ErrorType.INTERNAL_ERROR, "invalid message type for method call", msg
             )
 
-    def _process_message(self, msg) -> None:
+    def _process_message(self, msg: _Message) -> None:
         handled = False
         for user_handler in self._user_message_handlers:
             try:
@@ -880,69 +880,75 @@ class BaseMessageBus:
     def _make_method_handler(
         self, interface: ServiceInterface, method: _Method
     ) -> Callable[[Message, Callable[[Message], None]], None]:
-        def handler(msg: Message, send_reply: Callable[[Message], None]) -> None:
-            args = ServiceInterface._msg_body_to_args(msg)
-            result = method.fn(interface, *args)
-            body, fds = ServiceInterface._fn_result_to_body(
-                result,
-                signature_tree=method.out_signature_tree,
-                replace_fds=self._negotiate_unix_fd,
+        method_fn = method.fn
+        out_signature_tree = method.out_signature_tree
+        negotiate_unix_fd = self._negotiate_unix_fd
+        out_signature = method.out_signature
+        message_type_method_return = MessageType.METHOD_RETURN
+        msg_body_to_args = ServiceInterface._msg_body_to_args
+        fn_result_to_body = ServiceInterface._fn_result_to_body
+
+        def _callback_method_handler(
+            msg: Message, send_reply: Callable[[Message], None]
+        ) -> None:
+            body, fds = fn_result_to_body(
+                method_fn(interface, *msg_body_to_args(msg)),
+                signature_tree=out_signature_tree,
+                replace_fds=negotiate_unix_fd,
             )
             send_reply(
                 Message(
-                    message_type=MessageType.METHOD_RETURN,
+                    message_type=message_type_method_return,
                     reply_serial=msg.serial,
                     destination=msg.sender,
-                    signature=method.out_signature,
+                    signature=out_signature,
                     body=body,
                     unix_fds=fds,
                 )
             )
 
-        return handler
+        return _callback_method_handler
 
     def _find_message_handler(
         self, msg
     ) -> Optional[Callable[[Message, Callable], None]]:
-        handler: Optional[Callable[[Message, Callable], None]] = None
-
         if (
             msg.interface == "org.freedesktop.DBus.Introspectable"
             and msg.member == "Introspect"
             and msg.signature == ""
         ):
-            handler = self._default_introspect_handler
+            return self._default_introspect_handler
 
-        elif msg.interface == "org.freedesktop.DBus.Properties":
-            handler = self._default_properties_handler
+        if msg.interface == "org.freedesktop.DBus.Properties":
+            return self._default_properties_handler
 
-        elif msg.interface == "org.freedesktop.DBus.Peer":
+        if msg.interface == "org.freedesktop.DBus.Peer":
             if msg.member == "Ping" and msg.signature == "":
-                handler = self._default_ping_handler
+                return self._default_ping_handler
             elif msg.member == "GetMachineId" and msg.signature == "":
-                handler = self._default_get_machine_id_handler
-        elif (
+                return self._default_get_machine_id_handler
+
+        if (
             msg.interface == "org.freedesktop.DBus.ObjectManager"
             and msg.member == "GetManagedObjects"
         ):
-            handler = self._default_get_managed_objects_handler
+            return self._default_get_managed_objects_handler
 
-        elif msg.path:
-            for interface in self._path_exports.get(msg.path, []):
+        msg_path = msg.path
+        if msg_path:
+            for interface in self._path_exports.get(msg_path, []):
                 for method in ServiceInterface._get_methods(interface):
                     if method.disabled:
                         continue
+
                     if (
                         msg.interface == interface.name
                         and msg.member == method.name
                         and msg.signature == method.in_signature
                     ):
-                        handler = ServiceInterface._get_handler(interface, method, self)
-                        break
-                if handler:
-                    break
+                        return ServiceInterface._get_handler(interface, method, self)
 
-        return handler
+        return None
 
     def _default_introspect_handler(
         self, msg: Message, send_reply: Callable[[Message], None]

@@ -58,7 +58,6 @@ class BaseProxyInterface:
         introspection: intr.Interface,
         bus: "message_bus.BaseMessageBus",
     ) -> None:
-
         self.bus_name = bus_name
         self.path = path
         self.introspection = introspection

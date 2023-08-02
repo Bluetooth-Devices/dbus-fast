@@ -41,11 +41,15 @@ jobs:
           - "3.9"
           - "3.10"
           - "3.11"
+          - "3.12.0-beta.4"
         os:
           - ubuntu-latest
         extension:
           - "skip_cython"
           - "use_cython"
+        exclude:
+          - extension: use_cython
+            python-version: "3.12.0-beta.4"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -95,7 +99,7 @@ jobs:
       # - Create GitHub release
       # - Publish to PyPI
       - name: Python Semantic Release
-        uses: relekang/python-semantic-release@v7.33.1
+        uses: python-semantic-release/python-semantic-release@v7.34.6
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           pypi_token: ${{ secrets.PYPI_TOKEN }}
@@ -120,7 +124,7 @@ jobs:
         uses: actions/setup-python@v4
 
       - name: Install python-semantic-release
-        run: python -m pip install python-semantic-release
+        run: python -m pip install python-semantic-release==7.34.6
 
       - name: Get Release Tag
         id: release_tag
@@ -134,7 +138,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.10.2
+        run: python -m pip install cibuildwheel==2.14.1
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse

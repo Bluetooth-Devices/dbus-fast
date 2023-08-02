@@ -135,6 +135,7 @@ def is_member_name_valid(member: str) -> bool:
     return True
 
 
+@lru_cache(maxsize=32)
 def assert_bus_name_valid(name: str) -> None:
     """Raise an error if this is not a valid bus name.
 
@@ -150,6 +151,7 @@ def assert_bus_name_valid(name: str) -> None:
         raise InvalidBusNameError(name)
 
 
+@lru_cache(maxsize=1024)
 def assert_object_path_valid(path: str) -> None:
     """Raise an error if this is not a valid object path.
 
@@ -165,6 +167,7 @@ def assert_object_path_valid(path: str) -> None:
         raise InvalidObjectPathError(path)
 
 
+@lru_cache(maxsize=32)
 def assert_interface_name_valid(name: str) -> None:
     """Raise an error if this is not a valid interface name.
 
@@ -180,6 +183,7 @@ def assert_interface_name_valid(name: str) -> None:
         raise InvalidInterfaceNameError(name)
 
 
+@lru_cache(maxsize=512)
 def assert_member_name_valid(member: str) -> None:
     """Raise an error if this is not a valid member name.
 

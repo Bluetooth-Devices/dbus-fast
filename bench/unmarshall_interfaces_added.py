@@ -31,7 +31,6 @@ unmarshaller = Unmarshaller(stream)
 
 def unmarshall_interfaces_added_message():
     stream.seek(0)
-    unmarshaller.reset()
     unmarshaller.unmarshall()
 
 

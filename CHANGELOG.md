@@ -2,6 +2,60 @@
 
 <!--next-version-placeholder-->
 
+## v1.89.0 (2023-08-02)
+
+### Feature
+
+* Speed up Message creation and callbacks ([#217](https://github.com/Bluetooth-Devices/dbus-fast/issues/217)) ([`04d6451`](https://github.com/Bluetooth-Devices/dbus-fast/commit/04d64511579be08c7d416664c66d527a7d6d12b6))
+
+## v1.88.0 (2023-08-02)
+
+### Feature
+
+* Optimize passive bluez message unmarshaller ([#216](https://github.com/Bluetooth-Devices/dbus-fast/issues/216)) ([`e0e87ec`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e0e87ec16ce424dbae83114ca5da13406b913deb))
+
+## v1.87.6 (2023-08-01)
+
+### Fix
+
+* Exception handler failure when exception is not DBusError ([#215](https://github.com/Bluetooth-Devices/dbus-fast/issues/215)) ([`d771bcf`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d771bcf6a2ed08486affe0e2c30bd8dd95ccbb5d))
+
+## v1.87.5 (2023-07-28)
+
+### Fix
+
+* Result typing in ServiceInterface._handle_signal ([#214](https://github.com/Bluetooth-Devices/dbus-fast/issues/214)) ([`5bda04b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5bda04b089b5f089c90c333ca0db02d40d38a8ca))
+
+## v1.87.4 (2023-07-28)
+
+### Fix
+
+* Avoid double buffering when using asyncio reader without negotiate_unix_fd ([#213](https://github.com/Bluetooth-Devices/dbus-fast/issues/213)) ([`c933be7`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c933be709508e0504e97254247bec70eb9e8c6d4))
+
+## v1.87.3 (2023-07-27)
+
+### Fix
+
+* Relax typing on _fn_result_to_body to allow Any ([#212](https://github.com/Bluetooth-Devices/dbus-fast/issues/212)) ([`2f5fc38`](https://github.com/Bluetooth-Devices/dbus-fast/commit/2f5fc3800702f6eb680d94de94b997ed5d8b9b77))
+
+## v1.87.2 (2023-07-24)
+
+### Fix
+
+* Typing on _fn_result_to_body was incorrect which was caused an exception with cython3 ([#210](https://github.com/Bluetooth-Devices/dbus-fast/issues/210)) ([`c40c7bc`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c40c7bcc4a8bbbce73d4d090ac840f8fe95d943e))
+
+## v1.87.1 (2023-07-24)
+
+### Fix
+
+* Cython3 compat ([#208](https://github.com/Bluetooth-Devices/dbus-fast/issues/208)) ([`43b3d48`](https://github.com/Bluetooth-Devices/dbus-fast/commit/43b3d48c8934a5274e4fae9b2c65c8ce6477a65b))
+
+## v1.87.0 (2023-07-24)
+
+### Feature
+
+* Initial cpython 3.12 support ([#207](https://github.com/Bluetooth-Devices/dbus-fast/issues/207)) ([`c755193`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c755193ee038e4d35ad25d5d02e0a1a8cecd9d6d))
+
 ## v1.86.0 (2023-05-03)
 ### Feature
 * Improve performance of reading from the socket during unmarshall ([#200](https://github.com/Bluetooth-Devices/dbus-fast/issues/200)) ([`e5d355f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e5d355ff407baf58a8e5b03c3e9ca25213a95e05))
