@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.88.0 (2023-08-02)
+
+### Feature
+
+* Optimize passive bluez message unmarshaller ([#216](https://github.com/Bluetooth-Devices/dbus-fast/issues/216)) ([`e0e87ec`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e0e87ec16ce424dbae83114ca5da13406b913deb))
+
 ## v1.87.6 (2023-08-01)
 
 ### Fix
