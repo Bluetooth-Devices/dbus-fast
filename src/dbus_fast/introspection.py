@@ -172,8 +172,8 @@ class Method:
         assert_member_name_valid(name)
 
         self.name = name
-        self.in_args = in_args or []
-        self.out_args = out_args or []
+        self.in_args = in_args
+        self.out_args = out_args
         self.in_signature = "".join(arg.signature for arg in in_args)
         self.out_signature = "".join(arg.signature for arg in out_args)
 
