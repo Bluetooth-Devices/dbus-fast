@@ -159,9 +159,9 @@ class MessageBus(BaseMessageBus):
 
     def __init__(
         self,
-        bus_address: str = None,
+        bus_address: Optional[str] = None,
         bus_type: BusType = BusType.SESSION,
-        auth: Authenticator = None,
+        auth: Optional[Authenticator] = None,
     ):
         if _import_error:
             raise _import_error
@@ -185,7 +185,10 @@ class MessageBus(BaseMessageBus):
             )
 
     def connect(
-        self, connect_notify: Callable[["MessageBus", Optional[Exception]], None] = None
+        self,
+        connect_notify: Optional[
+            Callable[["MessageBus", Optional[Exception]], None]
+        ] = None,
     ):
         """Connect this message bus to the DBus daemon.
 
@@ -272,7 +275,9 @@ class MessageBus(BaseMessageBus):
     def call(
         self,
         msg: Message,
-        reply_notify: Callable[[Optional[Message], Optional[Exception]], None] = None,
+        reply_notify: Optional[
+            Callable[[Optional[Message], Optional[Exception]], None]
+        ] = None,
     ):
         """Send a method call and asynchronously wait for a reply from the DBus
         daemon.
