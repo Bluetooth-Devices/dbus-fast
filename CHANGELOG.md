@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.90.2 (2023-08-05)
+
+### Fix
+
+* Spelling of `dbus_fast.auth.AuthAnnonymous` to `dbus_fast.auth.AuthAnonymous` ([#220](https://github.com/Bluetooth-Devices/dbus-fast/issues/220)) ([`6c2412f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6c2412f4ca214f1fc95046ab8118bf330aa646da))
+
 ## v1.90.1 (2023-08-02)
 
 ### Fix
