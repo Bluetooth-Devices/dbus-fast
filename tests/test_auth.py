@@ -3,9 +3,13 @@ import os
 
 import pytest
 
-from dbus_fast.auth import UID_NOT_SPECIFIED, AuthExternal
+from dbus_fast.auth import (
+    UID_NOT_SPECIFIED,
+    AuthAnnonymous,
+    AuthAnonymous,
+    AuthExternal,
+)
 from dbus_fast.errors import AuthError
-from dbus_fast.auth import AuthAnnonymous, AuthAnonymous
 
 
 def test_annonymous_backcompat():
