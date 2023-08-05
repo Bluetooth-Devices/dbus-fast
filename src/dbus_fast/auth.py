@@ -99,8 +99,8 @@ class AuthExternal(Authenticator):
         raise AuthError(f"authentication failed: {response.value}: {args}")
 
 
-class AuthAnnonymous(Authenticator):
-    """An authenticator class for the annonymous auth protocol for use with the
+class AuthAnonymous(Authenticator):
+    """An authenticator class for the anonymous auth protocol for use with the
     :class:`MessageBus <dbus_fast.message_bus.BaseMessageBus>`.
 
     :sealso: https://dbus.freedesktop.org/doc/dbus-specification.html#auth-protocol
@@ -109,7 +109,7 @@ class AuthAnnonymous(Authenticator):
     def _authentication_start(self, negotiate_unix_fd: bool = False) -> str:
         if negotiate_unix_fd:
             raise AuthError(
-                "annonymous authentication does not support negotiating unix fds right now"
+                "anonymous authentication does not support negotiating unix fds right now"
             )
 
         return "AUTH ANONYMOUS"
@@ -121,3 +121,7 @@ class AuthAnnonymous(Authenticator):
             raise AuthError(f"authentication failed: {response.value}: {args}")
 
         return "BEGIN"
+
+
+# The following line provides backwards compatibility, remove at some point? --jrd
+AuthAnnonymous = AuthAnonymous
