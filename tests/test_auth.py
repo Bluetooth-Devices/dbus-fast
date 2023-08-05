@@ -5,6 +5,12 @@ import pytest
 
 from dbus_fast.auth import UID_NOT_SPECIFIED, AuthExternal
 from dbus_fast.errors import AuthError
+from dbus_fast.auth import AuthAnnonymous, AuthAnonymous
+
+
+def test_annonymous_backcompat():
+    auth = AuthAnnonymous()
+    assert isinstance(auth, AuthAnonymous)
 
 
 def test_uid_is_set():
