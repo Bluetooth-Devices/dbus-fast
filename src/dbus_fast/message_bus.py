@@ -43,10 +43,10 @@ def _block_unexpected_reply(reply: _Message) -> None:
     """Block a reply if it's not expected.
 
     Previously we silently ignored replies that were not expected, but this
-    lead to implementation errors that were hard to debug. Now we log an
-    error instead.
+    lead to implementation errors that were hard to debug. Now we log a
+    debug message instead.
     """
-    _LOGGER.error(
+    _LOGGER.debug(
         "Blocked attempt to send a reply from handler "
         "that received a message with flag "
         "MessageFlag.NO_REPLY_EXPECTED: %s",
