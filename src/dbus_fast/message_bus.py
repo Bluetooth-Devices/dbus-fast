@@ -923,7 +923,7 @@ class BaseMessageBus:
             msg: Message, send_reply: Callable[[Message], None]
         ) -> None:
             result = method_fn(interface, *msg_body_to_args(msg))
-            if not _expects_reply(msg):
+            if send_reply is BLOCK_UNEXPECTED_REPLY or not _expects_reply(msg):
                 return
             body, fds = fn_result_to_body(
                 result,
