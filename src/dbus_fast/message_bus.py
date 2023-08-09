@@ -924,7 +924,6 @@ class BaseMessageBus:
                     signature=out_signature,
                     body=body,
                     unix_fds=fds,
-                    validate=False,  # no need to validate internal constructs
                 )
             )
 
