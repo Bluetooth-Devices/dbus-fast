@@ -41,6 +41,9 @@ def _swallow_unexpected_reply(msg: _Message) -> None:
     """Swallow a reply if it's not expected."""
 
 
+SWALLOW_UNEXPECTED_REPLY = _swallow_unexpected_reply
+
+
 class SendReply:
     """A context manager to send a reply to a message."""
 
@@ -860,7 +863,7 @@ class BaseMessageBus:
             if not handled:
                 handler = self._find_message_handler(msg)
                 if not _expects_reply(msg):
-                    handler(msg, _swallow_unexpected_reply)
+                    handler(msg, SWALLOW_UNEXPECTED_REPLY)
                     return
 
                 send_reply = SendReply(self, msg)
