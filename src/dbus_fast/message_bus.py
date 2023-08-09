@@ -27,7 +27,7 @@ from .validators import assert_bus_name_valid, assert_object_path_valid
 
 MESSAGE_TYPE_CALL = MessageType.METHOD_CALL
 MESSAGE_TYPE_SIGNAL = MessageType.SIGNAL
-NO_REPLY_EXPECTED_VALUE = MessageFlag.NO_REPLY_EXPECTED.value
+NO_REPLY_EXPECTED = MessageFlag.NO_REPLY_EXPECTED
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -36,7 +36,7 @@ _Message = Message
 
 def _expects_reply(msg: _Message) -> bool:
     """Whether a message expects a reply."""
-    return not (msg.flags.value & NO_REPLY_EXPECTED_VALUE)
+    return not (msg.flags & NO_REPLY_EXPECTED)
 
 
 def _block_unexpected_reply(reply: _Message) -> None:

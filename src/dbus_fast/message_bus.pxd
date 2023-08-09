@@ -10,7 +10,7 @@ cdef object MessageFlag
 
 cdef object MESSAGE_TYPE_CALL
 cdef object MESSAGE_TYPE_SIGNAL
-cdef object NO_REPLY_EXPECTED_VALUE
+cdef object NO_REPLY_EXPECTED
 cdef object BLOCK_UNEXPECTED_REPLY
 cdef object assert_object_path_valid
 cdef object assert_bus_name_valid
