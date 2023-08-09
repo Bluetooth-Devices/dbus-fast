@@ -156,6 +156,22 @@ class Message:
             if not getattr(self, field):
                 raise InvalidMessageError(f"missing required field: {field}")
 
+    def __repr__(self) -> str:
+        """Return a string representation of this message."""
+        return (
+            f"<Message {self.message_type.name} "
+            f"serial={self.serial} "
+            f"reply_serial={self.reply_serial} "
+            f"sender={self.sender} "
+            f"destination={self.destination} "
+            f"path={self.path} "
+            f"interface={self.interface} "
+            f"member={self.member} "
+            f"error_name={self.error_name} "
+            f"signature={self.signature} "
+            f"body={self.body}>"
+        )
+
     @staticmethod
     def new_error(
         msg: "Message", error_name: Union[str, ErrorType], error_text: str
