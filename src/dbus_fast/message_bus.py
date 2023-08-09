@@ -40,7 +40,12 @@ def _expects_reply(msg: _Message) -> bool:
 
 
 def _block_unexpected_reply(reply: _Message) -> None:
-    """Block a reply if it's not expected."""
+    """Block a reply if it's not expected.
+
+    Previously we silently ignored replies that were not expected, but this
+    lead to implementation errors that were hard to debug. Now we log an
+    error instead.
+    """
     _LOGGER.error(
         "Blocked attempt to send a reply from handler "
         "that received a message with flag "
