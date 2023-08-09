@@ -2,17 +2,19 @@
 
 import cython
 
+from .signature cimport SignatureTree
+
 
 cdef class _Method:
 
-    cdef public object name
+    cdef public str name
     cdef public object fn
     cdef public object disabled
     cdef public object introspection
-    cdef public object in_signature
-    cdef public object out_signature
-    cdef public object in_signature_tree
-    cdef public object out_signature_tree
+    cdef public str in_signature
+    cdef public str out_signature
+    cdef public SignatureTree in_signature_tree
+    cdef public SignatureTree out_signature_tree
 
 cdef class ServiceInterface:
 

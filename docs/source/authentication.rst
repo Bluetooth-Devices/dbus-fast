@@ -6,4 +6,4 @@ Classes for the DBus `authentication protocol <https://dbus.freedesktop.org/doc/
 .. autoclass:: dbus_fast.auth.Authenticator
 
 .. autoclass:: dbus_fast.auth.AuthExternal
-.. autoclass:: dbus_fast.auth.AuthAnnonymous
+.. autoclass:: dbus_fast.auth.AuthAnonymous

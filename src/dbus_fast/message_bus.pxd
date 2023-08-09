@@ -10,11 +10,13 @@ cdef object MessageFlag
 
 cdef object MESSAGE_TYPE_CALL
 cdef object MESSAGE_TYPE_SIGNAL
-cdef object NO_REPLY_EXPECTED_VALUE
+cdef object NO_REPLY_EXPECTED
+cdef object BLOCK_UNEXPECTED_REPLY
 cdef object assert_object_path_valid
 cdef object assert_bus_name_valid
 
 cdef _expects_reply(Message msg)
+
 
 cdef class SendReply:
 
@@ -28,12 +30,12 @@ cdef class BaseMessageBus:
     cdef public object _user_disconnect
     cdef public object _method_return_handlers
     cdef public object _serial
-    cdef public object _path_exports
+    cdef public cython.dict _path_exports
     cdef public cython.list _user_message_handlers
-    cdef public object _name_owners
+    cdef public cython.dict _name_owners
     cdef public object _bus_address
     cdef public object _name_owner_match_rule
-    cdef public object _match_rules
+    cdef public cython.dict _match_rules
     cdef public object _high_level_client_initialized
     cdef public object _ProxyObject
     cdef public object _machine_id
@@ -45,7 +47,9 @@ cdef class BaseMessageBus:
     cpdef _process_message(self, Message msg)
 
     @cython.locals(
+        methods=cython.list,
         method=_Method,
-        interface=ServiceInterface
+        interface=ServiceInterface,
+        interfaces=cython.list,
     )
     cdef _find_message_handler(self, Message msg)

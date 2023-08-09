@@ -30,6 +30,9 @@ HEADER_UNIX_FDS = HeaderField.UNIX_FDS.value
 
 MESSAGE_FLAG = MessageFlag
 
+MESSAGE_FLAG_NONE = MessageFlag.NONE
+MESSAGE_TYPE_METHOD_CALL = MessageType.METHOD_CALL
+
 
 class Message:
     """A class for sending and receiving messages through the
@@ -101,8 +104,8 @@ class Message:
         path: Optional[str] = None,
         interface: Optional[str] = None,
         member: Optional[str] = None,
-        message_type: MessageType = MessageType.METHOD_CALL,
-        flags: Union[MessageFlag, int] = MessageFlag.NONE,
+        message_type: MessageType = MESSAGE_TYPE_METHOD_CALL,
+        flags: Union[MessageFlag, int] = MESSAGE_FLAG_NONE,
         error_name: Optional[Union[str, ErrorType]] = None,
         reply_serial: int = 0,
         sender: Optional[str] = None,
@@ -152,6 +155,22 @@ class Message:
         for field in required_fields:
             if not getattr(self, field):
                 raise InvalidMessageError(f"missing required field: {field}")
+
+    def __repr__(self) -> str:
+        """Return a string representation of this message."""
+        return (
+            f"<Message {self.message_type.name} "
+            f"serial={self.serial} "
+            f"reply_serial={self.reply_serial} "
+            f"sender={self.sender} "
+            f"destination={self.destination} "
+            f"path={self.path} "
+            f"interface={self.interface} "
+            f"member={self.member} "
+            f"error_name={self.error_name} "
+            f"signature={self.signature} "
+            f"body={self.body}>"
+        )
 
     @staticmethod
     def new_error(
