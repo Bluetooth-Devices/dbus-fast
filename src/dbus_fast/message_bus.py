@@ -922,13 +922,14 @@ class BaseMessageBus:
         def _callback_method_handler(
             msg: Message, send_reply: Callable[[Message], None]
         ) -> None:
+            result = method_fn(interface, *msg_body_to_args(msg))
+            if not _expects_reply(msg):
+                return
             body, fds = fn_result_to_body(
-                method_fn(interface, *msg_body_to_args(msg)),
+                result,
                 signature_tree=out_signature_tree,
                 replace_fds=negotiate_unix_fd,
             )
-            if not _expects_reply(msg):
-                return
             send_reply(
                 Message(
                     message_type=message_type_method_return,
