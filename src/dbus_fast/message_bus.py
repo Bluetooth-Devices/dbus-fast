@@ -28,6 +28,8 @@ from .validators import assert_bus_name_valid, assert_object_path_valid
 MESSAGE_TYPE_CALL = MessageType.METHOD_CALL
 MESSAGE_TYPE_SIGNAL = MessageType.SIGNAL
 NO_REPLY_EXPECTED_VALUE = MessageFlag.NO_REPLY_EXPECTED.value
+_LOGGER = logging.getLogger(__name__)
+
 
 _Message = Message
 
@@ -37,8 +39,9 @@ def _expects_reply(msg: _Message) -> bool:
     return not (msg.flags.value & NO_REPLY_EXPECTED_VALUE)
 
 
-def _swallow_unexpected_reply(msg: _Message) -> None:
+def _swallow_unexpected_reply(reply: _Message) -> None:
     """Swallow a reply if it's not expected."""
+    _LOGGER.error("Received unexpected reply: %s", reply)
 
 
 SWALLOW_UNEXPECTED_REPLY = _swallow_unexpected_reply
