@@ -41,7 +41,12 @@ def _expects_reply(msg: _Message) -> bool:
 
 def _swallow_unexpected_reply(reply: _Message) -> None:
     """Swallow a reply if it's not expected."""
-    _LOGGER.error("Received unexpected reply: %s", reply)
+    _LOGGER.error(
+        "Swallowed attempt to send a reply from handler "
+        "that received a message with flag "
+        "MessageFlag.NO_REPLY_EXPECTED: %s",
+        reply,
+    )
 
 
 SWALLOW_UNEXPECTED_REPLY = _swallow_unexpected_reply
