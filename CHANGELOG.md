@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.91.2 (2023-08-09)
+
+### Fix
+
+* Avoid checking if a message expects a reply twice ([#223](https://github.com/Bluetooth-Devices/dbus-fast/issues/223)) ([`823e85f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/823e85fddc44ceff60558d490013b601ae4bdacd))
+
 ## v1.91.1 (2023-08-09)
 
 ### Fix
