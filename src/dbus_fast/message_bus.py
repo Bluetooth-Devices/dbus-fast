@@ -876,7 +876,15 @@ class BaseMessageBus:
             if not handled:
                 handler = self._find_message_handler(msg)
                 if not _expects_reply(msg):
-                    handler(msg, BLOCK_UNEXPECTED_REPLY)
+                    if handler:
+                        handler(msg, BLOCK_UNEXPECTED_REPLY)
+                    else:
+                        _LOGGER.error(
+                            '"%s.%s" with signature "%s" could not be found',
+                            msg.interface,
+                            msg.member,
+                            msg.signature,
+                        )
                     return
 
                 send_reply = SendReply(self, msg)
