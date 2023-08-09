@@ -602,5 +602,6 @@ def test_unmarshall_bluez_passive_message():
     unmarshaller = Unmarshaller(stream)
     unmarshaller.unmarshall()
     message = unmarshaller.message
+    assert "/org/bluez/hci0/dev_58_D3_49_E6_02_6E" in str(message)
     unpacked = unpack_variants(message.body)
     assert unpacked == ["/org/bluez/hci0/dev_58_D3_49_E6_02_6E"]
