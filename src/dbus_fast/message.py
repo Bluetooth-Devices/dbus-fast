@@ -30,6 +30,9 @@ HEADER_UNIX_FDS = HeaderField.UNIX_FDS.value
 
 MESSAGE_FLAG = MessageFlag
 
+MESSAGE_FLAG_NONE = MessageFlag.NONE
+MESSAGE_TYPE_METHOD_CALL = MessageType.METHOD_CALL
+
 
 class Message:
     """A class for sending and receiving messages through the
@@ -101,8 +104,8 @@ class Message:
         path: Optional[str] = None,
         interface: Optional[str] = None,
         member: Optional[str] = None,
-        message_type: MessageType = MessageType.METHOD_CALL,
-        flags: Union[MessageFlag, int] = MessageFlag.NONE,
+        message_type: MessageType = MESSAGE_TYPE_METHOD_CALL,
+        flags: Union[MessageFlag, int] = MESSAGE_FLAG_NONE,
         error_name: Optional[Union[str, ErrorType]] = None,
         reply_serial: int = 0,
         sender: Optional[str] = None,

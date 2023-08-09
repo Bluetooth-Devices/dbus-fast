@@ -905,13 +905,14 @@ class BaseMessageBus:
                     signature=out_signature,
                     body=body,
                     unix_fds=fds,
+                    validate=False,  # no need to validate internal constructs
                 )
             )
 
         return _callback_method_handler
 
     def _find_message_handler(
-        self, msg
+        self, msg: _Message
     ) -> Optional[Callable[[Message, Callable], None]]:
         if (
             msg.interface == "org.freedesktop.DBus.Introspectable"
@@ -937,8 +938,12 @@ class BaseMessageBus:
 
         msg_path = msg.path
         if msg_path:
-            for interface in self._path_exports.get(msg_path, []):
-                for method in ServiceInterface._get_methods(interface):
+            interfaces = self._path_exports.get(msg_path)
+            if not interfaces:
+                return None
+            for interface in interfaces:
+                methods = ServiceInterface._get_methods(interface)
+                for method in methods:
                     if method.disabled:
                         continue
 

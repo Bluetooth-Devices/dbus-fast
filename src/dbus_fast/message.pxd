@@ -27,6 +27,8 @@ cdef object LITTLE_ENDIAN
 cdef object PROTOCOL_VERSION
 
 cdef object MESSAGE_FLAG
+cdef object MESSAGE_FLAG_NONE
+cdef object MESSAGE_TYPE_METHOD_CALL
 
 cdef get_signature_tree
 
