@@ -16,6 +16,8 @@ cdef object assert_bus_name_valid
 
 cdef _expects_reply(Message msg)
 
+cpdef _swallow_unexpected_reply(Message msg)
+
 cdef class SendReply:
 
     cdef object _bus
