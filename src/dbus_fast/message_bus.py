@@ -909,6 +909,8 @@ class BaseMessageBus:
                 signature_tree=out_signature_tree,
                 replace_fds=negotiate_unix_fd,
             )
+            if not _expects_reply(msg):
+                return
             send_reply(
                 Message(
                     message_type=message_type_method_return,
