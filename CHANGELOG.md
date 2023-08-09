@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.91.1 (2023-08-09)
+
+### Fix
+
+* Revert changes to _expects_reply from speed up to processing bluez passive data ([#222](https://github.com/Bluetooth-Devices/dbus-fast/issues/222)) ([`dfa9053`](https://github.com/Bluetooth-Devices/dbus-fast/commit/dfa9053a03692d3e14032c7d4a4a375400262c78))
+
 ## v1.91.0 (2023-08-09)
 
 ### Feature
