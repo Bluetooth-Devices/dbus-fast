@@ -33,7 +33,12 @@ _Message = Message
 
 
 def _expects_reply(msg: _Message) -> bool:
+    """Whether a message expects a reply."""
     return not (msg.flags.value & NO_REPLY_EXPECTED_VALUE)
+
+
+def _swallow_unexpected_reply(msg: _Message) -> None:
+    """Swallow a reply if it's not expected."""
 
 
 class SendReply:
@@ -50,8 +55,7 @@ class SendReply:
         return self
 
     def __call__(self, reply: Message) -> None:
-        if _expects_reply(self._msg):
-            self._bus.send(reply)
+        self._bus.send(reply)
 
     def _exit(
         self,
@@ -855,9 +859,11 @@ class BaseMessageBus:
         if msg.message_type is MESSAGE_TYPE_CALL:
             if not handled:
                 handler = self._find_message_handler(msg)
+                if not _expects_reply(msg):
+                    handler(msg, _swallow_unexpected_reply)
+                    return
 
                 send_reply = SendReply(self, msg)
-
                 with send_reply:
                     if handler:
                         handler(msg, send_reply)
@@ -913,7 +919,7 @@ class BaseMessageBus:
 
     def _find_message_handler(
         self, msg: _Message
-    ) -> Optional[Callable[[Message, Callable], None]]:
+    ) -> Optional[Callable[[Message, Callable[[Message], None]], None]]:
         if (
             msg.interface == "org.freedesktop.DBus.Introspectable"
             and msg.member == "Introspect"
