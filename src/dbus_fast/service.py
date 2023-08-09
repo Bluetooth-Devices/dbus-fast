@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 
 
 class _Method:
-    def __init__(self, fn, name, disabled=False):
+    def __init__(self, fn, name: str, disabled=False):
         in_signature = ""
         out_signature = ""
 
