@@ -39,17 +39,17 @@ def _expects_reply(msg: _Message) -> bool:
     return not (msg.flags.value & NO_REPLY_EXPECTED_VALUE)
 
 
-def _swallow_unexpected_reply(reply: _Message) -> None:
-    """Swallow a reply if it's not expected."""
+def _block_unexpected_reply(reply: _Message) -> None:
+    """Block a reply if it's not expected."""
     _LOGGER.error(
-        "Swallowed attempt to send a reply from handler "
+        "Blocked attempt to send a reply from handler "
         "that received a message with flag "
         "MessageFlag.NO_REPLY_EXPECTED: %s",
         reply,
     )
 
 
-SWALLOW_UNEXPECTED_REPLY = _swallow_unexpected_reply
+BLOCK_UNEXPECTED_REPLY = _block_unexpected_reply
 
 
 class SendReply:
@@ -871,7 +871,7 @@ class BaseMessageBus:
             if not handled:
                 handler = self._find_message_handler(msg)
                 if not _expects_reply(msg):
-                    handler(msg, SWALLOW_UNEXPECTED_REPLY)
+                    handler(msg, BLOCK_UNEXPECTED_REPLY)
                     return
 
                 send_reply = SendReply(self, msg)
