@@ -693,11 +693,10 @@ class BaseMessageBus:
         children = set()
 
         for export_path in self._path_exports:
-            try:
-                child_path = export_path.split(path, maxsplit=1)[1]
-            except IndexError:
+            if not export_path.startswith(path):
                 continue
 
+            child_path = export_path.split(path, maxsplit=1)[1]
             child_path = child_path.lstrip("/")
             child_name = child_path.split("/", maxsplit=1)[0]
 

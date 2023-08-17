@@ -84,6 +84,40 @@ async def test_introspectable_interface():
 
 
 @pytest.mark.asyncio
+async def test_introspect_matching_sub_paths():
+    bus1 = await MessageBus().connect()
+    bus2 = await MessageBus().connect()
+
+    interface = ExampleInterface("test.interface1")
+
+    bus1.export("/a/test/path1", interface)
+    bus1.export("/a/subpath/a/test/path2", interface)
+
+    async def introspect_subpath(path, expected_subnodes):
+        reply = await bus2.call(
+            Message(
+                destination=bus1.unique_name,
+                path=path,
+                interface="org.freedesktop.DBus.Introspectable",
+                member="Introspect",
+            )
+        )
+        assert reply.signature == "s"
+        node = intr.Node.parse(reply.body[0])
+        assert {n.name for n in node.nodes} == expected_subnodes
+
+    await introspect_subpath("/", {"a"})
+    await introspect_subpath("/a", {"test", "subpath"})
+    await introspect_subpath("/a/test", {"path1"})
+    await introspect_subpath("/a/test/path1", set())
+    await introspect_subpath("/a/subpath/a/test", {"path2"})
+    await introspect_subpath("/a/subpath/a/test/path2", set())
+
+    bus1.disconnect()
+    bus2.disconnect()
+
+
+@pytest.mark.asyncio
 async def test_peer_interface():
     bus1 = await MessageBus().connect()
     bus2 = await MessageBus().connect()
