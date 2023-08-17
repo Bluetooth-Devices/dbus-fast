@@ -105,10 +105,11 @@ class _MessageWriter:
         self, msg: Message, future: Optional[asyncio.Future] = None
     ) -> None:
         """Buffer a message to be sent later."""
+        unix_fds = msg.unix_fds
         self.messages.append(
             (
                 msg._marshall(self.negotiate_unix_fd),
-                copy(msg.unix_fds) if msg.unix_fds else None,
+                copy(unix_fds) if unix_fds else None,
                 future,
             )
         )
