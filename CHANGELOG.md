@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.91.4 (2023-08-17)
+
+### Fix
+
+* Subpath bad matching ([#202](https://github.com/Bluetooth-Devices/dbus-fast/issues/202)) ([`5d6f90b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5d6f90ba32c61b14368f80b91e1d3d9a6279126f))
+
 ## v1.91.3 (2023-08-17)
 
 ### Fix
