@@ -48,7 +48,7 @@ class _MessageWriter:
         self.bus = bus
         self.sock = bus._sock
         self.loop = bus._loop
-        self.buf: Optional[bytearray] = None
+        self.buf: Optional[memoryview] = None
         self.fd = bus._fd
         self.offset = 0
         self.unix_fds: Optional[List[int]] = None
@@ -70,7 +70,7 @@ class _MessageWriter:
                     # Get the next message
                     buf, unix_fds, fut = self.messages.popleft()
                     self.unix_fds = unix_fds
-                    self.buf = buf
+                    self.buf = memoryview(buf)
                     self.offset = 0
                     self.fut = fut
 
