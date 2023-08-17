@@ -108,7 +108,7 @@ class _MessageWriter:
         self.messages.append(
             (
                 msg._marshall(self.negotiate_unix_fd),
-                copy(msg.unix_fds) if self.unix_fds else None,
+                copy(msg.unix_fds) if self.unix_fds else [],
                 future,
             )
         )
