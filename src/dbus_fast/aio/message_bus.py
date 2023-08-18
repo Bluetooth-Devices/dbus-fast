@@ -176,7 +176,14 @@ class MessageBus(BaseMessageBus):
     :vartype connected: bool
     """
 
-    __slots__ = ("_loop", "_auth", "_writer", "_disconnect_future")
+    __slots__ = (
+        "_loop",
+        "_auth",
+        "_writer",
+        "_disconnect_future",
+        "_auth_buffer",
+        "_auth_futures",
+    )
 
     def __init__(
         self,
