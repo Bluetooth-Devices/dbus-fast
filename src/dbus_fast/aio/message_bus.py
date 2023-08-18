@@ -3,6 +3,7 @@ import asyncio
 import logging
 import socket
 from collections import deque
+from collections.abc import Callable
 from copy import copy
 from typing import Any, List, Optional, Tuple
 
@@ -18,7 +19,7 @@ from ..constants import (
 )
 from ..errors import AuthError
 from ..message import Message
-from ..message_bus import BaseMessageBus
+from ..message_bus import BLOCK_UNEXPECTED_REPLY, BaseMessageBus, _expects_reply
 from ..service import ServiceInterface
 from .message_reader import build_message_reader
 from .proxy_object import ProxyObject
@@ -431,8 +432,13 @@ class MessageBus(BaseMessageBus):
         if not asyncio.iscoroutinefunction(method.fn):
             return super()._make_method_handler(interface, method)
 
-        def _coro_method_handler(msg, send_reply):
-            def done(fut):
+        def _coro_method_handler(
+            msg: Message, send_reply: Callable[[Message], None]
+        ) -> None:
+            """A coroutine method handler."""
+
+            def _done(fut: asyncio.Future) -> None:
+                """The callback for when the method is done."""
                 with send_reply:
                     result = fut.result()
                     body, unix_fds = ServiceInterface._fn_result_to_body(
@@ -444,9 +450,14 @@ class MessageBus(BaseMessageBus):
                         )
                     )
 
-            args = ServiceInterface._msg_body_to_args(msg)
+            if msg.unix_fds:
+                args = ServiceInterface._msg_body_to_args(msg)
+            else:
+                args = msg.body
             fut = asyncio.ensure_future(method.fn(interface, *args))
-            fut.add_done_callback(done)
+            if send_reply is BLOCK_UNEXPECTED_REPLY or not _expects_reply(msg):
+                return
+            fut.add_done_callback(_done)
 
         return _coro_method_handler
 

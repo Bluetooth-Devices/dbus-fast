@@ -922,8 +922,8 @@ class BaseMessageBus:
             msg: Message, send_reply: Callable[[Message], None]
         ) -> None:
             """This is the callback that will be called when a method call is."""
-            body = msg_body_to_args(msg) if msg.unix_fds else msg.body
-            result = method_fn(interface, *body)
+            args = msg_body_to_args(msg) if msg.unix_fds else msg.body
+            result = method_fn(interface, *args)
             if send_reply is BLOCK_UNEXPECTED_REPLY or not _expects_reply(msg):
                 return
             body, fds = fn_result_to_body(
