@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.92.0 (2023-08-18)
+
+### Feature
+
+* Reduce overhead to dispatch method handlers ([#227](https://github.com/Bluetooth-Devices/dbus-fast/issues/227)) ([`b222552`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b2225527ae57d1bccec21df950d621797d30732d))
+
 ## v1.91.4 (2023-08-17)
 
 ### Fix
