@@ -475,7 +475,9 @@ class MessageBus(BaseMessageBus):
             except Exception as e:
                 futures.pop(0).set_exception(e)
                 return
+
         futures.pop(0).set_result(buf[:-2].decode())
+        buf.clear()
 
     async def _authenticate(self) -> None:
         sock = self._sock
