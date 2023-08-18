@@ -445,11 +445,11 @@ class MessageBus(BaseMessageBus):
             # Hold a strong reference to the future to ensure
             # it is not garbage collected before it is done.
             self._pending_futures.add(fut)
-            fut.add_done_callback(self._pending_futures.discard)
             if (
                 send_reply is _block_unexpected_reply
                 or msg.flags.value & NO_REPLY_EXPECTED_VALUE
             ):
+                fut.add_done_callback(self._pending_futures.discard)
                 return
 
             # We only create the closure function if
@@ -468,6 +468,9 @@ class MessageBus(BaseMessageBus):
                     )
 
             fut.add_done_callback(_done)
+            # Discard the future only after running the done
+            # callback
+            fut.add_done_callback(self._pending_futures.discard)
 
         return _coroutine_method_handler
 
