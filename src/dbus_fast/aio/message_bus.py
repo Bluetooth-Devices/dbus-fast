@@ -490,9 +490,7 @@ class MessageBus(BaseMessageBus):
         if first_line is not None:
             if type(first_line) is not str:
                 raise AuthError("authenticator gave response not type str")
-            await self._loop.sock_sendall(
-                self._sock, Authenticator._format_line(first_line)
-            )
+            await self._loop.sock_sendall(sock, Authenticator._format_line(first_line))
 
         self._loop.add_reader(self._fd, self._auth_readline)
         try:
@@ -502,7 +500,7 @@ class MessageBus(BaseMessageBus):
                 response = self._auth._receive_line(await future)
                 if response is not None:
                     await self._loop.sock_sendall(
-                        self._sock, Authenticator._format_line(response)
+                        sock, Authenticator._format_line(response)
                     )
                     self._stream.flush()
                 if response == "BEGIN":
