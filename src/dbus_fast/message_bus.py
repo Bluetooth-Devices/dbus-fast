@@ -777,14 +777,15 @@ class BaseMessageBus:
         # send it right away.
         if not no_reply_expected:
 
-            def reply_notify(
+            def _reply_notify(
                 reply: Optional[Message], err: Optional[Exception]
             ) -> None:
+                """Callback on reply."""
                 if reply and msg.destination and reply.sender:
                     self._name_owners[msg.destination] = reply.sender
                 callback(reply, err)
 
-            self._method_return_handlers[msg.serial] = reply_notify
+            self._method_return_handlers[msg.serial] = _reply_notify
 
         self.send(msg)
 
