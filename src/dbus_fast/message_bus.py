@@ -770,24 +770,27 @@ class BaseMessageBus:
         if not msg.serial:
             msg.serial = self.next_serial()
 
-        def reply_notify(reply: Optional[Message], err: Optional[Exception]) -> None:
-            if reply and msg.destination and reply.sender:
-                self._name_owners[msg.destination] = reply.sender
-            callback(reply, err)  # type: ignore[misc]
-
         no_reply_expected = not _expects_reply(msg)
-
         # Make sure the return reply handler is installed
         # before sending the message to avoid a race condition
         # where the reply is lost in case the backend can
         # send it right away.
         if not no_reply_expected:
-            self._method_return_handlers[msg.serial] = reply_notify
+
+            def _reply_notify(
+                reply: Optional[Message], err: Optional[Exception]
+            ) -> None:
+                """Callback on reply."""
+                if reply and msg.destination and reply.sender:
+                    self._name_owners[msg.destination] = reply.sender
+                callback(reply, err)
+
+            self._method_return_handlers[msg.serial] = _reply_notify
 
         self.send(msg)
 
         if no_reply_expected:
-            callback(None, None)  # type: ignore[misc]
+            callback(None, None)
 
     @staticmethod
     def _check_callback_type(callback: Callable) -> None:
@@ -921,7 +924,9 @@ class BaseMessageBus:
         def _callback_method_handler(
             msg: Message, send_reply: Callable[[Message], None]
         ) -> None:
-            result = method_fn(interface, *msg_body_to_args(msg))
+            """This is the callback that will be called when a method call is."""
+            args = msg_body_to_args(msg) if msg.unix_fds else msg.body
+            result = method_fn(interface, *args)
             if send_reply is BLOCK_UNEXPECTED_REPLY or not _expects_reply(msg):
                 return
             body, fds = fn_result_to_body(
