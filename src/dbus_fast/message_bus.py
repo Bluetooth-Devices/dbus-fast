@@ -770,24 +770,26 @@ class BaseMessageBus:
         if not msg.serial:
             msg.serial = self.next_serial()
 
-        def reply_notify(reply: Optional[Message], err: Optional[Exception]) -> None:
-            if reply and msg.destination and reply.sender:
-                self._name_owners[msg.destination] = reply.sender
-            callback(reply, err)  # type: ignore[misc]
-
         no_reply_expected = not _expects_reply(msg)
-
         # Make sure the return reply handler is installed
         # before sending the message to avoid a race condition
         # where the reply is lost in case the backend can
         # send it right away.
         if not no_reply_expected:
+
+            def reply_notify(
+                reply: Optional[Message], err: Optional[Exception]
+            ) -> None:
+                if reply and msg.destination and reply.sender:
+                    self._name_owners[msg.destination] = reply.sender
+                callback(reply, err)
+
             self._method_return_handlers[msg.serial] = reply_notify
 
         self.send(msg)
 
         if no_reply_expected:
-            callback(None, None)  # type: ignore[misc]
+            callback(None, None)
 
     @staticmethod
     def _check_callback_type(callback: Callable) -> None:
