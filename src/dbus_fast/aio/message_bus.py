@@ -3,9 +3,8 @@ import asyncio
 import logging
 import socket
 from collections import deque
-from collections.abc import Callable
 from copy import copy
-from typing import Any, List, Optional, Set, Tuple
+from typing import Any, Callable, List, Optional, Set, Tuple
 
 from .. import introspection as intr
 from ..auth import Authenticator, AuthExternal
