@@ -1,5 +1,6 @@
 import array
 import asyncio
+import errno
 import logging
 import socket
 from collections import deque
@@ -23,6 +24,8 @@ from ..service import ServiceInterface
 from .message_reader import build_message_reader
 from .proxy_object import ProxyObject
 
+EAGAIN = errno.EAGAIN
+EWOULDBLOCK = errno.EWOULDBLOCK
 NO_REPLY_EXPECTED_VALUE = MessageFlag.NO_REPLY_EXPECTED.value
 
 
@@ -193,6 +196,8 @@ class MessageBus(BaseMessageBus):
             self._auth = auth
 
         self._disconnect_future = self._loop.create_future()
+        self._auth_buffer = bytearray()
+        self._auth_futures: List[asyncio.Future] = []
 
     async def connect(self) -> "MessageBus":
         """Connect this message bus to the DBus daemon.
@@ -450,16 +455,31 @@ class MessageBus(BaseMessageBus):
 
         return _coro_method_handler
 
-    async def _auth_readline(self) -> str:
-        buf = b""
+    def _auth_readline(self) -> None:
+        """Read a line from the authentication protocol."""
+        buf = self._auth_buffer
+        futures = self._auth_futures
         while buf[-2:] != b"\r\n":
             # The auth protocol is line based, so we can read until we get a
             # newline.
-            buf += await self._loop.sock_recv(self._sock, 1024)
-        return buf[:-2].decode()
+            try:
+                buf += self._sock.recv(1024)
+            except (BlockingIOError, InterruptedError):
+                return
+            except OSError as e:
+                errno = e.errno
+                if errno == EAGAIN or errno == EWOULDBLOCK:
+                    return
+                futures.pop(0).set_exception(e)
+                return
+            except Exception as e:
+                futures.pop(0).set_exception(e)
+                return
+        futures.pop(0).set_result(buf[:-2].decode())
 
     async def _authenticate(self) -> None:
-        await self._loop.sock_sendall(self._sock, b"\0")
+        sock = self._sock
+        await self._loop.sock_sendall(sock, b"\0")
 
         first_line = self._auth._authentication_start(
             negotiate_unix_fd=self._negotiate_unix_fd
@@ -472,18 +492,24 @@ class MessageBus(BaseMessageBus):
                 self._sock, Authenticator._format_line(first_line)
             )
 
-        while True:
-            response = self._auth._receive_line(await self._auth_readline())
-            if response is not None:
-                await self._loop.sock_sendall(
-                    self._sock, Authenticator._format_line(response)
-                )
-                self._stream.flush()
-            if response == "BEGIN":
-                # The first octet received by the server after the \r\n of the BEGIN command
-                # from the client must be the first octet of the authenticated/encrypted stream
-                # of D-Bus messages.
-                break
+        self._loop.add_reader(self._fd, self._auth_readline)
+        try:
+            while True:
+                future = self._loop.create_future()
+                self._auth_futures.append(future)
+                response = self._auth._receive_line(await future)
+                if response is not None:
+                    await self._loop.sock_sendall(
+                        self._sock, Authenticator._format_line(response)
+                    )
+                    self._stream.flush()
+                if response == "BEGIN":
+                    # The first octet received by the server after the \r\n of the BEGIN command
+                    # from the client must be the first octet of the authenticated/encrypted stream
+                    # of D-Bus messages.
+                    break
+        finally:
+            self._loop.remove_reader(self._fd)
 
     def disconnect(self) -> None:
         """Disconnect the message bus by closing the underlying connection asynchronously.
