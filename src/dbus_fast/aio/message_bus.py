@@ -436,7 +436,7 @@ class MessageBus(BaseMessageBus):
         msg_body_to_args = ServiceInterface._msg_body_to_args
         fn_result_to_body = ServiceInterface._fn_result_to_body
 
-        def _coro_method_handler(
+        def _coroutine_method_handler(
             msg: Message, send_reply: Callable[[Message], None]
         ) -> None:
             """A coroutine method handler."""
@@ -467,7 +467,7 @@ class MessageBus(BaseMessageBus):
 
             fut.add_done_callback(_done)
 
-        return _coro_method_handler
+        return _coroutine_method_handler
 
     async def _auth_readline(self) -> str:
         buf = b""
