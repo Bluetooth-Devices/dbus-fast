@@ -18,7 +18,7 @@ from ..constants import (
 )
 from ..errors import AuthError
 from ..message import Message
-from ..message_bus import BLOCK_UNEXPECTED_REPLY, BaseMessageBus, _expects_reply
+from ..message_bus import BaseMessageBus, _block_unexpected_reply
 from ..service import ServiceInterface
 from .message_reader import build_message_reader
 from .proxy_object import ProxyObject
@@ -459,7 +459,10 @@ class MessageBus(BaseMessageBus):
             # it is not garbage collected before it is done.
             self._pending_futures.add(fut)
             fut.add_done_callback(self._pending_futures.discard)
-            if send_reply is BLOCK_UNEXPECTED_REPLY or not _expects_reply(msg):
+            if (
+                send_reply is _block_unexpected_reply
+                or msg.flags.value & NO_REPLY_EXPECTED_VALUE
+            ):
                 return
             fut.add_done_callback(_done)
 

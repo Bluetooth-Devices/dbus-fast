@@ -15,7 +15,7 @@ cdef object BLOCK_UNEXPECTED_REPLY
 cdef object assert_object_path_valid
 cdef object assert_bus_name_valid
 
-cpdef _expects_reply(Message msg)
+cdef _expects_reply(Message msg)
 
 
 cdef class SendReply:
