@@ -436,20 +436,6 @@ class MessageBus(BaseMessageBus):
             msg: Message, send_reply: Callable[[Message], None]
         ) -> None:
             """A coroutine method handler."""
-
-            def _done(fut: asyncio.Future) -> None:
-                """The callback for when the method is done."""
-                with send_reply:
-                    result = fut.result()
-                    body, unix_fds = ServiceInterface._fn_result_to_body(
-                        result, method.out_signature_tree
-                    )
-                    send_reply(
-                        Message.new_method_return(
-                            msg, method.out_signature, body, unix_fds
-                        )
-                    )
-
             if msg.unix_fds:
                 args = ServiceInterface._msg_body_to_args(msg)
             else:
@@ -464,6 +450,20 @@ class MessageBus(BaseMessageBus):
                 or msg.flags.value & NO_REPLY_EXPECTED_VALUE
             ):
                 return
+
+            def _done(fut: asyncio.Future) -> None:
+                """The callback for when the method is done."""
+                with send_reply:
+                    result = fut.result()
+                    body, unix_fds = ServiceInterface._fn_result_to_body(
+                        result, method.out_signature_tree
+                    )
+                    send_reply(
+                        Message.new_method_return(
+                            msg, method.out_signature, body, unix_fds
+                        )
+                    )
+
             fut.add_done_callback(_done)
 
         return _coro_method_handler
