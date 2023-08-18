@@ -494,20 +494,19 @@ class MessageBus(BaseMessageBus):
         loop = self._loop
         auth = self._auth
         auth_futures = self._auth_futures
-
-        await loop.sock_sendall(sock, b"\0")
-
-        first_line = auth._authentication_start(
-            negotiate_unix_fd=self._negotiate_unix_fd
-        )
-
-        if first_line is not None:
-            if type(first_line) is not str:
-                raise AuthError("authenticator gave response not type str")
-            await loop.sock_sendall(sock, Authenticator._format_line(first_line))
-
         loop.add_reader(fd, self._auth_readline)
         try:
+            await loop.sock_sendall(sock, b"\0")
+
+            first_line = auth._authentication_start(
+                negotiate_unix_fd=self._negotiate_unix_fd
+            )
+
+            if first_line is not None:
+                if type(first_line) is not str:
+                    raise AuthError("authenticator gave response not type str")
+                await loop.sock_sendall(sock, Authenticator._format_line(first_line))
+
             while True:
                 future = loop.create_future()
                 auth_futures.append(future)
