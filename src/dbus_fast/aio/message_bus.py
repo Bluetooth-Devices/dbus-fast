@@ -432,6 +432,7 @@ class MessageBus(BaseMessageBus):
         if not asyncio.iscoroutinefunction(method.fn):
             return super()._make_method_handler(interface, method)
 
+        negotiate_unix_fd = self._negotiate_unix_fd
         msg_body_to_args = ServiceInterface._msg_body_to_args
         fn_result_to_body = ServiceInterface._fn_result_to_body
 
@@ -456,7 +457,7 @@ class MessageBus(BaseMessageBus):
                 with send_reply:
                     result = fut.result()
                     body, unix_fds = fn_result_to_body(
-                        result, method.out_signature_tree
+                        result, method.out_signature_tree, replace_fds=negotiate_unix_fd
                     )
                     send_reply(
                         Message.new_method_return(
