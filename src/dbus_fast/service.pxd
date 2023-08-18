@@ -2,7 +2,6 @@
 
 import cython
 
-from .message cimport Message
 from .signature cimport SignatureTree
 
 
