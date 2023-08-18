@@ -452,6 +452,8 @@ class MessageBus(BaseMessageBus):
             ):
                 return
 
+            # We only create the closure function if
+            # we are actually going to reply
             def _done(fut: asyncio.Future) -> None:
                 """The callback for when the method is done."""
                 with send_reply:
