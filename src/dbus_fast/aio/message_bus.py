@@ -458,7 +458,7 @@ class MessageBus(BaseMessageBus):
             # Hold a strong reference to the future to ensure
             # it is not garbage collected before it is done.
             self._pending_futures.add(fut)
-            fut.add_done_callback(self._pending_futures.discard, fut)
+            fut.add_done_callback(self._pending_futures.discard)
             if send_reply is BLOCK_UNEXPECTED_REPLY or not _expects_reply(msg):
                 return
             fut.add_done_callback(_done)
