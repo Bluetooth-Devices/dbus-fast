@@ -433,6 +433,7 @@ class MessageBus(BaseMessageBus):
             return super()._make_method_handler(interface, method)
 
         msg_body_to_args = ServiceInterface._msg_body_to_args
+        fn_result_to_body = ServiceInterface._fn_result_to_body
 
         def _coro_method_handler(
             msg: Message, send_reply: Callable[[Message], None]
@@ -454,7 +455,7 @@ class MessageBus(BaseMessageBus):
                 """The callback for when the method is done."""
                 with send_reply:
                     result = fut.result()
-                    body, unix_fds = ServiceInterface._fn_result_to_body(
+                    body, unix_fds = fn_result_to_body(
                         result, method.out_signature_tree
                     )
                     send_reply(
