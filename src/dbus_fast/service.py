@@ -467,8 +467,7 @@ class ServiceInterface:
     def _get_handler(
         interface: "ServiceInterface", method: _Method, bus: "BaseMessageBus"
     ) -> Callable[[Message, Callable[[Message], None]], None]:
-        bus_handler = interface.__handlers[bus]
-        return bus_handler[method]
+        return interface.__handlers[bus][method]
 
     @staticmethod
     def _add_bus(
