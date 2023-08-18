@@ -452,8 +452,7 @@ class MessageBus(BaseMessageBus):
                 fut.add_done_callback(self._pending_futures.discard)
                 return
 
-            # We only create the closure function if
-            # we are actually going to reply
+            # We only create the closure function if we are actually going to reply
             def _done(fut: asyncio.Future) -> None:
                 """The callback for when the method is done."""
                 with send_reply:
@@ -468,8 +467,7 @@ class MessageBus(BaseMessageBus):
                     )
 
             fut.add_done_callback(_done)
-            # Discard the future only after running the done
-            # callback
+            # Discard the future only after running the done callback
             fut.add_done_callback(self._pending_futures.discard)
 
         return _coroutine_method_handler
