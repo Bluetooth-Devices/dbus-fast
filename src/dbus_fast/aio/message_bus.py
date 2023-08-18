@@ -5,7 +5,7 @@ import socket
 from collections import deque
 from collections.abc import Callable
 from copy import copy
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional, Set, Tuple
 
 from .. import introspection as intr
 from ..auth import Authenticator, AuthExternal
@@ -174,7 +174,7 @@ class MessageBus(BaseMessageBus):
     :vartype connected: bool
     """
 
-    __slots__ = ("_loop", "_auth", "_writer", "_disconnect_future")
+    __slots__ = ("_loop", "_auth", "_writer", "_disconnect_future", "_pending_futures")
 
     def __init__(
         self,
@@ -194,6 +194,7 @@ class MessageBus(BaseMessageBus):
             self._auth = auth
 
         self._disconnect_future = self._loop.create_future()
+        self._pending_futures: Set[asyncio.Future] = set()
 
     async def connect(self) -> "MessageBus":
         """Connect this message bus to the DBus daemon.
@@ -455,6 +456,10 @@ class MessageBus(BaseMessageBus):
             else:
                 args = msg.body
             fut = asyncio.ensure_future(method.fn(interface, *args))
+            # Hold a strong reference to the future to ensure
+            # it is not garbage collected before it is done.
+            self._pending_futures.add(fut)
+            fut.add_done_callback(self._pending_futures.discard, fut)
             if send_reply is BLOCK_UNEXPECTED_REPLY or not _expects_reply(msg):
                 return
             fut.add_done_callback(_done)
