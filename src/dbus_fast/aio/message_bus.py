@@ -432,14 +432,13 @@ class MessageBus(BaseMessageBus):
         if not asyncio.iscoroutinefunction(method.fn):
             return super()._make_method_handler(interface, method)
 
+        msg_body_to_args = ServiceInterface._msg_body_to_args
+
         def _coro_method_handler(
             msg: Message, send_reply: Callable[[Message], None]
         ) -> None:
             """A coroutine method handler."""
-            if msg.unix_fds:
-                args = ServiceInterface._msg_body_to_args(msg)
-            else:
-                args = msg.body
+            args = msg_body_to_args(msg) if msg.unix_fds else msg.body
             fut = asyncio.ensure_future(method.fn(interface, *args))
             # Hold a strong reference to the future to ensure
             # it is not garbage collected before it is done.
