@@ -488,28 +488,32 @@ class MessageBus(BaseMessageBus):
         buf.clear()
 
     async def _authenticate(self) -> None:
+        """Authenticate with the DBus daemon."""
+        fd = self._fd
         sock = self._sock
-        await self._loop.sock_sendall(sock, b"\0")
+        loop = self._loop
+        auth = self._auth
+        auth_futures = self._auth_futures
 
-        first_line = self._auth._authentication_start(
+        await loop.sock_sendall(sock, b"\0")
+
+        first_line = auth._authentication_start(
             negotiate_unix_fd=self._negotiate_unix_fd
         )
 
         if first_line is not None:
             if type(first_line) is not str:
                 raise AuthError("authenticator gave response not type str")
-            await self._loop.sock_sendall(sock, Authenticator._format_line(first_line))
+            await loop.sock_sendall(sock, Authenticator._format_line(first_line))
 
-        self._loop.add_reader(self._fd, self._auth_readline)
+        loop.add_reader(fd, self._auth_readline)
         try:
             while True:
-                future = self._loop.create_future()
-                self._auth_futures.append(future)
-                response = self._auth._receive_line(await future)
+                future = loop.create_future()
+                auth_futures.append(future)
+                response = auth._receive_line(await future)
                 if response is not None:
-                    await self._loop.sock_sendall(
-                        sock, Authenticator._format_line(response)
-                    )
+                    await loop.sock_sendall(sock, Authenticator._format_line(response))
                     self._stream.flush()
                 if response == "BEGIN":
                     # The first octet received by the server after the \r\n of the BEGIN command
@@ -517,7 +521,7 @@ class MessageBus(BaseMessageBus):
                     # of D-Bus messages.
                     break
         finally:
-            self._loop.remove_reader(self._fd)
+            loop.remove_reader(fd)
 
     def disconnect(self) -> None:
         """Disconnect the message bus by closing the underlying connection asynchronously.
