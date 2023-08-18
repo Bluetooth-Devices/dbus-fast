@@ -192,6 +192,7 @@ class MessageBus(BaseMessageBus):
         auth: Optional[Authenticator] = None,
         negotiate_unix_fd: bool = False,
     ) -> None:
+        """The message bus implementation for use with asyncio."""
         super().__init__(bus_address, bus_type, ProxyObject, negotiate_unix_fd)
         self._loop = asyncio.get_running_loop()
 
