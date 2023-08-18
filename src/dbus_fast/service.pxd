@@ -2,6 +2,7 @@
 
 import cython
 
+from .message cimport Message
 from .signature cimport SignatureTree
 
 
@@ -24,3 +25,8 @@ cdef class ServiceInterface:
     cdef list __signals
     cdef set __buses
     cdef dict __handlers
+
+    @cython.locals(
+        bus_handler=cython.dict
+    )
+    cdef _get_handler(ServiceInterface interface, _Method method, object bus)
