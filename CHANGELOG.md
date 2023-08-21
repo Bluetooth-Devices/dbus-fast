@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.93.0 (2023-08-21)
+
+### Feature
+
+* Improve performance of processing incoming messages ([#228](https://github.com/Bluetooth-Devices/dbus-fast/issues/228)) ([`ce61aea`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ce61aea37a55c9498f1800ec4bd68e8eaf7c7f48))
+
 ## v1.92.0 (2023-08-18)
 
 ### Feature
