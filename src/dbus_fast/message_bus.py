@@ -770,7 +770,7 @@ class BaseMessageBus:
         if not msg.serial:
             msg.serial = self.next_serial()
 
-        no_reply_expected = not _expects_reply(msg)
+        no_reply_expected = _expects_reply(msg) is False
         # Make sure the return reply handler is installed
         # before sending the message to avoid a race condition
         # where the reply is lost in case the backend can
@@ -827,6 +827,7 @@ class BaseMessageBus:
             )
 
     def _process_message(self, msg: _Message) -> None:
+        """Process a message received from the message bus."""
         handled = False
         for user_handler in self._user_message_handlers:
             try:
@@ -842,13 +843,9 @@ class BaseMessageBus:
                     handled = True
                     break
                 else:
-                    logging.error(
-                        f"A message handler raised an exception: {e}.\n{traceback.format_exc()}"
-                    )
+                    logging.exception("A message handler raised an exception: %s", e)
             except Exception as e:
-                logging.error(
-                    f"A message handler raised an exception: {e}.\n{traceback.format_exc()}"
-                )
+                logging.exception("A message handler raised an exception: %s", e)
                 if msg.message_type is MESSAGE_TYPE_CALL:
                     self.send(
                         Message.new_error(
@@ -877,7 +874,7 @@ class BaseMessageBus:
         if msg.message_type is MESSAGE_TYPE_CALL:
             if not handled:
                 handler = self._find_message_handler(msg)
-                if not _expects_reply(msg):
+                if _expects_reply(msg) is False:
                     if handler:
                         handler(msg, BLOCK_UNEXPECTED_REPLY)
                     else:
@@ -898,15 +895,16 @@ class BaseMessageBus:
                             Message.new_error(
                                 msg,
                                 ErrorType.UNKNOWN_METHOD,
-                                f'{msg.interface}.{msg.member} with signature "{msg.signature}" could not be found',
+                                f"{msg.interface}.{msg.member} with signature "
+                                f'"{msg.signature}" could not be found',
                             )
                         )
             return
 
         # An ERROR or a METHOD_RETURN
-        if msg.reply_serial in self._method_return_handlers:
+        return_handler = self._method_return_handlers.get(msg.reply_serial)
+        if return_handler is not None:
             if not handled:
-                return_handler = self._method_return_handlers[msg.reply_serial]
                 return_handler(msg, None)
             del self._method_return_handlers[msg.reply_serial]
 
@@ -927,7 +925,7 @@ class BaseMessageBus:
             """This is the callback that will be called when a method call is."""
             args = msg_body_to_args(msg) if msg.unix_fds else msg.body
             result = method_fn(interface, *args)
-            if send_reply is BLOCK_UNEXPECTED_REPLY or not _expects_reply(msg):
+            if send_reply is BLOCK_UNEXPECTED_REPLY or _expects_reply(msg) is False:
                 return
             body, fds = fn_result_to_body(
                 result,
