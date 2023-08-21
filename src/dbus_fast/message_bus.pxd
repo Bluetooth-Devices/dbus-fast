@@ -28,7 +28,7 @@ cdef class BaseMessageBus:
     cdef public object unique_name
     cdef public object _disconnected
     cdef public object _user_disconnect
-    cdef public object _method_return_handlers
+    cdef public cython.dict _method_return_handlers
     cdef public object _serial
     cdef public cython.dict _path_exports
     cdef public cython.list _user_message_handlers
