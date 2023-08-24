@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.94.0 (2023-08-24)
+
+### Feature
+
+* Build cpython 3.12 wheels ([#234](https://github.com/Bluetooth-Devices/dbus-fast/issues/234)) ([`b38aa58`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b38aa58aa7b15cf4498edfefabf9a3df37804494))
+
 ## v1.93.1 (2023-08-24)
 
 ### Fix
