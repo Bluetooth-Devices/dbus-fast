@@ -51,3 +51,32 @@ def test_send_reply_exception() -> None:
     assert messages[0].message_type == MessageType.ERROR
     assert messages[0].error_name == "org.freedesktop.DBus.Error.Disconnected"
     assert messages[0].reply_serial == 1
+
+
+def test_send_reply_happy_path() -> None:
+    """Test that SendReply sends a message."""
+
+    messages = []
+
+    class MockBus(BaseMessageBus):
+        def send(self, msg: Message) -> None:
+            messages.append(msg)
+
+        def send_message(self, msg: Message) -> None:
+            messages.append(msg)
+
+        def _setup_socket(self) -> None:
+            pass
+
+    mock_message_bus = MockBus()
+    mock_message = Message(
+        path="/test/path", interface="test.interface", member="test_member", serial=1
+    )
+    send_reply = SendReply(mock_message_bus, mock_message)
+
+    with send_reply as reply:
+        reply(mock_message)
+
+    assert len(messages) == 1
+    assert messages[0].message_type == MessageType.METHOD_CALL
+    assert messages[0].error_name is None
