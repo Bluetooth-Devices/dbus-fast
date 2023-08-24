@@ -1,15 +1,12 @@
 import os
-import traceback
-from types import TracebackType
-from typing import Any, Callable, Dict, List, Optional, Type, Union
-from unittest.mock import Mock
 
 import pytest
 
 from dbus_fast.constants import ErrorType, MessageType
 from dbus_fast.errors import DBusError
 from dbus_fast.message import Message
-from dbus_fast.message_bus import BaseMessageBus, SendReply
+from dbus_fast.message_bus import BaseMessageBus
+from dbus_fast.send_reply import SendReply
 
 
 @pytest.fixture(autouse=True)
@@ -44,7 +41,7 @@ def test_send_reply_exception() -> None:
     )
     send_reply = SendReply(mock_message_bus, mock_message)
 
-    with send_reply as reply:
+    with send_reply:
         raise DBusError(ErrorType.DISCONNECTED, "Disconnected", None)
 
     assert len(messages) == 1

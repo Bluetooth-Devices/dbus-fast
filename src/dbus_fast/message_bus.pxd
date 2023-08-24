@@ -18,11 +18,6 @@ cdef object assert_bus_name_valid
 cdef _expects_reply(Message msg)
 
 
-cdef class SendReply:
-
-    cdef object _bus
-    cdef object _msg
-
 cdef class BaseMessageBus:
 
     cdef public object unique_name

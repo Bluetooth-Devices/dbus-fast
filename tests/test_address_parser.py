@@ -2,7 +2,6 @@ from dbus_fast._private.address import parse_address
 
 
 def test_valid_addresses():
-
     valid_addresses = {
         "unix:path=/run/user/1000/bus": [("unix", {"path": "/run/user/1000/bus"})],
         "unix:abstract=/tmp/dbus-ft9sODWpZk,guid=a7b1d5912379c2d471165e9b5cb74a03": [
