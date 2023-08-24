@@ -12,11 +12,21 @@ from dbus_fast.message import Message
 from dbus_fast.message_bus import BaseMessageBus, SendReply
 
 
+@pytest.fixture(autouse=True)
+def mock_address() -> None:
+    original_address = os.environ.get("DBUS_SESSION_BUS_ADDRESS")
+    os.environ["DBUS_SESSION_BUS_ADDRESS"] = "unix:path=/dev/null"
+    yield
+    if original_address is None:
+        del os.environ["DBUS_SESSION_BUS_ADDRESS"]
+    else:
+        os.environ["DBUS_SESSION_BUS_ADDRESS"] = original_address
+
+
 def test_send_reply_exception() -> None:
     """Test that SendReply sends an error message when DBusError is raised."""
 
     messages = []
-    os.environ["DBUS_SESSION_BUS_ADDRESS"] = "unix:path=/dev/null"
 
     class MockBus(BaseMessageBus):
         def send(self, msg: Message) -> None:
