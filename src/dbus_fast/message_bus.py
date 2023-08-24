@@ -1,6 +1,8 @@
 import inspect
 import logging
+import pprint
 import socket
+import sys
 import traceback
 import xml.etree.ElementTree as ET
 from types import TracebackType
@@ -80,9 +82,7 @@ class SendReply:
         tb: Optional[TracebackType],
     ) -> bool:
         if exc_value:
-            import pprint
-
-            pprint.pprint(["_exit", exc_type, exc_value, tb])
+            sys.stderr.write(pprint.pformat(["_exit", exc_type, exc_value, tb]) + "\n")
             if isinstance(exc_value, DBusError):
                 self(exc_value._as_message(self._msg))
             else:
@@ -103,11 +103,7 @@ class SendReply:
         exc_value: Optional[Exception],
         tb: Optional[TracebackType],
     ) -> bool:
-        import pprint
-
-
-
-        pprint.pprint(["__exit__", exc_type, exc_value, tb])
+        sys.stderr.write(pprint.pformat(["__exit__", exc_type, exc_value, tb]) + "\n")
         return self._exit(exc_type, exc_value, tb)
 
     def send_error(self, exc: Exception) -> None:
