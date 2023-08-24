@@ -240,7 +240,6 @@ async def test_standard_interface_properties():
         "org.freedesktop.DBus.Peer",
         "org.freedesktop.DBus.ObjectManager",
     ]:
-
         result = await bus2.call(
             Message(
                 destination=bus1.unique_name,

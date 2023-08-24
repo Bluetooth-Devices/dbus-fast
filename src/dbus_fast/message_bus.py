@@ -1,11 +1,8 @@
 import inspect
 import logging
-import pprint
 import socket
-import sys
 import traceback
 import xml.etree.ElementTree as ET
-from types import TracebackType
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 from . import introspection as intr
@@ -23,6 +20,7 @@ from .constants import (
 from .errors import DBusError, InvalidAddressError
 from .message import Message
 from .proxy_object import BaseProxyObject
+from .send_reply import SendReply
 from .service import ServiceInterface, _Method
 from .signature import Variant
 from .validators import assert_bus_name_valid, assert_object_path_valid
@@ -57,57 +55,6 @@ def _block_unexpected_reply(reply: _Message) -> None:
 
 
 BLOCK_UNEXPECTED_REPLY = _block_unexpected_reply
-
-
-class SendReply:
-    """A context manager to send a reply to a message."""
-
-    __slots__ = ("_bus", "_msg")
-
-    def __init__(self, bus: "BaseMessageBus", msg: Message) -> None:
-        """Create a new reply context manager."""
-        self._bus = bus
-        self._msg = msg
-
-    def __enter__(self):
-        return self
-
-    def __call__(self, reply: Message) -> None:
-        self._bus.send(reply)
-
-    def _exit(
-        self,
-        exc_type: Optional[Type[Exception]],
-        exc_value: Optional[Exception],
-        tb: Optional[TracebackType],
-    ) -> bool:
-        if exc_value:
-            sys.stderr.write(pprint.pformat(["_exit", exc_type, exc_value, tb]) + "\n")
-            if isinstance(exc_value, DBusError):
-                self(exc_value._as_message(self._msg))
-            else:
-                self(
-                    Message.new_error(
-                        self._msg,
-                        ErrorType.SERVICE_ERROR,
-                        f"The service interface raised an error: {exc_value}.\n{traceback.format_tb(tb)}",
-                    )
-                )
-            return True
-
-        return False
-
-    def __exit__(
-        self,
-        exc_type: Optional[Type[Exception]],
-        exc_value: Optional[Exception],
-        tb: Optional[TracebackType],
-    ) -> bool:
-        sys.stderr.write(pprint.pformat(["__exit__", exc_type, exc_value, tb]) + "\n")
-        return self._exit(exc_type, exc_value, tb)
-
-    def send_error(self, exc: Exception) -> None:
-        self._exit(exc.__class__, exc, exc.__traceback__)
 
 
 class BaseMessageBus:

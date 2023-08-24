@@ -104,7 +104,6 @@ def test_unmarshalling_with_table(unmarshall_table):
     from dbus_fast._private import unmarshaller
 
     for item in unmarshall_table:
-
         stream = io.BytesIO(bytes.fromhex(item["data"]))
         unmarshaller = Unmarshaller(stream)
         try:
@@ -486,7 +485,6 @@ def tests_fallback_no_cython():
 
 
 def test_unmarshall_large_message():
-
     stream = io.BytesIO(bytes.fromhex(get_managed_objects_msg))
     unmarshaller = Unmarshaller(stream)
     unmarshaller.unmarshall()
