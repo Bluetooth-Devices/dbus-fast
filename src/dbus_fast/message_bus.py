@@ -80,6 +80,9 @@ class SendReply:
         tb: Optional[TracebackType],
     ) -> bool:
         if exc_value:
+            import pprint
+
+            pprint.pprint(["_exit", exc_type, exc_value, tb])
             if isinstance(exc_value, DBusError):
                 self(exc_value._as_message(self._msg))
             else:
@@ -100,6 +103,9 @@ class SendReply:
         exc_value: Optional[Exception],
         tb: Optional[TracebackType],
     ) -> bool:
+        import pprint
+
+        pprint.pprint(["__exit__", exc_type, exc_value, tb])
         return self._exit(exc_type, exc_value, tb)
 
     def send_error(self, exc: Exception) -> None:
