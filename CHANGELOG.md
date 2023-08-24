@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.93.1 (2023-08-24)
+
+### Fix
+
+* Avoid cythonizing SendReply ([#232](https://github.com/Bluetooth-Devices/dbus-fast/issues/232)) ([`d12266d`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d12266ddef920a6064c716c4e71ff8414094d0fd))
+
 ## v1.93.0 (2023-08-21)
 
 ### Feature
