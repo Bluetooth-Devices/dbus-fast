@@ -1194,7 +1194,7 @@ class BaseMessageBus:
                 logging.error(
                     f'add match request failed. match="{self._name_owner_match_rule}", {err}'
                 )
-            if msg.message_type == MessageType.ERROR:
+            elif msg.message_type == MessageType.ERROR:
                 logging.error(
                     f'add match request failed. match="{self._name_owner_match_rule}", {msg.body[0]}'
                 )
@@ -1228,7 +1228,7 @@ class BaseMessageBus:
         def add_match_notify(msg: Message, err: Optional[Exception]) -> None:
             if err:
                 logging.error(f'add match request failed. match="{match_rule}", {err}')
-            if msg.message_type == MessageType.ERROR:
+            elif msg.message_type == MessageType.ERROR:
                 logging.error(
                     f'add match request failed. match="{match_rule}", {msg.body[0]}'
                 )
@@ -1267,7 +1267,7 @@ class BaseMessageBus:
                 logging.error(
                     f'remove match request failed. match="{match_rule}", {err}'
                 )
-            if msg.message_type == MessageType.ERROR:
+            elif msg.message_type == MessageType.ERROR:
                 logging.error(
                     f'remove match request failed. match="{match_rule}", {msg.body[0]}'
                 )
