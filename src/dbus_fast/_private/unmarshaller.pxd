@@ -177,14 +177,14 @@ cdef class Unmarshaller:
     )
     cdef Variant _read_variant(self)
 
-    cpdef read_array(self, SignatureType type_)
-
     @cython.locals(
         beginning_pos=cython.ulong,
         array_length=cython.uint,
         child_type=SignatureType,
+        child_0=SignatureType,
+        child_1=SignatureType,
     )
-    cdef object _read_array(self, SignatureType type_)
+    cpdef object read_array(self, SignatureType type_)
 
     cpdef read_signature(self, SignatureType type_)
 
