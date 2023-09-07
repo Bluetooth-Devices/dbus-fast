@@ -1,4 +1,4 @@
-from . import aio, glib, introspection, message_bus, proxy_object, service
+from . import introspection, message_bus, proxy_object, service
 from .constants import (
     ArgDirection,
     BusType,
@@ -40,8 +40,6 @@ from .validators import (
 )
 
 __all__ = [
-    "aio",
-    "glib",
     "introspection",
     "message_bus",
     "proxy_object",
