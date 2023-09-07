@@ -18,5 +18,5 @@ async def test_multiple_flags_in_message():
     interface = ExampleInterface("test.interface")
     bus.export("/test/path", interface)
     await bus.request_name("test.name")
-    await bus.disconnect()
+    bus.disconnect()
     await bus.wait_for_disconnect()
