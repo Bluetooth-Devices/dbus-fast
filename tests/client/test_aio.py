@@ -21,5 +21,6 @@ async def test_fast_disconnect():
     introspection = await bus2.introspect(bus_name, "/test/path")
     bus2.get_proxy_object(bus_name, "/test/path", introspection)
     bus2.disconnect()
+    bus.disconnect()
     await bus.wait_for_disconnect()
     await bus2.wait_for_disconnect()
