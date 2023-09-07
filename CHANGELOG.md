@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.95.1 (2023-09-07)
+
+### Fix
+
+* Handle multiple flag bits when unmarshalling ([#241](https://github.com/Bluetooth-Devices/dbus-fast/issues/241)) ([`6f6f5f8`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6f6f5f86c020866a0c1ef5573547e25c63c8d3c3))
+
 ## v1.95.0 (2023-09-06)
 
 ### Feature
