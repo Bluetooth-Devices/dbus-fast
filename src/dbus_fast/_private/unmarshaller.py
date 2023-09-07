@@ -6,11 +6,13 @@ import sys
 from struct import Struct
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
-from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP
+from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP, MessageFlag
 from ..errors import InvalidMessageError
 from ..message import Message
 from ..signature import SignatureType, Variant, get_signature_tree
 from .constants import BIG_ENDIAN, LITTLE_ENDIAN, PROTOCOL_VERSION
+
+MESSAGE_FLAG_INTENUM = MessageFlag
 
 MAX_UNIX_FDS = 16
 MAX_UNIX_FDS_SIZE = array.array("i").itemsize
@@ -702,9 +704,12 @@ class Unmarshaller:
             tree = get_signature_tree(signature)
             body = [self._readers[t.token](self, t) for t in tree.types]
 
+        flags = MESSAGE_FLAG_MAP.get(self._flag)
+        if flags is None:
+            flags = MESSAGE_FLAG_INTENUM(self._flag)
         self._message = Message(
             message_type=MESSAGE_TYPE_MAP[self._message_type],
-            flags=MESSAGE_FLAG_MAP[self._flag],
+            flags=flags,
             unix_fds=self._unix_fds,
             signature=tree,
             body=body,
