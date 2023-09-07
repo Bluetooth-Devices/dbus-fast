@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.95.2 (2023-09-07)
+
+### Fix
+
+* Handling of None messages from notify callback ([#236](https://github.com/Bluetooth-Devices/dbus-fast/issues/236)) ([`14f52f2`](https://github.com/Bluetooth-Devices/dbus-fast/commit/14f52f216d49fb52bf223d5d96306465bb61e49c))
+
 ## v1.95.1 (2023-09-07)
 
 ### Fix
