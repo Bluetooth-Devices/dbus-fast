@@ -1,13 +1,9 @@
-import asyncio
-
 import pytest
 
-from dbus_fast import Message, MessageFlag, MessageType
 from dbus_fast.aio import MessageBus
 from dbus_fast.service import ServiceInterface, method
 
 
-@pytest.mark.xfail
 @pytest.mark.asyncio
 async def test_multiple_flags_in_message():
     class ExampleInterface(ServiceInterface):
@@ -22,4 +18,5 @@ async def test_multiple_flags_in_message():
     interface = ExampleInterface("test.interface")
     bus.export("/test/path", interface)
     await bus.request_name("test.name")
+    bus.disconnect()
     await bus.wait_for_disconnect()
