@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v2.0.0 (2023-09-07)
+
+### Feature
+
+* Don't import backends by default ([#243](https://github.com/Bluetooth-Devices/dbus-fast/issues/243)) ([`091d421`](https://github.com/Bluetooth-Devices/dbus-fast/commit/091d421a94752f749999858540000e0ab8a83da4))
+
+### Breaking
+
+* don't import backends by default ([#243](https://github.com/Bluetooth-Devices/dbus-fast/issues/243)) ([`091d421`](https://github.com/Bluetooth-Devices/dbus-fast/commit/091d421a94752f749999858540000e0ab8a83da4))
+
 ## v1.95.2 (2023-09-07)
 
 ### Fix
