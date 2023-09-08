@@ -1,5 +1,6 @@
 import os
 import re
+from typing import Dict, List, Optional, Tuple
 from urllib.parse import unquote
 
 from ..constants import BusType
@@ -8,25 +9,29 @@ from ..errors import InvalidAddressError
 invalid_address_chars_re = re.compile(r"[^-0-9A-Za-z_/.%]")
 
 
-def parse_address(address_str):
-    addresses = []
+def parse_address(address_str: str) -> List[Tuple[str, Dict[str, str]]]:
+    """Parse a dbus address string into a list of addresses."""
+    addresses: List[Tuple[str, Dict[str, str]]] = []
 
-    for address in filter(lambda a: a, address_str.split(";")):
+    for address in address_str.split(";"):
+        if not address:
+            continue
         if address.find(":") == -1:
             raise InvalidAddressError("address did not contain a transport")
 
         transport, opt_string = address.split(":", 1)
-        options = {}
+        options: Dict[str, str] = {}
 
-        for kv in filter(lambda s: s, opt_string.split(",")):
+        for kv in opt_string.split(","):
+            if not kv:
+                continue
             if kv.find("=") == -1:
                 raise InvalidAddressError("address option did not contain a value")
             k, v = kv.split("=", 1)
             if invalid_address_chars_re.search(v):
                 raise InvalidAddressError("address contains invalid characters")
             # XXX the actual unquote rules are simpler than this
-            v = unquote(v)
-            options[k] = v
+            options[k] = unquote(v)
 
         addresses.append((transport, options))
 
@@ -38,18 +43,19 @@ def parse_address(address_str):
     return addresses
 
 
-def get_system_bus_address():
-    if "DBUS_SYSTEM_BUS_ADDRESS" in os.environ:
-        return os.environ["DBUS_SYSTEM_BUS_ADDRESS"]
-    else:
-        return "unix:path=/var/run/dbus/system_bus_socket"
+def get_system_bus_address() -> str:
+    """Get the system bus address from the environment or return the default."""
+    return os.environ.get(
+        "DBUS_SYSTEM_BUS_ADDRESS", "unix:path=/var/run/dbus/system_bus_socket"
+    )
 
 
 display_re = re.compile(r".*:([0-9]+)\.?.*")
 remove_quotes_re = re.compile(r"""^['"]?(.*?)['"]?$""")
 
 
-def get_session_bus_address():
+def get_session_bus_address() -> str:
+    """Get the session bus address from the environment or return the default."""
     if "DBUS_SESSION_BUS_ADDRESS" in os.environ:
         return os.environ["DBUS_SESSION_BUS_ADDRESS"]
 
@@ -75,7 +81,7 @@ def get_session_bus_address():
         machine_id = f.read().rstrip()
 
     dbus_info_file_name = f"{home}/.dbus/session-bus/{machine_id}-{display}"
-    dbus_info = None
+    dbus_info: Optional[str] = None
     try:
         with open(dbus_info_file_name) as f:
             dbus_info = f.read().rstrip()
@@ -97,10 +103,10 @@ def get_session_bus_address():
     raise InvalidAddressError("could not find dbus session bus address")
 
 
-def get_bus_address(bus_type):
+def get_bus_address(bus_type: BusType) -> str:
+    """Get the address of the bus specified by the bus type."""
     if bus_type == BusType.SESSION:
         return get_session_bus_address()
-    elif bus_type == BusType.SYSTEM:
+    if bus_type == BusType.SYSTEM:
         return get_system_bus_address()
-    else:
-        raise Exception("got unknown bus type: {bus_type}")
+    raise Exception("got unknown bus type: {bus_type}")
