@@ -1,6 +1,9 @@
+import os
+from unittest.mock import patch
+
 import pytest
 
-from dbus_fast._private.address import parse_address
+from dbus_fast._private.address import get_system_bus_address, parse_address
 from dbus_fast.errors import InvalidAddressError
 
 
@@ -40,3 +43,10 @@ def test_invalid_addresses():
         assert parse_address("unix:tmpdir")
     with pytest.raises(InvalidAddressError):
         assert parse_address("unix:tmpdir=😁")
+
+
+def test_get_system_bus_address():
+    with patch.dict(os.environ, DBUS_SYSTEM_BUS_ADDRESS="unix:path=/dog"):
+        assert get_system_bus_address() == "unix:path=/dog"
+    with patch.dict(os.environ, DBUS_SYSTEM_BUS_ADDRESS=""):
+        assert get_system_bus_address() == "unix:path=/var/run/dbus/system_bus_socket"

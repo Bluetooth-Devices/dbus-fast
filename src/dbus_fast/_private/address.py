@@ -45,8 +45,9 @@ def parse_address(address_str: str) -> List[Tuple[str, Dict[str, str]]]:
 
 def get_system_bus_address() -> str:
     """Get the system bus address from the environment or return the default."""
-    return os.environ.get(
-        "DBUS_SYSTEM_BUS_ADDRESS", "unix:path=/var/run/dbus/system_bus_socket"
+    return (
+        os.environ.get("DBUS_SYSTEM_BUS_ADDRESS")
+        or "unix:path=/var/run/dbus/system_bus_socket"
     )
 
 
