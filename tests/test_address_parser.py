@@ -3,7 +3,11 @@ from unittest.mock import patch
 
 import pytest
 
-from dbus_fast._private.address import get_system_bus_address, parse_address
+from dbus_fast._private.address import (
+    get_session_bus_address,
+    get_system_bus_address,
+    parse_address,
+)
 from dbus_fast.errors import InvalidAddressError
 
 
@@ -50,3 +54,12 @@ def test_get_system_bus_address():
         assert get_system_bus_address() == "unix:path=/dog"
     with patch.dict(os.environ, DBUS_SYSTEM_BUS_ADDRESS=""):
         assert get_system_bus_address() == "unix:path=/var/run/dbus/system_bus_socket"
+
+
+def test_get_session_bus_address():
+    with patch.dict(os.environ, DBUS_SESSION_BUS_ADDRESS="unix:path=/dog"):
+        assert get_session_bus_address() == "unix:path=/dog"
+    with patch.dict(os.environ, DBUS_SESSION_BUS_ADDRESS="", DISPLAY=""), pytest.raises(
+        InvalidAddressError
+    ):
+        assert get_session_bus_address()

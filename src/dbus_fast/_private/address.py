@@ -57,8 +57,9 @@ remove_quotes_re = re.compile(r"""^['"]?(.*?)['"]?$""")
 
 def get_session_bus_address() -> str:
     """Get the session bus address from the environment or return the default."""
-    if "DBUS_SESSION_BUS_ADDRESS" in os.environ:
-        return os.environ["DBUS_SESSION_BUS_ADDRESS"]
+    dbus_session_bus_address = os.environ.get("DBUS_SESSION_BUS_ADDRESS")
+    if dbus_session_bus_address:
+        return dbus_session_bus_address
 
     home = os.environ["HOME"]
     if "DISPLAY" not in os.environ:
