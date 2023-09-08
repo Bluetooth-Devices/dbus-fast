@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.0.1 (2023-09-08)
+
+### Fix
+
+* Clean up address parsing and tests ([#244](https://github.com/Bluetooth-Devices/dbus-fast/issues/244)) ([`370791d`](https://github.com/Bluetooth-Devices/dbus-fast/commit/370791da869040d4a0d92cde30c4d2d4d684bcdc))
+
 ## v2.0.0 (2023-09-07)
 
 ### Feature
