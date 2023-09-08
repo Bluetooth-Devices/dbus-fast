@@ -111,4 +111,4 @@ def get_bus_address(bus_type: BusType) -> str:
         return get_session_bus_address()
     if bus_type == BusType.SYSTEM:
         return get_system_bus_address()
-    raise Exception("got unknown bus type: {bus_type}")
+    raise Exception(f"got unknown bus type: {bus_type}")

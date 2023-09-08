@@ -67,3 +67,8 @@ def test_get_session_bus_address():
         InvalidAddressError
     ):
         assert get_session_bus_address()
+
+
+def test_invalid_bus_address():
+    with pytest.raises(Exception):
+        assert get_bus_address(-1)
