@@ -1,4 +1,7 @@
+import pytest
+
 from dbus_fast._private.address import parse_address
+from dbus_fast.errors import InvalidAddressError
 
 
 def test_valid_addresses():
@@ -29,4 +32,11 @@ def test_valid_addresses():
 
 
 def test_invalid_addresses():
-    assert parse_address("") == []
+    with pytest.raises(InvalidAddressError):
+        assert parse_address("")
+    with pytest.raises(InvalidAddressError):
+        assert parse_address("unix")
+    with pytest.raises(InvalidAddressError):
+        assert parse_address("unix:tmpdir")
+    with pytest.raises(InvalidAddressError):
+        assert parse_address("unix:tmpdir=😁")
