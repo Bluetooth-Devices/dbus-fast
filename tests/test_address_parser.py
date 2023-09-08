@@ -21,7 +21,7 @@ def test_valid_addresses():
         "tcp:host=127.0.0.1,port=55556": [
             ("tcp", {"host": "127.0.0.1", "port": "55556"})
         ],
-        "unix:tmpdir=/tmp;": [("unix", {"tmpdir": "/tmp"})],
+        "unix:tmpdir=/tmp,;": [("unix", {"tmpdir": "/tmp"})],
     }
 
     for address, parsed in valid_addresses.items():
