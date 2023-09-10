@@ -258,23 +258,17 @@ class Unmarshaller:
             self._buf = bytearray()
         else:
             del self._buf[:to_clear]
-        self._message = None
-        self._pos = 0
-        self._body_len = 0
-        self._serial = 0
-        self._header_len = 0
-        self._message_type = 0
-        self._flag = 0
-        self._msg_len = 0
-        self._is_native = 0
-        self._read_complete = False
+        self._msg_len = 0  # used to check if we have ready the header
+        self._read_complete = False  # used to check if we have ready the message
         # No need to reset the unpack functions, they are set in _read_header
         # every time a new message is processed.
 
     @property
     def message(self) -> Optional[Message]:
         """Return the message that has been unmarshalled."""
-        return self._message
+        if self._read_complete:
+            return self._message
+        return None
 
     def _has_another_message_in_buffer(self) -> bool:
         """Check if there is another message in the buffer."""
