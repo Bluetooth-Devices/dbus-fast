@@ -22,6 +22,7 @@ cdef unsigned int HEADER_SIGNATURE_SIZE
 cdef unsigned int LITTLE_ENDIAN
 cdef unsigned int BIG_ENDIAN
 cdef unsigned int PROTOCOL_VERSION
+cdef unsigned int HEADER_UNIX_FDS_IDX
 
 cdef str UINT32_CAST
 cdef str INT16_CAST

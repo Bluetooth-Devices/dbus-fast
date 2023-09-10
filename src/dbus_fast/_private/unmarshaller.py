@@ -108,6 +108,7 @@ SCM_RIGHTS = socket.SCM_RIGHTS
 EAGAIN = errno.EAGAIN
 EWOULDBLOCK = errno.EWOULDBLOCK
 
+HEADER_UNIX_FDS_IDX = 9
 
 HEADER_MESSAGE_ARG_NAME = {
     1: "path",
@@ -118,7 +119,7 @@ HEADER_MESSAGE_ARG_NAME = {
     6: "destination",
     7: "sender",
     8: "signature",
-    9: "unix_fds",
+    HEADER_UNIX_FDS_IDX: "unix_fds",
 }
 
 _SignatureType = SignatureType
@@ -581,6 +582,8 @@ class Unmarshaller:
             signature_len = buf[self._pos]  # byte
             o = self._pos + 1
             self._pos += signature_len + 2  # one for the byte, one for the '\0'
+            if field_0 == HEADER_UNIX_FDS_IDX:  # defined by self._unix_fds
+                continue
             token_as_int = buf[o]
             # Now that we have the token we can read the variant value
             key = HEADER_MESSAGE_ARG_NAME[field_0]
@@ -661,7 +664,6 @@ class Unmarshaller:
         self._pos = HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
         header_fields = self._header_fields(self._header_len)
         self._pos += -self._pos & 7  # align 8
-        header_fields.pop("unix_fds", None)  # defined by self._unix_fds
         signature = header_fields.pop("signature", "")
         if not self._body_len:
             tree = SIGNATURE_TREE_EMPTY
