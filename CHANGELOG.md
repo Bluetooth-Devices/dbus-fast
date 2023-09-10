@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.2.0 (2023-09-10)
+
+### Feature
+
+* Speed up unmarshalling by skipping unused unix_fds header ([#246](https://github.com/Bluetooth-Devices/dbus-fast/issues/246)) ([`5f5a150`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5f5a150ca01810bf3a2a90043f77ee7100c8242d))
+
 ## v2.1.0 (2023-09-10)
 
 ### Feature
