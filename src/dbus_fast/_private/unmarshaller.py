@@ -108,19 +108,19 @@ SCM_RIGHTS = socket.SCM_RIGHTS
 EAGAIN = errno.EAGAIN
 EWOULDBLOCK = errno.EWOULDBLOCK
 
-HEADER_UNIX_FDS_IDX = 9
-
-HEADER_MESSAGE_ARG_NAME = {
-    1: "path",
-    2: "interface",
-    3: "member",
-    4: "error_name",
-    5: "reply_serial",
-    6: "destination",
-    7: "sender",
-    8: "signature",
-    HEADER_UNIX_FDS_IDX: "unix_fds",
-}
+HEADER_IDX_TO_ARG_NAME = [
+    "",
+    "path",
+    "interface",
+    "member",
+    "error_name",
+    "reply_serial",
+    "destination",
+    "sender",
+    "signature",
+    "unix_fds",
+]
+HEADER_UNIX_FDS_IDX = HEADER_IDX_TO_ARG_NAME.index("unix_fds")
 
 _SignatureType = SignatureType
 _int = int
@@ -586,7 +586,7 @@ class Unmarshaller:
                 continue
             token_as_int = buf[o]
             # Now that we have the token we can read the variant value
-            key = HEADER_MESSAGE_ARG_NAME[field_0]
+            key = HEADER_IDX_TO_ARG_NAME[field_0]
             # Strings and signatures are the most common types
             # so we inline them for performance
             if token_as_int == TOKEN_O_AS_INT or token_as_int == TOKEN_S_AS_INT:
