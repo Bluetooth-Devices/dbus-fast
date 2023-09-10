@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.1.0 (2023-09-10)
+
+### Feature
+
+* Reduce overhead to reset between messages ([#245](https://github.com/Bluetooth-Devices/dbus-fast/issues/245)) ([`da30b04`](https://github.com/Bluetooth-Devices/dbus-fast/commit/da30b04a15aed08ba920fabd0abad372e953c394))
+
 ## v2.0.1 (2023-09-08)
 
 ### Fix
