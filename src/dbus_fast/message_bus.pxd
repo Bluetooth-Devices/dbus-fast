@@ -1,5 +1,6 @@
 import cython
 
+from ._private.address cimport get_bus_address, parse_address
 from .message cimport Message
 from .service cimport ServiceInterface, _Method
 
@@ -10,18 +11,19 @@ cdef object MessageFlag
 
 cdef object MESSAGE_TYPE_CALL
 cdef object MESSAGE_TYPE_SIGNAL
-cdef object NO_REPLY_EXPECTED_VALUE
+cdef cython.uint NO_REPLY_EXPECTED_VALUE
 cdef object BLOCK_UNEXPECTED_REPLY
 cdef object assert_object_path_valid
 cdef object assert_bus_name_valid
 
-cdef _expects_reply(Message msg)
+@cython.locals(flag_value=cython.uint)
+cdef bint _expects_reply(Message msg)
 
 
 cdef class BaseMessageBus:
 
     cdef public object unique_name
-    cdef public object _disconnected
+    cdef public bint _disconnected
     cdef public object _user_disconnect
     cdef public cython.dict _method_return_handlers
     cdef public object _serial
@@ -48,3 +50,5 @@ cdef class BaseMessageBus:
         interfaces=cython.list,
     )
     cdef _find_message_handler(self, Message msg)
+
+    cdef _setup_socket(self)

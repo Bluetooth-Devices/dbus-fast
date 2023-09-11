@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.3.0 (2023-09-11)
+
+### Feature
+
+* Speed up connect and disconnect ([#247](https://github.com/Bluetooth-Devices/dbus-fast/issues/247)) ([`8f39ba3`](https://github.com/Bluetooth-Devices/dbus-fast/commit/8f39ba3ada1dfdec8d7230c77e52ef802e91b23d))
+
 ## v2.2.0 (2023-09-10)
 
 ### Feature
