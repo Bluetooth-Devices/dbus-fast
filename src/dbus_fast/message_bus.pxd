@@ -36,10 +36,10 @@ cdef class BaseMessageBus:
     cdef public object _high_level_client_initialized
     cdef public object _ProxyObject
     cdef public object _machine_id
-    cdef object _negotiate_unix_fd
-    cdef object _sock
-    cdef object _stream
-    cdef object _fd
+    cdef public object _negotiate_unix_fd
+    cdef public object _sock
+    cdef public object _stream
+    cdef public object _fd
 
     cpdef _process_message(self, Message msg)
 
