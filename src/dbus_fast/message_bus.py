@@ -155,6 +155,8 @@ class BaseMessageBus:
         # machine id is lazy loaded
         self._machine_id: Optional[int] = None
         self._sock: Optional[socket.socket] = None
+        self._fd: Optional[int] = None
+        self._stream: Optional[Any] = None
 
         self._setup_socket()
 
