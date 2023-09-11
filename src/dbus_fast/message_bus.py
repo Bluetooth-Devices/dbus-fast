@@ -36,7 +36,8 @@ _Message = Message
 
 def _expects_reply(msg: _Message) -> bool:
     """Whether a message expects a reply."""
-    return not (msg.flags.value & NO_REPLY_EXPECTED_VALUE)
+    flag_value = msg.flags.value
+    return not (flag_value & NO_REPLY_EXPECTED_VALUE)
 
 
 def _block_unexpected_reply(reply: _Message) -> None:
@@ -153,6 +154,9 @@ class BaseMessageBus:
 
         # machine id is lazy loaded
         self._machine_id: Optional[int] = None
+        self._sock: Optional[socket.socket] = None
+        self._fd: Optional[int] = None
+        self._stream: Optional[Any] = None
 
         self._setup_socket()
 
@@ -587,7 +591,7 @@ class BaseMessageBus:
 
         self._method_return_handlers.clear()
 
-        for path in list(self._path_exports.keys()):
+        for path in list(self._path_exports):
             self.unexport(path)
 
         self._user_message_handlers.clear()
