@@ -8,8 +8,10 @@ from ..errors import InvalidAddressError
 
 invalid_address_chars_re = re.compile(r"[^-0-9A-Za-z_/.%]")
 
+str_ = str
 
-def parse_address(address_str: str) -> List[Tuple[str, Dict[str, str]]]:
+
+def parse_address(address_str: str_) -> List[Tuple[str, Dict[str, str]]]:
     """Parse a dbus address string into a list of addresses."""
     addresses: List[Tuple[str, Dict[str, str]]] = []
 

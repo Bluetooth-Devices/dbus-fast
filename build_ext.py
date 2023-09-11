@@ -28,6 +28,7 @@ def build(setup_kwargs):
                         "src/dbus_fast/service.py",
                         "src/dbus_fast/signature.py",
                         "src/dbus_fast/unpack.py",
+                        "src/dbus_fast/_private/address.py",
                         "src/dbus_fast/_private/marshaller.py",
                         "src/dbus_fast/_private/unmarshaller.py",
                     ],

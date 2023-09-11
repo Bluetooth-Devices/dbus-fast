@@ -43,7 +43,7 @@ cdef class Message:
     cdef public object error_name
     cdef public object reply_serial
     cdef public object sender
-    cdef public object unix_fds
+    cdef public cython.list unix_fds
     cdef public object signature
     cdef public object signature_tree
     cdef public object body
