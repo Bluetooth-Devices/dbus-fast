@@ -26,6 +26,19 @@ from .proxy_object import ProxyObject
 NO_REPLY_EXPECTED_VALUE = MessageFlag.NO_REPLY_EXPECTED.value
 
 
+def _generate_hello_serialized(next_serial: int) -> bytes:
+    return Message(
+        destination="org.freedesktop.DBus",
+        path="/org/freedesktop/DBus",
+        interface="org.freedesktop.DBus",
+        member="Hello",
+        serial=next_serial,
+    )._marshall(False)
+
+
+HELLO_1_SERIALIZED = _generate_hello_serialized(1)
+
+
 def _future_set_exception(fut: asyncio.Future, exc: Exception) -> None:
     if fut is not None and not fut.done():
         fut.set_exception(exc)
@@ -234,18 +247,14 @@ class MessageBus(BaseMessageBus):
                 self.disconnect()
                 self._finalize(err)
 
-        hello_msg = Message(
-            destination="org.freedesktop.DBus",
-            path="/org/freedesktop/DBus",
-            interface="org.freedesktop.DBus",
-            member="Hello",
-            serial=self.next_serial(),
-        )
-
-        self._method_return_handlers[hello_msg.serial] = on_hello
-        self._stream.write(hello_msg._marshall(False))
+        next_serial = self.next_serial()
+        self._method_return_handlers[next_serial] = on_hello
+        if next_serial == 1:
+            serialized = HELLO_1_SERIALIZED
+        else:
+            serialized = _generate_hello_serialized(next_serial)
+        self._stream.write(serialized)
         self._stream.flush()
-
         return await future
 
     async def introspect(
