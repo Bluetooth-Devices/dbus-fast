@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.6.0 (2023-09-12)
+
+### Feature
+
+* Speed up first connection when using asyncio ([#251](https://github.com/Bluetooth-Devices/dbus-fast/issues/251)) ([`0b6ba93`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0b6ba93f733a78f1fb52ddfa24163de44f09df53))
+
 ## v2.5.0 (2023-09-12)
 
 ### Feature
