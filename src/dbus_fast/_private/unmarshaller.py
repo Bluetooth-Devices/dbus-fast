@@ -622,26 +622,26 @@ class Unmarshaller:
         ):
             self._is_native = 1  # pragma: no cover
             self._body_len = _cast_uint32_native(  # type: ignore[name-defined] # pragma: no cover
-                self._buf, 4
+                buffer, 4
             )
             self._serial = _cast_uint32_native(  # type: ignore[name-defined] # pragma: no cover
-                self._buf, 8
+                buffer, 8
             )
             self._header_len = _cast_uint32_native(  # type: ignore[name-defined] # pragma: no cover
-                self._buf, 12
+                buffer, 12
             )
         elif endian == LITTLE_ENDIAN:
             (
                 self._body_len,
                 self._serial,
                 self._header_len,
-            ) = UNPACK_HEADER_LITTLE_ENDIAN(self._buf, 4)
+            ) = UNPACK_HEADER_LITTLE_ENDIAN(buffer, 4)
             self._uint32_unpack = UINT32_UNPACK_LITTLE_ENDIAN
             self._int16_unpack = INT16_UNPACK_LITTLE_ENDIAN
             self._uint16_unpack = UINT16_UNPACK_LITTLE_ENDIAN
         elif endian == BIG_ENDIAN:
             self._body_len, self._serial, self._header_len = UNPACK_HEADER_BIG_ENDIAN(
-                self._buf, 4
+                buffer, 4
             )
             self._uint32_unpack = UINT32_UNPACK_BIG_ENDIAN
             self._int16_unpack = INT16_UNPACK_BIG_ENDIAN
