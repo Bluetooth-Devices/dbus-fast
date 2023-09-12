@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.5.0 (2023-09-12)
+
+### Feature
+
+* Speed up unmarshaller ([#250](https://github.com/Bluetooth-Devices/dbus-fast/issues/250)) ([`e4cae13`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e4cae13e1a25356437658a03ee60522a68a56d56))
+
 ## v2.4.0 (2023-09-12)
 
 ### Feature
