@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.4.0 (2023-09-12)
+
+### Feature
+
+* Add cython typing for ServiceInterface.name ([#248](https://github.com/Bluetooth-Devices/dbus-fast/issues/248)) ([`98c7e75`](https://github.com/Bluetooth-Devices/dbus-fast/commit/98c7e753755741967bad0618f056605bc2eaa743))
+
 ## v2.3.0 (2023-09-11)
 
 ### Feature
