@@ -20,7 +20,7 @@ def build_message_reader(
         try:
             while True:
                 message = unmarshaller._unmarshall()
-                if not message:
+                if message is None:
                     return
                 try:
                     process(message)

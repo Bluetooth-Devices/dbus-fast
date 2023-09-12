@@ -130,7 +130,7 @@ cdef class Unmarshaller:
 
     cdef _next_message(self)
 
-    cdef _has_another_message_in_buffer(self)
+    cdef bint _has_another_message_in_buffer(self)
 
     @cython.locals(
         msg=cython.bytes,
@@ -199,6 +199,7 @@ cdef class Unmarshaller:
 
     @cython.locals(
         endian=cython.uint,
+        buffer=cython.bytearray,
         protocol_version=cython.uint,
         key=cython.str,
     )
