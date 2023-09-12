@@ -18,7 +18,7 @@ cdef class _Method:
 
 cdef class ServiceInterface:
 
-    cdef public object name
+    cdef public str name
     cdef list __methods
     cdef list __properties
     cdef list __signals

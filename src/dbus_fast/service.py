@@ -343,7 +343,7 @@ class ServiceInterface:
     :vartype name: str
     """
 
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         # TODO cannot be overridden by a dbus member
         self.name = name
         self.__methods: List[_Method] = []
