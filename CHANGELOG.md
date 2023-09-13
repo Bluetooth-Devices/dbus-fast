@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.7.0 (2023-09-13)
+
+### Feature
+
+* Speed up readers in the unmarshall path ([#253](https://github.com/Bluetooth-Devices/dbus-fast/issues/253)) ([`f9b61b8`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f9b61b8bc734b0179bde2c08e46c02de65f27e50))
+
 ## v2.6.0 (2023-09-12)
 
 ### Feature
