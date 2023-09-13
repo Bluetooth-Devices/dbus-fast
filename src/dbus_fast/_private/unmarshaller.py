@@ -300,7 +300,7 @@ class Unmarshaller:
                 self._unix_fds.extend(
                     ARRAY("i", data[: len(data) - (len(data) % MAX_UNIX_FDS_SIZE)])
                 )
-        if not data:
+        if not msg:
             raise EOFError()
         self._buf += msg
         if len(self._buf) < pos:
