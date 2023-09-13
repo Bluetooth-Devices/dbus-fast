@@ -300,7 +300,7 @@ class Unmarshaller:
                 self._unix_fds.extend(
                     ARRAY("i", data[: len(data) - (len(data) % MAX_UNIX_FDS_SIZE)])
                 )
-        if msg == b"":
+        if not data:
             raise EOFError()
         self._buf += msg
         if len(self._buf) < pos:
@@ -322,7 +322,7 @@ class Unmarshaller:
                 if errno == EAGAIN or errno == EWOULDBLOCK:
                     raise MARSHALL_STREAM_END_ERROR
                 raise
-            if data == b"":
+            if not data:
                 raise EOFError()
             self._buf += data
             if len(self._buf) >= pos:
@@ -333,7 +333,7 @@ class Unmarshaller:
         data = self._stream_reader(missing_bytes)  # type: ignore[misc]
         if data is None:
             raise MARSHALL_STREAM_END_ERROR
-        if data == b"":
+        if not data:
             raise EOFError()
         self._buf += data
         if len(self._buf) < pos:
