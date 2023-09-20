@@ -79,6 +79,11 @@ cdef SignatureType SIGNATURE_TREE_A_OA_SA_SV_TYPES_0
 cdef unsigned int TOKEN_O_AS_INT
 cdef unsigned int TOKEN_S_AS_INT
 cdef unsigned int TOKEN_G_AS_INT
+cdef unsigned int TOKEN_N_AS_INT
+cdef unsigned int TOKEN_A_AS_INT
+cdef unsigned int TOKEN_B_AS_INT
+cdef unsigned int TOKEN_U_AS_INT
+cdef unsigned int TOKEN_Y_AS_INT
 
 cdef object MARSHALL_STREAM_END_ERROR
 cdef object DEFAULT_BUFFER_SIZE
@@ -177,6 +182,7 @@ cdef class Unmarshaller:
 
     @cython.locals(
         tree=SignatureTree,
+        token_as_int=cython.uint,
     )
     cdef Variant _read_variant(self)
 

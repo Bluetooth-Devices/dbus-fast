@@ -97,9 +97,14 @@ SIGNATURE_TREE_OA_SA_SV_TYPES_1 = SIGNATURE_TREE_OA_SA_SV.types[1]
 SIGNATURE_TREE_A_OA_SA_SV = get_signature_tree("a{oa{sa{sv}}}")
 SIGNATURE_TREE_A_OA_SA_SV_TYPES_0 = SIGNATURE_TREE_A_OA_SA_SV.types[0]
 
+TOKEN_B_AS_INT = ord("b")
+TOKEN_U_AS_INT = ord("u")
+TOKEN_Y_AS_INT = ord("y")
+TOKEN_A_AS_INT = ord("o")
 TOKEN_O_AS_INT = ord("o")
 TOKEN_S_AS_INT = ord("s")
 TOKEN_G_AS_INT = ord("g")
+TOKEN_N_AS_INT = ord("n")
 
 ARRAY = array.array
 SOL_SOCKET = socket.SOL_SOCKET
@@ -432,42 +437,43 @@ class Unmarshaller:
 
     def _read_variant(self) -> Variant:
         signature = self._read_signature()
+        token_as_int = signature[0]
         # verify in Variant is only useful on construction not unmarshalling
-        if signature == "n":
+        if token_as_int == TOKEN_N_AS_INT:
             return Variant(SIGNATURE_TREE_N, self._read_int16_unpack(), False)
-        elif signature == "ay":
+        elif token_as_int == TOKEN_A_AS_INT and signature == "ay":
             return Variant(
                 SIGNATURE_TREE_AY, self.read_array(SIGNATURE_TREE_AY_TYPES_0), False
             )
-        elif signature == "a{qv}":
+        elif token_as_int == TOKEN_A_AS_INT and signature == "a{qv}":
             return Variant(
                 SIGNATURE_TREE_A_QV,
                 self.read_array(SIGNATURE_TREE_A_QV_TYPES_0),
                 False,
             )
-        elif signature == "s":
+        elif token_as_int == TOKEN_S_AS_INT:
             return Variant(SIGNATURE_TREE_S, self._read_string_unpack(), False)
-        elif signature == "b":
+        elif token_as_int == TOKEN_B_AS_INT:
             return Variant(SIGNATURE_TREE_B, self._read_boolean(), False)
-        elif signature == "o":
+        elif token_as_int == TOKEN_O_AS_INT:
             return Variant(SIGNATURE_TREE_O, self._read_string_unpack(), False)
-        elif signature == "as":
+        elif token_as_int == TOKEN_A_AS_INT and signature == "as":
             return Variant(
                 SIGNATURE_TREE_AS, self.read_array(SIGNATURE_TREE_AS_TYPES_0), False
             )
-        elif signature == "a{sv}":
+        elif token_as_int == TOKEN_A_AS_INT and signature == "a{sv}":
             return Variant(
                 SIGNATURE_TREE_A_SV,
                 self.read_array(SIGNATURE_TREE_A_SV_TYPES_0),
                 False,
             )
-        elif signature == "ao":
+        elif token_as_int == TOKEN_A_AS_INT and signature == "ao":
             return Variant(
                 SIGNATURE_TREE_AO, self.read_array(SIGNATURE_TREE_AO_TYPES_0), False
             )
-        elif signature == "u":
+        elif token_as_int == TOKEN_U_AS_INT:
             return Variant(SIGNATURE_TREE_U, self._read_uint32_unpack(), False)
-        elif signature == "y":
+        elif token_as_int == TOKEN_Y_AS_INT:
             self._pos += 1
             return Variant(SIGNATURE_TREE_Y, self._buf[self._pos - 1], False)
         tree = get_signature_tree(signature)
