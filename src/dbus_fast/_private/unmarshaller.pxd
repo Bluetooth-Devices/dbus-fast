@@ -213,7 +213,8 @@ cdef class Unmarshaller:
 
     @cython.locals(
         body=cython.list,
-        header_fields=cython.dict
+        header_fields=cython.dict,
+        token_as_int=cython.uint,
     )
     cdef _read_body(self)
 

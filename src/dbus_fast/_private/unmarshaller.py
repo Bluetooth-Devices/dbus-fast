@@ -671,35 +671,36 @@ class Unmarshaller:
         header_fields = self._header_fields(self._header_len)
         self._pos += -self._pos & 7  # align 8
         signature = header_fields.pop("signature", "")
+        token_as_int = signature[0]
         if not self._body_len:
             tree = SIGNATURE_TREE_EMPTY
             body: List[Any] = []
-        elif signature == "s":
+        elif token_as_int == TOKEN_S_AS_INT:
             tree = SIGNATURE_TREE_S
             body = [self._read_string_unpack()]
-        elif signature == "sa{sv}as":
+        elif token_as_int == TOKEN_S_AS_INT and signature == "sa{sv}as":
             tree = SIGNATURE_TREE_SA_SV_AS
             body = [
                 self._read_string_unpack(),
                 self.read_array(SIGNATURE_TREE_SA_SV_AS_TYPES_1),
                 self.read_array(SIGNATURE_TREE_SA_SV_AS_TYPES_2),
             ]
-        elif signature == "oa{sa{sv}}":
+        elif token_as_int == TOKEN_O_AS_INT and signature == "oa{sa{sv}}":
             tree = SIGNATURE_TREE_OA_SA_SV
             body = [
                 self._read_string_unpack(),
                 self.read_array(SIGNATURE_TREE_OA_SA_SV_TYPES_1),
             ]
-        elif signature == "oas":
+        elif token_as_int == TOKEN_O_AS_INT and signature == "oas":
             tree = SIGNATURE_TREE_OAS
             body = [
                 self._read_string_unpack(),
                 self.read_array(SIGNATURE_TREE_OAS_TYPES_1),
             ]
-        elif signature == "a{oa{sa{sv}}}":
+        elif token_as_int == TOKEN_A_AS_INT and signature == "a{oa{sa{sv}}}":
             tree = SIGNATURE_TREE_A_OA_SA_SV
             body = [self.read_array(SIGNATURE_TREE_A_OA_SA_SV_TYPES_0)]
-        elif signature == "o":
+        elif token_as_int == TOKEN_O_AS_INT:
             tree = SIGNATURE_TREE_O
             body = [self._read_string_unpack()]
         else:
