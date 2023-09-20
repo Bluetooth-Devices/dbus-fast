@@ -679,11 +679,11 @@ class Unmarshaller:
         else:
             token_as_int = ord(signature[0])
             if len(signature) == 1:
-                if token_as_int == TOKEN_S_AS_INT:
-                    tree = SIGNATURE_TREE_S
-                    body = [self._read_string_unpack()]
-                elif token_as_int == TOKEN_O_AS_INT:
+                if token_as_int == TOKEN_O_AS_INT:
                     tree = SIGNATURE_TREE_O
+                    body = [self._read_string_unpack()]
+                elif token_as_int == TOKEN_S_AS_INT:
+                    tree = SIGNATURE_TREE_S
                     body = [self._read_string_unpack()]
                 else:
                     tree = get_signature_tree(signature)
