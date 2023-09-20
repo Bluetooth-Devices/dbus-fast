@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.9.0 (2023-09-20)
+
+### Feature
+
+* Speed up unmarshalling message body ([#255](https://github.com/Bluetooth-Devices/dbus-fast/issues/255)) ([`5aed075`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5aed07516611692f935cac6fb612204c6f419fec))
+
 ## v2.8.0 (2023-09-20)
 
 ### Feature
