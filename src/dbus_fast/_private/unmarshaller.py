@@ -437,7 +437,7 @@ class Unmarshaller:
 
     def _read_variant(self) -> Variant:
         signature = self._read_signature()
-        token_as_int = signature[0]
+        token_as_int = ord(signature[0])
         # verify in Variant is only useful on construction not unmarshalling
         if len(signature) == 1:
             if token_as_int == TOKEN_N_AS_INT:
@@ -677,7 +677,7 @@ class Unmarshaller:
             tree = SIGNATURE_TREE_EMPTY
             body: List[Any] = []
         else:
-            token_as_int = signature[0]
+            token_as_int = ord(signature[0])
             if len(signature) == 1:
                 if token_as_int == TOKEN_S_AS_INT:
                     tree = SIGNATURE_TREE_S
