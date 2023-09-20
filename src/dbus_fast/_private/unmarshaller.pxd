@@ -215,6 +215,7 @@ cdef class Unmarshaller:
         body=cython.list,
         header_fields=cython.dict,
         token_as_int=cython.uint,
+        signature=cython.str,
     )
     cdef _read_body(self)
 
