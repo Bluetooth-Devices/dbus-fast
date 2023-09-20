@@ -670,7 +670,7 @@ class Unmarshaller:
         self._pos = HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
         header_fields = self._header_fields(self._header_len)
         self._pos += -self._pos & 7  # align 8
-        signature = header_fields.pop("signature", "")
+        signature = header_fields.pop("signature")
         token_as_int = signature[0]
         if not self._body_len:
             tree = SIGNATURE_TREE_EMPTY
