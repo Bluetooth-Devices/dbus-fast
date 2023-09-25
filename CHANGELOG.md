@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.10.0 (2023-09-25)
+
+### Feature
+
+* Speed up constructing Variant objects ([#256](https://github.com/Bluetooth-Devices/dbus-fast/issues/256)) ([`0d7a665`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0d7a6652d797efcffaa0fa35039252c33522c15e))
+
 ## v2.9.0 (2023-09-20)
 
 ### Feature
