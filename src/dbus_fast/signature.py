@@ -24,16 +24,19 @@ class SignatureType:
     __slots__ = ("token", "children", "_signature")
 
     def __init__(self, token: str) -> None:
-        self.token = token
+        """Init a new SignatureType."""
+        self.token: str = token
         self.children: List[SignatureType] = []
         self._signature: Optional[str] = None
 
     def __eq__(self, other: Any) -> bool:
+        """Compare this type to another type or signature string."""
         if type(other) is SignatureType:
             return self.signature == other.signature
         return super().__eq__(other)
 
     def _collapse(self) -> str:
+        """Collapse this type into a signature string."""
         if self.token not in "a({":
             return self.token
 
