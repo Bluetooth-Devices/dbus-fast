@@ -105,6 +105,14 @@ TOKEN_O_AS_INT = ord("o")
 TOKEN_S_AS_INT = ord("s")
 TOKEN_G_AS_INT = ord("g")
 TOKEN_N_AS_INT = ord("n")
+TOKEN_X_AS_INT = ord("x")
+TOKEN_T_AS_INT = ord("t")
+TOKEN_D_AS_INT = ord("d")
+TOKEN_Q_AS_INT = ord("q")
+TOKEN_V_AS_INT = ord("v")
+TOKEN_LEFT_CURLY_AS_INT = ord("{")
+TOKEN_LEFT_PAREN_AS_INT = ord("(")
+
 
 ARRAY = array.array
 SOL_SOCKET = socket.SOL_SOCKET
@@ -513,46 +521,61 @@ class Unmarshaller:
         else:
             array_length = self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]  # type: ignore[misc]
 
-        child_type = type_.children[0]
-        token = child_type.token
+        child_type: SignatureType = type_.children[0]
+        token_as_int = ord(child_type.token[0])
 
-        if token in "xtd{(":
+        if (
+            token_as_int == TOKEN_X_AS_INT
+            or token_as_int == TOKEN_T_AS_INT
+            or token_as_int == TOKEN_D_AS_INT
+            or token_as_int == TOKEN_LEFT_CURLY_AS_INT
+            or token_as_int == TOKEN_LEFT_PAREN_AS_INT
+        ):
             # the first alignment is not included in the array size
             self._pos += -self._pos & 7  # align 8
 
-        if token == "y":
+        if token_as_int == TOKEN_Y_AS_INT:
             self._pos += array_length
             return self._buf[self._pos - array_length : self._pos]
 
-        if token == "{":
+        if token_as_int == TOKEN_LEFT_CURLY_AS_INT:
             result_dict: Dict[Any, Any] = {}
             beginning_pos = self._pos
             children = child_type.children
             child_0 = children[0]
             child_1 = children[1]
-            child_0_token = child_0.token
-            child_1_token = child_1.token
+            child_0_token_as_int = ord(child_0.token[0])
+            child_1_token_as_int = ord(child_1.token[0])
             # Strings with variant values are the most common case
             # so we optimize for that by inlining the string reading
             # and the variant reading here
-            if child_0_token in "os" and child_1_token == "v":
+            if (
+                child_0_token_as_int == TOKEN_O_AS_INT
+                or child_0_token_as_int == TOKEN_S_AS_INT
+            ) and child_1_token_as_int == TOKEN_V_AS_INT:
                 while self._pos - beginning_pos < array_length:
                     self._pos += -self._pos & 7  # align 8
                     key: Union[str, int] = self._read_string_unpack()
                     result_dict[key] = self._read_variant()
-            elif child_0_token == "q" and child_1_token == "v":
+            elif (
+                child_0_token_as_int == TOKEN_Q_AS_INT
+                and child_1_token_as_int == TOKEN_V_AS_INT
+            ):
                 while self._pos - beginning_pos < array_length:
                     self._pos += -self._pos & 7  # align 8
                     key = self._read_uint16_unpack()
                     result_dict[key] = self._read_variant()
-            elif child_0_token in "os" and child_1_token == "a":
+            if (
+                child_0_token_as_int == TOKEN_O_AS_INT
+                or child_0_token_as_int == TOKEN_S_AS_INT
+            ) and child_1_token_as_int == TOKEN_A_AS_INT:
                 while self._pos - beginning_pos < array_length:
                     self._pos += -self._pos & 7  # align 8
                     key = self._read_string_unpack()
                     result_dict[key] = self.read_array(child_1)
             else:
-                reader_1 = self._readers[child_1_token]
-                reader_0 = self._readers[child_0_token]
+                reader_1 = self._readers[child_1.token]
+                reader_0 = self._readers[child_0.token]
                 while self._pos - beginning_pos < array_length:
                     self._pos += -self._pos & 7  # align 8
                     key = reader_0(self, child_0)
@@ -565,11 +588,11 @@ class Unmarshaller:
 
         result_list = []
         beginning_pos = self._pos
-        if token in "os":
+        if token_as_int == TOKEN_O_AS_INT or token_as_int == TOKEN_S_AS_INT:
             while self._pos - beginning_pos < array_length:
                 result_list.append(self._read_string_unpack())
             return result_list
-        reader = self._readers[token]
+        reader = self._readers[child_type.token]
         while self._pos - beginning_pos < array_length:
             result_list.append(reader(self, child_type))
         return result_list

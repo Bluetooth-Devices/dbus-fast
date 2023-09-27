@@ -76,14 +76,21 @@ cdef SignatureType SIGNATURE_TREE_A_QV_TYPES_0
 cdef SignatureTree SIGNATURE_TREE_A_OA_SA_SV
 cdef SignatureType SIGNATURE_TREE_A_OA_SA_SV_TYPES_0
 
+cdef unsigned int TOKEN_B_AS_INT
+cdef unsigned int TOKEN_U_AS_INT
+cdef unsigned int TOKEN_Y_AS_INT
+cdef unsigned int TOKEN_A_AS_INT
 cdef unsigned int TOKEN_O_AS_INT
 cdef unsigned int TOKEN_S_AS_INT
 cdef unsigned int TOKEN_G_AS_INT
 cdef unsigned int TOKEN_N_AS_INT
-cdef unsigned int TOKEN_A_AS_INT
-cdef unsigned int TOKEN_B_AS_INT
-cdef unsigned int TOKEN_U_AS_INT
-cdef unsigned int TOKEN_Y_AS_INT
+cdef unsigned int TOKEN_X_AS_INT
+cdef unsigned int TOKEN_T_AS_INT
+cdef unsigned int TOKEN_D_AS_INT
+cdef unsigned int TOKEN_Q_AS_INT
+cdef unsigned int TOKEN_V_AS_INT
+cdef unsigned int TOKEN_LEFT_CURLY_AS_INT
+cdef unsigned int TOKEN_LEFT_PAREN_AS_INT
 
 cdef object MARSHALL_STREAM_END_ERROR
 cdef object DEFAULT_BUFFER_SIZE
@@ -192,6 +199,8 @@ cdef class Unmarshaller:
         child_type=SignatureType,
         child_0=SignatureType,
         child_1=SignatureType,
+        token=cython.str,
+        token_as_int=cython.uint,
     )
     cpdef object read_array(self, SignatureType type_)
 
