@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.11.0 (2023-09-27)
+
+### Feature
+
+* Speed up unpacking arrays ([#257](https://github.com/Bluetooth-Devices/dbus-fast/issues/257)) ([`5c8bfe5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5c8bfe5e15a1c5de150975ebdaf1677801397555))
+
 ## v2.10.0 (2023-09-25)
 
 ### Feature
