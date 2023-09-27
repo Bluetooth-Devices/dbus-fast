@@ -196,10 +196,10 @@ cdef class Unmarshaller:
     @cython.locals(
         beginning_pos=cython.ulong,
         array_length=cython.uint,
+        children=cython.list,
         child_type=SignatureType,
         child_0=SignatureType,
         child_1=SignatureType,
-        token=cython.str,
         token_as_int=cython.uint,
     )
     cpdef object read_array(self, SignatureType type_)
