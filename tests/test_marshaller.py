@@ -680,8 +680,8 @@ def test_unmarshall_mount_message_2():
     ]
 
 
-def test_unmarshall_mount_message_3():
-    """Test we mount message unmarshall version 3."""
+def test_unmarshall_multi_byte_string():
+    """Test unmarshall a multi-byte string."""
 
     mount_message = (
         b"l\x01\x00\x01\x1d\x00\x00\x00"
