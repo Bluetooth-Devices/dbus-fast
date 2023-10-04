@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.11.1 (2023-10-04)
+
+### Fix
+
+* Marshall multi-byte strings correctly ([#261](https://github.com/Bluetooth-Devices/dbus-fast/issues/261)) ([`4de31a3`](https://github.com/Bluetooth-Devices/dbus-fast/commit/4de31a36463ff8e2d85225973c4553c15623afb6))
+
 ## v2.11.0 (2023-09-27)
 
 ### Feature
