@@ -603,3 +603,40 @@ def test_unmarshall_bluez_passive_message():
     assert "/org/bluez/hci0/dev_58_D3_49_E6_02_6E" in str(message)
     unpacked = unpack_variants(message.body)
     assert unpacked == ["/org/bluez/hci0/dev_58_D3_49_E6_02_6E"]
+
+
+def test_unmarshall_mount_message():
+    """Test we mount message unmarshall."""
+
+    mount_message = (
+        b"l\1\0\1\30\1\0\0\213\1\0\0\266\0\0\0\1\1o\0\31\0\0\0/org/freedesktop/systemd1"
+        b"\0\0\0\0\0\0\0\2\1s\0 \0\0\0org.freedesktop.systemd1.Manager\0\0\0\0\0\0\0\0"
+        b"\3\1s\0\22\0\0\0StartTransientUnit\0\0\0\0\0\0\6\1s\0\30\0\0\0org.freedesktop"
+        b".systemd1\0\0\0\0\0\0\0\0\10\1g\0\20ssa(sv)a(sa(sv))\0\0\0)\0\0\0mnt-data-sup"
+        b"ervisor-mounts-test1234.mount\0\0\0\4\0\0\0fail\0\0\0\0\314\0\0\0\7\0\0\0Opti"
+        b"ons\0\1s\0\0I\0\0\0noserverino,credentials=/mnt/data/supervisor/.mounts_crede"
+        b"ntials/test1234\0\0\0\4\0\0\0Type\0\1s\0\4\0\0\0cifs\0\0\0\0\v\0\0\0Descripti"
+        b"on\0\1s\0\0\37\0\0\0Supervisor cifs mount: test1234\0\4\0\0\0What\0\1s\0\v\0\0"
+        b"\0//\303\274ber/test\0\0\0\0\0\0\0\0\0\0\0\0"
+    )
+
+    stream = io.BytesIO(mount_message)
+    unmarshaller = Unmarshaller(stream)
+    unmarshaller.unmarshall()
+    message = unmarshaller.message
+    assert unmarshaller.message.signature == "ssa(sv)a(sa(sv))"
+    unpacked = unpack_variants(message.body)
+    assert unpacked == [
+        "mnt-data-supervisor-mounts-test1234.mount",
+        "fail",
+        [
+            [
+                "Options",
+                "noserverino,credentials=/mnt/data/supervisor/.mounts_credentials/test1234",
+            ],
+            ["Type", "cifs"],
+            ["Description", "Supervisor cifs mount: test1234"],
+            ["What", "//über/tes"],
+        ],
+        [],
+    ]
