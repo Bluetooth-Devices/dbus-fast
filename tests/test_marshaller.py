@@ -640,3 +640,41 @@ def test_unmarshall_mount_message():
         ],
         [],
     ]
+
+
+def test_unmarshall_mount_message_2():
+    """Test we mount message unmarshall version 2."""
+
+    mount_message = (
+        b"l\1\0\1 \1\0\0+\6\0\0\266\0\0\0\1\1o\0\31\0\0\0/org/freedesktop/systemd1"
+        b"\0\0\0\0\0\0\0\2\1s\0 \0\0\0org.freedesktop.systemd1.Manager\0\0\0\0\0\0"
+        b"\0\0\3\1s\0\22\0\0\0StartTransientUnit\0\0\0\0\0\0\6\1s\0\30\0\0\0org.fr"
+        b"eedesktop.systemd1\0\0\0\0\0\0\0\0\10\1g\0\20ssa(sv)a(sa(sv))\0\0\0(\0\0"
+        b"\0mnt-data-supervisor-mounts-BadTest.mount\0\0\0\0\4\0\0\0fail\0\0\0\0\324"
+        b"\0\0\0\7\0\0\0Options\0\1s\0\0H\0\0\0noserverino,credentials=/mnt/data/su"
+        b"pervisor/.mounts_credentials/BadTest\0\0\0\0\4\0\0\0Type\0\1s\0\4\0\0\0cifs"
+        b"\0\0\0\0\v\0\0\0Description\0\1s\0\0\36\0\0\0Supervisor cifs mount: BadTest"
+        b"\0\0\4\0\0\0What\0\1s\0\23\0\0\0//doesntmatter/\303\274ber\0\0\0\0\0\0\0\0\0"
+        b"\0\0\0"
+    )
+
+    stream = io.BytesIO(mount_message)
+    unmarshaller = Unmarshaller(stream)
+    unmarshaller.unmarshall()
+    message = unmarshaller.message
+    assert unmarshaller.message.signature == "ssa(sv)a(sa(sv))"
+    unpacked = unpack_variants(message.body)
+    assert unpacked == [
+        "mnt-data-supervisor-mounts-BadTest.mount",
+        "fail",
+        [
+            [
+                "Options",
+                "noserverino,credentials=/mnt/data/supervisor/.mounts_credentials/BadTest",
+            ],
+            ["Type", "cifs"],
+            ["Description", "Supervisor cifs mount: BadTest"],
+            ["What", "//doesntmatter/übe"],
+        ],
+        [],
+    ]
