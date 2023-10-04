@@ -68,7 +68,7 @@ class Marshaller:
 
     def _write_string(self, value: _str) -> int:
         value_bytes = value.encode()
-        value_len = len(value)
+        value_len = len(value_bytes)
         written = self._align(4) + 4
         buf = self._buf
         buf += PACK_UINT32(value_len)

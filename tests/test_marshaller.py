@@ -678,3 +678,39 @@ def test_unmarshall_mount_message_2():
         ],
         [],
     ]
+
+
+def test_unmarshall_mount_message_3():
+    """Test we mount message unmarshall version 3."""
+
+    mount_message = (
+        b"l\x01\x00\x01\x1d\x00\x00\x00"
+        b"\x01\x00\x00\x00x\x00\x00\x00"
+        b"\x01\x01o\x00\x15\x00\x00\x00"
+        b"/org/fre"
+        b"edesktop"
+        b"/DBus\x00\x00\x00"
+        b"\x02\x01s\x00\x14\x00\x00\x00"
+        b"org.free"
+        b"desktop."
+        b"DBus\x00\x00\x00\x00"
+        b"\x03\x01s\x00\x05\x00\x00\x00"
+        b"Hello\x00\x00\x00"
+        b"\x06\x01s\x00\x14\x00\x00\x00"
+        b"org.free"
+        b"desktop."
+        b"DBus\x00\x00\x00\x00"
+        b"\x08\x01g\x00\x02as\x00"
+        b"\x19\x00\x00\x00\x14\x00\x00\x00"
+        b"//doesnt"
+        b"matter/\xc3"
+        b"\xbcber\x00"
+    )
+
+    stream = io.BytesIO(mount_message)
+    unmarshaller = Unmarshaller(stream)
+    unmarshaller.unmarshall()
+    message = unmarshaller.message
+    assert unmarshaller.message.signature == "as"
+    unpacked = unpack_variants(message.body)
+    assert unpacked == [["//doesntmatter/über"]]
