@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v2.12.0 (2023-10-18)
+
+### Feature
+
+* Update for final cpython release ([#263](https://github.com/Bluetooth-Devices/dbus-fast/issues/263)) ([`460a072`](https://github.com/Bluetooth-Devices/dbus-fast/commit/460a072652793829b217720846fbf10f8e2ebadb))
+
+### Fix
+
+* Reduce size of wheels by excluding generated .c files ([#262](https://github.com/Bluetooth-Devices/dbus-fast/issues/262)) ([`dca4599`](https://github.com/Bluetooth-Devices/dbus-fast/commit/dca459900e19e7340b68601d13422c83a7d67a19))
+
 ## v2.11.1 (2023-10-04)
 
 ### Fix
