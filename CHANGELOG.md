@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.13.0 (2023-11-07)
+
+### Feature
+
+* Improve marshaller performance ([#264](https://github.com/Bluetooth-Devices/dbus-fast/issues/264)) ([`5bdb161`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5bdb161c0a70074e0466e9332dce9c27b497916b))
+
 ## v2.12.1 (2023-11-07)
 
 ### Fix
