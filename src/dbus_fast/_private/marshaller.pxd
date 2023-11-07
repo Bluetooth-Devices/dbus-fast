@@ -64,7 +64,7 @@ cdef class Marshaller:
         packer=cython.object,
         i=cython.uint,
     )
-    cdef unsigned int _write_array(self, cython.list array, SignatureType type_)
+    cdef unsigned int _write_array(self, object array, SignatureType type_)
 
     cpdef write_struct(self, object array, SignatureType type_)
 
