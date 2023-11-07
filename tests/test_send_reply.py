@@ -1,4 +1,5 @@
 import os
+from unittest.mock import patch
 
 import pytest
 
@@ -35,7 +36,8 @@ def test_send_reply_exception() -> None:
         def _setup_socket(self) -> None:
             pass
 
-    mock_message_bus = MockBus()
+    with patch("socket.socket.connect"):
+        mock_message_bus = MockBus()
     mock_message = Message(
         path="/test/path", interface="test.interface", member="test_member", serial=1
     )
@@ -65,7 +67,8 @@ def test_send_reply_happy_path() -> None:
         def _setup_socket(self) -> None:
             pass
 
-    mock_message_bus = MockBus()
+    with patch("socket.socket.connect"):
+        mock_message_bus = MockBus()
     mock_message = Message(
         path="/test/path", interface="test.interface", member="test_member", serial=1
     )
