@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.12.1 (2023-11-07)
+
+### Fix
+
+* Send reply test failure with cython ([#265](https://github.com/Bluetooth-Devices/dbus-fast/issues/265)) ([`e634fc2`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e634fc2c701c25353f805dbe5fe52f67fa896b7d))
+
 ## v2.12.0 (2023-10-18)
 
 ### Feature
