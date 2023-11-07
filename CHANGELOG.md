@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.13.1 (2023-11-07)
+
+### Fix
+
+* Re-release since the previous release ran out of space on PyPI ([#266](https://github.com/Bluetooth-Devices/dbus-fast/issues/266)) ([`1586221`](https://github.com/Bluetooth-Devices/dbus-fast/commit/158622157f547aba80bbd06579915d7a5e145d58))
+
 ## v2.13.0 (2023-11-07)
 
 ### Feature
