@@ -231,3 +231,9 @@ def test_variant_signature_type():
 
     with pytest.raises(SignatureBodyMismatchError):
         Variant(tree.types[0], "wrong")
+
+
+def test_struct_accepts_tuples_or_lists():
+    tree = SignatureTree("(s)")
+    tree.verify([("ok",)])
+    tree.verify([["ok"]])
