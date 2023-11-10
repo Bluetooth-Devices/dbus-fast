@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.14.0 (2023-11-10)
+
+### Feature
+
+* Add support for tuples to the marshaller ([#267](https://github.com/Bluetooth-Devices/dbus-fast/issues/267)) ([`0ccb7c5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0ccb7c5d879fc787c12e35c659b0be88bcbed7fe))
+
 ## v2.13.1 (2023-11-07)
 
 ### Fix
