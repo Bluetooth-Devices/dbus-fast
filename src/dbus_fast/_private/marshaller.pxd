@@ -72,7 +72,7 @@ cdef class Marshaller:
         written=cython.uint,
         i=cython.uint,
     )
-    cdef unsigned int _write_struct(self, cython.list array, SignatureType type_)
+    cdef unsigned int _write_struct(self, object array, SignatureType type_)
 
     cpdef write_variant(self, Variant variant, SignatureType type_)
 

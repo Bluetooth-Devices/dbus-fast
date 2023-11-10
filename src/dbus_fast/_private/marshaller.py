@@ -136,10 +136,14 @@ class Marshaller:
 
         return written + array_len
 
-    def write_struct(self, array: Iterable[Any], type_: SignatureType) -> int:
+    def write_struct(
+        self, array: Union[Tuple[Any], List[Any]], type_: SignatureType
+    ) -> int:
         return self._write_struct(array, type_)
 
-    def _write_struct(self, array: Iterable[Any], type_: SignatureType) -> int:
+    def _write_struct(
+        self, array: Union[Tuple[Any], List[Any]], type_: SignatureType
+    ) -> int:
         written = self._align(8)
         for i, value in enumerate(array):
             written += self._write_single(type_.children[i], value)
