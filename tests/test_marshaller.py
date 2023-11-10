@@ -714,3 +714,29 @@ def test_unmarshall_multi_byte_string():
     assert unmarshaller.message.signature == "as"
     unpacked = unpack_variants(message.body)
     assert unpacked == [["//doesntmatter/über"]]
+
+
+def test_marshalling_struct_accepts_tuples():
+    """Test marshalling a struct accepts tuples."""
+    msg = Message(
+        path="/test",
+        member="test",
+        signature="(s)",
+        body=[(RaucState.GOOD,)],
+    )
+    marshalled = msg._marshall(False)
+    unmarshalled_msg = Unmarshaller(io.BytesIO(marshalled)).unmarshall()
+    assert unpack_variants(unmarshalled_msg.body)[0] == [RaucState.GOOD.value]
+
+
+def test_marshalling_struct_accepts_lists():
+    """Test marshalling a struct accepts lists."""
+    msg = Message(
+        path="/test",
+        member="test",
+        signature="(s)",
+        body=[[RaucState.GOOD]],
+    )
+    marshalled = msg._marshall(False)
+    unmarshalled_msg = Unmarshaller(io.BytesIO(marshalled)).unmarshall()
+    assert unpack_variants(unmarshalled_msg.body)[0] == [RaucState.GOOD.value]

@@ -258,10 +258,9 @@ class SignatureType:
                 child_type.verify(member)
 
     def _verify_struct(self, body: Any) -> None:
-        # TODO allow tuples
-        if not isinstance(body, list):
+        if not isinstance(body, (list, tuple)):
             raise SignatureBodyMismatchError(
-                f'DBus STRUCT type "(" must be Python type "list", got {type(body)}'
+                f'DBus STRUCT type "(" must be Python type "list" or "tuple", got {type(body)}'
             )
 
         if len(body) != len(self.children):
