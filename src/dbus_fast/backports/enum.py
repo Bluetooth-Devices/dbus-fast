@@ -8,6 +8,8 @@ from typing import Any
 class StrEnum(str, Enum):
     """Partial backport of Python 3.11's StrEnum for our basic use cases."""
 
+    value: str
+
     def __new__(cls, value: str, *args: Any, **kwargs: Any) -> StrEnum:
         """Create a new StrEnum instance."""
         if not isinstance(value, str):
@@ -16,4 +18,4 @@ class StrEnum(str, Enum):
 
     def __str__(self) -> str:
         """Return self.value."""
-        return str(self.value)
+        return self.value
