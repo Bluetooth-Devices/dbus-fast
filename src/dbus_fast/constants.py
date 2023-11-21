@@ -91,7 +91,7 @@ class ArgDirection(Enum):
     OUT = "out"
 
 
-class ErrorType(Enum):
+class ErrorType(str, Enum):
     """An enum for the type of an error for a message reply.
 
     :seealso: http://man7.org/linux/man-pages/man3/sd-bus-errors.3.html
