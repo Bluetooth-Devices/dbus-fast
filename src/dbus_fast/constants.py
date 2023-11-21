@@ -1,5 +1,7 @@
 from enum import Enum, IntFlag
 
+from .backports.enum import StrEnum
+
 
 class BusType(Enum):
     """An enum that indicates a type of bus. On most systems, there are
@@ -66,7 +68,7 @@ class ReleaseNameReply(Enum):
     NOT_OWNER = 3
 
 
-class PropertyAccess(Enum):
+class PropertyAccess(StrEnum):
     """An enum that describes whether a DBus property can be gotten or set with
     the ``org.freedesktop.DBus.Properties`` interface.
     """
@@ -84,14 +86,14 @@ class PropertyAccess(Enum):
         return self == PropertyAccess.WRITE or self == PropertyAccess.READWRITE
 
 
-class ArgDirection(Enum):
+class ArgDirection(StrEnum):
     """For an introspected argument, indicates whether it is an input parameter or a return value."""
 
     IN = "in"
     OUT = "out"
 
 
-class ErrorType(Enum):
+class ErrorType(StrEnum):
     """An enum for the type of an error for a message reply.
 
     :seealso: http://man7.org/linux/man-pages/man3/sd-bus-errors.3.html

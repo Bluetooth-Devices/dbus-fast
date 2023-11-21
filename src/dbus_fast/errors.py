@@ -64,8 +64,8 @@ class DBusError(Exception):
     ) -> None:
         super().__init__(text)
 
-        if type(type_) is ErrorType:
-            type_ = type_.value
+        if type(type_) is str:
+            type_ = ErrorType(type_)
 
         assert_interface_name_valid(type_)  # type: ignore[arg-type]
         if reply is not None and type(reply) is not Message:
