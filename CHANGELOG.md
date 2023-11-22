@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.15.0 (2023-11-22)
+
+### Feature
+
+* Make ErrorType enums compare as strings ([#269](https://github.com/Bluetooth-Devices/dbus-fast/issues/269)) ([`c6a8301`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c6a8301704162e1c4d07470c32ca0830f531b6d4))
+
 ## v2.14.0 (2023-11-10)
 
 ### Feature
