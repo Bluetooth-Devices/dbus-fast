@@ -879,7 +879,7 @@ class BaseMessageBus:
             return
         body, fds = ServiceInterface._c_fn_result_to_body(
             result,
-            signature_tree=method.out_signature,
+            signature_tree=method.out_signature_tree,
             replace_fds=self._negotiate_unix_fd,
         )
         send_reply(
@@ -901,27 +901,28 @@ class BaseMessageBus:
     def _find_message_handler(
         self, msg: _Message
     ) -> Optional[Callable[[Message, Callable[[Message], None]], None]]:
-        if (
-            msg.interface == "org.freedesktop.DBus.Introspectable"
-            and msg.member == "Introspect"
-            and msg.signature == ""
-        ):
-            return self._default_introspect_handler
+        if msg.interface.startswith("org.freedesktop.DBus."):
+            if (
+                msg.interface == "org.freedesktop.DBus.Introspectable"
+                and msg.member == "Introspect"
+                and msg.signature == ""
+            ):
+                return self._default_introspect_handler
 
-        if msg.interface == "org.freedesktop.DBus.Properties":
-            return self._default_properties_handler
+            if msg.interface == "org.freedesktop.DBus.Properties":
+                return self._default_properties_handler
 
-        if msg.interface == "org.freedesktop.DBus.Peer":
-            if msg.member == "Ping" and msg.signature == "":
-                return self._default_ping_handler
-            elif msg.member == "GetMachineId" and msg.signature == "":
-                return self._default_get_machine_id_handler
+            if msg.interface == "org.freedesktop.DBus.Peer":
+                if msg.member == "Ping" and msg.signature == "":
+                    return self._default_ping_handler
+                elif msg.member == "GetMachineId" and msg.signature == "":
+                    return self._default_get_machine_id_handler
 
-        if (
-            msg.interface == "org.freedesktop.DBus.ObjectManager"
-            and msg.member == "GetManagedObjects"
-        ):
-            return self._default_get_managed_objects_handler
+            if (
+                msg.interface == "org.freedesktop.DBus.ObjectManager"
+                and msg.member == "GetManagedObjects"
+            ):
+                return self._default_get_managed_objects_handler
 
         msg_path = msg.path
         if msg_path:
