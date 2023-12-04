@@ -38,6 +38,6 @@ cdef class ServiceInterface:
     @staticmethod
     cdef tuple _c_fn_result_to_body(
         object result,
-        object signature_tree,
+        SignatureTree signature_tree,
         bint replace_fds,
     )
