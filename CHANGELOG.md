@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.19.0 (2023-12-04)
+
+### Feature
+
+* Speed up ServiceInterface callbacks with cython methods ([#274](https://github.com/Bluetooth-Devices/dbus-fast/issues/274)) ([`0e57d79`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0e57d798a2f171f804603cb5a3659de08092e74b))
+
 ## v2.18.0 (2023-12-04)
 
 ### Feature
