@@ -865,67 +865,64 @@ class BaseMessageBus:
                 return_handler(msg, None)
             del self._method_return_handlers[msg.reply_serial]
 
+    def _callback_method_handler(
+        self,
+        interface: ServiceInterface,
+        method: _Method,
+        msg: Message,
+        send_reply: Callable[[Message], None],
+    ) -> None:
+        """This is the callback that will be called when a method call is."""
+        args = ServiceInterface._c_msg_body_to_args(msg) if msg.unix_fds else msg.body
+        result = method.fn(interface, *args)
+        if send_reply is BLOCK_UNEXPECTED_REPLY or _expects_reply(msg) is False:
+            return
+        body, fds = ServiceInterface._c_fn_result_to_body(
+            result,
+            signature_tree=method.out_signature_tree,
+            replace_fds=self._negotiate_unix_fd,
+        )
+        send_reply(
+            Message(
+                message_type=MessageType.METHOD_RETURN,
+                reply_serial=msg.serial,
+                destination=msg.sender,
+                signature=method.out_signature,
+                body=body,
+                unix_fds=fds,
+            )
+        )
+
     def _make_method_handler(
         self, interface: ServiceInterface, method: _Method
     ) -> Callable[[Message, Callable[[Message], None]], None]:
-        method_fn = method.fn
-        out_signature_tree = method.out_signature_tree
-        negotiate_unix_fd = self._negotiate_unix_fd
-        out_signature = method.out_signature
-        message_type_method_return = MessageType.METHOD_RETURN
-        msg_body_to_args = ServiceInterface._msg_body_to_args
-        fn_result_to_body = ServiceInterface._fn_result_to_body
-
-        def _callback_method_handler(
-            msg: Message, send_reply: Callable[[Message], None]
-        ) -> None:
-            """This is the callback that will be called when a method call is."""
-            args = msg_body_to_args(msg) if msg.unix_fds else msg.body
-            result = method_fn(interface, *args)
-            if send_reply is BLOCK_UNEXPECTED_REPLY or _expects_reply(msg) is False:
-                return
-            body, fds = fn_result_to_body(
-                result,
-                signature_tree=out_signature_tree,
-                replace_fds=negotiate_unix_fd,
-            )
-            send_reply(
-                Message(
-                    message_type=message_type_method_return,
-                    reply_serial=msg.serial,
-                    destination=msg.sender,
-                    signature=out_signature,
-                    body=body,
-                    unix_fds=fds,
-                )
-            )
-
-        return _callback_method_handler
+        return partial(self._callback_method_handler, interface, method)
 
     def _find_message_handler(
         self, msg: _Message
     ) -> Optional[Callable[[Message, Callable[[Message], None]], None]]:
-        if (
-            msg.interface == "org.freedesktop.DBus.Introspectable"
-            and msg.member == "Introspect"
-            and msg.signature == ""
-        ):
-            return self._default_introspect_handler
+        if msg.interface.startswith("org.freedesktop.DBus."):
+            if (
+                msg.interface == "org.freedesktop.DBus.Introspectable"
+                and msg.member == "Introspect"
+                and msg.signature == ""
+            ):
+                return self._default_introspect_handler
 
-        if msg.interface == "org.freedesktop.DBus.Properties":
-            return self._default_properties_handler
+            if msg.interface == "org.freedesktop.DBus.Properties":
+                return self._default_properties_handler
 
-        if msg.interface == "org.freedesktop.DBus.Peer":
-            if msg.member == "Ping" and msg.signature == "":
-                return self._default_ping_handler
-            elif msg.member == "GetMachineId" and msg.signature == "":
-                return self._default_get_machine_id_handler
+            if msg.interface == "org.freedesktop.DBus.Peer":
+                if msg.member == "Ping" and msg.signature == "":
+                    return self._default_ping_handler
+                elif msg.member == "GetMachineId" and msg.signature == "":
+                    return self._default_get_machine_id_handler
 
-        if (
-            msg.interface == "org.freedesktop.DBus.ObjectManager"
-            and msg.member == "GetManagedObjects"
-        ):
-            return self._default_get_managed_objects_handler
+            if (
+                msg.interface == "org.freedesktop.DBus.ObjectManager"
+                and msg.member == "GetManagedObjects"
+            ):
+                return self._default_get_managed_objects_handler
 
         msg_path = msg.path
         if msg_path:

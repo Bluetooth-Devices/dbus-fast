@@ -57,3 +57,11 @@ cdef class BaseMessageBus:
     cpdef _call(self, Message msg, object callback)
 
     cpdef next_serial(self)
+
+    cpdef void _callback_method_handler(
+        self,
+        ServiceInterface interface,
+        _Method method,
+        Message msg,
+        object send_reply
+    )

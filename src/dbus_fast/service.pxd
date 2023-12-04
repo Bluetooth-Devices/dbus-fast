@@ -2,6 +2,7 @@
 
 import cython
 
+from .message cimport Message
 from .signature cimport SignatureTree
 
 
@@ -15,6 +16,14 @@ cdef class _Method:
     cdef public str out_signature
     cdef public SignatureTree in_signature_tree
     cdef public SignatureTree out_signature_tree
+
+
+
+cdef tuple _real_fn_result_to_body(
+    object result,
+    SignatureTree signature_tree,
+    bint replace_fds
+)
 
 cdef class ServiceInterface:
 
@@ -30,3 +39,13 @@ cdef class ServiceInterface:
 
     @staticmethod
     cdef object _c_get_handler(ServiceInterface interface, _Method method, object bus)
+
+    @staticmethod
+    cdef list _c_msg_body_to_args(Message msg)
+
+    @staticmethod
+    cdef tuple _c_fn_result_to_body(
+        object result,
+        SignatureTree signature_tree,
+        bint replace_fds,
+    )
