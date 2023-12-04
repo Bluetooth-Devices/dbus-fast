@@ -17,6 +17,14 @@ cdef class _Method:
     cdef public SignatureTree in_signature_tree
     cdef public SignatureTree out_signature_tree
 
+
+
+cdef tuple _real_fn_result_to_body(
+    object result,
+    SignatureTree signature_tree,
+    bint replace_fds
+)
+
 cdef class ServiceInterface:
 
     cdef public str name
