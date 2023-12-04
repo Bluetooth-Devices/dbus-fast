@@ -31,6 +31,8 @@ from .signature import (
     get_signature_tree,
 )
 
+_SignatureTree = SignatureTree
+
 if TYPE_CHECKING:
     from .message_bus import BaseMessageBus
 
@@ -523,7 +525,7 @@ class ServiceInterface:
     @staticmethod
     def _fn_result_to_body(
         result: Optional[Any],
-        signature_tree: SignatureTree,
+        signature_tree: _SignatureTree,
         replace_fds: bool = True,
     ) -> Tuple[List[Any], List[int]]:
         return ServiceInterface._c_fn_result_to_body(
@@ -533,7 +535,7 @@ class ServiceInterface:
     @staticmethod
     def _c_fn_result_to_body(
         result: Optional[Any],
-        signature_tree: SignatureTree,
+        signature_tree: _SignatureTree,
         replace_fds: bool,
     ) -> Tuple[List[Any], List[int]]:
         """The high level interfaces may return single values which may be
