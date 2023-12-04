@@ -526,9 +526,28 @@ class ServiceInterface:
         signature_tree: SignatureTree,
         replace_fds: bool = True,
     ) -> Tuple[List[Any], List[int]]:
-        return ServiceInterface._c_fn_result_to_body(
-            result, signature_tree, replace_fds
-        )
+        out_len = len(signature_tree.types)
+        if result is None:
+            final_result = []
+        else:
+            if out_len == 1:
+                final_result = [result]
+            else:
+                result_type = type(result)
+                if result_type is not list and result_type is not tuple:
+                    raise SignatureBodyMismatchError(
+                        "Expected signal to return a list or tuple of arguments"
+                    )
+                final_result = result
+
+        if out_len != len(final_result):
+            raise SignatureBodyMismatchError(
+                f"Signature and function return mismatch, expected {len(signature_tree.types)} arguments but got {len(result)}"
+            )
+
+        if not replace_fds:
+            return final_result, []
+        return replace_fds_with_idx(signature_tree, final_result)
 
     @staticmethod
     def _c_fn_result_to_body(
