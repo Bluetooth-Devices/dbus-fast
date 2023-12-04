@@ -456,6 +456,13 @@ class ServiceInterface:
         return interface.__methods
 
     @staticmethod
+    def _c_get_methods(interface: "ServiceInterface") -> List[_Method]:
+        # _c_get_methods is used by the C code to get the methods for an
+        # interface
+        # https://github.com/cython/cython/issues/3327
+        return interface.__methods
+
+    @staticmethod
     def _get_signals(interface: "ServiceInterface") -> List[_Signal]:
         return interface.__signals
 
@@ -467,6 +474,14 @@ class ServiceInterface:
     def _get_handler(
         interface: "ServiceInterface", method: _Method, bus: "BaseMessageBus"
     ) -> Callable[[Message, Callable[[Message], None]], None]:
+        return interface.__handlers[bus][method]
+
+    @staticmethod
+    def _c_get_handler(
+        interface: "ServiceInterface", method: _Method, bus: "BaseMessageBus"
+    ) -> Callable[[Message, Callable[[Message], None]], None]:
+        # _c_get_handler is used by the C code to get the handler for a method
+        # https://github.com/cython/cython/issues/3327
         return interface.__handlers[bus][method]
 
     @staticmethod

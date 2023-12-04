@@ -24,3 +24,9 @@ cdef class ServiceInterface:
     cdef list __signals
     cdef set __buses
     cdef dict __handlers
+
+    @staticmethod
+    cdef list _c_get_methods(ServiceInterface interface)
+
+    @staticmethod
+    cdef object _c_get_handler(ServiceInterface interface, _Method method, object bus)
