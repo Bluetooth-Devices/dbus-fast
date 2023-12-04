@@ -288,6 +288,7 @@ class MessageBus(BaseMessageBus):
             this message. May return an :class:`Exception` on connection errors.
         :type reply_notify: Callable
         """
+        BaseMessageBus._check_callback_type(reply_notify)
         self._call(msg, reply_notify)
 
     def call_sync(self, msg: Message) -> Optional[Message]:
