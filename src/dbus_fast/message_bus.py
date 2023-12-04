@@ -933,7 +933,7 @@ class BaseMessageBus:
             if not interfaces:
                 return None
             for interface in interfaces:
-                methods = ServiceInterface._get_methods(interface)
+                methods = ServiceInterface._c_get_methods(interface)
                 for method in methods:
                     if method.disabled:
                         continue
@@ -943,7 +943,7 @@ class BaseMessageBus:
                         and msg.member == method.name
                         and msg.signature == method.in_signature
                     ):
-                        return ServiceInterface._get_handler(interface, method, self)
+                        return ServiceInterface._c_get_handler(interface, method, self)
 
         return None
 
