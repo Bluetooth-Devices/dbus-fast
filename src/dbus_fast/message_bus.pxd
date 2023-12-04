@@ -52,3 +52,8 @@ cdef class BaseMessageBus:
     cdef _find_message_handler(self, Message msg)
 
     cdef _setup_socket(self)
+
+    @cython.locals(no_reply_expected=bint)
+    cpdef _call(self, Message msg, object callback)
+
+    cpdef next_serial(self)
