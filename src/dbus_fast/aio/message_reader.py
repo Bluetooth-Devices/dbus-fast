@@ -42,4 +42,4 @@ def build_message_reader(
 ) -> Callable[[], None]:
     """Build a callable that reads messages from the unmarshaller and passes them to the process function."""
     unmarshaller = Unmarshaller(None, sock, negotiate_unix_fd)
-    return partial(unmarshaller, process, finalize, negotiate_unix_fd)
+    return partial(_message_reader, unmarshaller, process, finalize, negotiate_unix_fd)
