@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.18.0 (2023-12-04)
+
+### Feature
+
+* Small speed up to the aio message reader ([#273](https://github.com/Bluetooth-Devices/dbus-fast/issues/273)) ([`8ee18a1`](https://github.com/Bluetooth-Devices/dbus-fast/commit/8ee18a1355b247e3ef9c7ad5f561d7cc8f9cf4a2))
+
 ## v2.17.0 (2023-12-04)
 
 ### Feature
