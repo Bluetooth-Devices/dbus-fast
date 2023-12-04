@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.20.0 (2023-12-04)
+
+### Feature
+
+* Speed up run time constructed method handlers ([#275](https://github.com/Bluetooth-Devices/dbus-fast/issues/275)) ([`9f54fc3`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9f54fc3194370bb4c6fd51c158b577adce1b517f))
+
 ## v2.19.0 (2023-12-04)
 
 ### Feature
