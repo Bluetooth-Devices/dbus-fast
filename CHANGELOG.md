@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.16.0 (2023-12-04)
+
+### Feature
+
+* Speed up sending messages with call on the MessageBus ([#271](https://github.com/Bluetooth-Devices/dbus-fast/issues/271)) ([`6d7f522`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6d7f522e1cc5181e75209e4c00109426baa335fc))
+
 ## v2.15.0 (2023-11-22)
 
 ### Feature
