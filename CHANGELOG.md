@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.17.0 (2023-12-04)
+
+### Feature
+
+* Reduce duplicate code in aio MessageBus ([#272](https://github.com/Bluetooth-Devices/dbus-fast/issues/272)) ([`502ab0d`](https://github.com/Bluetooth-Devices/dbus-fast/commit/502ab0d47f667bb24cd7b3f1d8fa97e2d0345676))
+
 ## v2.16.0 (2023-12-04)
 
 ### Feature
