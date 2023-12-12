@@ -10,7 +10,7 @@ cdef class _Method:
 
     cdef public str name
     cdef public object fn
-    cdef public object disabled
+    cdef public bint disabled
     cdef public object introspection
     cdef public str in_signature
     cdef public str out_signature
