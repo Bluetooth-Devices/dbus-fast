@@ -29,6 +29,8 @@ from .validators import assert_bus_name_valid, assert_object_path_valid
 MESSAGE_TYPE_CALL = MessageType.METHOD_CALL
 MESSAGE_TYPE_SIGNAL = MessageType.SIGNAL
 NO_REPLY_EXPECTED_VALUE = MessageFlag.NO_REPLY_EXPECTED.value
+NO_REPLY_EXPECTED = MessageFlag.NO_REPLY_EXPECTED
+NONE = MessageFlag.NONE
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -37,6 +39,11 @@ _Message = Message
 
 def _expects_reply(msg: _Message) -> bool:
     """Whether a message expects a reply."""
+    if msg.flags is NO_REPLY_EXPECTED:
+        return False
+    if msg.flags is NONE:
+        return True
+    # Slow check for NO_REPLY_EXPECTED
     flag_value = msg.flags.value
     return not (flag_value & NO_REPLY_EXPECTED_VALUE)
 
@@ -734,19 +741,19 @@ class BaseMessageBus:
         if not msg.serial:
             msg.serial = self.next_serial()
 
-        no_reply_expected = not _expects_reply(msg)
+        reply_expected = _expects_reply(msg)
         # Make sure the return reply handler is installed
         # before sending the message to avoid a race condition
         # where the reply is lost in case the backend can
         # send it right away.
-        if not no_reply_expected:
+        if reply_expected:
             self._method_return_handlers[msg.serial] = partial(
                 self._reply_notify, msg, callback
             )
 
         self.send(msg)
 
-        if no_reply_expected:
+        if not reply_expected:
             callback(None, None)
 
     @staticmethod
@@ -901,7 +908,7 @@ class BaseMessageBus:
     def _find_message_handler(
         self, msg: _Message
     ) -> Optional[Callable[[Message, Callable[[Message], None]], None]]:
-        if msg.interface.startswith("org.freedesktop.DBus."):
+        if "org.freedesktop.DBus." in msg.interface:
             if (
                 msg.interface == "org.freedesktop.DBus.Introspectable"
                 and msg.member == "Introspect"
