@@ -261,6 +261,7 @@ class BaseMessageBus:
         bus_name: str,
         path: str,
         callback: Callable[[Optional[intr.Node], Optional[Exception]], None],
+        check_callback_type: bool = True,
     ) -> None:
         """Get introspection data for the node at the given path from the given
         bus name.
@@ -280,7 +281,8 @@ class BaseMessageBus:
             - :class:`InvalidObjectPathError <dbus_fast.InvalidObjectPathError>` - If the given object path is not valid.
             - :class:`InvalidBusNameError <dbus_fast.InvalidBusNameError>` - If the given bus name is not valid.
         """
-        BaseMessageBus._check_callback_type(callback)
+        if check_callback_type:
+            BaseMessageBus._check_callback_type(callback)
 
         def reply_notify(reply: Optional[Message], err: Optional[Exception]) -> None:
             try:
@@ -379,6 +381,7 @@ class BaseMessageBus:
         callback: Optional[
             Callable[[Optional[RequestNameReply], Optional[Exception]], None]
         ] = None,
+        check_callback_type: bool = True,
     ) -> None:
         """Request that this message bus owns the given name.
 
@@ -395,7 +398,7 @@ class BaseMessageBus:
         """
         assert_bus_name_valid(name)
 
-        if callback is not None:
+        if callback is not None and check_callback_type:
             BaseMessageBus._check_callback_type(callback)
 
         if type(flags) is not NameFlag:
@@ -432,6 +435,7 @@ class BaseMessageBus:
         callback: Optional[
             Callable[[Optional[ReleaseNameReply], Optional[Exception]], None]
         ] = None,
+        check_callback_type: bool = True,
     ) -> None:
         """Request that this message bus release the given name.
 
@@ -447,7 +451,7 @@ class BaseMessageBus:
         """
         assert_bus_name_valid(name)
 
-        if callback is not None:
+        if callback is not None and check_callback_type:
             BaseMessageBus._check_callback_type(callback)
 
         message = Message(
