@@ -289,7 +289,12 @@ class MessageBus(BaseMessageBus):
         """
         future = self._loop.create_future()
 
-        super().introspect(bus_name, path, partial(self._reply_handler, future))
+        super().introspect(
+            bus_name,
+            path,
+            partial(self._reply_handler, future),
+            check_callback_type=False,
+        )
 
         timer_handle = self._loop.call_later(
             timeout, _future_set_exception, future, asyncio.TimeoutError
@@ -321,7 +326,9 @@ class MessageBus(BaseMessageBus):
         """
         future = self._loop.create_future()
 
-        super().request_name(name, flags, partial(self._reply_handler, future))
+        super().request_name(
+            name, flags, partial(self._reply_handler, future), check_callback_type=False
+        )
 
         return await future
 
@@ -343,7 +350,9 @@ class MessageBus(BaseMessageBus):
         """
         future = self._loop.create_future()
 
-        super().release_name(name, partial(self._reply_handler, future))
+        super().release_name(
+            name, partial(self._reply_handler, future), check_callback_type=False
+        )
 
         return await future
 
