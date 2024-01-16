@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.21.1 (2024-01-16)
+
+### Fix
+
+* Avoid expensive runtime inspection of known callables ([#277](https://github.com/Bluetooth-Devices/dbus-fast/issues/277)) ([`0271825`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0271825e7338dd8422975d9289768363b5b6b9de))
+
 ## v2.21.0 (2023-12-12)
 
 ### Feature
