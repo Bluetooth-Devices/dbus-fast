@@ -91,6 +91,7 @@ async def test_introspect_matching_sub_paths():
     interface = ExampleInterface("test.interface1")
 
     bus1.export("/a/test/path1", interface)
+    bus1.export("/a/test/path10", interface)
     bus1.export("/a/subpath/a/test/path2", interface)
 
     async def introspect_subpath(path, expected_subnodes):
@@ -108,8 +109,9 @@ async def test_introspect_matching_sub_paths():
 
     await introspect_subpath("/", {"a"})
     await introspect_subpath("/a", {"test", "subpath"})
-    await introspect_subpath("/a/test", {"path1"})
+    await introspect_subpath("/a/test", {"path1", "path10"})
     await introspect_subpath("/a/test/path1", set())
+    await introspect_subpath("/a/test/path10", set())
     await introspect_subpath("/a/subpath/a/test", {"path2"})
     await introspect_subpath("/a/subpath/a/test/path2", set())
 
