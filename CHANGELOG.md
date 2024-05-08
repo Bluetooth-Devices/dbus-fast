@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.21.2 (2024-05-08)
+
+### Fix
+
+* Introspection bogus child paths ([#280](https://github.com/Bluetooth-Devices/dbus-fast/issues/280)) ([`7da5d44`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7da5d44caacecd9af2f8198e7403d7d043c87579))
+
 ## v2.21.1 (2024-01-16)
 
 ### Fix
