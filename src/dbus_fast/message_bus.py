@@ -664,6 +664,9 @@ class BaseMessageBus:
                 continue
 
             child_path = export_path.split(path, maxsplit=1)[1]
+            if path != "/" and child_path and child_path[0] != "/":
+                continue
+
             child_path = child_path.lstrip("/")
             child_name = child_path.split("/", maxsplit=1)[0]
 
