@@ -1,5 +1,6 @@
 import array
 import asyncio
+import contextlib
 import logging
 import socket
 from collections import deque
@@ -522,6 +523,8 @@ class MessageBus(BaseMessageBus):
         except Exception:
             logging.warning("could not remove message writer", exc_info=True)
 
+        had_handlers = bool(self._method_return_handlers or self._user_message_handlers)
+
         super()._finalize(err)
 
         if self._disconnect_future.done():
@@ -529,6 +532,14 @@ class MessageBus(BaseMessageBus):
 
         if err and not self._user_disconnect:
             _future_set_exception(self._disconnect_future, err)
+            # If this happens during a reply the message handlers
+            # will have the exception set and wait_for_disconnect will
+            # never be called so we need to manually set the exception
+            # as retrieved to avoid asyncio warnings when the future
+            # is garbage collected.
+            if had_handlers:
+                with contextlib.suppress(Exception):
+                    self._disconnect_future.exception()
         else:
             _future_set_result(self._disconnect_future, None)
 
