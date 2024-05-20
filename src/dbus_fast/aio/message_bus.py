@@ -532,7 +532,7 @@ class MessageBus(BaseMessageBus):
 
         if err and not self._user_disconnect:
             _future_set_exception(self._disconnect_future, err)
-            # If this happens during a reply the message handlers
+            # If this happens during a reply, the message handlers
             # will have the exception set and wait_for_disconnect will
             # never be called so we need to manually set the exception
             # as retrieved to avoid asyncio warnings when the future
