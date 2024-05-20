@@ -45,6 +45,25 @@ async def test_standard_interfaces():
 
 
 @pytest.mark.asyncio
+async def test_error_handling():
+    bus = await MessageBus().connect()
+    msg = Message(
+        destination="org.freedesktop.DBus",
+        path="/org/freedesktop/DBus",
+        interface="org.freedesktop.DBus",
+        member="InvalidMember",
+        serial=bus.next_serial(),
+    )
+    reply = await bus.call(msg)
+
+    assert reply.message_type == MessageType.ERROR
+    assert reply.reply_serial == msg.serial
+    assert reply.signature == "s"
+
+    bus.disconnect()
+
+
+@pytest.mark.asyncio
 async def test_sending_messages_between_buses():
     bus1 = await MessageBus().connect()
     bus2 = await MessageBus().connect()
