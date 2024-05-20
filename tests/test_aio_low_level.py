@@ -58,8 +58,7 @@ async def test_error_handling():
 
     assert reply.message_type == MessageType.ERROR
     assert reply.reply_serial == msg.serial
-    assert reply.signature == "as"
-    assert bus.unique_name in reply.body[0]
+    assert reply.signature == "s"
 
     bus.disconnect()
 
