@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.21.3 (2024-05-20)
+
+### Fix
+
+* Clear exception flag on disconnect future if its also sent to handlers ([#281](https://github.com/Bluetooth-Devices/dbus-fast/issues/281)) ([`be68a79`](https://github.com/Bluetooth-Devices/dbus-fast/commit/be68a79c523e7ff360a4f9914b41956b5f430d93))
+
 ## v2.21.2 (2024-05-08)
 
 ### Fix
