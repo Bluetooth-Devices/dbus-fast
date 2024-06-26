@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.22.1 (2024-06-26)
+
+### Fix
+
+* Wheel build exclude for pp37 ([#285](https://github.com/Bluetooth-Devices/dbus-fast/issues/285)) ([`c44eb2c`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c44eb2cabd8a7c5156d9cb2228f058140c004c36))
+
 ## v2.22.0 (2024-06-26)
 
 ### Feature
