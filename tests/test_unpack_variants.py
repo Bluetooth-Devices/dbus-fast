@@ -1,4 +1,5 @@
 """Test unpack variants."""
+
 import pytest
 
 from dbus_fast.signature import Variant

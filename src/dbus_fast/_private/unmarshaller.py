@@ -513,10 +513,8 @@ class Unmarshaller:
             -self._pos & (UINT32_SIZE - 1)
         ) + UINT32_SIZE  # align for the uint32
         if self._is_native and cython.compiled:
-            array_length = (
-                _cast_uint32_native(  # type: ignore[name-defined] # pragma: no cover
-                    self._buf, self._pos - UINT32_SIZE
-                )
+            array_length = _cast_uint32_native(  # type: ignore[name-defined] # pragma: no cover
+                self._buf, self._pos - UINT32_SIZE
             )
         else:
             array_length = self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]  # type: ignore[misc]
