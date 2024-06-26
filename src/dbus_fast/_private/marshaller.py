@@ -1,5 +1,5 @@
 from struct import Struct, error
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from ..signature import SignatureType, Variant, get_signature_tree
 

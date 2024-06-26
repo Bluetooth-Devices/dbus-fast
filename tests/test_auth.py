@@ -1,5 +1,4 @@
 """This tests setting a hardcoded UID in AuthExternal"""
-import os
 
 import pytest
 
