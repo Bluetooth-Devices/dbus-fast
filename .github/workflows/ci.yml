@@ -103,17 +103,26 @@ jobs:
   build_wheels:
     needs: [release]
 
-    name: Build wheels on ${{ matrix.os }}
+    name: Build wheels on ${{ matrix.os }} with arch ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-20.04]
+        arch:
+          - "x86_64"
+          - "aarch64"
 
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
           ref: "main"
+
+      - name: Set up QEMU
+        if: matrix.arch == 'aarch64'
+        uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
+        with:
+          platforms: arm64
 
       # Used to host cibuildwheel
       - name: Set up Python
@@ -144,6 +153,7 @@ jobs:
           CIBW_BEFORE_ALL_LINUX: apt-get install -y gcc || yum install -y gcc || apk add gcc
           CIBW_BUILD_VERBOSITY: 3
           REQUIRE_CYTHON: 1
+          CIBW_ARCHS: ${{ matrix.arch }}
 
       - uses: actions/upload-artifact@v3
         with:
