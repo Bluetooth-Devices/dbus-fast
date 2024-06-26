@@ -149,7 +149,7 @@ jobs:
         run: python -m cibuildwheel --output-dir wheelhouse
         # to supply options, put them in 'env', like:
         env:
-          CIBW_SKIP: cp36-* cp37-*
+          CIBW_SKIP: cp36-* cp37-* pp36-* pp37-*
           CIBW_BEFORE_ALL_LINUX: apt-get install -y gcc || yum install -y gcc || apk add gcc
           CIBW_BUILD_VERBOSITY: 3
           REQUIRE_CYTHON: 1
