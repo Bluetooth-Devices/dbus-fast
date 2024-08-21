@@ -71,7 +71,8 @@ async def test_name_requests():
 
 
 @pytest.mark.skipif(
-    sys.version_info[:3][1] in (10, 11, 12), reason="segfaults on py3.10,py3.11,py3.12"
+    sys.version_info[:3][1] in (10, 11, 12, 13),
+    reason="segfaults on py3.10,py3.11,py3.12,py3.13",
 )
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
 def test_request_name_glib():
