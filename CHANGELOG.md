@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.23.0 (2024-08-21)
+
+### Feature
+
+* Python 3.13 support ([#291](https://github.com/Bluetooth-Devices/dbus-fast/issues/291)) ([`45c0e74`](https://github.com/Bluetooth-Devices/dbus-fast/commit/45c0e7491da85ed754a86358bffa2260f96c240f))
+
 ## v2.22.1 (2024-06-26)
 
 ### Fix
