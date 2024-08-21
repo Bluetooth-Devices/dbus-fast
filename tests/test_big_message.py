@@ -47,7 +47,8 @@ async def test_aio_big_message():
 
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
 @pytest.mark.skipif(
-    sys.version_info[:3][1] in (10, 11, 12), reason="segfaults on py3.10,py3.11,py3.12"
+    sys.version_info[:3][1] in (10, 11, 12, 13),
+    reason="segfaults on py3.10,py3.11,py3.12,py3.13",
 )
 def test_glib_big_message():
     "this tests that nonblocking reads and writes actually work for glib"
