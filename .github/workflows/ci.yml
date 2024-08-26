@@ -53,7 +53,7 @@ jobs:
       - name: Update apt
         run: sudo apt update
       - name: Install libs
-        run: sudo apt-get install -y dbus dbus-x11 python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
+        run: sudo apt-get install -y dbus-daemon python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
       - name: Install poetry
         run: pipx install poetry
       - name: Set up Python
@@ -70,7 +70,7 @@ jobs:
             REQUIRE_CYTHON=1 poetry install --only=main,dev
           fi
       - name: Test with Pytest
-        run: export $(dbus-launch); poetry run pytest --cov-report=xml --timeout=5
+        run: dbus-run-session -- poetry run pytest --cov-report=xml --timeout=5
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
