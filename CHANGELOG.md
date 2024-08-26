@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.24.0 (2024-08-26)
+
+### Feature
+
+* Use dbus-run-session to drop X11 dependency ([#299](https://github.com/Bluetooth-Devices/dbus-fast/issues/299)) ([`42f1d4a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/42f1d4a3f2515a301c12f8f485457a878d7df2dc))
+
 ## v2.23.0 (2024-08-21)
 
 ### Feature
