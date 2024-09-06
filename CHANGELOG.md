@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.24.2 (2024-09-06)
+
+### Fix
+
+* Ensure build uses cython3 ([#311](https://github.com/Bluetooth-Devices/dbus-fast/issues/311)) ([`2dabf2d`](https://github.com/Bluetooth-Devices/dbus-fast/commit/2dabf2ddcbbd7e46551521100734372a52458ce4))
+
 ## v2.24.1 (2024-09-06)
 
 ### Fix
