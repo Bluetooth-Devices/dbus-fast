@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.24.1 (2024-09-06)
+
+### Fix
+
+* Add missing cython version pin to the build system ([#310](https://github.com/Bluetooth-Devices/dbus-fast/issues/310)) ([`1b7d28c`](https://github.com/Bluetooth-Devices/dbus-fast/commit/1b7d28cd1f1b78631335cc9945be218aacf6e3f6))
+
 ## v2.24.0 (2024-08-26)
 
 ### Feature
