@@ -101,5 +101,5 @@ module = "docs.*"
 ignore_errors = true
 
 [build-system]
-requires = ['setuptools>=65.4.1', 'wheel', 'Cython', "poetry-core>=1.0.0"]
+requires = ['setuptools>=65.4.1', 'wheel', 'Cython>=0.29.32,<3.1.0', "poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
