@@ -2,17 +2,7 @@ import asyncio
 import copy
 import inspect
 from functools import wraps
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Dict,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    no_type_check_decorator,
-)
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Set, Tuple
 
 from . import introspection as intr
 from ._private.util import (
@@ -109,7 +99,6 @@ def method(name: Optional[str] = None, disabled: bool = False):
     if type(disabled) is not bool:
         raise TypeError("disabled must be a bool")
 
-    @no_type_check_decorator
     def decorator(fn):
         @wraps(fn)
         def wrapped(*args, **kwargs):
@@ -184,7 +173,6 @@ def signal(name: Optional[str] = None, disabled: bool = False):
     if type(disabled) is not bool:
         raise TypeError("disabled must be a bool")
 
-    @no_type_check_decorator
     def decorator(fn):
         fn_name = name if name else fn.__name__
         signal = _Signal(fn, fn_name, disabled)
@@ -318,7 +306,6 @@ def dbus_property(
     if type(disabled) is not bool:
         raise TypeError("disabled must be a bool")
 
-    @no_type_check_decorator
     def decorator(fn):
         options = {"name": name, "access": access, "disabled": disabled}
         return _Property(fn, options=options)
