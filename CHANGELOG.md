@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.24.3 (2024-10-05)
+
+### Fix
+
+* Remove deprecated no_type_check_decorator ([#316](https://github.com/Bluetooth-Devices/dbus-fast/issues/316)) ([`0f04a79`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0f04a794f2e8b494c194e4f4856e43917bdda58a))
+
 ## v2.24.2 (2024-09-06)
 
 ### Fix
