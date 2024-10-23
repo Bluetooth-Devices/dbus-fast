@@ -1,5 +1,5 @@
 myst-parser==3.0.1
 Sphinx==7.1.2
-sphinx-rtd-theme==2.0.0
+sphinx-rtd-theme==3.0.1
 sphinxcontrib-asyncio==0.3.0
 sphinxcontrib-fulltoc==1.2.0
