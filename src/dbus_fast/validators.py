@@ -10,7 +10,7 @@ from .errors import (
 
 _bus_name_re = re.compile(r"^[A-Za-z_-][A-Za-z0-9_-]*$")
 _path_re = re.compile(r"^[A-Za-z0-9_]+$")
-_element_re = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+_element_re = re.compile(r"^[A-Za-z_][A-Za-z0-9_ ]*$")
 _member_re = re.compile(r"^[A-Za-z_][A-Za-z0-9_-]*$")
 
 
