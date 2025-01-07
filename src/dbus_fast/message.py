@@ -115,12 +115,12 @@ class Message:
         message_type: MessageType = MESSAGE_TYPE_METHOD_CALL,
         flags: Union[MessageFlag, int] = MESSAGE_FLAG_NONE,
         error_name: Optional[Union[str, ErrorType]] = None,
-        reply_serial: int = 0,
+        reply_serial: Optional[int] = None,
         sender: Optional[str] = None,
         unix_fds: list[int] = [],
         signature: Optional[Union[SignatureTree, str]] = None,
         body: list[Any] = [],
-        serial: int = 0,
+        serial: Optional[int] = None,
         validate: bool = True,
     ) -> None:
         if type(signature) is SignatureTree:

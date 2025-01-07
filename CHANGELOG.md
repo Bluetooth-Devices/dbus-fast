@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.24.6 (2025-01-07)
+
+### Fix
+
+* Disable wheel builds for old python versions ([#346](https://github.com/Bluetooth-Devices/dbus-fast/issues/346)) ([`a249777`](https://github.com/Bluetooth-Devices/dbus-fast/commit/a249777e03d71502cbbde5d20cab2f3685fb5adb))
+
 ## v2.24.5 (2025-01-07)
 
 ### Fix
