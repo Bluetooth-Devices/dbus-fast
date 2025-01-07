@@ -423,7 +423,7 @@ class MessageBus(BaseMessageBus):
         """
         return await self._disconnect_future
 
-    def _log_future_exception_no_reply(self, fut: asyncio.Future) -> None:
+    def _future_exception_no_reply(self, fut: asyncio.Future) -> None:
         """Log an exception from a future that was not expected."""
         self._pending_futures.discard(fut)
         try:
@@ -456,7 +456,7 @@ class MessageBus(BaseMessageBus):
                 send_reply is _block_unexpected_reply
                 or msg.flags.value & NO_REPLY_EXPECTED_VALUE
             ):
-                fut.add_done_callback(self._log_future_exception_no_reply)
+                fut.add_done_callback(self._future_exception_no_reply)
                 return
 
             # We only create the closure function if we are actually going to reply
