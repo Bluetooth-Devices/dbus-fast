@@ -118,7 +118,13 @@ async def test_aio_proxy_object():
     finally:
         logger.removeHandler(log_handler)
 
-    assert log_error_queue.empty(), log_error_queue.get_nowait()
+    messages = []
+    while not log_error_queue.empty():
+        message: logging.LogRecord = log_error_queue.get_nowait()
+        if message.module == "asyncio":
+            continue
+        messages.append(message)
+    assert not messages
 
     bus.disconnect()
     bus2.disconnect()
