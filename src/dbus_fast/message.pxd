@@ -41,13 +41,13 @@ cdef class Message:
     cdef public object message_type
     cdef public object flags
     cdef public object error_name
-    cdef public object reply_serial
+    cdef public unsigned int reply_serial
     cdef public object sender
     cdef public list unix_fds
     cdef public object signature
     cdef public object signature_tree
     cdef public object body
-    cdef public object serial
+    cdef public unsigned int serial
 
     @cython.locals(
         body_buffer=cython.bytearray,
@@ -64,11 +64,11 @@ cdef class Message:
         object message_type,
         object flags,
         object error_name,
-        object reply_serial,
+        unsigned int reply_serial,
         object sender,
         list unix_fds,
         object signature_tree,
         object body,
-        object serial,
+        unsigned int serial,
         bint validate
     )
