@@ -52,8 +52,9 @@ async def test_unexpected_disconnect(event_loop):
     await bus.connect()
     assert bus.connected
 
-    with patch.object(bus._writer, "_write_without_remove_writer"), patch.object(
-        bus._writer, "sock", FakeSocket()
+    with (
+        patch.object(bus._writer, "_write_without_remove_writer"),
+        patch.object(bus._writer, "sock", FakeSocket()),
     ):
         ping = bus.call(
             Message(

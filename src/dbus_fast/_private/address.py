@@ -1,6 +1,6 @@
 import os
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 from urllib.parse import unquote
 
 from ..constants import BusType

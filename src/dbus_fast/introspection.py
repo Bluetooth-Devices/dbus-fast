@@ -1,5 +1,5 @@
 import xml.etree.ElementTree as ET
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 from .constants import ArgDirection, PropertyAccess
 from .errors import InvalidIntrospectionError

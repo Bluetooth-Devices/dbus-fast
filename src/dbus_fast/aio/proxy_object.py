@@ -1,5 +1,5 @@
 import xml.etree.ElementTree as ET
-from typing import TYPE_CHECKING, Any, List, Union
+from typing import TYPE_CHECKING, Any, Union
 
 from .. import introspection as intr
 from .._private.util import replace_fds_with_idx, replace_idx_with_fds

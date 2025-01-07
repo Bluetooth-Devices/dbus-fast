@@ -4,7 +4,7 @@ import socket
 import traceback
 import xml.etree.ElementTree as ET
 from functools import partial
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+from typing import Any, Callable, Optional, Union
 
 from . import introspection as intr
 from ._private.address import get_bus_address, parse_address

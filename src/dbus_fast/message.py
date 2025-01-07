@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Union
+from typing import Any, Optional, Union
 
 from ._private.constants import LITTLE_ENDIAN, PROTOCOL_VERSION, HeaderField
 from ._private.marshaller import Marshaller

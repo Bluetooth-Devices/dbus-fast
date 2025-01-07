@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Optional, Union
 
 from .errors import InvalidSignatureError, SignatureBodyMismatchError
 from .validators import is_object_path_valid

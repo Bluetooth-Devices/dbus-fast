@@ -1,6 +1,6 @@
 import ast
 import inspect
-from typing import Any, List, Tuple, Union
+from typing import Any, Union
 
 from ..signature import SignatureTree, Variant, get_signature_tree
 
