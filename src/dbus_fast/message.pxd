@@ -41,16 +41,35 @@ cdef class Message:
     cdef public object message_type
     cdef public object flags
     cdef public object error_name
-    cdef public object reply_serial
+    cdef public unsigned int reply_serial
     cdef public object sender
-    cdef public cython.list unix_fds
+    cdef public list unix_fds
     cdef public object signature
     cdef public object signature_tree
     cdef public object body
-    cdef public object serial
+    cdef public unsigned int serial
 
     @cython.locals(
-        body_buffer=cython.bytearray,
-        header_buffer=cython.bytearray
+        body_buffer=bytearray,
+        header_buffer=bytearray,
+        var=Variant
     )
     cpdef _marshall(self, object negotiate_unix_fd)
+
+    cdef _fast_init(
+        self,
+        object destination,
+        object path,
+        object interface,
+        object member,
+        object message_type,
+        object flags,
+        object error_name,
+        unsigned int reply_serial,
+        object sender,
+        list unix_fds,
+        object signature_tree,
+        object body,
+        unsigned int serial,
+        bint validate
+    )

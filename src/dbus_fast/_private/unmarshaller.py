@@ -134,7 +134,17 @@ HEADER_IDX_TO_ARG_NAME = [
     "signature",
     "unix_fds",
 ]
+HEADER_PATH_IDX = HEADER_IDX_TO_ARG_NAME.index("path")
+HEADER_INTERFACE_IDX = HEADER_IDX_TO_ARG_NAME.index("interface")
+HEADER_MEMBER_IDX = HEADER_IDX_TO_ARG_NAME.index("member")
+HEADER_ERROR_NAME_IDX = HEADER_IDX_TO_ARG_NAME.index("error_name")
+HEADER_REPLY_SERIAL_IDX = HEADER_IDX_TO_ARG_NAME.index("reply_serial")
+HEADER_DESTINATION_IDX = HEADER_IDX_TO_ARG_NAME.index("destination")
+HEADER_SENDER_IDX = HEADER_IDX_TO_ARG_NAME.index("sender")
+HEADER_SIGNATURE_IDX = HEADER_IDX_TO_ARG_NAME.index("signature")
 HEADER_UNIX_FDS_IDX = HEADER_IDX_TO_ARG_NAME.index("unix_fds")
+
+_EMPTY_HEADERS = [None] * len(HEADER_IDX_TO_ARG_NAME)
 
 _SignatureType = SignatureType
 _int = int
@@ -447,53 +457,66 @@ class Unmarshaller:
     def _read_variant(self) -> Variant:
         signature = self._read_signature()
         token_as_int = ord(signature[0])
+        var = Variant.__new__(Variant)
         # verify in Variant is only useful on construction not unmarshalling
         if len(signature) == 1:
             if token_as_int == TOKEN_N_AS_INT:
-                return Variant(SIGNATURE_TREE_N, self._read_int16_unpack(), False)
+                var._init_variant(SIGNATURE_TREE_N, self._read_int16_unpack(), False)
+                return var
             if token_as_int == TOKEN_S_AS_INT:
-                return Variant(SIGNATURE_TREE_S, self._read_string_unpack(), False)
+                var._init_variant(SIGNATURE_TREE_S, self._read_string_unpack(), False)
+                return var
             if token_as_int == TOKEN_B_AS_INT:
-                return Variant(SIGNATURE_TREE_B, self._read_boolean(), False)
+                var._init_variant(SIGNATURE_TREE_B, self._read_boolean(), False)
+                return var
             if token_as_int == TOKEN_O_AS_INT:
-                return Variant(SIGNATURE_TREE_O, self._read_string_unpack(), False)
+                var._init_variant(SIGNATURE_TREE_O, self._read_string_unpack(), False)
+                return var
             if token_as_int == TOKEN_U_AS_INT:
-                return Variant(SIGNATURE_TREE_U, self._read_uint32_unpack(), False)
+                var._init_variant(SIGNATURE_TREE_U, self._read_uint32_unpack(), False)
+                return var
             if token_as_int == TOKEN_Y_AS_INT:
                 self._pos += 1
-                return Variant(SIGNATURE_TREE_Y, self._buf[self._pos - 1], False)
+                var._init_variant(SIGNATURE_TREE_Y, self._buf[self._pos - 1], False)
+                return var
         elif token_as_int == TOKEN_A_AS_INT:
             if signature == "ay":
-                return Variant(
+                var._init_variant(
                     SIGNATURE_TREE_AY, self.read_array(SIGNATURE_TREE_AY_TYPES_0), False
                 )
+                return var
             if signature == "a{qv}":
-                return Variant(
+                var._init_variant(
                     SIGNATURE_TREE_A_QV,
                     self.read_array(SIGNATURE_TREE_A_QV_TYPES_0),
                     False,
                 )
+                return var
             if signature == "as":
-                return Variant(
+                var._init_variant(
                     SIGNATURE_TREE_AS, self.read_array(SIGNATURE_TREE_AS_TYPES_0), False
                 )
+                return var
             if signature == "a{sv}":
-                return Variant(
+                var._init_variant(
                     SIGNATURE_TREE_A_SV,
                     self.read_array(SIGNATURE_TREE_A_SV_TYPES_0),
                     False,
                 )
+                return var
             if signature == "ao":
-                return Variant(
+                var._init_variant(
                     SIGNATURE_TREE_AO, self.read_array(SIGNATURE_TREE_AO_TYPES_0), False
                 )
+                return var
         tree = get_signature_tree(signature)
         signature_type = tree.types[0]
-        return Variant(
+        var._init_variant(
             tree,
             self._readers[signature_type.token](self, signature_type),
             False,
         )
+        return var
 
     def read_struct(self, type_: _SignatureType) -> list[Any]:
         self._pos += -self._pos & 7  # align 8
@@ -596,12 +619,12 @@ class Unmarshaller:
             result_list.append(reader(self, child_type))
         return result_list
 
-    def _header_fields(self, header_length: _int) -> dict[str, Any]:
+    def _header_fields(self, header_length: _int) -> list[Any]:
         """Header fields are always a(yv)."""
         beginning_pos = self._pos
-        headers = {}
         buf = self._buf
         readers = self._readers
+        headers = _EMPTY_HEADERS.copy()
         while self._pos - beginning_pos < header_length:
             # Now read the y (byte) of struct (yv)
             self._pos += (-self._pos & 7) + 1  # align 8 + 1 for 'y' byte
@@ -616,18 +639,19 @@ class Unmarshaller:
                 continue
             token_as_int = buf[o]
             # Now that we have the token we can read the variant value
-            key = HEADER_IDX_TO_ARG_NAME[field_0]
             # Strings and signatures are the most common types
             # so we inline them for performance
             if token_as_int == TOKEN_O_AS_INT or token_as_int == TOKEN_S_AS_INT:
-                headers[key] = self._read_string_unpack()
+                headers[field_0] = self._read_string_unpack()
             elif token_as_int == TOKEN_G_AS_INT:
-                headers[key] = self._read_signature()
+                headers[field_0] = self._read_signature()
             else:
                 token = buf[o : o + signature_len].decode()
                 # There shouldn't be any other types in the header
                 # but just in case, we'll read it using the slow path
-                headers[key] = readers[token](self, get_signature_tree(token).types[0])
+                headers[field_0] = readers[token](
+                    self, get_signature_tree(token).types[0]
+                )
         return headers
 
     def _read_header(self) -> None:
@@ -694,7 +718,7 @@ class Unmarshaller:
         self._pos = HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
         header_fields = self._header_fields(self._header_len)
         self._pos += -self._pos & 7  # align 8
-        signature = header_fields.pop("signature", "")
+        signature = header_fields[HEADER_SIGNATURE_IDX]
         if not self._body_len:
             tree = SIGNATURE_TREE_EMPTY
             body: list[Any] = []
@@ -739,18 +763,26 @@ class Unmarshaller:
         flags = MESSAGE_FLAG_MAP.get(self._flag)
         if flags is None:
             flags = MESSAGE_FLAG_INTENUM(self._flag)
-        self._message = Message(
-            message_type=MESSAGE_TYPE_MAP[self._message_type],
-            flags=flags,
-            unix_fds=self._unix_fds,
-            signature=tree,
-            body=body,
-            serial=self._serial,
+        message = Message.__new__(Message)
+        message._fast_init(
+            header_fields[HEADER_DESTINATION_IDX],
+            header_fields[HEADER_PATH_IDX],
+            header_fields[HEADER_INTERFACE_IDX],
+            header_fields[HEADER_MEMBER_IDX],
+            MESSAGE_TYPE_MAP[self._message_type],
+            flags,
+            header_fields[HEADER_ERROR_NAME_IDX],
+            header_fields[HEADER_REPLY_SERIAL_IDX] or 0,
+            header_fields[HEADER_SENDER_IDX],
+            self._unix_fds,
+            tree,
+            body,
+            self._serial,
             # The D-Bus implementation already validates the message,
             # so we don't need to do it again.
-            validate=False,
-            **header_fields,
+            False,
         )
+        self._message = message
         self._read_complete = True
 
     def unmarshall(self) -> Optional[Message]:

@@ -22,7 +22,18 @@ cdef unsigned int HEADER_SIGNATURE_SIZE
 cdef unsigned int LITTLE_ENDIAN
 cdef unsigned int BIG_ENDIAN
 cdef unsigned int PROTOCOL_VERSION
+
+
+cdef unsigned int HEADER_PATH_IDX
+cdef unsigned int HEADER_INTERFACE_IDX
+cdef unsigned int HEADER_MEMBER_IDX
+cdef unsigned int HEADER_ERROR_NAME_IDX
+cdef unsigned int HEADER_REPLY_SERIAL_IDX
+cdef unsigned int HEADER_DESTINATION_IDX
+cdef unsigned int HEADER_SENDER_IDX
+cdef unsigned int HEADER_SIGNATURE_IDX
 cdef unsigned int HEADER_UNIX_FDS_IDX
+
 cdef cython.list HEADER_IDX_TO_ARG_NAME
 
 cdef str UINT32_CAST
@@ -94,6 +105,8 @@ cdef unsigned int TOKEN_LEFT_PAREN_AS_INT
 
 cdef object MARSHALL_STREAM_END_ERROR
 cdef object DEFAULT_BUFFER_SIZE
+
+cdef list _EMPTY_HEADERS
 
 cdef cython.uint EAGAIN
 cdef cython.uint EWOULDBLOCK
@@ -190,6 +203,7 @@ cdef class Unmarshaller:
     @cython.locals(
         tree=SignatureTree,
         token_as_int=cython.uint,
+        var=Variant,
     )
     cdef Variant _read_variant(self)
 
@@ -222,9 +236,10 @@ cdef class Unmarshaller:
 
     @cython.locals(
         body=cython.list,
-        header_fields=cython.dict,
+        header_fields=cython.list,
         token_as_int=cython.uint,
         signature=cython.str,
+        message=Message
     )
     cdef _read_body(self)
 
@@ -237,5 +252,6 @@ cdef class Unmarshaller:
         o=cython.ulong,
         token_as_int=cython.uint,
         signature_len=cython.uint,
+        headers=cython.list
     )
-    cdef cython.dict _header_fields(self, unsigned int header_length)
+    cdef cython.list _header_fields(self, unsigned int header_length)

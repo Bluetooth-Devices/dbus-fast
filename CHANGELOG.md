@@ -2,6 +2,51 @@
 
 <!--next-version-placeholder-->
 
+## v2.28.0 (2025-01-07)
+
+### Feature
+
+* Improve performance of unmarshalling variants ([#354](https://github.com/Bluetooth-Devices/dbus-fast/issues/354)) ([`d376bb1`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d376bb13ade9bac8b478a183a4a280d37d121ab9))
+* Improve performance of marshalling message headers ([#356](https://github.com/Bluetooth-Devices/dbus-fast/issues/356)) ([`e1aaf0a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e1aaf0a3969d595bc9d789cb5e40dfd59ef232c9))
+
+### Fix
+
+* Revert avoid building wheels if a release is not made ([#357](https://github.com/Bluetooth-Devices/dbus-fast/issues/357)) ([`ebdf07e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ebdf07ec9e875806c050c97027b6f7dca077bd7d))
+
+## v2.27.0 (2025-01-07)
+
+### Feature
+
+* Speed up marshalling messages ([#352](https://github.com/Bluetooth-Devices/dbus-fast/issues/352)) ([`b1e6551`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b1e6551de32bec5a8a5164540d44e1b1bfe86881))
+
+## v2.26.0 (2025-01-07)
+
+### Feature
+
+* Speed up constructing messages from the unmarshaller ([#344](https://github.com/Bluetooth-Devices/dbus-fast/issues/344)) ([`b162494`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b162494aa25fe4b23debdd9a44b49ea21c771ad1))
+
+## v2.25.0 (2025-01-07)
+
+### Feature
+
+* Speed up unmarshalling headers ([#347](https://github.com/Bluetooth-Devices/dbus-fast/issues/347)) ([`5825758`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5825758991a5d5f476b082c0277e5ecb0767c7e5))
+
+### Fix
+
+* Race in test_tcp_connection_with_forwarding ([#350](https://github.com/Bluetooth-Devices/dbus-fast/issues/350)) ([`4116261`](https://github.com/Bluetooth-Devices/dbus-fast/commit/41162618d4a78c193d91fb9525eb7d2763f17587))
+
+## v2.24.6 (2025-01-07)
+
+### Fix
+
+* Disable wheel builds for old python versions ([#346](https://github.com/Bluetooth-Devices/dbus-fast/issues/346)) ([`a249777`](https://github.com/Bluetooth-Devices/dbus-fast/commit/a249777e03d71502cbbde5d20cab2f3685fb5adb))
+
+## v2.24.5 (2025-01-07)
+
+### Fix
+
+* Ensure exceptions are logged when no reply is expected ([#342](https://github.com/Bluetooth-Devices/dbus-fast/issues/342)) ([`1c20dcc`](https://github.com/Bluetooth-Devices/dbus-fast/commit/1c20dcc50471b453d9b55bc2be197fd5b0c38a9c))
+
 ## v2.24.4 (2024-11-15)
 
 ### Fix
