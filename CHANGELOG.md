@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v2.25.0 (2025-01-07)
+
+### Feature
+
+* Speed up unmarshalling headers ([#347](https://github.com/Bluetooth-Devices/dbus-fast/issues/347)) ([`5825758`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5825758991a5d5f476b082c0277e5ecb0767c7e5))
+
+### Fix
+
+* Race in test_tcp_connection_with_forwarding ([#350](https://github.com/Bluetooth-Devices/dbus-fast/issues/350)) ([`4116261`](https://github.com/Bluetooth-Devices/dbus-fast/commit/41162618d4a78c193d91fb9525eb7d2763f17587))
+
 ## v2.24.6 (2025-01-07)
 
 ### Fix
