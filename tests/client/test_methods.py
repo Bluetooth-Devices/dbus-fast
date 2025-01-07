@@ -2,7 +2,7 @@ import logging
 import sys
 from logging.handlers import QueueHandler
 from queue import SimpleQueue
-import asyncio
+
 import pytest
 
 import dbus_fast.introspection as intr
@@ -100,7 +100,6 @@ async def test_aio_proxy_object():
 
     # In addition to the exception passing through, we need to verify that
     # the exception doesn't trigger logging errors.
-    await asyncio.sleep(0)
     log_error_queue = SimpleQueue()
     log_handler = QueueHandler(log_error_queue)
     logger = logging.getLogger()
