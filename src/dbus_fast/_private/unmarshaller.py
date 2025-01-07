@@ -134,7 +134,17 @@ HEADER_IDX_TO_ARG_NAME = [
     "signature",
     "unix_fds",
 ]
+HEADER_PATH_IDX = HEADER_IDX_TO_ARG_NAME.index("path")
+HEADER_INTERFACE_IDX = HEADER_IDX_TO_ARG_NAME.index("interface")
+HEADER_MEMBER_IDX = HEADER_IDX_TO_ARG_NAME.index("member")
+HEADER_ERROR_NAME_IDX = HEADER_IDX_TO_ARG_NAME.index("error_name")
+HEADER_REPLY_SERIAL_IDX = HEADER_IDX_TO_ARG_NAME.index("reply_serial")
+HEADER_DESTINATION_IDX = HEADER_IDX_TO_ARG_NAME.index("destination")
+HEADER_SENDER_IDX = HEADER_IDX_TO_ARG_NAME.index("sender")
+HEADER_SIGNATURE_IDX = HEADER_IDX_TO_ARG_NAME.index("signature")
 HEADER_UNIX_FDS_IDX = HEADER_IDX_TO_ARG_NAME.index("unix_fds")
+
+_EMPTY_HEADERS = [None] * len(HEADER_IDX_TO_ARG_NAME)
 
 _SignatureType = SignatureType
 _int = int
@@ -596,12 +606,12 @@ class Unmarshaller:
             result_list.append(reader(self, child_type))
         return result_list
 
-    def _header_fields(self, header_length: _int) -> dict[str, Any]:
+    def _header_fields(self, header_length: _int) -> list[Any]:
         """Header fields are always a(yv)."""
         beginning_pos = self._pos
-        headers = {}
         buf = self._buf
         readers = self._readers
+        headers = _EMPTY_HEADERS.copy()
         while self._pos - beginning_pos < header_length:
             # Now read the y (byte) of struct (yv)
             self._pos += (-self._pos & 7) + 1  # align 8 + 1 for 'y' byte
@@ -616,18 +626,19 @@ class Unmarshaller:
                 continue
             token_as_int = buf[o]
             # Now that we have the token we can read the variant value
-            key = HEADER_IDX_TO_ARG_NAME[field_0]
             # Strings and signatures are the most common types
             # so we inline them for performance
             if token_as_int == TOKEN_O_AS_INT or token_as_int == TOKEN_S_AS_INT:
-                headers[key] = self._read_string_unpack()
+                headers[field_0] = self._read_string_unpack()
             elif token_as_int == TOKEN_G_AS_INT:
-                headers[key] = self._read_signature()
+                headers[field_0] = self._read_signature()
             else:
                 token = buf[o : o + signature_len].decode()
                 # There shouldn't be any other types in the header
                 # but just in case, we'll read it using the slow path
-                headers[key] = readers[token](self, get_signature_tree(token).types[0])
+                headers[field_0] = readers[token](
+                    self, get_signature_tree(token).types[0]
+                )
         return headers
 
     def _read_header(self) -> None:
@@ -694,7 +705,7 @@ class Unmarshaller:
         self._pos = HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
         header_fields = self._header_fields(self._header_len)
         self._pos += -self._pos & 7  # align 8
-        signature = header_fields.pop("signature", "")
+        signature = header_fields[HEADER_SIGNATURE_IDX]
         if not self._body_len:
             tree = SIGNATURE_TREE_EMPTY
             body: list[Any] = []
@@ -749,7 +760,13 @@ class Unmarshaller:
             # The D-Bus implementation already validates the message,
             # so we don't need to do it again.
             validate=False,
-            **header_fields,
+            destination=header_fields[HEADER_DESTINATION_IDX],
+            path=header_fields[HEADER_PATH_IDX],
+            interface=header_fields[HEADER_INTERFACE_IDX],
+            member=header_fields[HEADER_MEMBER_IDX],
+            reply_serial=header_fields[HEADER_REPLY_SERIAL_IDX],
+            error_name=header_fields[HEADER_ERROR_NAME_IDX],
+            sender=header_fields[HEADER_SENDER_IDX],
         )
         self._read_complete = True
 
