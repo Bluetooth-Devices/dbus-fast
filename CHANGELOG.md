@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.24.5 (2025-01-07)
+
+### Fix
+
+* Ensure exceptions are logged when no reply is expected ([#342](https://github.com/Bluetooth-Devices/dbus-fast/issues/342)) ([`1c20dcc`](https://github.com/Bluetooth-Devices/dbus-fast/commit/1c20dcc50471b453d9b55bc2be197fd5b0c38a9c))
+
 ## v2.24.4 (2024-11-15)
 
 ### Fix
