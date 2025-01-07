@@ -68,7 +68,7 @@ jobs:
             REQUIRE_CYTHON=1 poetry install --only=main,dev
           fi
       - name: Test with Pytest
-        run: dbus-run-session -- poetry run pytest -vvv --cov-report=xml --timeout=5
+        run: dbus-run-session -- poetry run pytest --cov-report=xml --timeout=5
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
