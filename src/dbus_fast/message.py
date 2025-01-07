@@ -34,6 +34,14 @@ MESSAGE_FLAG_NONE = MessageFlag.NONE
 MESSAGE_TYPE_METHOD_CALL = MessageType.METHOD_CALL
 
 
+_int = int
+_str = str
+_bool = bool
+_MessageType = MessageType
+_MessageFlag = MessageFlag
+_list = list
+
+
 class Message:
     """A class for sending and receiving messages through the
     :class:`MessageBus <dbus_fast.message_bus.BaseMessageBus>` with the
@@ -115,26 +123,56 @@ class Message:
         serial: Optional[int] = None,
         validate: bool = True,
     ) -> None:
+        self._fast_init(
+            destination,
+            path,
+            interface,
+            member,
+            message_type,
+            flags if type(flags) is MESSAGE_FLAG else MESSAGE_FLAG(flags),
+            str(error_name.value) if type(error_name) is ErrorType else error_name,
+            reply_serial or 0,
+            sender,
+            unix_fds,
+            signature
+            if type(signature) is SignatureTree
+            else get_signature_tree(signature or ""),
+            body,
+            serial or 0,
+            validate,
+        )
+
+    def _fast_init(
+        self,
+        destination: Optional[_str],
+        path: Optional[_str],
+        interface: Optional[_str],
+        member: Optional[_str],
+        message_type: _MessageType,
+        flags: _MessageFlag,
+        error_name: Optional[_str],
+        reply_serial: _int,
+        sender: _str,
+        unix_fds: _list[int],
+        signature_tree: SignatureTree,
+        body: _list[Any],
+        serial: _int,
+        validate: _bool,
+    ) -> None:
         self.destination = destination
         self.path = path
         self.interface = interface
         self.member = member
         self.message_type = message_type
-        self.flags = flags if type(flags) is MESSAGE_FLAG else MESSAGE_FLAG(flags)
-        self.error_name = (
-            str(error_name.value) if type(error_name) is ErrorType else error_name
-        )
-        self.reply_serial = reply_serial or 0
+        self.flags = flags
+        self.error_name = error_name
+        self.reply_serial = reply_serial
         self.sender = sender
         self.unix_fds = unix_fds
-        if type(signature) is SignatureTree:
-            self.signature = signature.signature
-            self.signature_tree = signature
-        else:
-            self.signature = signature or ""  # type: ignore[assignment]
-            self.signature_tree = get_signature_tree(signature or "")
+        self.signature = signature_tree.signature
+        self.signature_tree = signature_tree
         self.body = body
-        self.serial = serial or 0
+        self.serial = serial
 
         if not validate:
             return
