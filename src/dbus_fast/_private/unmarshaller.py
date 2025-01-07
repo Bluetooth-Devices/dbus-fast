@@ -770,6 +770,7 @@ class Unmarshaller:
             False,
         )
         self._message = message
+        self._read_complete = True
 
     def unmarshall(self) -> Optional[Message]:
         """Unmarshall the message.
