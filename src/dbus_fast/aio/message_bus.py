@@ -423,6 +423,16 @@ class MessageBus(BaseMessageBus):
         """
         return await self._disconnect_future
 
+    def _log_future_exception_no_reply(self, fut: asyncio.Future) -> None:
+        """Log an exception from a future that was not expected."""
+        self._pending_futures.discard(fut)
+        try:
+            fut.result()
+        except asyncio.CancelledError:
+            pass
+        except Exception as e:
+            logging.error("unexpected exception in future", exc_info=e)
+
     def _make_method_handler(self, interface, method):
         if not asyncio.iscoroutinefunction(method.fn):
             return super()._make_method_handler(interface, method)
@@ -436,7 +446,7 @@ class MessageBus(BaseMessageBus):
         ) -> None:
             """A coroutine method handler."""
             args = msg_body_to_args(msg) if msg.unix_fds else msg.body
-            fut = asyncio.ensure_future(method.fn(interface, *args))
+            fut: asyncio.Future = asyncio.ensure_future(method.fn(interface, *args))
             # Hold a strong reference to the future to ensure
             # it is not garbage collected before it is done.
             self._pending_futures.add(fut)
@@ -444,7 +454,7 @@ class MessageBus(BaseMessageBus):
                 send_reply is _block_unexpected_reply
                 or msg.flags.value & NO_REPLY_EXPECTED_VALUE
             ):
-                fut.add_done_callback(self._pending_futures.discard)
+                fut.add_done_callback(self._log_future_exception_no_reply)
                 return
 
             # We only create the closure function if we are actually going to reply
