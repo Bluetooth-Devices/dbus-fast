@@ -1,5 +1,9 @@
 from typing import Optional, Union
 
+from .constants import ErrorType, MessageType
+from .message import Message
+from .validators import assert_interface_name_valid
+
 
 class SignatureBodyMismatchError(ValueError):
     pass
@@ -51,11 +55,6 @@ class InvalidInterfaceNameError(TypeError):
 class InvalidMemberNameError(TypeError):
     def __init__(self, member: str) -> None:
         super().__init__(f"invalid member name: {member}")
-
-
-from .constants import ErrorType, MessageType
-from .message import Message
-from .validators import assert_interface_name_valid
 
 
 class DBusError(Exception):

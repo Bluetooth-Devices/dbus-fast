@@ -25,7 +25,7 @@ class ExampleInterface(ServiceInterface):
         return [what1, what2]
 
     @method()
-    def GetVariantDict(self) -> "a{sv}":
+    def GetVariantDict(self) -> "a{sv}":  # noqa: F722
         return {
             "foo": Variant("s", "bar"),
             "bat": Variant("x", -55),

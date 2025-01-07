@@ -40,7 +40,7 @@ class ExampleInterface(ServiceInterface):
         return [what1, what2, what3]
 
     @method()
-    def GetComplex(self) -> "a{sv}":
+    def GetComplex(self) -> "a{sv}":  # noqa: F722
         """Return complex output."""
         return {"hello": Variant("s", "world")}
 

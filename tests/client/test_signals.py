@@ -21,7 +21,7 @@ class ExampleInterface(ServiceInterface):
         return ["hello", "world"]
 
     @signal()
-    def SignalComplex(self) -> "a{sv}":
+    def SignalComplex(self) -> "a{sv}":  # noqa: F722
         """Broadcast a complex signal."""
         return {"hello": Variant("s", "world")}
 

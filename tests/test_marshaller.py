@@ -101,8 +101,6 @@ def test_marshalling_with_table():
 
 @pytest.mark.parametrize("unmarshall_table", (table,))
 def test_unmarshalling_with_table(unmarshall_table):
-    from dbus_fast._private import unmarshaller
-
     for item in unmarshall_table:
         stream = io.BytesIO(bytes.fromhex(item["data"]))
         unmarshaller = Unmarshaller(stream)

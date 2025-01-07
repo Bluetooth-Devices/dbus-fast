@@ -31,7 +31,7 @@ class ExampleInterface(ServiceInterface):
         return self._int64_property
 
     @dbus_property(access=PropertyAccess.READ)
-    def ComplexProperty(self) -> "a{sv}":
+    def ComplexProperty(self) -> "a{sv}":  # noqa: F722
         """Return complex output."""
         return {"hello": Variant("s", "world")}
 

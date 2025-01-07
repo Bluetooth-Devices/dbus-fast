@@ -7,7 +7,7 @@ def check_gi_repository():
     if _has_gi is not None:
         return _has_gi
     try:
-        from gi.repository import GLib
+        from gi.repository import GLib  # noqa: F401
 
         _has_gi = True
         return _has_gi
