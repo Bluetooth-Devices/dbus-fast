@@ -759,7 +759,7 @@ class Unmarshaller:
             MESSAGE_TYPE_MAP[self._message_type],
             flags,
             header_fields[HEADER_ERROR_NAME_IDX],
-            header_fields[HEADER_REPLY_SERIAL_IDX],
+            header_fields[HEADER_REPLY_SERIAL_IDX] or 0,
             header_fields[HEADER_SENDER_IDX],
             self._unix_fds,
             tree,
