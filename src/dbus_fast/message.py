@@ -327,35 +327,35 @@ class Message:
         if self.path:
             var = Variant.__new__(Variant)
             var._init_variant("o", self.path, False)
-            fields.append([HEADER_PATH, var])
+            fields.append((HEADER_PATH, var))
         if self.interface:
             var = Variant.__new__(Variant)
             var._init_variant("s", self.interface, False)
-            fields.append([HEADER_INTERFACE, var])
+            fields.append((HEADER_INTERFACE, var))
         if self.member:
             var = Variant.__new__(Variant)
             var._init_variant("s", self.member, False)
-            fields.append([HEADER_MEMBER, var])
+            fields.append((HEADER_MEMBER, var))
         if self.error_name:
             var = Variant.__new__(Variant)
             var._init_variant("s", self.error_name, False)
-            fields.append([HEADER_ERROR_NAME, var])
+            fields.append((HEADER_ERROR_NAME, var))
         if self.reply_serial:
             var = Variant.__new__(Variant)
             var._init_variant("u", self.reply_serial, False)
-            fields.append([HEADER_REPLY_SERIAL, var])
+            fields.append((HEADER_REPLY_SERIAL, var))
         if self.destination:
             var = Variant.__new__(Variant)
             var._init_variant("s", self.destination, False)
-            fields.append([HEADER_DESTINATION, var])
+            fields.append((HEADER_DESTINATION, var))
         if self.signature:
             var = Variant.__new__(Variant)
             var._init_variant("g", self.signature, False)
-            fields.append([HEADER_SIGNATURE, var])
+            fields.append((HEADER_SIGNATURE, var))
         if self.unix_fds and negotiate_unix_fd:
             var = Variant.__new__(Variant)
             var._init_variant("u", len(self.unix_fds), False)
-            fields.append([HEADER_UNIX_FDS, var])
+            fields.append((HEADER_UNIX_FDS, var))
 
         header_body = [
             LITTLE_ENDIAN,
