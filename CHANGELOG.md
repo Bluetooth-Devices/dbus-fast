@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.27.0 (2025-01-07)
+
+### Feature
+
+* Speed up marshalling messages ([#352](https://github.com/Bluetooth-Devices/dbus-fast/issues/352)) ([`b1e6551`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b1e6551de32bec5a8a5164540d44e1b1bfe86881))
+
 ## v2.26.0 (2025-01-07)
 
 ### Feature
