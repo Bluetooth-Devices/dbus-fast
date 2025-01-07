@@ -21,7 +21,7 @@ from ..constants import (
 from ..errors import AuthError
 from ..message import Message
 from ..message_bus import BaseMessageBus, _block_unexpected_reply
-from ..service import ServiceInterface
+from ..service import ServiceInterface, _Method
 from .message_reader import build_message_reader
 from .proxy_object import ProxyObject
 
@@ -433,7 +433,9 @@ class MessageBus(BaseMessageBus):
         except Exception as e:
             logging.error("unexpected exception in future", exc_info=e)
 
-    def _make_method_handler(self, interface, method):
+    def _make_method_handler(
+        self, interface: "ServiceInterface", method: "_Method"
+    ) -> Callable[[Message, Callable[[Message], None]], None]:
         if not asyncio.iscoroutinefunction(method.fn):
             return super()._make_method_handler(interface, method)
 
