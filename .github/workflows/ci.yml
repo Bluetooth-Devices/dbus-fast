@@ -132,6 +132,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
+        musl: ["", "musllinux"]
         arch:
           - "x86_64"
           - "aarch64"
@@ -144,7 +145,7 @@ jobs:
 
       - name: Set up QEMU
         if: matrix.arch == 'aarch64'
-        uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
+        uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64
 
