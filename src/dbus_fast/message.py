@@ -123,11 +123,6 @@ class Message:
         serial: Optional[int] = None,
         validate: bool = True,
     ) -> None:
-        if type(signature) is SignatureTree:
-            signature = signature.signature
-            signature_tree = signature
-        else:
-            signature_tree = get_signature_tree(signature or "")
         self._fast_init(
             destination,
             path,
@@ -139,7 +134,9 @@ class Message:
             reply_serial or 0,
             sender,
             unix_fds,
-            signature_tree,
+            signature
+            if type(signature) is SignatureTree
+            else get_signature_tree(signature or ""),
             body,
             serial or 0,
             validate,
