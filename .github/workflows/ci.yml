@@ -175,7 +175,7 @@ jobs:
         if: matrix.musl == ''
         # to supply options, put them in 'env', like:
         env:
-          CIBW_SKIP: "*musllinux*"
+          CIBW_SKIP: "*p36-* *p37-* *p38-* *musllinux*"
           CIBW_BEFORE_ALL_LINUX: apt-get install -y gcc || yum install -y gcc || apk add gcc
           CIBW_BUILD_VERBOSITY: 3
           REQUIRE_CYTHON: 1
@@ -186,7 +186,7 @@ jobs:
         if: matrix.musl == 'musllinux'
         # to supply options, put them in 'env', like:
         env:
-          CIBW_SKIP: "*manylinux*"
+          CIBW_SKIP: "*p36-* *p37-* *p38-* *manylinux*"
           CIBW_BEFORE_ALL_LINUX: apt-get install -y gcc || yum install -y gcc || apk add gcc
           CIBW_BUILD_VERBOSITY: 3
           REQUIRE_CYTHON: 1
