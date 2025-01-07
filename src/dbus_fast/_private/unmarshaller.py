@@ -750,25 +750,21 @@ class Unmarshaller:
         flags = MESSAGE_FLAG_MAP.get(self._flag)
         if flags is None:
             flags = MESSAGE_FLAG_INTENUM(self._flag)
-        message = Message(
-            header_fields[HEADER_DESTINATION_IDX],
-            header_fields[HEADER_PATH_IDX],
-            header_fields[HEADER_INTERFACE_IDX],
-            header_fields[HEADER_MEMBER_IDX],
-            MESSAGE_TYPE_MAP[self._message_type],
-            flags,
-            None,
-            0,
-            header_fields[HEADER_SENDER_IDX],
-            self._unix_fds,
-            tree,
-            body,
-            self._serial,
+        self._message = Message(
+            message_type=MESSAGE_TYPE_MAP[self._message_type],
+            flags=flags,
+            unix_fds=self._unix_fds,
+            signature=tree,
+            body=body,
+            serial=self._serial,
             # The D-Bus implementation already validates the message,
             # so we don't need to do it again.
-            False,
+            validate=False,
+            destination=header_fields[HEADER_DESTINATION_IDX],
+            path=header_fields[HEADER_PATH_IDX],
+            interface=header_fields[HEADER_INTERFACE_IDX],
+            member=header_fields[HEADER_MEMBER_IDX],
         )
-        self._message = message
         self._read_complete = True
 
     def unmarshall(self) -> Optional[Message]:
