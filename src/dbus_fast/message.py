@@ -325,21 +325,37 @@ class Message:
         # Variant is invalid.
 
         if self.path:
-            fields.append([HEADER_PATH, Variant("o", self.path, False)])
+            var = Variant.__new__(Variant)
+            var._init_variant("o", self.path, False)
+            fields.append((HEADER_PATH, var))
         if self.interface:
-            fields.append([HEADER_INTERFACE, Variant("s", self.interface, False)])
+            var = Variant.__new__(Variant)
+            var._init_variant("s", self.interface, False)
+            fields.append((HEADER_INTERFACE, var))
         if self.member:
-            fields.append([HEADER_MEMBER, Variant("s", self.member, False)])
+            var = Variant.__new__(Variant)
+            var._init_variant("s", self.member, False)
+            fields.append((HEADER_MEMBER, var))
         if self.error_name:
-            fields.append([HEADER_ERROR_NAME, Variant("s", self.error_name, False)])
+            var = Variant.__new__(Variant)
+            var._init_variant("s", self.error_name, False)
+            fields.append((HEADER_ERROR_NAME, var))
         if self.reply_serial:
-            fields.append([HEADER_REPLY_SERIAL, Variant("u", self.reply_serial, False)])
+            var = Variant.__new__(Variant)
+            var._init_variant("u", self.reply_serial, False)
+            fields.append((HEADER_REPLY_SERIAL, var))
         if self.destination:
-            fields.append([HEADER_DESTINATION, Variant("s", self.destination, False)])
+            var = Variant.__new__(Variant)
+            var._init_variant("s", self.destination, False)
+            fields.append((HEADER_DESTINATION, var))
         if self.signature:
-            fields.append([HEADER_SIGNATURE, Variant("g", self.signature, False)])
+            var = Variant.__new__(Variant)
+            var._init_variant("g", self.signature, False)
+            fields.append((HEADER_SIGNATURE, var))
         if self.unix_fds and negotiate_unix_fd:
-            fields.append([HEADER_UNIX_FDS, Variant("u", len(self.unix_fds), False)])
+            var = Variant.__new__(Variant)
+            var._init_variant("u", len(self.unix_fds), False)
+            fields.append((HEADER_UNIX_FDS, var))
 
         header_body = [
             LITTLE_ENDIAN,
