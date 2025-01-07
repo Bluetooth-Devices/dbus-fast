@@ -2,7 +2,7 @@ import asyncio
 import os
 
 import pytest
-
+from contextlib import suppress
 from dbus_fast import Message
 from dbus_fast._private.address import parse_address
 from dbus_fast.aio import MessageBus
@@ -24,6 +24,8 @@ async def test_tcp_connection_with_forwarding(event_loop):
     else:
         path = addr_zero_options["path"]
 
+    tasks: list[asyncio.Task] = []
+
     async def handle_connection(tcp_reader, tcp_writer):
         unix_reader, unix_writer = await asyncio.open_unix_connection(path)
         closables.append(tcp_writer)
@@ -43,8 +45,8 @@ async def test_tcp_connection_with_forwarding(event_loop):
                     break
                 tcp_writer.write(data)
 
-        asyncio.run_coroutine_threadsafe(handle_read(), event_loop)
-        asyncio.run_coroutine_threadsafe(handle_write(), event_loop)
+        tasks.append(asyncio.create_task(handle_read()))
+        tasks.append(asyncio.create_task(handle_write()))
 
     server = await asyncio.start_server(handle_connection, host, port)
     closables.append(server)
@@ -74,3 +76,8 @@ async def test_tcp_connection_with_forwarding(event_loop):
 
     for c in closables:
         c.close()
+
+    for t in tasks:
+        t.cancel()
+        with suppress(asyncio.CancelledError):
+            await t
