@@ -457,53 +457,66 @@ class Unmarshaller:
     def _read_variant(self) -> Variant:
         signature = self._read_signature()
         token_as_int = ord(signature[0])
+        var = Variant.__new__(Variant)
         # verify in Variant is only useful on construction not unmarshalling
         if len(signature) == 1:
             if token_as_int == TOKEN_N_AS_INT:
-                return Variant(SIGNATURE_TREE_N, self._read_int16_unpack(), False)
+                var._init_variant(SIGNATURE_TREE_N, self._read_int16_unpack(), False)
+                return var
             if token_as_int == TOKEN_S_AS_INT:
-                return Variant(SIGNATURE_TREE_S, self._read_string_unpack(), False)
+                var._init_variant(SIGNATURE_TREE_S, self._read_string_unpack(), False)
+                return var
             if token_as_int == TOKEN_B_AS_INT:
-                return Variant(SIGNATURE_TREE_B, self._read_boolean(), False)
+                var._init_variant(SIGNATURE_TREE_B, self._read_boolean(), False)
+                return var
             if token_as_int == TOKEN_O_AS_INT:
-                return Variant(SIGNATURE_TREE_O, self._read_string_unpack(), False)
+                var._init_variant(SIGNATURE_TREE_O, self._read_string_unpack(), False)
+                return var
             if token_as_int == TOKEN_U_AS_INT:
-                return Variant(SIGNATURE_TREE_U, self._read_uint32_unpack(), False)
+                var._init_variant(SIGNATURE_TREE_U, self._read_uint32_unpack(), False)
+                return var
             if token_as_int == TOKEN_Y_AS_INT:
                 self._pos += 1
-                return Variant(SIGNATURE_TREE_Y, self._buf[self._pos - 1], False)
+                var._init_variant(SIGNATURE_TREE_Y, self._buf[self._pos - 1], False)
+                return var
         elif token_as_int == TOKEN_A_AS_INT:
             if signature == "ay":
-                return Variant(
+                var._init_variant(
                     SIGNATURE_TREE_AY, self.read_array(SIGNATURE_TREE_AY_TYPES_0), False
                 )
+                return var
             if signature == "a{qv}":
-                return Variant(
+                var._init_variant(
                     SIGNATURE_TREE_A_QV,
                     self.read_array(SIGNATURE_TREE_A_QV_TYPES_0),
                     False,
                 )
+                return var
             if signature == "as":
-                return Variant(
+                var._init_variant(
                     SIGNATURE_TREE_AS, self.read_array(SIGNATURE_TREE_AS_TYPES_0), False
                 )
+                return var
             if signature == "a{sv}":
-                return Variant(
+                var._init_variant(
                     SIGNATURE_TREE_A_SV,
                     self.read_array(SIGNATURE_TREE_A_SV_TYPES_0),
                     False,
                 )
+                return var
             if signature == "ao":
-                return Variant(
+                var._init_variant(
                     SIGNATURE_TREE_AO, self.read_array(SIGNATURE_TREE_AO_TYPES_0), False
                 )
+                return var
         tree = get_signature_tree(signature)
         signature_type = tree.types[0]
-        return Variant(
+        var._init_variant(
             tree,
             self._readers[signature_type.token](self, signature_type),
             False,
         )
+        return var
 
     def read_struct(self, type_: _SignatureType) -> list[Any]:
         self._pos += -self._pos & 7  # align 8

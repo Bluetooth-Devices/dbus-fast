@@ -203,6 +203,7 @@ cdef class Unmarshaller:
     @cython.locals(
         tree=SignatureTree,
         token_as_int=cython.uint,
+        var=Variant,
     )
     cdef Variant _read_variant(self)
 
