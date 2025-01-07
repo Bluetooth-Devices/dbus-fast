@@ -53,8 +53,7 @@ jobs:
         run: sudo apt update
       - name: Install libs
         run: sudo apt-get install -y dbus-daemon python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
-      - name: Install poetry
-        run: pipx install poetry
+      - uses: snok/install-poetry@v1.3.4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -83,12 +82,12 @@ jobs:
         run: sudo apt update
       - name: Install libs
         run: sudo apt-get install -y dbus-daemon python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
+      - uses: snok/install-poetry@v1.3.4
       - name: Setup Python 3.13
         uses: actions/setup-python@v5
         with:
           python-version: 3.13
           cache: "poetry"
-      - uses: snok/install-poetry@v1.3.4
       - name: Install Dependencies
         run: |
           REQUIRE_CYTHON=1 poetry install --only=main,dev
