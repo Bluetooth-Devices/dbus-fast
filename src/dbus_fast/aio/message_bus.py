@@ -57,7 +57,7 @@ class _MessageWriter:
     def __init__(self, bus: "MessageBus") -> None:
         """A class to handle writing messages to the message bus."""
         self.messages: deque[
-            Tuple[bytearray, Optional[List[int]], Optional[asyncio.Future]]
+            tuple[bytearray, Optional[list[int]], Optional[asyncio.Future]]
         ] = deque()
         self.negotiate_unix_fd = bus._negotiate_unix_fd
         self.bus = bus
@@ -66,7 +66,7 @@ class _MessageWriter:
         self.buf: Optional[memoryview] = None
         self.fd = bus._fd
         self.offset = 0
-        self.unix_fds: Optional[List[int]] = None
+        self.unix_fds: Optional[list[int]] = None
         self.fut: Optional[asyncio.Future] = None
 
     def write_callback(self, remove_writer: bool = True) -> None:
@@ -208,7 +208,7 @@ class MessageBus(BaseMessageBus):
             self._auth = auth
 
         self._disconnect_future = self._loop.create_future()
-        self._pending_futures: Set[asyncio.Future] = set()
+        self._pending_futures: set[asyncio.Future] = set()
 
     async def connect(self) -> "MessageBus":
         """Connect this message bus to the DBus daemon.

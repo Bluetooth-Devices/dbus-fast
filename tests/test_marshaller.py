@@ -30,7 +30,7 @@ with open(os.path.dirname(__file__) + "/data/get_managed_objects.hex") as fp:
     get_managed_objects_msg = fp.read()
 
 
-def json_to_message(message: Dict[str, Any]) -> Message:
+def json_to_message(message: dict[str, Any]) -> Message:
     copy = dict(message)
     if "message_type" in copy:
         copy["message_type"] = MessageType(copy["message_type"])
