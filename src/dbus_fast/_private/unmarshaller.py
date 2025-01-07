@@ -750,8 +750,7 @@ class Unmarshaller:
         flags = MESSAGE_FLAG_MAP.get(self._flag)
         if flags is None:
             flags = MESSAGE_FLAG_INTENUM(self._flag)
-        message = Message.__new__(Message)
-        message._fast_init(
+        message = Message(
             header_fields[HEADER_DESTINATION_IDX],
             header_fields[HEADER_PATH_IDX],
             header_fields[HEADER_INTERFACE_IDX],
