@@ -2,7 +2,7 @@ import asyncio
 import copy
 import inspect
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Optional
 
 from . import introspection as intr
 from ._private.util import (
@@ -317,7 +317,7 @@ def _real_fn_result_to_body(
     result: Optional[Any],
     signature_tree: SignatureTree,
     replace_fds: bool,
-) -> Tuple[List[Any], List[int]]:
+) -> tuple[list[Any], list[int]]:
     out_len = len(signature_tree.types)
     if result is None:
         final_result = []
@@ -362,13 +362,13 @@ class ServiceInterface:
     def __init__(self, name: str) -> None:
         # TODO cannot be overridden by a dbus member
         self.name = name
-        self.__methods: List[_Method] = []
-        self.__properties: List[_Property] = []
-        self.__signals: List[_Signal] = []
+        self.__methods: list[_Method] = []
+        self.__properties: list[_Property] = []
+        self.__signals: list[_Signal] = []
         self.__buses = set()
-        self.__handlers: Dict[
+        self.__handlers: dict[
             BaseMessageBus,
-            Dict[_Method, Callable[[Message, Callable[[Message], None]], None]],
+            dict[_Method, Callable[[Message, Callable[[Message], None]], None]],
         ] = {}
 
         for name, member in inspect.getmembers(type(self)):
@@ -404,7 +404,7 @@ class ServiceInterface:
                 )
 
     def emit_properties_changed(
-        self, changed_properties: Dict[str, Any], invalidated_properties: List[str] = []
+        self, changed_properties: dict[str, Any], invalidated_properties: list[str] = []
     ):
         """Emit the ``org.freedesktop.DBus.Properties.PropertiesChanged`` signal.
 
@@ -464,26 +464,26 @@ class ServiceInterface:
         )
 
     @staticmethod
-    def _get_properties(interface: "ServiceInterface") -> List[_Property]:
+    def _get_properties(interface: "ServiceInterface") -> list[_Property]:
         return interface.__properties
 
     @staticmethod
-    def _get_methods(interface: "ServiceInterface") -> List[_Method]:
+    def _get_methods(interface: "ServiceInterface") -> list[_Method]:
         return interface.__methods
 
     @staticmethod
-    def _c_get_methods(interface: "ServiceInterface") -> List[_Method]:
+    def _c_get_methods(interface: "ServiceInterface") -> list[_Method]:
         # _c_get_methods is used by the C code to get the methods for an
         # interface
         # https://github.com/cython/cython/issues/3327
         return interface.__methods
 
     @staticmethod
-    def _get_signals(interface: "ServiceInterface") -> List[_Signal]:
+    def _get_signals(interface: "ServiceInterface") -> list[_Signal]:
         return interface.__signals
 
     @staticmethod
-    def _get_buses(interface: "ServiceInterface") -> Set["BaseMessageBus"]:
+    def _get_buses(interface: "ServiceInterface") -> set["BaseMessageBus"]:
         return interface.__buses
 
     @staticmethod
@@ -520,11 +520,11 @@ class ServiceInterface:
         del interface.__handlers[bus]
 
     @staticmethod
-    def _msg_body_to_args(msg: Message) -> List[Any]:
+    def _msg_body_to_args(msg: Message) -> list[Any]:
         return ServiceInterface._c_msg_body_to_args(msg)
 
     @staticmethod
-    def _c_msg_body_to_args(msg: Message) -> List[Any]:
+    def _c_msg_body_to_args(msg: Message) -> list[Any]:
         # https://github.com/cython/cython/issues/3327
         if not signature_contains_type(msg.signature_tree, msg.body, "h"):
             return msg.body
@@ -541,7 +541,7 @@ class ServiceInterface:
         result: Optional[Any],
         signature_tree: SignatureTree,
         replace_fds: bool = True,
-    ) -> Tuple[List[Any], List[int]]:
+    ) -> tuple[list[Any], list[int]]:
         return _real_fn_result_to_body(result, signature_tree, replace_fds)
 
     @staticmethod
@@ -549,7 +549,7 @@ class ServiceInterface:
         result: Optional[Any],
         signature_tree: SignatureTree,
         replace_fds: bool,
-    ) -> Tuple[List[Any], List[int]]:
+    ) -> tuple[list[Any], list[int]]:
         """The high level interfaces may return single values which may be
         wrapped in a list to be a message body. Also they may return fds
         directly for type 'h' which need to be put into an external list."""

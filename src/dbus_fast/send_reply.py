@@ -1,6 +1,6 @@
 import traceback
 from types import TracebackType
-from typing import TYPE_CHECKING, Optional, Type
+from typing import TYPE_CHECKING, Optional
 
 from .constants import ErrorType
 from .errors import DBusError
@@ -28,7 +28,7 @@ class SendReply:
 
     def _exit(
         self,
-        exc_type: Optional[Type[Exception]],
+        exc_type: Optional[type[Exception]],
         exc_value: Optional[Exception],
         tb: Optional[TracebackType],
     ) -> bool:
@@ -49,7 +49,7 @@ class SendReply:
 
     def __exit__(
         self,
-        exc_type: Optional[Type[Exception]],
+        exc_type: Optional[type[Exception]],
         exc_value: Optional[Exception],
         tb: Optional[TracebackType],
     ) -> bool:

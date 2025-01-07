@@ -3,9 +3,10 @@ import inspect
 import logging
 import re
 import xml.etree.ElementTree as ET
+from collections.abc import Coroutine
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Callable, Coroutine, Dict, List, Optional, Type, Union
+from typing import Callable, Optional, Union
 
 from . import introspection as intr
 from . import message_bus
@@ -62,7 +63,7 @@ class BaseProxyInterface:
         self.path = path
         self.introspection = introspection
         self.bus = bus
-        self._signal_handlers: Dict[str, List[SignalHandler]] = {}
+        self._signal_handlers: dict[str, list[SignalHandler]] = {}
         self._signal_match_rule = f"type='signal',sender={bus_name},interface={introspection.name},path={path}"
 
     _underscorer1 = re.compile(r"(.)([A-Z][a-z]+)")
@@ -239,7 +240,7 @@ class BaseProxyObject:
         path: str,
         introspection: Union[intr.Node, str, ET.Element],
         bus: "message_bus.BaseMessageBus",
-        ProxyInterface: Type[BaseProxyInterface],
+        ProxyInterface: type[BaseProxyInterface],
     ) -> None:
         assert_object_path_valid(path)
         assert_bus_name_valid(bus_name)
@@ -330,7 +331,7 @@ class BaseProxyObject:
         self._interfaces[name] = interface
         return interface
 
-    def get_children(self) -> List["BaseProxyObject"]:
+    def get_children(self) -> list["BaseProxyObject"]:
         """Get the child nodes of this proxy object according to the introspection data."""
         if self._children is None:
             self._children = [

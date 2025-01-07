@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.24.4 (2024-11-15)
+
+### Fix
+
+* Exclude .c files from being shipped ([#331](https://github.com/Bluetooth-Devices/dbus-fast/issues/331)) ([`9c73022`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9c7302299ab002a1aec80062f0b9bd5c1bde46f9))
+
 ## v2.24.3 (2024-10-05)
 
 ### Fix

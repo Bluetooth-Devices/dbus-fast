@@ -1,6 +1,6 @@
 import enum
 import os
-from typing import List, Optional, Tuple
+from typing import Optional
 
 from .errors import AuthError
 
@@ -25,7 +25,7 @@ class _AuthResponse(enum.Enum):
     AGREE_UNIX_FD = "AGREE_UNIX_FD"
 
     @classmethod
-    def parse(klass, line: str) -> Tuple["_AuthResponse", List[str]]:
+    def parse(klass, line: str) -> tuple["_AuthResponse", list[str]]:
         args = line.split(" ")
         response = klass(args[0])
         return response, args[1:]

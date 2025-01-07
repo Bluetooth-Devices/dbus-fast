@@ -63,8 +63,9 @@ def test_get_session_bus_address():
     with patch.dict(os.environ, DBUS_SESSION_BUS_ADDRESS="unix:path=/dog"):
         assert get_session_bus_address() == "unix:path=/dog"
         assert get_bus_address(BusType.SESSION) == "unix:path=/dog"
-    with patch.dict(os.environ, DBUS_SESSION_BUS_ADDRESS="", DISPLAY=""), pytest.raises(
-        InvalidAddressError
+    with (
+        patch.dict(os.environ, DBUS_SESSION_BUS_ADDRESS="", DISPLAY=""),
+        pytest.raises(InvalidAddressError),
     ):
         assert get_session_bus_address()
 

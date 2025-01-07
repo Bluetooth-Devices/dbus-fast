@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Union
+from typing import Any, Optional, Union
 
 from ._private.constants import LITTLE_ENDIAN, PROTOCOL_VERSION, HeaderField
 from ._private.marshaller import Marshaller
@@ -109,9 +109,9 @@ class Message:
         error_name: Optional[Union[str, ErrorType]] = None,
         reply_serial: int = 0,
         sender: Optional[str] = None,
-        unix_fds: List[int] = [],
+        unix_fds: list[int] = [],
         signature: Optional[Union[SignatureTree, str]] = None,
-        body: List[Any] = [],
+        body: list[Any] = [],
         serial: int = 0,
         validate: bool = True,
     ) -> None:
@@ -203,8 +203,8 @@ class Message:
     def new_method_return(
         msg: "Message",
         signature: str = "",
-        body: List[Any] = [],
-        unix_fds: List[int] = [],
+        body: list[Any] = [],
+        unix_fds: list[int] = [],
     ) -> "Message":
         """A convenience constructor to create a method return to the given method call message.
 
@@ -238,8 +238,8 @@ class Message:
         interface: str,
         member: str,
         signature: str = "",
-        body: Optional[List[Any]] = None,
-        unix_fds: Optional[List[int]] = None,
+        body: Optional[list[Any]] = None,
+        unix_fds: Optional[list[int]] = None,
     ) -> "Message":
         """A convenience constructor to create a new signal message.
 

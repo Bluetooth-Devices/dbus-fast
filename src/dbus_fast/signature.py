@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Optional, Union
 
 from .errors import InvalidSignatureError, SignatureBodyMismatchError
 from .validators import is_object_path_valid
@@ -26,7 +26,7 @@ class SignatureType:
     def __init__(self, token: str) -> None:
         """Init a new SignatureType."""
         self.token: str = token
-        self.children: List[SignatureType] = []
+        self.children: list[SignatureType] = []
         self._signature: Optional[str] = None
 
     def __eq__(self, other: Any) -> bool:
@@ -60,7 +60,7 @@ class SignatureType:
         return self._signature
 
     @staticmethod
-    def _parse_next(signature: str) -> Tuple["SignatureType", str]:
+    def _parse_next(signature: str) -> tuple["SignatureType", str]:
         if not signature:
             raise InvalidSignatureError("Cannot parse an empty signature")
 
@@ -295,7 +295,7 @@ class SignatureType:
 
         return True
 
-    validators: Dict[str, Callable[["SignatureType", Any], None]] = {
+    validators: dict[str, Callable[["SignatureType", Any], None]] = {
         "y": _verify_byte,
         "b": _verify_boolean,
         "n": _verify_int16,
@@ -336,7 +336,7 @@ class SignatureTree:
     def __init__(self, signature: str = "") -> None:
         self.signature = signature
 
-        self.types: List[SignatureType] = []
+        self.types: list[SignatureType] = []
 
         if len(signature) > 0xFF:
             raise InvalidSignatureError("A signature must be less than 256 characters")
@@ -350,7 +350,7 @@ class SignatureTree:
             return self.signature == other.signature
         return super().__eq__(other)
 
-    def verify(self, body: List[Any]) -> bool:
+    def verify(self, body: list[Any]) -> bool:
         """Verifies that the give body matches this signature tree
 
         :param body: the body to verify for this tree

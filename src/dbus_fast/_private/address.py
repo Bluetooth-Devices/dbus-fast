@@ -1,6 +1,6 @@
 import os
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 from urllib.parse import unquote
 
 from ..constants import BusType
@@ -11,9 +11,9 @@ invalid_address_chars_re = re.compile(r"[^-0-9A-Za-z_/.%]")
 str_ = str
 
 
-def parse_address(address_str: str_) -> List[Tuple[str, Dict[str, str]]]:
+def parse_address(address_str: str_) -> list[tuple[str, dict[str, str]]]:
     """Parse a dbus address string into a list of addresses."""
-    addresses: List[Tuple[str, Dict[str, str]]] = []
+    addresses: list[tuple[str, dict[str, str]]] = []
 
     for address in address_str.split(";"):
         if not address:
@@ -22,7 +22,7 @@ def parse_address(address_str: str_) -> List[Tuple[str, Dict[str, str]]]:
             raise InvalidAddressError("address did not contain a transport")
 
         transport, opt_string = address.split(":", 1)
-        options: Dict[str, str] = {}
+        options: dict[str, str] = {}
 
         for kv in opt_string.split(","):
             if not kv:

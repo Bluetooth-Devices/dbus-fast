@@ -1,12 +1,12 @@
 import ast
 import inspect
-from typing import Any, List, Tuple, Union
+from typing import Any, Union
 
 from ..signature import SignatureTree, Variant, get_signature_tree
 
 
 def signature_contains_type(
-    signature: Union[str, SignatureTree], body: List[Any], token: str
+    signature: Union[str, SignatureTree], body: list[Any], token: str
 ) -> bool:
     """For a given signature and body, check to see if it contains any members
     with the given token"""
@@ -49,8 +49,8 @@ def signature_contains_type(
 
 
 def replace_fds_with_idx(
-    signature: Union[str, SignatureTree], body: List[Any]
-) -> Tuple[List[Any], List[int]]:
+    signature: Union[str, SignatureTree], body: list[Any]
+) -> tuple[list[Any], list[int]]:
     """Take the high level body format and convert it into the low level body
     format. Type 'h' refers directly to the fd in the body. Replace that with
     an index and return the corresponding list of unix fds that can be set on
@@ -76,8 +76,8 @@ def replace_fds_with_idx(
 
 
 def replace_idx_with_fds(
-    signature: Union[str, SignatureTree], body: List[Any], unix_fds: List[int]
-) -> List[Any]:
+    signature: Union[str, SignatureTree], body: list[Any], unix_fds: list[int]
+) -> list[Any]:
     """Take the low level body format and return the high level body format.
     Type 'h' refers to an index in the unix_fds array. Replace those with the
     actual file descriptor or `None` if one does not exist."""
@@ -128,7 +128,7 @@ def parse_annotation(annotation: str) -> str:
     return annotation
 
 
-def _replace_fds(body_obj: List[Any], children, replace_fn):
+def _replace_fds(body_obj: list[Any], children, replace_fn):
     """Replace any type 'h' with the value returned by replace_fn() given the
     value of the fd field. This is used by the high level interfaces which
     allow type 'h' to be the fd directly instead of an index in an external

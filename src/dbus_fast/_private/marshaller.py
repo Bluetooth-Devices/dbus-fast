@@ -1,5 +1,5 @@
 from struct import Struct, error
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Optional, Union
 
 from ..signature import SignatureType, Variant, get_signature_tree
 
@@ -20,7 +20,7 @@ class Marshaller:
 
     __slots__ = ("signature_tree", "_buf", "body")
 
-    def __init__(self, signature: str, body: List[Any]) -> None:
+    def __init__(self, signature: str, body: list[Any]) -> None:
         """Marshaller constructor."""
         self.signature_tree = get_signature_tree(signature)
         self._buf = bytearray()
@@ -89,12 +89,12 @@ class Marshaller:
         return written
 
     def write_array(
-        self, array: Union[List[Any], Dict[Any, Any]], type_: SignatureType
+        self, array: Union[list[Any], dict[Any, Any]], type_: SignatureType
     ) -> int:
         return self._write_array(array, type_)
 
     def _write_array(
-        self, array: Union[List[Any], Dict[Any, Any]], type_: SignatureType
+        self, array: Union[list[Any], dict[Any, Any]], type_: SignatureType
     ) -> int:
         # TODO max array size is 64MiB (67108864 bytes)
         written = self._align(4)
@@ -137,19 +137,19 @@ class Marshaller:
         return written + array_len
 
     def write_struct(
-        self, array: Union[Tuple[Any], List[Any]], type_: SignatureType
+        self, array: Union[tuple[Any], list[Any]], type_: SignatureType
     ) -> int:
         return self._write_struct(array, type_)
 
     def _write_struct(
-        self, array: Union[Tuple[Any], List[Any]], type_: SignatureType
+        self, array: Union[tuple[Any], list[Any]], type_: SignatureType
     ) -> int:
         written = self._align(8)
         for i, value in enumerate(array):
             written += self._write_single(type_.children[i], value)
         return written
 
-    def write_dict_entry(self, dict_entry: List[Any], type_: SignatureType) -> int:
+    def write_dict_entry(self, dict_entry: list[Any], type_: SignatureType) -> int:
         written = self._align(8)
         written += self._write_single(type_.children[0], dict_entry[0])
         written += self._write_single(type_.children[1], dict_entry[1])
@@ -201,9 +201,9 @@ class Marshaller:
             self._write_single(type_, body[i])
         return self._buf
 
-    _writers: Dict[
+    _writers: dict[
         str,
-        Tuple[
+        tuple[
             Optional[Callable[[Any, Any, SignatureType], int]],
             Optional[Callable[[Any], bytes]],
             int,

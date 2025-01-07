@@ -4,7 +4,7 @@ import socket
 import traceback
 import xml.etree.ElementTree as ET
 from functools import partial
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+from typing import Any, Callable, Optional, Union
 
 from . import introspection as intr
 from ._private.address import get_bus_address, parse_address
@@ -121,7 +121,7 @@ class BaseMessageBus:
         self,
         bus_address: Optional[str] = None,
         bus_type: BusType = BusType.SESSION,
-        ProxyObject: Optional[Type[BaseProxyObject]] = None,
+        ProxyObject: Optional[type[BaseProxyObject]] = None,
         negotiate_unix_fd: bool = False,
     ) -> None:
         self.unique_name: Optional[str] = None
@@ -132,20 +132,20 @@ class BaseMessageBus:
         # the main loop.
         self._user_disconnect = False
 
-        self._method_return_handlers: Dict[
+        self._method_return_handlers: dict[
             int, Callable[[Optional[Message], Optional[Exception]], None]
         ] = {}
         self._serial = 0
-        self._user_message_handlers: List[
+        self._user_message_handlers: list[
             Callable[[Message], Union[Message, bool, None]]
         ] = []
         # the key is the name and the value is the unique name of the owner.
         # This cache is kept up to date by the NameOwnerChanged signal and is
         # used to route messages to the correct proxy object. (used for the
         # high level client only)
-        self._name_owners: Dict[str, str] = {}
+        self._name_owners: dict[str, str] = {}
         # used for the high level service
-        self._path_exports: Dict[str, list[ServiceInterface]] = {}
+        self._path_exports: dict[str, list[ServiceInterface]] = {}
         self._bus_address = (
             parse_address(bus_address)
             if bus_address
@@ -156,7 +156,7 @@ class BaseMessageBus:
         self._name_owner_match_rule = "sender='org.freedesktop.DBus',interface='org.freedesktop.DBus',path='/org/freedesktop/DBus',member='NameOwnerChanged'"
         # _match_rules: the keys are match rules and the values are ref counts
         # (used for the high level client only)
-        self._match_rules: Dict[str, int] = {}
+        self._match_rules: dict[str, int] = {}
         self._high_level_client_initialized = False
         self._ProxyObject = ProxyObject
 
@@ -350,7 +350,7 @@ class BaseMessageBus:
 
         ServiceInterface._get_all_property_values(interface, get_properties_callback)
 
-    def _emit_interface_removed(self, path: str, removed_interfaces: List[str]) -> None:
+    def _emit_interface_removed(self, path: str, removed_interfaces: list[str]) -> None:
         """Emit the ``org.freedesktop.DBus.ObjectManager.InterfacesRemoved` signal.
 
         This signal is intended to be used to alert clients when
@@ -622,8 +622,8 @@ class BaseMessageBus:
         interface_name: str,
         member: str,
         signature: str,
-        body: List[Any],
-        unix_fds: List[int] = [],
+        body: list[Any],
+        unix_fds: list[int] = [],
     ) -> None:
         path = None
         for p, ifaces in self._path_exports.items():

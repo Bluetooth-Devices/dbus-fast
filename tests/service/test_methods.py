@@ -29,8 +29,12 @@ class ExampleInterface(ServiceInterface):
 
     @method()
     def echo_containers(
-        self, array: "as", variant: "v", dict_entries: "a{sv}", struct: "(s(s(v)))"
-    ) -> "asva{sv}(s(s(v)))":
+        self,
+        array: "as",  # noqa: F722
+        variant: "v",
+        dict_entries: "a{sv}",  # noqa: F722
+        struct: "(s(s(v)))",  # noqa: F722
+    ) -> "asva{sv}(s(s(v)))":  # noqa: F722
         assert type(self) is ExampleInterface
         return [array, variant, dict_entries, struct]
 
@@ -76,8 +80,12 @@ class AsyncInterface(ServiceInterface):
 
     @method()
     async def echo_containers(
-        self, array: "as", variant: "v", dict_entries: "a{sv}", struct: "(s(s(v)))"
-    ) -> "asva{sv}(s(s(v)))":
+        self,
+        array: "as",  # noqa: F722
+        variant: "v",
+        dict_entries: "a{sv}",  # noqa: F722
+        struct: "(s(s(v)))",  # noqa: F722
+    ) -> "asva{sv}(s(s(v)))":  # noqa: F722
         assert type(self) is AsyncInterface
         return [array, variant, dict_entries, struct]
 

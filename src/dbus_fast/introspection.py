@@ -1,5 +1,5 @@
 import xml.etree.ElementTree as ET
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 from .constants import ArgDirection, PropertyAccess
 from .errors import InvalidIntrospectionError
@@ -31,7 +31,7 @@ class Arg:
     def __init__(
         self,
         signature: Union[SignatureType, str],
-        direction: Optional[List[ArgDirection]] = None,
+        direction: Optional[list[ArgDirection]] = None,
         name: Optional[str] = None,
     ):
         if name is not None:
@@ -105,7 +105,7 @@ class Signal:
         - :class:`InvalidMemberNameError <dbus_fast.InvalidMemberNameError>` - If the name of the signal is not a valid member name.
     """
 
-    def __init__(self, name: Optional[str], args: Optional[List[Arg]] = None):
+    def __init__(self, name: Optional[str], args: Optional[list[Arg]] = None):
         if name is not None:
             assert_member_name_valid(name)
 
@@ -168,7 +168,7 @@ class Method:
         - :class:`InvalidMemberNameError <dbus_fast.InvalidMemberNameError>` - If the name of this method is not valid.
     """
 
-    def __init__(self, name: str, in_args: List[Arg] = [], out_args: List[Arg] = []):
+    def __init__(self, name: str, in_args: list[Arg] = [], out_args: list[Arg] = []):
         assert_member_name_valid(name)
 
         self.name = name
@@ -312,9 +312,9 @@ class Interface:
     def __init__(
         self,
         name: str,
-        methods: Optional[List[Method]] = None,
-        signals: Optional[List[Signal]] = None,
-        properties: Optional[List[Property]] = None,
+        methods: Optional[list[Method]] = None,
+        signals: Optional[list[Signal]] = None,
+        properties: Optional[list[Property]] = None,
     ):
         assert_interface_name_valid(name)
 
@@ -397,7 +397,7 @@ class Node:
     def __init__(
         self,
         name: Optional[str] = None,
-        interfaces: Optional[List[Interface]] = None,
+        interfaces: Optional[list[Interface]] = None,
         is_root: bool = True,
     ):
         if not is_root and not name:

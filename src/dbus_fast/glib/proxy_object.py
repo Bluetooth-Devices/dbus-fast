@@ -1,5 +1,5 @@
 import xml.etree.ElementTree as ET
-from typing import List, Union
+from typing import Union
 
 from .. import introspection as intr
 from ..constants import ErrorType
@@ -316,5 +316,5 @@ class ProxyObject(BaseProxyObject):
     def get_interface(self, name: str) -> ProxyInterface:
         return super().get_interface(name)
 
-    def get_children(self) -> List["ProxyObject"]:
+    def get_children(self) -> list["ProxyObject"]:
         return super().get_children()

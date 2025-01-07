@@ -3,8 +3,9 @@ import errno
 import io
 import socket
 import sys
+from collections.abc import Iterable
 from struct import Struct
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Callable, Optional, Union
 
 from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP, MessageFlag
 from ..errors import InvalidMessageError
@@ -157,9 +158,9 @@ def unpack_parser_factory(unpack_from: Callable, size: int) -> READER_TYPE:
 
 def build_simple_parsers(
     endian: int,
-) -> Dict[str, Callable[["Unmarshaller", SignatureType], Any]]:
+) -> dict[str, Callable[["Unmarshaller", SignatureType], Any]]:
     """Build a dict of parsers for simple types."""
-    parsers: Dict[str, READER_TYPE] = {}
+    parsers: dict[str, READER_TYPE] = {}
     for dbus_type, ctype_size in DBUS_TO_CTYPE.items():
         ctype, size = ctype_size
         size = ctype_size[1]
@@ -231,12 +232,12 @@ class Unmarshaller:
         sock: Optional[socket.socket] = None,
         negotiate_unix_fd: bool = True,
     ) -> None:
-        self._unix_fds: List[int] = []
+        self._unix_fds: list[int] = []
         self._buf = bytearray()  # Actual buffer
         self._stream = stream
         self._sock = sock
         self._message: Optional[Message] = None
-        self._readers: Dict[str, READER_TYPE] = {}
+        self._readers: dict[str, READER_TYPE] = {}
         self._pos = 0
         self._body_len = 0
         self._serial = 0
@@ -494,14 +495,14 @@ class Unmarshaller:
             False,
         )
 
-    def read_struct(self, type_: _SignatureType) -> List[Any]:
+    def read_struct(self, type_: _SignatureType) -> list[Any]:
         self._pos += -self._pos & 7  # align 8
         readers = self._readers
         return [
             readers[child_type.token](self, child_type) for child_type in type_.children
         ]
 
-    def read_dict_entry(self, type_: _SignatureType) -> Tuple[Any, Any]:
+    def read_dict_entry(self, type_: _SignatureType) -> tuple[Any, Any]:
         self._pos += -self._pos & 7  # align 8
         return self._readers[type_.children[0].token](
             self, type_.children[0]
@@ -537,7 +538,7 @@ class Unmarshaller:
             return self._buf[self._pos - array_length : self._pos]
 
         if token_as_int == TOKEN_LEFT_CURLY_AS_INT:
-            result_dict: Dict[Any, Any] = {}
+            result_dict: dict[Any, Any] = {}
             beginning_pos = self._pos
             children = child_type.children
             child_0 = children[0]
@@ -595,7 +596,7 @@ class Unmarshaller:
             result_list.append(reader(self, child_type))
         return result_list
 
-    def _header_fields(self, header_length: _int) -> Dict[str, Any]:
+    def _header_fields(self, header_length: _int) -> dict[str, Any]:
         """Header fields are always a(yv)."""
         beginning_pos = self._pos
         headers = {}
@@ -696,7 +697,7 @@ class Unmarshaller:
         signature = header_fields.pop("signature", "")
         if not self._body_len:
             tree = SIGNATURE_TREE_EMPTY
-            body: List[Any] = []
+            body: list[Any] = []
         else:
             token_as_int = ord(signature[0])
             if len(signature) == 1:
@@ -778,7 +779,7 @@ class Unmarshaller:
             return None
         return self._message
 
-    _complex_parsers_unpack: Dict[
+    _complex_parsers_unpack: dict[
         str, Callable[["Unmarshaller", SignatureType], Any]
     ] = {
         "b": read_boolean,
@@ -795,11 +796,11 @@ class Unmarshaller:
         UINT16_DBUS_TYPE: read_uint16_unpack,
     }
 
-    _ctype_by_endian: Dict[int, Dict[str, READER_TYPE]] = {
+    _ctype_by_endian: dict[int, dict[str, READER_TYPE]] = {
         endian: build_simple_parsers(endian) for endian in (LITTLE_ENDIAN, BIG_ENDIAN)
     }
 
-    _readers_by_type: Dict[int, Dict[str, READER_TYPE]] = {
+    _readers_by_type: dict[int, dict[str, READER_TYPE]] = {
         LITTLE_ENDIAN: {
             **_ctype_by_endian[LITTLE_ENDIAN],
             **_complex_parsers_unpack,

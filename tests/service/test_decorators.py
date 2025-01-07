@@ -19,7 +19,7 @@ class ExampleInterface(ServiceInterface):
         pass
 
     @signal()
-    def some_signal(self) -> "as":
+    def some_signal(self) -> "as":  # noqa: F722
         return ["result"]
 
     @signal(name="renamed_signal", disabled=True)
