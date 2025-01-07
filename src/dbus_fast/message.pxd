@@ -50,8 +50,9 @@ cdef class Message:
     cdef public unsigned int serial
 
     @cython.locals(
-        body_buffer=cython.bytearray,
-        header_buffer=cython.bytearray
+        body_buffer=bytearray,
+        header_buffer=bytearray,
+        var=Variant
     )
     cpdef _marshall(self, object negotiate_unix_fd)
 
