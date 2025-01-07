@@ -106,6 +106,8 @@ jobs:
       - test
       - lint
       - commitlint
+    outputs:
+      released: ${{ steps.release.outputs.released }}
 
     steps:
       - uses: actions/checkout@v3
@@ -126,7 +128,7 @@ jobs:
 
   build_wheels:
     needs: [release]
-
+    if: needs.release.outputs.released == 'true'
     name: Build wheels on ${{ matrix.os }} with arch ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     strategy:
