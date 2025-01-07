@@ -2,6 +2,17 @@
 
 <!--next-version-placeholder-->
 
+## v2.28.0 (2025-01-07)
+
+### Feature
+
+* Improve performance of unmarshalling variants ([#354](https://github.com/Bluetooth-Devices/dbus-fast/issues/354)) ([`d376bb1`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d376bb13ade9bac8b478a183a4a280d37d121ab9))
+* Improve performance of marshalling message headers ([#356](https://github.com/Bluetooth-Devices/dbus-fast/issues/356)) ([`e1aaf0a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e1aaf0a3969d595bc9d789cb5e40dfd59ef232c9))
+
+### Fix
+
+* Revert avoid building wheels if a release is not made ([#357](https://github.com/Bluetooth-Devices/dbus-fast/issues/357)) ([`ebdf07e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ebdf07ec9e875806c050c97027b6f7dca077bd7d))
+
 ## v2.27.0 (2025-01-07)
 
 ### Feature
