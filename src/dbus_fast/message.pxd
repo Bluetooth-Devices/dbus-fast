@@ -54,3 +54,21 @@ cdef class Message:
         header_buffer=cython.bytearray
     )
     cpdef _marshall(self, object negotiate_unix_fd)
+
+    cdef _fast_init(
+        self,
+        object destination,
+        object path,
+        object interface,
+        object member,
+        object message_type,
+        object flags,
+        object error_name,
+        object reply_serial,
+        object sender,
+        object unix_fds,
+        object signature_tree,
+        object body,
+        object serial,
+        object validate
+    )
