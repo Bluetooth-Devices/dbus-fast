@@ -117,7 +117,7 @@ async def test_aio_proxy_object():
     finally:
         logger.removeHandler(log_handler)
 
-    assert log_error_queue.empty()
+    assert log_error_queue.empty(), log_error_queue.get_nowait()
 
     bus.disconnect()
     bus2.disconnect()
