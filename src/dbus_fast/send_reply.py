@@ -1,6 +1,6 @@
 import traceback
 from types import TracebackType
-from typing import TYPE_CHECKING, Optional, Type
+from typing import TYPE_CHECKING, Optional
 
 from .constants import ErrorType
 from .errors import DBusError

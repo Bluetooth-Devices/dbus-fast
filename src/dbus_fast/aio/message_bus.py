@@ -6,7 +6,7 @@ import socket
 from collections import deque
 from copy import copy
 from functools import partial
-from typing import Any, Callable, List, Optional, Set, Tuple
+from typing import Any, Callable, Optional
 
 from .. import introspection as intr
 from ..auth import Authenticator, AuthExternal

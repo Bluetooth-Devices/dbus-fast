@@ -1,6 +1,6 @@
 import enum
 import os
-from typing import List, Optional, Tuple
+from typing import Optional
 
 from .errors import AuthError
 
