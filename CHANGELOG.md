@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.26.0 (2025-01-07)
+
+### Feature
+
+* Speed up constructing messages from the unmarshaller ([#344](https://github.com/Bluetooth-Devices/dbus-fast/issues/344)) ([`b162494`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b162494aa25fe4b23debdd9a44b49ea21c771ad1))
+
 ## v2.25.0 (2025-01-07)
 
 ### Feature
