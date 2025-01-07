@@ -48,7 +48,7 @@ jobs:
           - "use_cython"
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Update apt
         run: sudo apt update
       - name: Install libs
@@ -79,10 +79,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Python 3.12
-        uses: actions/setup-python@v4
+      - name: Update apt
+        run: sudo apt update
+      - name: Install libs
+        run: sudo apt-get install -y dbus-daemon python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
+      - name: Setup Python 3.13
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.12
+          python-version: 3.13
+          cache: "poetry"
       - uses: snok/install-poetry@v1.3.4
       - name: Install Dependencies
         run: |
@@ -92,7 +97,7 @@ jobs:
         uses: CodSpeedHQ/action@v3
         with:
           token: ${{ secrets.CODSPEED_TOKEN }}
-          run: poetry run pytest --no-cov -vvvvv --codspeed tests/benchmarks
+          run: dbus-run-session -- poetry run pytest --no-cov -vvvvv --codspeed tests/benchmarks
 
   release:
     runs-on: ubuntu-latest
