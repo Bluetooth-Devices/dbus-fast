@@ -764,6 +764,9 @@ class Unmarshaller:
             path=header_fields[HEADER_PATH_IDX],
             interface=header_fields[HEADER_INTERFACE_IDX],
             member=header_fields[HEADER_MEMBER_IDX],
+            reply_serial=header_fields[HEADER_REPLY_SERIAL_IDX],
+            error_name=header_fields[HEADER_ERROR_NAME_IDX],
+            sender=header_fields[HEADER_SENDER_IDX],
         )
         self._read_complete = True
 
