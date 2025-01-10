@@ -768,7 +768,7 @@ class Unmarshaller:
                 tree = get_signature_tree(signature)
                 body = [self._readers[t.token](self, t) for t in tree.types]
 
-        reply_serial_py = header_fields[HEADER_REPLY_SERIAL_IDX]
+        reply_serial = header_fields[HEADER_REPLY_SERIAL_IDX]
         if self._flag in MESSAGE_FLAG_LIST:
             flags = MESSAGE_FLAG_LIST[self._flag]
         else:
@@ -782,7 +782,7 @@ class Unmarshaller:
             MESSAGE_TYPE_LIST[self._message_type],
             flags,
             header_fields[HEADER_ERROR_NAME_IDX],
-            0 if reply_serial_py is None else reply_serial_py,
+            0 if reply_serial is None else reply_serial,
             header_fields[HEADER_SENDER_IDX],
             self._unix_fds,
             tree,
