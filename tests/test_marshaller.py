@@ -8,7 +8,7 @@ import pytest
 
 from dbus_fast import Message, MessageFlag, MessageType, SignatureTree, Variant
 from dbus_fast._private._cython_compat import FakeCython
-from dbus_fast._private.unmarshaller import Unmarshaller
+from dbus_fast._private.unmarshaller import Unmarshaller, MESSAGE_FLAG_LIST
 from dbus_fast.unpack import unpack_variants
 
 
@@ -738,3 +738,8 @@ def test_marshalling_struct_accepts_lists():
     marshalled = msg._marshall(False)
     unmarshalled_msg = Unmarshaller(io.BytesIO(marshalled)).unmarshall()
     assert unpack_variants(unmarshalled_msg.body)[0] == [RaucState.GOOD.value]
+
+
+def test_MESSAGE_FLAG_LIST_order():
+    for idx, val in enumerate(MESSAGE_FLAG_LIST):
+        assert int(val) == idx

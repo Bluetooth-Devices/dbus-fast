@@ -7,7 +7,7 @@ from collections.abc import Iterable
 from struct import Struct
 from typing import Any, Callable, Optional, Union
 
-from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP, MessageFlag
+from ..constants import MESSAGE_TYPE_MAP, MessageFlag
 from ..errors import InvalidMessageError
 from ..message import Message
 from ..signature import SignatureType, Variant, get_signature_tree
@@ -16,12 +16,20 @@ from .constants import BIG_ENDIAN, LITTLE_ENDIAN, PROTOCOL_VERSION
 MESSAGE_FLAG_INTENUM = MessageFlag
 
 MESSAGE_FLAG_LIST = [
-    MESSAGE_FLAG_MAP.get(key) for key in range(max(MESSAGE_FLAG_MAP) + 1)
+    MessageFlag.NONE,
+    MessageFlag.NO_REPLY_EXPECTED,
+    MessageFlag.NO_AUTOSTART,
+    MessageFlag.NO_REPLY_EXPECTED | MessageFlag.NO_AUTOSTART,
+    MessageFlag.ALLOW_INTERACTIVE_AUTHORIZATION,
+    MessageFlag.NO_REPLY_EXPECTED | MessageFlag.ALLOW_INTERACTIVE_AUTHORIZATION,
+    MessageFlag.NO_AUTOSTART | MessageFlag.ALLOW_INTERACTIVE_AUTHORIZATION,
+    MessageFlag.NO_REPLY_EXPECTED
+    | MessageFlag.NO_AUTOSTART
+    | MessageFlag.ALLOW_INTERACTIVE_AUTHORIZATION,
 ]
 MESSAGE_TYPE_LIST = [
     MESSAGE_TYPE_MAP.get(key) for key in range(max(MESSAGE_TYPE_MAP) + 1)
 ]
-
 
 MAX_UNIX_FDS = 16
 MAX_UNIX_FDS_SIZE = array.array("i").itemsize
@@ -769,10 +777,6 @@ class Unmarshaller:
                 body = [self._readers[t.token](self, t) for t in tree.types]
 
         reply_serial = header_fields[HEADER_REPLY_SERIAL_IDX]
-        if self._flag in MESSAGE_FLAG_LIST:
-            flags = MESSAGE_FLAG_LIST[self._flag]
-        else:
-            flags = MESSAGE_FLAG_INTENUM(self._flag)
         message = Message.__new__(Message)
         message._fast_init(
             header_fields[HEADER_DESTINATION_IDX],
@@ -780,7 +784,7 @@ class Unmarshaller:
             header_fields[HEADER_INTERFACE_IDX],
             header_fields[HEADER_MEMBER_IDX],
             MESSAGE_TYPE_LIST[self._message_type],
-            flags,
+            MESSAGE_FLAG_LIST[self._flag],
             header_fields[HEADER_ERROR_NAME_IDX],
             0 if reply_serial is None else reply_serial,
             header_fields[HEADER_SENDER_IDX],
