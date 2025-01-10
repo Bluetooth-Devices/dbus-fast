@@ -15,6 +15,14 @@ from .constants import BIG_ENDIAN, LITTLE_ENDIAN, PROTOCOL_VERSION
 
 MESSAGE_FLAG_INTENUM = MessageFlag
 
+MESSAGE_FLAG_LIST = [
+    MESSAGE_FLAG_MAP.get(key) for key in range(max(MESSAGE_FLAG_MAP) + 1)
+]
+MESSAGE_TYPE_LIST = [
+    MESSAGE_TYPE_MAP.get(key) for key in range(max(MESSAGE_TYPE_MAP) + 1)
+]
+
+
 MAX_UNIX_FDS = 16
 MAX_UNIX_FDS_SIZE = array.array("i").itemsize
 UNIX_FDS_CMSG_LENGTH = socket.CMSG_LEN(MAX_UNIX_FDS_SIZE)
@@ -760,8 +768,10 @@ class Unmarshaller:
                 tree = get_signature_tree(signature)
                 body = [self._readers[t.token](self, t) for t in tree.types]
 
-        flags = MESSAGE_FLAG_MAP.get(self._flag)
-        if flags is None:
+        reply_serial_py = header_fields[HEADER_REPLY_SERIAL_IDX]
+        if self._flag in MESSAGE_FLAG_LIST:
+            flags = MESSAGE_FLAG_LIST[self._flag]
+        else:
             flags = MESSAGE_FLAG_INTENUM(self._flag)
         message = Message.__new__(Message)
         message._fast_init(
@@ -769,10 +779,10 @@ class Unmarshaller:
             header_fields[HEADER_PATH_IDX],
             header_fields[HEADER_INTERFACE_IDX],
             header_fields[HEADER_MEMBER_IDX],
-            MESSAGE_TYPE_MAP[self._message_type],
+            MESSAGE_TYPE_LIST[self._message_type],
             flags,
             header_fields[HEADER_ERROR_NAME_IDX],
-            header_fields[HEADER_REPLY_SERIAL_IDX] or 0,
+            0 if reply_serial_py is None else reply_serial_py,
             header_fields[HEADER_SENDER_IDX],
             self._unix_fds,
             tree,

@@ -57,6 +57,9 @@ cdef object UINT16_UNPACK_BIG_ENDIAN
 
 cdef cython.dict MESSAGE_TYPE_MAP
 cdef cython.dict MESSAGE_FLAG_MAP
+cdef list MESSAGE_TYPE_LIST
+cdef list MESSAGE_FLAG_LIST
+
 cdef dict HEADER_MESSAGE_ARG_NAME
 
 cdef SignatureTree SIGNATURE_TREE_EMPTY
@@ -140,8 +143,8 @@ cdef class Unmarshaller:
     cdef unsigned int _body_len
     cdef unsigned int _serial
     cdef unsigned int _header_len
-    cdef object _message_type
-    cdef object _flag
+    cdef unsigned int _message_type
+    cdef unsigned int _flag
     cdef unsigned int _msg_len
     cdef unsigned int _is_native
     cdef object _uint32_unpack
@@ -239,7 +242,7 @@ cdef class Unmarshaller:
         header_fields=cython.list,
         token_as_int=cython.uint,
         signature=cython.str,
-        message=Message
+        message=Message,
     )
     cdef _read_body(self)
 
