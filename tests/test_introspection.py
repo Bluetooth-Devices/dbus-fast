@@ -78,14 +78,18 @@ def test_example_introspection_to_xml():
     method = interface[0]
     assert method.tag == "method"
     assert method.get("name") == "Frobate"
-    # TODO annotations
-    assert len(method) == 3
+    assert len(method) == 4
 
     arg = method[0]
     assert arg.tag == "arg"
     assert arg.attrib.get("name") == "foo"
     assert arg.attrib.get("type") == "i"
     assert arg.attrib.get("direction") == "in"
+
+    annotation = method[3]
+    assert annotation.tag == "annotation"
+    assert annotation.attrib.get("name") == "org.freedesktop.DBus.Deprecated"
+    assert annotation.attrib.get("value") == "true"
 
     signal = interface[3]
     assert signal.tag == "signal"
