@@ -20,7 +20,7 @@ async def test_tcp_connection_with_forwarding(event_loop):
     addr_zero_options = addr_info[0][1]
 
     if "abstract" in addr_zero_options:
-        path = f'\0{addr_zero_options["abstract"]}'
+        path = f"\0{addr_zero_options['abstract']}"
     else:
         path = addr_zero_options["path"]
 

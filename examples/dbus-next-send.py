@@ -54,7 +54,7 @@ interface_member = vars(args)["interface.member"].split(".")
 
 if len(interface_member) < 2:
     exit_error(
-        f'Expecting an interface and member separated by a dot: {vars(args)["interface.member"]}'
+        f"Expecting an interface and member separated by a dot: {vars(args)['interface.member']}"
     )
 
 destination = args.dest
