@@ -129,9 +129,9 @@ def test_unmarshalling_with_table(unmarshall_table):
             "flags",
             "serial",
         ]:
-            assert getattr(unmarshaller.message, attr) == getattr(
-                message, attr
-            ), f"attr doesnt match: {attr}"
+            assert getattr(unmarshaller.message, attr) == getattr(message, attr), (
+                f"attr doesnt match: {attr}"
+            )
 
 
 def test_unmarshall_can_resume():
@@ -308,7 +308,7 @@ def test_unmarshall_bluez_interfaces_added_message():
                 "RSSI": -50,
                 "ServiceData": {
                     "0000fe95-0000-1000-8000-00805f9b34fb": bytearray(
-                        b"0X\xd6\x03" b"\x026&`" b"4-X\x08"
+                        b"0X\xd6\x03\x026&`4-X\x08"
                     )
                 },
                 "ServicesResolved": False,
@@ -417,14 +417,10 @@ def test_unmarshall_bluez_properties_changed_with_service_data():
             "RSSI": -63,
             "ServiceData": {
                 "0000fdcd-0000-1000-8000-00805f9b34fb": bytearray(
-                    b"\x08\x12\x1f\xda"
-                    b"`4-X"
-                    b"\x02\x01U\x0f"
-                    b"\x01\xcd\t\x04"
-                    b"\x05\x00\x00\x00"
+                    b"\x08\x12\x1f\xda`4-X\x02\x01U\x0f\x01\xcd\t\x04\x05\x00\x00\x00"
                 ),
                 "0000fe95-0000-1000-8000-00805f9b34fb": bytearray(
-                    b"0X\x83\n" b"\x02\x1f\xda`" b"4-X\x08"
+                    b"0X\x83\n\x02\x1f\xda`4-X\x08"
                 ),
             },
         },
