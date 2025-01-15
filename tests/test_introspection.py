@@ -1,14 +1,33 @@
 import os
 
-from dbus_fast import ArgDirection, PropertyAccess, SignatureType
+from dbus_fast import (
+    ArgDirection,
+    PropertyAccess,
+    SignatureType,
+    InvalidMemberNameError,
+)
 from dbus_fast import introspection as intr
 
-with open(f"{os.path.dirname(__file__)}/data/introspection.xml") as f:
-    example_data = f.read()
+with open(f"{os.path.dirname(__file__)}/data/strict-introspection.xml") as f:
+    strict_data = f.read()
+
+with open(f"{os.path.dirname(__file__)}/data/sloppy-introspection.xml") as f:
+    sloppy_data = f.read()
 
 
-def test_example_introspection_from_xml():
-    node = intr.Node.parse(example_data)
+def test_introspection_from_xml_sloppy():
+    intr.Node.parse(sloppy_data, validate_property_names=False)
+
+
+def test_introspection_from_xml_strict():
+    try:
+        node = intr.Node.parse(sloppy_data)
+    except InvalidMemberNameError:
+        pass
+    else:
+        assert False, "Expected an AssertionError"
+
+    node = intr.Node.parse(strict_data)
 
     assert len(node.interfaces) == 1
     interface = node.interfaces[0]
@@ -61,12 +80,12 @@ def test_example_introspection_from_xml():
     assert len(changed.args) == 1
     new_value = changed.args[0]
     assert type(new_value) is intr.Arg
-    assert new_value.name == "new_value"
+    assert new_value.name == "0-new_value"
     assert new_value.signature == "b"
 
 
 def test_example_introspection_to_xml():
-    node = intr.Node.parse(example_data)
+    node = intr.Node.parse(strict_data)
     tree = node.to_xml()
     assert tree.tag == "node"
     assert tree.attrib.get("name") == "/com/example/sample_object0"
@@ -98,7 +117,7 @@ def test_example_introspection_to_xml():
 
     arg = signal[0]
     assert arg.tag == "arg"
-    assert arg.attrib.get("name") == "new_value"
+    assert arg.attrib.get("name") == "0-new_value"
     assert arg.attrib.get("type") == "b"
 
     signal = interface[4]
@@ -113,7 +132,7 @@ def test_example_introspection_to_xml():
 
     arg = signal[1]
     assert arg.tag == "arg"
-    assert arg.attrib.get("name") == "new_value2"
+    assert arg.attrib.get("name") == "0-new_value2"
     assert arg.attrib.get("type") == "y"
 
     prop = interface[5]

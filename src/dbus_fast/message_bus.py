@@ -262,6 +262,7 @@ class BaseMessageBus:
         path: str,
         callback: Callable[[Optional[intr.Node], Optional[Exception]], None],
         check_callback_type: bool = True,
+        validate_property_names: bool = True,
     ) -> None:
         """Get introspection data for the node at the given path from the given
         bus name.
@@ -276,6 +277,10 @@ class BaseMessageBus:
         :param callback: A callback that will be called with the introspection
             data as a :class:`Node <dbus_fast.introspection.Node>`.
         :type callback: :class:`Callable`
+        :param check_callback_type: Whether to check callback type or not.
+        :type check_callback_type: bool
+        :param validate_property_names: Whether to validate property names or not.
+        :type validate_property_names: bool
 
         :raises:
             - :class:`InvalidObjectPathError <dbus_fast.InvalidObjectPathError>` - If the given object path is not valid.
@@ -287,7 +292,9 @@ class BaseMessageBus:
         def reply_notify(reply: Optional[Message], err: Optional[Exception]) -> None:
             try:
                 BaseMessageBus._check_method_return(reply, err, "s")
-                result = intr.Node.parse(reply.body[0])  # type: ignore[union-attr]
+                result = intr.Node.parse(
+                    reply.body[0], validate_property_names=validate_property_names
+                )  # type: ignore[union-attr]
             except Exception as e:
                 callback(None, e)
                 return

@@ -5,7 +5,7 @@
         <method name="Frobate">
             <arg name="foo" type="i" direction="in"/>
             <arg name="bar" type="s" direction="out"/>
-            <arg name="baz" type="a{us}" direction="out"/>
+            <arg name="0-baz" type="a{us}" direction="out"/>
             <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
         </method>
         <method name="Bazify">
@@ -16,11 +16,11 @@
             <arg name="bar" type="(iiav)" direction="in"/>
         </method>
         <signal name="Changed">
-            <arg name="new_value" type="b"/>
+            <arg name="0-new_value" type="b"/>
         </signal>
         <signal name="ChangedMulti">
             <arg name="new_value1" type="b"/>
-            <arg name="new_value2" type="y"/>
+            <arg name="0-new_value2" type="y"/>
         </signal>
         <property name="Bar" type="y" access="write"/>
     </interface>
