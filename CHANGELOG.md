@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v2.29.0 (2025-01-15)
+
+### Feature
+
+* **introspect:** Implement annotations ([#359](https://github.com/Bluetooth-Devices/dbus-fast/issues/359)) ([`5b61869`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5b61869baec88cd1382419f4580c345473543493))
+
+### Fix
+
+* Void validate arguments/properties name ([#358](https://github.com/Bluetooth-Devices/dbus-fast/issues/358)) ([`f58f1a6`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f58f1a6466d7ffb3a600774f8c36b5c93279437b))
+
 ## v2.28.0 (2025-01-07)
 
 ### Feature
