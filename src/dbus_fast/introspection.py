@@ -335,7 +335,9 @@ class Property:
 
         annotations = _fetch_annotations(element)
 
-        return Property(name, signature, access, annotations=annotations, validate=validate)
+        return Property(
+            name, signature, access, annotations=annotations, validate=validate
+        )
 
     def to_xml(self) -> ET.Element:
         """Convert this :class:`Property` into an :class:`xml.etree.ElementTree.Element`."""
