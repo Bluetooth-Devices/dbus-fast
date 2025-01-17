@@ -130,7 +130,7 @@ jobs:
         id: release_tag
         shell: bash
         run: |
-          echo "::set-output name=newest_release_tag::$(semantic-release print-version --current)"
+          echo "newest_release_tag=$(semantic-release print-version --current)" >> $GITHUB_OUTPUT
 
   build_wheels:
     needs: [release]
