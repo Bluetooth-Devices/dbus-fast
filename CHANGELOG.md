@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.30.1 (2025-01-17)
+
+### Fix
+
+* Wheel builds on aarch64 ([#367](https://github.com/Bluetooth-Devices/dbus-fast/issues/367)) ([`18132b9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/18132b99bcbada1f090ccfc1c0050caf0827cd11))
+
 ## v2.30.0 (2025-01-17)
 
 ### Feature
