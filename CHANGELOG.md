@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.30.0 (2025-01-17)
+
+### Feature
+
+* Migrate to using native arm runners for wheel builds ([#366](https://github.com/Bluetooth-Devices/dbus-fast/issues/366)) ([`bdf08d2`](https://github.com/Bluetooth-Devices/dbus-fast/commit/bdf08d253bff9bc1edd7c9a5688b7d9e4eb73839))
+
 ## v2.29.0 (2025-01-15)
 
 ### Feature
