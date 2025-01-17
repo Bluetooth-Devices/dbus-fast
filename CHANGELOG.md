@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.30.2 (2025-01-17)
+
+### Fix
+
+* Fetching release tag during build ([#368](https://github.com/Bluetooth-Devices/dbus-fast/issues/368)) ([`5a80415`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5a804159669c2caad9d1144120ebaeb602d9ad28))
+
 ## v2.30.1 (2025-01-17)
 
 ### Fix
