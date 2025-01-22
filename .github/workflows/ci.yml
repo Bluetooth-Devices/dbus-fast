@@ -172,9 +172,10 @@ jobs:
           REQUIRE_CYTHON: 1
           CIBW_ARCHS_LINUX: ${{ matrix.os == 'ubuntu-24.04-arm' && 'aarch64' || 'auto' }}
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: ./wheelhouse/*.whl
+          name: wheels-${{ matrix.os }}-${{ matrix.musl }}
 
   upload_pypi:
     needs: [build_wheels]
@@ -182,12 +183,13 @@ jobs:
     environment: release
 
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           # unpacks default artifact into dist/
           # if `name: artifact` is omitted, the action will create extra parent dir
-          name: artifact
+          pattern: wheels-*
           path: dist
+          merge-multiple: true
 
       - uses: pypa/gh-action-pypi-publish@v1.5.0
         with:
