@@ -10,7 +10,7 @@ updates:
     schedule:
       interval: "monthly"
     commit-message:
-      prefix: "chore(ci): "
+      prefix: "chore(deps-ci): "
     groups:
       github-actions:
         patterns:
