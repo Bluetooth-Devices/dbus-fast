@@ -10,7 +10,7 @@ from dbus_fast import DBusError, aio, glib
 from dbus_fast.message import MessageFlag
 from dbus_fast.service import ServiceInterface, method
 from dbus_fast.signature import Variant
-from tests.util import check_gi_repository, skip_reason_no_gi
+from ..util import check_gi_repository, skip_reason_no_gi
 
 has_gi = check_gi_repository()
 

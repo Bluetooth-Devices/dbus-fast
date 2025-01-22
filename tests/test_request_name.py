@@ -11,7 +11,7 @@ from dbus_fast import (
     aio,
     glib,
 )
-from tests.util import check_gi_repository, skip_reason_no_gi
+from .util import check_gi_repository, skip_reason_no_gi
 
 has_gi = check_gi_repository()
 
