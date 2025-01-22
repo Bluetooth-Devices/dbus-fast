@@ -14,11 +14,11 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.9"
-      - uses: pre-commit/action@v2.0.3
+      - uses: pre-commit/action@v3.0.1
 
   # Make sure commit messages follow the conventional commits convention:
   # https://www.conventionalcommits.org
@@ -26,10 +26,10 @@ jobs:
     name: Lint Commit Messages
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: wagoid/commitlint-github-action@v5
+      - uses: wagoid/commitlint-github-action@v6
 
   test:
     strategy:
@@ -53,7 +53,7 @@ jobs:
         run: sudo apt update
       - name: Install libs
         run: sudo apt-get install -y dbus-daemon python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
-      - uses: snok/install-poetry@v1.3.4
+      - uses: snok/install-poetry@v1.4.1
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -82,7 +82,7 @@ jobs:
         run: sudo apt update
       - name: Install libs
         run: sudo apt-get install -y dbus-daemon python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
-      - uses: snok/install-poetry@v1.3.4
+      - uses: snok/install-poetry@v1.4.1
       - name: Setup Python 3.13
         uses: actions/setup-python@v5
         with:
@@ -110,7 +110,7 @@ jobs:
       - commitlint
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -121,7 +121,7 @@ jobs:
       # - Create GitHub release
       # - Publish to PyPI
       - name: Python Semantic Release
-        uses: python-semantic-release/python-semantic-release@v7.34.6
+        uses: python-semantic-release/python-semantic-release@v9.16.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           pypi_token: ${{ secrets.PYPI_TOKEN }}
@@ -145,7 +145,7 @@ jobs:
         os: [ubuntu-24.04-arm, ubuntu-latest]
         musl: ["", "musllinux"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: "main"
@@ -154,7 +154,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: "v${{ needs.release.outputs.newest_release_tag }}"
           fetch-depth: 0
@@ -191,7 +191,7 @@ jobs:
           path: dist
           merge-multiple: true
 
-      - uses: pypa/gh-action-pypi-publish@v1.5.0
+      - uses: pypa/gh-action-pypi-publish@v1.12.3
         with:
           user: __token__
           password: ${{ secrets.PYPI_TOKEN }}
