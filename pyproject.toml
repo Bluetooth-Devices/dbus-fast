@@ -47,7 +47,7 @@ sphinxcontrib-fulltoc = "^1.2.0"
 [tool.poetry.group.dev.dependencies]
 pytest = ">=7,<9"
 pytest-cov = ">=3,<7"
-pytest-asyncio = ">=0.19,<0.24"
+pytest-asyncio = ">=0.19,<0.26"
 pycairo = "^1.21.0"
 PyGObject = "^3.42.2"
 Cython = ">=3,<3.1.0"
