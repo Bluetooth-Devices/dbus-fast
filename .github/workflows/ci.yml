@@ -124,7 +124,6 @@ jobs:
         uses: python-semantic-release/python-semantic-release@v9.16.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          pypi_token: ${{ secrets.PYPI_TOKEN }}
 
       - name: Install python-semantic-release
         run: python3 -m pip install python-semantic-release==7.34.6
