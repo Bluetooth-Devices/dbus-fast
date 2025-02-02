@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v2.31.0 (2025-02-02)
+
+### Features
+
+- Speed up bytearray creation in unmarshaller
+  ([#382](https://github.com/Bluetooth-Devices/dbus-fast/pull/382),
+  [`89026e3`](https://github.com/Bluetooth-Devices/dbus-fast/commit/89026e3b597bd1a318114b6cf50e27d29d9cbca8))
+
+
 ## v2.30.4 (2025-02-02)
 
 ### Bug Fixes
