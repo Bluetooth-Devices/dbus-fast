@@ -43,7 +43,6 @@ release = __version__
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.githubpages",
-    "sphinxcontrib.asyncio",
     "sphinxcontrib.fulltoc",
 ]
 
