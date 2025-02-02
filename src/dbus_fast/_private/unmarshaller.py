@@ -243,7 +243,7 @@ class Unmarshaller:
         negotiate_unix_fd: bool = True,
     ) -> None:
         self._unix_fds: list[int] = []
-        self._buf = bytearray()  # Actual buffer
+        self._buf = bytearray.__new__(bytearray)  # Actual buffer
         self._stream = stream
         self._sock = sock
         self._message: Optional[Message] = None
@@ -280,7 +280,7 @@ class Unmarshaller:
         self._unix_fds = []
         to_clear = HEADER_SIGNATURE_SIZE + self._msg_len
         if len(self._buf) == to_clear:
-            self._buf = bytearray()
+            self._buf = bytearray.__new__(bytearray)
         else:
             del self._buf[:to_clear]
         self._msg_len = 0  # used to check if we have ready the header
