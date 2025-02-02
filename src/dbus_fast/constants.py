@@ -1,4 +1,5 @@
 from enum import Enum, IntFlag
+from functools import cached_property
 
 
 class BusType(Enum):
@@ -18,6 +19,11 @@ class MessageType(Enum):
     ERROR = 3  #: A return to a method call that has failed
     SIGNAL = 4  #: A broadcast signal to subscribed connections
 
+    @cached_property
+    def value(self) -> str:
+        """Return the value."""
+        return self._value_
+
 
 MESSAGE_TYPE_MAP = {field.value: field for field in MessageType}
 
@@ -29,6 +35,11 @@ class MessageFlag(IntFlag):
     NO_REPLY_EXPECTED = 1  #: The method call does not expect a method return.
     NO_AUTOSTART = 2
     ALLOW_INTERACTIVE_AUTHORIZATION = 4
+
+    @cached_property
+    def value(self) -> str:
+        """Return the value."""
+        return self._value_
 
 
 # This is written out because of https://github.com/python/cpython/issues/98976
