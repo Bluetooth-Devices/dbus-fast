@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v2.32.0 (2025-02-02)
+
+### Features
+
+- Speed up marshalling messages ([#383](https://github.com/Bluetooth-Devices/dbus-fast/pull/383),
+  [`d7213be`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d7213be28578b3effa3aeea85bab5de92bba224d))
+
+
 ## v2.31.0 (2025-02-02)
 
 ### Features
