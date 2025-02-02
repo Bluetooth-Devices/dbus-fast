@@ -587,7 +587,7 @@ class Unmarshaller:
                     self._pos += -self._pos & 7  # align 8
                     key = self._read_uint16_unpack()
                     result_dict[key] = self._read_variant()
-            if (
+            elif (
                 child_0_token_as_int == TOKEN_O_AS_INT
                 or child_0_token_as_int == TOKEN_S_AS_INT
             ) and child_1_token_as_int == TOKEN_A_AS_INT:
