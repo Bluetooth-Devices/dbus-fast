@@ -162,8 +162,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-24.04-arm, ubuntu-latest]
+        os: [ubuntu-24.04-arm, ubuntu-latest, macos-latest]
         musl: ["", "musllinux"]
+        exclude:
+          - os: macos-latest
+            musl: "musllinux"
     steps:
       - uses: actions/checkout@v4
         with:
