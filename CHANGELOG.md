@@ -1,6 +1,30 @@
 # CHANGELOG
 
 
+## v2.33.0 (2025-02-05)
+
+### Chores
+
+- **deps-dev**: Bump pytest-asyncio from 0.25.2 to 0.25.3
+  ([#385](https://github.com/Bluetooth-Devices/dbus-fast/pull/385),
+  [`e6c75a6`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e6c75a61828e260830720cff36a010e54b7efebe))
+
+- **deps-dev**: Bump pytest-codspeed from 3.1.2 to 3.2.0
+  ([#384](https://github.com/Bluetooth-Devices/dbus-fast/pull/384),
+  [`9f966af`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9f966af1dbeba8af6d7119877801e5140daf4002))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#386](https://github.com/Bluetooth-Devices/dbus-fast/pull/386),
+  [`0a9e4c5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0a9e4c5a2140f20f580c67bed2a68ff0ac524b62))
+
+Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+
+### Features
+
+- Build macos arm wheels ([#387](https://github.com/Bluetooth-Devices/dbus-fast/pull/387),
+  [`829e0fc`](https://github.com/Bluetooth-Devices/dbus-fast/commit/829e0fc149957b3bf0fc0f4a89bb2e676e584f84))
+
+
 ## v2.32.0 (2025-02-02)
 
 ### Features
