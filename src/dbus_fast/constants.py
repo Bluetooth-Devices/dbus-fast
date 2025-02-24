@@ -139,8 +139,14 @@ class ErrorType(str, Enum):
     UNIX_PROCESS_ID_UNKNOWN = "org.freedesktop.DBus.Error.UnixProcessIdUnknown"
     INVALID_SIGNATURE = "org.freedesktop.DBus.Error.InvalidSignature"
     INCONSISTENT_MESSAGE = "org.freedesktop.DBus.Error.InconsistentMessage"
+    TIMED_OUT = "org.freedesktop.DBus.Error.TimedOut"
     MATCH_RULE_NOT_FOUND = "org.freedesktop.DBus.Error.MatchRuleNotFound"
     MATCH_RULE_INVALID = "org.freedesktop.DBus.Error.MatchRuleInvalid"
     INTERACTIVE_AUTHORIZATION_REQUIRED = (
         "org.freedesktop.DBus.Error.InteractiveAuthorizationRequired"
     )
+    INVALID_FILE_CONTENT = "org.freedesktop.DBus.Error.InvalidFileContent"
+    SELINUX_SECURITY_CONTEXT_UNKNOWN = (
+        "org.freedesktop.DBus.Error.SELinuxSecurityContextUnknown"
+    )
+    OBJECT_PATH_IN_USE = "org.freedesktop.DBus.Error.ObjectPathInUse"
