@@ -1,6 +1,28 @@
 # CHANGELOG
 
 
+## v2.34.0 (2025-02-24)
+
+### Chores
+
+- **deps-dev**: Bump cython from 3.0.11 to 3.0.12
+  ([#391](https://github.com/Bluetooth-Devices/dbus-fast/pull/391),
+  [`5f26f5d`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5f26f5d58c5e0ed6251c66ab4724f27a383500a0))
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#389](https://github.com/Bluetooth-Devices/dbus-fast/pull/389),
+  [`c713bf3`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c713bf3de994564c92628f92bdf341fbf813c8f4))
+
+Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+
+### Features
+
+- Resync generic D-Bus errors ([#393](https://github.com/Bluetooth-Devices/dbus-fast/pull/393),
+  [`e4f37ee`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e4f37ee10bd2af64716de0bd389db90b47373b76))
+
+
 ## v2.33.0 (2025-02-05)
 
 ### Chores
