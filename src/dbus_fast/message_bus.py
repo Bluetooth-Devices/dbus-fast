@@ -922,7 +922,7 @@ class BaseMessageBus:
     def _find_message_handler(
         self, msg: _Message
     ) -> Optional[Callable[[Message, Callable[[Message], None]], None]]:
-        if "org.freedesktop.DBus." in msg.interface:
+        if msg.interface is not None and "org.freedesktop.DBus." in msg.interface:
             if (
                 msg.interface == "org.freedesktop.DBus.Introspectable"
                 and msg.member == "Introspect"
@@ -957,7 +957,7 @@ class BaseMessageBus:
                         continue
 
                     if (
-                        msg.interface == interface.name
+                        msg.interface in (None, interface.name)
                         and msg.member == method.name
                         and msg.signature == method.in_signature
                     ):
