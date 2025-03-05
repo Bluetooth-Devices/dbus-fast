@@ -7,7 +7,7 @@ import socket
 import sys
 from collections.abc import Iterable
 from struct import Struct
-from typing import Any, Callable
+from typing import Any, Callable, TYPE_CHECKING
 
 from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP, MessageFlag
 from ..errors import InvalidMessageError
@@ -146,7 +146,7 @@ HEADER_SENDER_IDX = HEADER_IDX_TO_ARG_NAME.index("sender")
 HEADER_SIGNATURE_IDX = HEADER_IDX_TO_ARG_NAME.index("signature")
 HEADER_UNIX_FDS_IDX = HEADER_IDX_TO_ARG_NAME.index("unix_fds")
 
-_EMPTY_HEADERS = [None] * len(HEADER_IDX_TO_ARG_NAME)
+_EMPTY_HEADERS: list[Any | None] = [None] * len(HEADER_IDX_TO_ARG_NAME)
 
 _SignatureType = SignatureType
 _int = int
@@ -245,7 +245,7 @@ class Unmarshaller:
         negotiate_unix_fd: bool = True,
     ) -> None:
         self._unix_fds: list[int] = []
-        self._buf = bytearray.__new__(bytearray)  # Actual buffer
+        self._buf: bytearray = bytearray.__new__(bytearray)  # Actual buffer
         self._stream = stream
         self._sock = sock
         self._message: Message | None = None
@@ -266,12 +266,16 @@ class Unmarshaller:
         self._read_complete = False
         if stream:
             if isinstance(stream, io.BufferedRWPair) and hasattr(stream, "reader"):
-                self._stream_reader = stream.reader.read  # type: ignore[attr-defined]
+                self._stream_reader = stream.reader.read
             self._stream_reader = stream.read
         elif self._negotiate_unix_fd:
+            if TYPE_CHECKING:
+                assert self._sock is not None
             self._sock_reader = self._sock.recvmsg
         else:
-            self._sock_reader = self._sock.recv
+            if TYPE_CHECKING:
+                assert self._sock is not None
+            self._sock_reader = self._sock.recv  # type: ignore[assignment]
         self._endian = 0
 
     def _next_message(self) -> None:
@@ -311,7 +315,7 @@ class Unmarshaller:
         # This will raise BlockingIOError if there is no data to read
         # which we store in the MARSHALL_STREAM_END_ERROR object
         try:
-            recv = self._sock_reader(missing_bytes, UNIX_FDS_CMSG_LENGTH)  # type: ignore[union-attr]
+            recv = self._sock_reader(missing_bytes, UNIX_FDS_CMSG_LENGTH)
         except OSError as e:
             errno = e.errno
             if errno == EAGAIN or errno == EWOULDBLOCK:
@@ -342,7 +346,7 @@ class Unmarshaller:
         # which we store in the MARSHALL_STREAM_END_ERROR object
         while True:
             try:
-                data = self._sock_reader(DEFAULT_BUFFER_SIZE)  # type: ignore[union-attr]
+                data = self._sock_reader(DEFAULT_BUFFER_SIZE)
             except OSError as e:
                 errno = e.errno
                 if errno == EAGAIN or errno == EWOULDBLOCK:
@@ -350,11 +354,11 @@ class Unmarshaller:
                 raise
             if not data:
                 raise EOFError()
-            self._buf += data
+            self._buf += data  # type: ignore[arg-type]
             if len(self._buf) >= pos:
                 return
 
-    def _read_stream(self, pos: _int, missing_bytes: _int) -> bytes:
+    def _read_stream(self, pos: _int, missing_bytes: _int) -> None:
         """Read from the stream."""
         data = self._stream_reader(missing_bytes)  # type: ignore[misc]
         if data is None:

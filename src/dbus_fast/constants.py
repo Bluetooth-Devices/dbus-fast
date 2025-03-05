@@ -20,7 +20,7 @@ class MessageType(Enum):
     SIGNAL = 4  #: A broadcast signal to subscribed connections
 
     @cached_property
-    def value(self) -> str:
+    def value(self) -> int:
         """Return the value."""
         return self._value_
 

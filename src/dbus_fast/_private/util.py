@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import ast
 import inspect
-from typing import Any
+from typing import Any, Callable
 
-from ..signature import SignatureTree, Variant, get_signature_tree
+from ..signature import SignatureTree, Variant, get_signature_tree, SignatureType
 
 
 def signature_contains_type(
@@ -15,10 +15,8 @@ def signature_contains_type(
     if type(signature) is str:
         signature = get_signature_tree(signature)
 
-    queue = []
+    queue = list(signature.types)  # type: ignore[union-attr]
     contains_variants = False
-    for st in signature.types:
-        queue.append(st)
 
     while True:
         if not queue:
@@ -63,22 +61,22 @@ def replace_fds_with_idx(
     if not signature_contains_type(signature, body, "h"):
         return body, []
 
-    unix_fds = []
+    unix_fds: list[Any] = []
 
-    def _replace(fd):
+    def _replace(fd: Any) -> int:
         try:
             return unix_fds.index(fd)
         except ValueError:
             unix_fds.append(fd)
             return len(unix_fds) - 1
 
-    _replace_fds(body, signature.types, _replace)
+    _replace_fds(body, signature.types, _replace)  # type: ignore[union-attr]
 
     return body, unix_fds
 
 
 def replace_idx_with_fds(
-    signature: str | SignatureTree, body: list[Any], unix_fds: list[int]
+    signature: str | SignatureTree, body: list[Any], unix_fds: list[Any]
 ) -> list[Any]:
     """Take the low level body format and return the high level body format.
     Type 'h' refers to an index in the unix_fds array. Replace those with the
@@ -89,13 +87,13 @@ def replace_idx_with_fds(
     if not signature_contains_type(signature, body, "h"):
         return body
 
-    def _replace(idx):
+    def _replace(idx: int) -> Any:
         try:
             return unix_fds[idx]
         except IndexError:
             return None
 
-    _replace_fds(body, signature.types, _replace)
+    _replace_fds(body, signature.types, _replace)  # type: ignore[union-attr]
 
     return body
 
@@ -109,7 +107,7 @@ def parse_annotation(annotation: str) -> str:
     constant.
     """
 
-    def raise_value_error():
+    def raise_value_error() -> None:
         raise ValueError(
             f"service annotations must be a string constant (got {annotation})"
         )
@@ -120,17 +118,21 @@ def parse_annotation(annotation: str) -> str:
         raise_value_error()
     try:
         body = ast.parse(annotation).body
-        if len(body) == 1 and type(body[0].value) is ast.Constant:
-            if type(body[0].value.value) is not str:
+        if len(body) == 1 and type(body[0].value) is ast.Constant:  # type: ignore[attr-defined]
+            if type(body[0].value.value) is not str:  # type: ignore[attr-defined]
                 raise_value_error()
-            return body[0].value.value
+            return body[0].value.value  # type: ignore[attr-defined]
     except SyntaxError:
         pass
 
     return annotation
 
 
-def _replace_fds(body_obj: list[Any], children, replace_fn):
+def _replace_fds(
+    body_obj: dict[Any, Any] | list[Any],
+    children: list[SignatureType],
+    replace_fn: Callable[[Any], Any],
+) -> None:
     """Replace any type 'h' with the value returned by replace_fn() given the
     value of the fd field. This is used by the high level interfaces which
     allow type 'h' to be the fd directly instead of an index in an external
@@ -152,7 +154,7 @@ def _replace_fds(body_obj: list[Any], children, replace_fn):
         elif st.token in "(":
             _replace_fds(body_obj[index], st.children, replace_fn)
         elif st.token in "{":
-            for key, value in list(body_obj.items()):
+            for key, value in list(body_obj.items()):  # type: ignore[union-attr]
                 body_obj.pop(key)
                 if st.children[0].signature == "h":
                     key = replace_fn(key)
