@@ -49,7 +49,7 @@ def build(setup_kwargs):
         setup_kwargs.update(
             dict(
                 ext_modules=cythonize(
-                    TO_CYTHONIZE,
+                    EXTENSIONS,
                     compiler_directives={"language_level": "3"},  # Python 3
                 ),
                 cmdclass=dict(build_ext=BuildExt),
