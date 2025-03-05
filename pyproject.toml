@@ -71,7 +71,7 @@ branch = true
 plugins = ["covdefaults"]
 
 [tool.coverage.report]
-fail_under = 75
+fail_under = 30 # cython version will have low cover because we do not have Cython tracing
 
 [tool.isort]
 profile = "black"
