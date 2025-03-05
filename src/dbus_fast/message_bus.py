@@ -234,7 +234,6 @@ class BaseMessageBus:
             if (removed_interface := interfaces.pop(interface, None)) is None:
                 return
             removed_interface_names.append(removed_interface.name)
-            del interfaces[removed_interface.name]
             if not interfaces:
                 del self._path_exports[path]
             if not self._has_interface(removed_interface):
