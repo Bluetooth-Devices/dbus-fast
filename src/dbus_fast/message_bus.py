@@ -1,10 +1,11 @@
+from __future__ import annotations
 import inspect
 import logging
 import socket
 import traceback
 import xml.etree.ElementTree as ET
 from functools import partial
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable
 
 from . import introspection as intr
 from ._private.address import get_bus_address, parse_address
@@ -119,12 +120,12 @@ class BaseMessageBus:
 
     def __init__(
         self,
-        bus_address: Optional[str] = None,
+        bus_address: str | None = None,
         bus_type: BusType = BusType.SESSION,
-        ProxyObject: Optional[type[BaseProxyObject]] = None,
+        ProxyObject: type[BaseProxyObject] | None = None,
         negotiate_unix_fd: bool = False,
     ) -> None:
-        self.unique_name: Optional[str] = None
+        self.unique_name: str | None = None
         self._disconnected = False
         self._negotiate_unix_fd = negotiate_unix_fd
 
@@ -133,11 +134,11 @@ class BaseMessageBus:
         self._user_disconnect = False
 
         self._method_return_handlers: dict[
-            int, Callable[[Optional[Message], Optional[Exception]], None]
+            int, Callable[[Message | None, Exception | None], None]
         ] = {}
         self._serial = 0
         self._user_message_handlers: list[
-            Callable[[Message], Union[Message, bool, None]]
+            Callable[[Message], Message | bool | None]
         ] = []
         # the key is the name and the value is the unique name of the owner.
         # This cache is kept up to date by the NameOwnerChanged signal and is
@@ -161,10 +162,10 @@ class BaseMessageBus:
         self._ProxyObject = ProxyObject
 
         # machine id is lazy loaded
-        self._machine_id: Optional[int] = None
-        self._sock: Optional[socket.socket] = None
-        self._fd: Optional[int] = None
-        self._stream: Optional[Any] = None
+        self._machine_id: int | None = None
+        self._sock: socket.socket | None = None
+        self._fd: int | None = None
+        self._stream: Any | None = None
 
         self._setup_socket()
 
@@ -204,7 +205,7 @@ class BaseMessageBus:
         self._emit_interface_added(path, interface)
 
     def unexport(
-        self, path: str, interface: Optional[Union[ServiceInterface, str]] = None
+        self, path: str, interface: ServiceInterface | str | None = None
     ) -> None:
         """Unexport the path or service interface to make it no longer
         available to clients.
@@ -250,7 +251,7 @@ class BaseMessageBus:
         self,
         bus_name: str,
         path: str,
-        callback: Callable[[Optional[intr.Node], Optional[Exception]], None],
+        callback: Callable[[intr.Node | None, Exception | None], None],
         check_callback_type: bool = True,
         validate_property_names: bool = True,
     ) -> None:
@@ -279,7 +280,7 @@ class BaseMessageBus:
         if check_callback_type:
             BaseMessageBus._check_callback_type(callback)
 
-        def reply_notify(reply: Optional[Message], err: Optional[Exception]) -> None:
+        def reply_notify(reply: Message | None, err: Exception | None) -> None:
             try:
                 BaseMessageBus._check_method_return(reply, err, "s")
                 result = intr.Node.parse(
@@ -320,7 +321,7 @@ class BaseMessageBus:
             interface: ServiceInterface,
             result: Any,
             user_data: Any,
-            e: Optional[Exception],
+            e: Exception | None,
         ) -> None:
             if e is not None:
                 try:
@@ -375,9 +376,8 @@ class BaseMessageBus:
         self,
         name: str,
         flags: NameFlag = NameFlag.NONE,
-        callback: Optional[
-            Callable[[Optional[RequestNameReply], Optional[Exception]], None]
-        ] = None,
+        callback: None
+        | (Callable[[RequestNameReply | None, Exception | None], None]) = None,
         check_callback_type: bool = True,
     ) -> None:
         """Request that this message bus owns the given name.
@@ -414,7 +414,7 @@ class BaseMessageBus:
             self._call(message, None)
             return
 
-        def reply_notify(reply: Optional[Message], err: Optional[Exception]) -> None:
+        def reply_notify(reply: Message | None, err: Exception | None) -> None:
             try:
                 BaseMessageBus._check_method_return(reply, err, "u")
                 result = RequestNameReply(reply.body[0])  # type: ignore[union-attr]
@@ -429,9 +429,8 @@ class BaseMessageBus:
     def release_name(
         self,
         name: str,
-        callback: Optional[
-            Callable[[Optional[ReleaseNameReply], Optional[Exception]], None]
-        ] = None,
+        callback: None
+        | (Callable[[ReleaseNameReply | None, Exception | None], None]) = None,
         check_callback_type: bool = True,
     ) -> None:
         """Request that this message bus release the given name.
@@ -464,7 +463,7 @@ class BaseMessageBus:
             self._call(message, None)
             return
 
-        def reply_notify(reply: Optional[Message], err: Optional[Exception]) -> None:
+        def reply_notify(reply: Message | None, err: Exception | None) -> None:
             try:
                 BaseMessageBus._check_method_return(reply, err, "u")
                 result = ReleaseNameReply(reply.body[0])  # type: ignore[union-attr]
@@ -477,7 +476,7 @@ class BaseMessageBus:
         self._call(message, reply_notify)
 
     def get_proxy_object(
-        self, bus_name: str, path: str, introspection: Union[intr.Node, str, ET.Element]
+        self, bus_name: str, path: str, introspection: intr.Node | str | ET.Element
     ) -> BaseProxyObject:
         """Get a proxy object for the path exported on the bus that owns the
         name. The object is expected to export the interfaces and nodes
@@ -533,7 +532,7 @@ class BaseMessageBus:
         return self._serial
 
     def add_message_handler(
-        self, handler: Callable[[Message], Optional[Union[Message, bool]]]
+        self, handler: Callable[[Message], Message | bool | None]
     ) -> None:
         """Add a custom message handler for incoming messages.
 
@@ -558,7 +557,7 @@ class BaseMessageBus:
         self._user_message_handlers.append(handler)
 
     def remove_message_handler(
-        self, handler: Callable[[Message], Optional[Union[Message, bool]]]
+        self, handler: Callable[[Message], Message | bool | None]
     ) -> None:
         """Remove a message handler that was previously added by
         :func:`add_message_handler()
@@ -582,7 +581,7 @@ class BaseMessageBus:
             'the "send" method must be implemented in the inheriting class'
         )
 
-    def _finalize(self, err: Optional[Exception]) -> None:
+    def _finalize(self, err: Exception | None) -> None:
         """should be called after the socket disconnects with the disconnection
         error to clean up resources and put the bus in a disconnected state"""
         if self._disconnected:
@@ -728,9 +727,9 @@ class BaseMessageBus:
     def _reply_notify(
         self,
         msg: Message,
-        callback: Optional[Callable[[Optional[Message], Optional[Exception]], None]],
-        reply: Optional[Message],
-        err: Optional[Exception],
+        callback: Callable[[Message | None, Exception | None], None] | None,
+        reply: Message | None,
+        err: Exception | None,
     ) -> None:
         """Callback on reply."""
         if reply and msg.destination and reply.sender:
@@ -740,7 +739,7 @@ class BaseMessageBus:
     def _call(
         self,
         msg: Message,
-        callback: Optional[Callable[[Optional[Message], Optional[Exception]], None]],
+        callback: Callable[[Message | None, Exception | None], None] | None,
     ) -> None:
         if not msg.serial:
             msg.serial = self.next_serial()
@@ -774,7 +773,7 @@ class BaseMessageBus:
 
     @staticmethod
     def _check_method_return(
-        msg: Optional[Message], err: Optional[Exception], signature: str
+        msg: Message | None, err: Exception | None, signature: str
     ) -> None:
         if err:
             raise err
@@ -909,7 +908,7 @@ class BaseMessageBus:
 
     def _find_message_handler(
         self, msg: _Message
-    ) -> Optional[Callable[[Message, Callable[[Message], None]], None]]:
+    ) -> Callable[[Message, Callable[[Message], None]], None] | None:
         if "org.freedesktop.DBus." in msg.interface:
             if (
                 msg.interface == "org.freedesktop.DBus.Introspectable"
@@ -1223,7 +1222,7 @@ class BaseMessageBus:
 
         self._match_rules[match_rule] = 1
 
-        def add_match_notify(msg: Message, err: Optional[Exception]) -> None:
+        def add_match_notify(msg: Message, err: Exception | None) -> None:
             if err:
                 logging.error(f'add match request failed. match="{match_rule}", {err}')
             elif msg.message_type == MessageType.ERROR:
