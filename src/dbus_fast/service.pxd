@@ -33,6 +33,7 @@ cdef class ServiceInterface:
     cdef list __signals
     cdef set __buses
     cdef dict __handlers
+    cdef dict __enabled_handlers_by_name_signature
 
     @staticmethod
     cdef object _get_enabled_handler_by_name_signature(ServiceInterface interface, object bus, object name, object signature)
