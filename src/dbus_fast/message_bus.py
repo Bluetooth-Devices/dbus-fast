@@ -229,7 +229,9 @@ class BaseMessageBus:
         elif isinstance(interface, ServiceInterface):
             interface_name = interface.name
         else:
-            raise TypeError("interface must be a ServiceInterface or interface name")
+            raise TypeError(
+                f"interface must be a ServiceInterface or interface name not {type(interface)}"
+            )
 
         if (interfaces := self._path_exports.get(path)) is None:
             return
