@@ -914,7 +914,7 @@ class BaseMessageBus:
 
     def _find_message_handler(
         self, msg: _Message
-    ) -> Callable[[Message, Callable[[Message], None]], None] | None:
+    ) -> Callable[[Message, SendReply], None] | None:
         if "org.freedesktop.DBus." in msg.interface:
             if (
                 msg.interface == "org.freedesktop.DBus.Introspectable"
@@ -996,9 +996,8 @@ class BaseMessageBus:
         )
 
     def _default_get_managed_objects_handler(
-        self, msg: Message, send_reply: Callable[[Message], None]
+        self, msg: Message, send_reply: SendReply
     ) -> None:
-        result: dict[str, dict[str, Any]] = {}
         result_signature = "a{oa{sa{sv}}}"
         error_handled = False
 
@@ -1019,16 +1018,18 @@ class BaseMessageBus:
         ]
 
         # first build up the result object to know when it's complete
-        for node in nodes:
-            result[node] = {}
-            for interface in self._path_exports[node]:
-                result[node][interface.name] = None
+        result: dict[str, dict[str, Any]] = {
+            node: {interface: None for interface in self._path_exports[node]}
+            for node in nodes
+        }
 
         if is_result_complete():
             send_reply(Message.new_method_return(msg, result_signature, [result]))
             return
 
-        def get_all_properties_callback(interface, values, node, err):
+        def get_all_properties_callback(
+            interface: ServiceInterface, values: Any, node: str, err: Exception | None
+        ) -> None:
             nonlocal error_handled
             if err is not None:
                 if not error_handled:
