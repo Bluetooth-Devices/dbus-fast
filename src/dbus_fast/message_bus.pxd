@@ -4,6 +4,7 @@ from ._private.address cimport get_bus_address, parse_address
 from .message cimport Message
 from .service cimport ServiceInterface, _Method
 
+cdef bint TYPE_CHECKING
 
 cdef object MessageType
 cdef object DBusError

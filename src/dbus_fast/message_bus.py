@@ -906,8 +906,8 @@ class BaseMessageBus:
         return partial(self._callback_method_handler, interface, method)
 
     def _find_message_handler(self, msg: _Message) -> HandlerType | None:
-        if msg.interface is None:
-            return None
+        if TYPE_CHECKING:
+            assert msg.interface is not None
 
         if "org.freedesktop.DBus." in msg.interface:
             if (
