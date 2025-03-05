@@ -417,7 +417,7 @@ class ServiceInterface:
 
     def emit_properties_changed(
         self, changed_properties: dict[str, Any], invalidated_properties: list[str] = []
-    ):
+    ) -> None:
         """Emit the ``org.freedesktop.DBus.Properties.PropertiesChanged`` signal.
 
         This signal is intended to be used to alert clients when a property of
@@ -494,7 +494,7 @@ class ServiceInterface:
     @staticmethod
     def _get_handler(
         interface: ServiceInterface, method: _Method, bus: BaseMessageBus
-    ) -> Callable[[Message, Callable[[Message], None]], None]:
+    ) -> HandlerType:
         return interface.__handlers[bus][method]
 
     @staticmethod
@@ -503,7 +503,7 @@ class ServiceInterface:
         bus: BaseMessageBus,
         name: str_,
         signature: str_,
-    ) -> Callable[[Message, Callable[[Message], None]], None] | None:
+    ) -> HandlerType | None:
         handlers = interface.__handlers_by_name_signature[bus]
         if (method_handler := handlers.get(name)) is None:
             return None
@@ -516,10 +516,7 @@ class ServiceInterface:
     def _add_bus(
         interface: ServiceInterface,
         bus: BaseMessageBus,
-        maker: Callable[
-            [ServiceInterface, _Method],
-            Callable[[Message, SendReply], None],
-        ],
+        maker: Callable[[ServiceInterface, _Method], HandlerType],
     ) -> None:
         interface.__buses.add(bus)
         interface.__handlers[bus] = {
@@ -583,15 +580,19 @@ class ServiceInterface:
             )
 
     @staticmethod
-    def _get_property_value(interface: ServiceInterface, prop: _Property, callback):
+    def _get_property_value(
+        interface: ServiceInterface,
+        prop: _Property,
+        callback: Callable[[ServiceInterface, _Property, Any, Exception | None], None],
+    ) -> None:
         # XXX MUST CHECK TYPE RETURNED BY GETTER
         try:
             if asyncio.iscoroutinefunction(prop.prop_getter):
-                task = asyncio.ensure_future(prop.prop_getter(interface))
+                task: asyncio.Task = asyncio.ensure_future(prop.prop_getter(interface))
 
-                def get_property_callback(task):
+                def get_property_callback(task_: asyncio.Task) -> None:
                     try:
-                        result = task.result()
+                        result = task_.result()
                     except Exception as e:
                         callback(interface, prop, None, e)
                         return
@@ -611,17 +612,19 @@ class ServiceInterface:
     def _set_property_value(
         interface: ServiceInterface,
         prop: _Property,
-        value,
+        value: Any,
         callback: Callable[[ServiceInterface, _Property, Exception | None], None],
     ) -> None:
         # XXX MUST CHECK TYPE TO SET
         try:
             if asyncio.iscoroutinefunction(prop.prop_setter):
-                task = asyncio.ensure_future(prop.prop_setter(interface, value))
+                task: asyncio.Task = asyncio.ensure_future(
+                    prop.prop_setter(interface, value)
+                )
 
-                def set_property_callback(task):
+                def set_property_callback(task_: asyncio.Task) -> None:
                     try:
-                        task.result()
+                        task_.result()
                     except Exception as e:
                         callback(interface, prop, e)
                         return
@@ -640,9 +643,9 @@ class ServiceInterface:
     def _get_all_property_values(
         interface: ServiceInterface,
         callback: Callable[[ServiceInterface, Any, Any, Exception | None], None],
-        user_data=Any | None,
+        user_data: Any | None = None,
     ) -> None:
-        result = {}
+        result: dict[str, Variant | None] = {}
         result_error = None
 
         for prop in ServiceInterface._get_properties(interface):

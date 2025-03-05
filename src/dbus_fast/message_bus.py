@@ -23,7 +23,7 @@ from .errors import DBusError, InvalidAddressError
 from .message import Message
 from .proxy_object import BaseProxyObject
 from .send_reply import SendReply
-from .service import ServiceInterface, _Method, _Property
+from .service import ServiceInterface, _Method, _Property, HandlerType
 from .signature import Variant
 from .validators import assert_bus_name_valid, assert_object_path_valid
 
@@ -290,8 +290,8 @@ class BaseMessageBus:
             try:
                 BaseMessageBus._check_method_return(reply, err, "s")
                 result = intr.Node.parse(
-                    reply.body[0],
-                    validate_property_names=validate_property_names,  # type: ignore[union-attr]
+                    reply.body[0],  # type: ignore[union-attr]
+                    validate_property_names=validate_property_names,
                 )
             except Exception as e:
                 callback(None, e)
@@ -911,12 +911,10 @@ class BaseMessageBus:
 
     def _make_method_handler(
         self, interface: ServiceInterface, method: _Method
-    ) -> Callable[[Message, SendReply], None]:
+    ) -> HandlerType:
         return partial(self._callback_method_handler, interface, method)
 
-    def _find_message_handler(
-        self, msg: _Message
-    ) -> Callable[[Message, SendReply], None] | None:
+    def _find_message_handler(self, msg: _Message) -> HandlerType | None:
         if msg.interface is None:
             return None
 
