@@ -3,6 +3,34 @@
 import os
 from distutils.command.build_ext import build_ext
 
+try:
+    from setuptools import Extension
+except ImportError:
+    from distutils.core import Extension
+
+
+TO_CYTHONIZE = [
+    "src/dbus_fast/aio/message_reader.py",
+    "src/dbus_fast/message.py",
+    "src/dbus_fast/message_bus.py",
+    "src/dbus_fast/service.py",
+    "src/dbus_fast/signature.py",
+    "src/dbus_fast/unpack.py",
+    "src/dbus_fast/_private/address.py",
+    "src/dbus_fast/_private/marshaller.py",
+    "src/dbus_fast/_private/unmarshaller.py",
+]
+
+EXTENSIONS = [
+    Extension(
+        ext.removeprefix("src/").removesuffix(".py").replace("/", "."),
+        [ext],
+        language="c",
+        extra_compile_args=["-O3", "-g0"],
+    )
+    for ext in TO_CYTHONIZE
+]
+
 
 class BuildExt(build_ext):
     def build_extensions(self):
@@ -21,17 +49,7 @@ def build(setup_kwargs):
         setup_kwargs.update(
             dict(
                 ext_modules=cythonize(
-                    [
-                        "src/dbus_fast/aio/message_reader.py",
-                        "src/dbus_fast/message.py",
-                        "src/dbus_fast/message_bus.py",
-                        "src/dbus_fast/service.py",
-                        "src/dbus_fast/signature.py",
-                        "src/dbus_fast/unpack.py",
-                        "src/dbus_fast/_private/address.py",
-                        "src/dbus_fast/_private/marshaller.py",
-                        "src/dbus_fast/_private/unmarshaller.py",
-                    ],
+                    TO_CYTHONIZE,
                     compiler_directives={"language_level": "3"},  # Python 3
                 ),
                 cmdclass=dict(build_ext=BuildExt),
