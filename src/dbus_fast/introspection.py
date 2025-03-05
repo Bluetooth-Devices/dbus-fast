@@ -51,7 +51,7 @@ class Arg:
     def __init__(
         self,
         signature: Union[SignatureType, str],
-        direction: Optional[list[ArgDirection]] = None,
+        direction: Optional[ArgDirection] = None,
         name: Optional[str] = None,
         annotations: Optional[dict[str, str]] = None,
     ):

@@ -3,7 +3,7 @@ import asyncio
 import copy
 import inspect
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, Protocol
 
 from . import introspection as intr
 from ._private.util import (
@@ -27,15 +27,23 @@ if TYPE_CHECKING:
 
 str_ = str
 
+HandlerType = Callable[[Message, SendReply], None]
+
+
+class _MethodCallbackProtocol(Protocol):
+    def __call__(self, interface: ServiceInterface, *args: Any) -> Any: ...
+
 
 class _Method:
-    def __init__(self, fn, name: str, disabled=False):
+    def __init__(
+        self, fn: _MethodCallbackProtocol, name: str, disabled: bool = False
+    ) -> None:
         in_signature = ""
         out_signature = ""
 
         inspection = inspect.signature(fn)
 
-        in_args = []
+        in_args: list[intr.Arg] = []
         for i, param in enumerate(inspection.parameters.values()):
             if i == 0:
                 # first is self
@@ -48,7 +56,7 @@ class _Method:
             in_args.append(intr.Arg(annotation, intr.ArgDirection.IN, param.name))
             in_signature += annotation
 
-        out_args = []
+        out_args: list[intr.Arg] = []
         out_signature = parse_annotation(inspection.return_annotation)
         if out_signature:
             for type_ in get_signature_tree(out_signature).types:
@@ -64,7 +72,7 @@ class _Method:
         self.out_signature_tree = get_signature_tree(out_signature)
 
 
-def method(name: str | None = None, disabled: bool = False):
+def method(name: str | None = None, disabled: bool = False) -> Callable:
     """A decorator to mark a class method of a :class:`ServiceInterface` to be a DBus service method.
 
     The parameters and return value must each be annotated with a signature
@@ -102,9 +110,9 @@ def method(name: str | None = None, disabled: bool = False):
     if type(disabled) is not bool:
         raise TypeError("disabled must be a bool")
 
-    def decorator(fn):
+    def decorator(fn: Callable) -> Callable:
         @wraps(fn)
-        def wrapped(*args, **kwargs):
+        def wrapped(*args: Any, **kwargs: Any) -> None:
             fn(*args, **kwargs)
 
         fn_name = name if name else fn.__name__
@@ -116,7 +124,7 @@ def method(name: str | None = None, disabled: bool = False):
 
 
 class _Signal:
-    def __init__(self, fn, name, disabled=False):
+    def __init__(self, fn: Callable, name: str, disabled: bool = False) -> None:
         inspection = inspect.signature(fn)
 
         args = []
@@ -141,7 +149,7 @@ class _Signal:
         self.introspection = intr.Signal(self.name, args)
 
 
-def signal(name: str | None = None, disabled: bool = False):
+def signal(name: str | None = None, disabled: bool = False) -> Callable:
     """A decorator to mark a class method of a :class:`ServiceInterface` to be a DBus signal.
 
     The signal is broadcast on the bus when the decorated class method is
@@ -176,12 +184,12 @@ def signal(name: str | None = None, disabled: bool = False):
     if type(disabled) is not bool:
         raise TypeError("disabled must be a bool")
 
-    def decorator(fn):
+    def decorator(fn: Callable) -> Callable:
         fn_name = name if name else fn.__name__
         signal = _Signal(fn, fn_name, disabled)
 
         @wraps(fn)
-        def wrapped(self, *args, **kwargs):
+        def wrapped(self, *args: Any, **kwargs: Any) -> Any:
             if signal.disabled:
                 raise SignalDisabledError("Tried to call a disabled signal")
             result = fn(self, *args, **kwargs)
@@ -264,7 +272,7 @@ def dbus_property(
     access: PropertyAccess = PropertyAccess.READWRITE,
     name: str | None = None,
     disabled: bool = False,
-):
+) -> Callable:
     """A decorator to mark a class method of a :class:`ServiceInterface` to be a DBus property.
 
     The class method must be a Python getter method with a return annotation
@@ -309,7 +317,7 @@ def dbus_property(
     if type(disabled) is not bool:
         raise TypeError("disabled must be a bool")
 
-    def decorator(fn):
+    def decorator(fn: Callable) -> _Property:
         options = {"name": name, "access": access, "disabled": disabled}
         return _Property(fn, options=options)
 
@@ -337,7 +345,8 @@ def _real_fn_result_to_body(
 
     if out_len != len(final_result):
         raise SignatureBodyMismatchError(
-            f"Signature and function return mismatch, expected {len(signature_tree.types)} arguments but got {len(result)}"
+            f"Signature and function return mismatch, expected "
+            f"{len(signature_tree.types)} arguments but got {len(result)}"  # type: ignore[arg-type]
         )
 
     if not replace_fds:
@@ -368,18 +377,11 @@ class ServiceInterface:
         self.__methods: list[_Method] = []
         self.__properties: list[_Property] = []
         self.__signals: list[_Signal] = []
-        self.__buses = set()
-        self.__handlers: dict[
-            BaseMessageBus,
-            dict[_Method, Callable[[Message, Callable[[Message], None]], None]],
-        ] = {}
+        self.__buses: set[BaseMessageBus] = set()
+        self.__handlers: dict[BaseMessageBus, dict[_Method, HandlerType]] = {}
         # Map of methods by bus of name -> method, handler
         self.__handlers_by_name_signature: dict[
-            BaseMessageBus,
-            dict[
-                str,
-                tuple[_Method, Callable[[Message, Callable[[Message], None]]], None],
-            ],
+            BaseMessageBus, dict[str, tuple[_Method, HandlerType]]
         ] = {}
         for name, member in inspect.getmembers(type(self)):
             member_dict = getattr(member, "__dict__", {})
