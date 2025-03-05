@@ -60,6 +60,15 @@ async def test_export_unexport():
     assert not bus._path_exports
     assert not ServiceInterface._get_buses(interface)
 
+    # test unexporting by ServiceInterface
+    bus.export(export_path, interface)
+    bus.unexport(export_path, interface)
+    assert not bus._path_exports
+    assert not ServiceInterface._get_buses(interface)
+
+    with pytest.raises(TypeError):
+        bus.unexport(export_path, object())
+
     node = bus._introspect_export_path("/path/doesnt/exist")
     assert type(node) is intr.Node
     assert not node.interfaces
