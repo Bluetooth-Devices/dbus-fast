@@ -213,9 +213,9 @@ async def test_object_manager():
         )
     )
 
-    assert reply_root.signature == "a{oa{sa{sv}}}"
-    assert reply_level1.signature == "a{oa{sa{sv}}}"
-    assert reply_level2.signature == "a{oa{sa{sv}}}"
+    assert reply_root.signature == "a{oa{sa{sv}}}", reply_root
+    assert reply_level1.signature == "a{oa{sa{sv}}}", reply_level1
+    assert reply_level2.signature == "a{oa{sa{sv}}}", reply_level2
 
     assert reply_level2.body == [{}]
     assert reply_level1.body == [expected_reply]
