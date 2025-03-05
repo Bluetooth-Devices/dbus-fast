@@ -74,6 +74,9 @@ async def test_export_unexport():
     assert not node.interfaces
     assert not node.nodes
 
+    # Should to nothing
+    bus.unexport("/path/doesnt/exist", interface)
+
     bus.disconnect()
 
 
