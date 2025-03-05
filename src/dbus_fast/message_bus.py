@@ -221,24 +221,29 @@ class BaseMessageBus:
             - :class:`InvalidObjectPathError <dbus_fast.InvalidObjectPathError>` - If the given object path is not valid.
         """
         assert_object_path_valid(path)
-        if type(interface) not in [str, type(None)] and not isinstance(
-            interface, ServiceInterface
-        ):
+        interface_name: str | None
+        if type(interface) is None:
+            interface_name = None
+        elif type(interface) is str:
+            interface_name = interface
+        elif isinstance(interface, ServiceInterface):
+            interface_name = interface.name
+        else:
             raise TypeError("interface must be a ServiceInterface or interface name")
 
         if (interfaces := self._path_exports.get(path)) is None:
             return
         removed_interface_names: list[str] = []
 
-        if type(interface) is str:
-            if (removed_interface := interfaces.pop(interface, None)) is None:
+        if interface_name is not None:
+            if (removed_interface := interfaces.pop(interface_name, None)) is None:
                 return
-            removed_interface_names.append(removed_interface.name)
+            removed_interface_names.append(interface_name)
             if not interfaces:
                 del self._path_exports[path]
             if not self._has_interface(removed_interface):
                 ServiceInterface._remove_bus(removed_interface, self)
-        elif interface is None:
+        else:
             del self._path_exports[path]
             for removed_interface in interfaces.values():
                 removed_interface_names.append(removed_interface.name)
