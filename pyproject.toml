@@ -71,12 +71,7 @@ branch = true
 plugins = ["covdefaults"]
 
 [tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "@overload",
-    "if TYPE_CHECKING",
-    "raise NotImplementedError",
-]
+fail_under = 78
 
 [tool.isort]
 profile = "black"
