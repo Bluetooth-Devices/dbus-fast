@@ -907,6 +907,11 @@ class BaseMessageBus:
         return partial(self._callback_method_handler, interface, method)
 
     def _find_message_handler(self, msg: _Message) -> HandlerType | None:
+        """Find the message handler for for METHOD_CALL messages."""
+        if TYPE_CHECKING:
+            assert msg.member is not None
+            assert msg.path is not None
+
         if msg.interface is not None and "org.freedesktop.DBus." in msg.interface:
             if (
                 msg.interface == "org.freedesktop.DBus.Introspectable"
@@ -929,9 +934,6 @@ class BaseMessageBus:
                 and msg.member == "GetManagedObjects"
             ):
                 return self._default_get_managed_objects_handler
-
-        if msg.path is None or msg.member is None:
-            return None
 
         if (interfaces := self._path_exports.get(msg.path)) is None:
             return None
