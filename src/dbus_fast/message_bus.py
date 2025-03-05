@@ -243,8 +243,7 @@ class BaseMessageBus:
             removed_interface_names.append(interface_name)
             if not interfaces:
                 del self._path_exports[path]
-            if not self._has_interface(removed_interface):
-                ServiceInterface._remove_bus(removed_interface, self)
+            ServiceInterface._remove_bus(removed_interface, self)
         else:
             del self._path_exports[path]
             for removed_interface in interfaces.values():
@@ -611,14 +610,6 @@ class BaseMessageBus:
             self.unexport(path)
 
         self._user_message_handlers.clear()
-
-    def _has_interface(self, interface: ServiceInterface) -> bool:
-        for exports in self._path_exports.values():
-            for iface in exports.values():
-                if iface is interface:
-                    return True
-
-        return False
 
     def _interface_signal_notify(
         self,
