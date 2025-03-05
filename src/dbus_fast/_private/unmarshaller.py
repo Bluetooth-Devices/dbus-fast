@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import array
 import errno
 import io
@@ -5,7 +7,7 @@ import socket
 import sys
 from collections.abc import Iterable
 from struct import Struct
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, TYPE_CHECKING
 
 from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP, MessageFlag
 from ..errors import InvalidMessageError
@@ -144,7 +146,7 @@ HEADER_SENDER_IDX = HEADER_IDX_TO_ARG_NAME.index("sender")
 HEADER_SIGNATURE_IDX = HEADER_IDX_TO_ARG_NAME.index("signature")
 HEADER_UNIX_FDS_IDX = HEADER_IDX_TO_ARG_NAME.index("unix_fds")
 
-_EMPTY_HEADERS = [None] * len(HEADER_IDX_TO_ARG_NAME)
+_EMPTY_HEADERS: list[Any | None] = [None] * len(HEADER_IDX_TO_ARG_NAME)
 
 _SignatureType = SignatureType
 _int = int
@@ -159,7 +161,7 @@ DEFAULT_BUFFER_SIZE = io.DEFAULT_BUFFER_SIZE
 def unpack_parser_factory(unpack_from: Callable, size: int) -> READER_TYPE:
     """Build a parser that unpacks the bytes using the given unpack_from function."""
 
-    def _unpack_from_parser(self: "Unmarshaller", signature: SignatureType) -> Any:
+    def _unpack_from_parser(self: Unmarshaller, signature: SignatureType) -> Any:
         self._pos += size + (-self._pos & (size - 1))  # align
         return unpack_from(self._buf, self._pos - size)[0]
 
@@ -168,7 +170,7 @@ def unpack_parser_factory(unpack_from: Callable, size: int) -> READER_TYPE:
 
 def build_simple_parsers(
     endian: int,
-) -> dict[str, Callable[["Unmarshaller", SignatureType], Any]]:
+) -> dict[str, Callable[[Unmarshaller, SignatureType], Any]]:
     """Build a dict of parsers for simple types."""
     parsers: dict[str, READER_TYPE] = {}
     for dbus_type, ctype_size in DBUS_TO_CTYPE.items():
@@ -238,15 +240,15 @@ class Unmarshaller:
 
     def __init__(
         self,
-        stream: Optional[io.BufferedRWPair] = None,
-        sock: Optional[socket.socket] = None,
+        stream: io.BufferedRWPair | None = None,
+        sock: socket.socket | None = None,
         negotiate_unix_fd: bool = True,
     ) -> None:
         self._unix_fds: list[int] = []
-        self._buf = bytearray.__new__(bytearray)  # Actual buffer
+        self._buf: bytearray = bytearray.__new__(bytearray)  # Actual buffer
         self._stream = stream
         self._sock = sock
-        self._message: Optional[Message] = None
+        self._message: Message | None = None
         self._readers: dict[str, READER_TYPE] = {}
         self._pos = 0
         self._body_len = 0
@@ -256,20 +258,24 @@ class Unmarshaller:
         self._flag = 0
         self._msg_len = 0
         self._is_native = 0
-        self._uint32_unpack: Optional[Callable] = None
-        self._int16_unpack: Optional[Callable] = None
-        self._uint16_unpack: Optional[Callable] = None
-        self._stream_reader: Optional[Callable] = None
+        self._uint32_unpack: Callable | None = None
+        self._int16_unpack: Callable | None = None
+        self._uint16_unpack: Callable | None = None
+        self._stream_reader: Callable | None = None
         self._negotiate_unix_fd = negotiate_unix_fd
         self._read_complete = False
         if stream:
             if isinstance(stream, io.BufferedRWPair) and hasattr(stream, "reader"):
-                self._stream_reader = stream.reader.read  # type: ignore[attr-defined]
+                self._stream_reader = stream.reader.read
             self._stream_reader = stream.read
         elif self._negotiate_unix_fd:
+            if TYPE_CHECKING:
+                assert self._sock is not None
             self._sock_reader = self._sock.recvmsg
         else:
-            self._sock_reader = self._sock.recv
+            if TYPE_CHECKING:
+                assert self._sock is not None
+            self._sock_reader = self._sock.recv  # type: ignore[assignment]
         self._endian = 0
 
     def _next_message(self) -> None:
@@ -289,7 +295,7 @@ class Unmarshaller:
         # every time a new message is processed.
 
     @property
-    def message(self) -> Optional[Message]:
+    def message(self) -> Message | None:
         """Return the message that has been unmarshalled."""
         if self._read_complete:
             return self._message
@@ -309,7 +315,7 @@ class Unmarshaller:
         # This will raise BlockingIOError if there is no data to read
         # which we store in the MARSHALL_STREAM_END_ERROR object
         try:
-            recv = self._sock_reader(missing_bytes, UNIX_FDS_CMSG_LENGTH)  # type: ignore[union-attr]
+            recv = self._sock_reader(missing_bytes, UNIX_FDS_CMSG_LENGTH)
         except OSError as e:
             errno = e.errno
             if errno == EAGAIN or errno == EWOULDBLOCK:
@@ -340,7 +346,7 @@ class Unmarshaller:
         # which we store in the MARSHALL_STREAM_END_ERROR object
         while True:
             try:
-                data = self._sock_reader(DEFAULT_BUFFER_SIZE)  # type: ignore[union-attr]
+                data = self._sock_reader(DEFAULT_BUFFER_SIZE)
             except OSError as e:
                 errno = e.errno
                 if errno == EAGAIN or errno == EWOULDBLOCK:
@@ -348,11 +354,11 @@ class Unmarshaller:
                 raise
             if not data:
                 raise EOFError()
-            self._buf += data
+            self._buf += data  # type: ignore[arg-type]
             if len(self._buf) >= pos:
                 return
 
-    def _read_stream(self, pos: _int, missing_bytes: _int) -> bytes:
+    def _read_stream(self, pos: _int, missing_bytes: _int) -> None:
         """Read from the stream."""
         data = self._stream_reader(missing_bytes)  # type: ignore[misc]
         if data is None:
@@ -577,7 +583,7 @@ class Unmarshaller:
             ) and child_1_token_as_int == TOKEN_V_AS_INT:
                 while self._pos - beginning_pos < array_length:
                     self._pos += -self._pos & 7  # align 8
-                    key: Union[str, int] = self._read_string_unpack()
+                    key: str | int = self._read_string_unpack()
                     result_dict[key] = self._read_variant()
             elif (
                 child_0_token_as_int == TOKEN_Q_AS_INT
@@ -785,7 +791,7 @@ class Unmarshaller:
         self._message = message
         self._read_complete = True
 
-    def unmarshall(self) -> Optional[Message]:
+    def unmarshall(self) -> Message | None:
         """Unmarshall the message.
 
         The underlying read function will raise BlockingIOError if the
@@ -794,7 +800,7 @@ class Unmarshaller:
         """
         return self._unmarshall()
 
-    def _unmarshall(self) -> Optional[Message]:
+    def _unmarshall(self) -> Message | None:
         """Unmarshall the message.
 
         The underlying read function will raise BlockingIOError if the
@@ -811,9 +817,7 @@ class Unmarshaller:
             return None
         return self._message
 
-    _complex_parsers_unpack: dict[
-        str, Callable[["Unmarshaller", SignatureType], Any]
-    ] = {
+    _complex_parsers_unpack: dict[str, Callable[[Unmarshaller, SignatureType], Any]] = {
         "b": read_boolean,
         "o": read_string_unpack,
         "s": read_string_unpack,

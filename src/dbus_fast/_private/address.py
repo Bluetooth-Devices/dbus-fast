@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import os
 import re
-from typing import Optional
 from urllib.parse import unquote
 
 from ..constants import BusType
@@ -85,7 +86,7 @@ def get_session_bus_address() -> str:
         machine_id = f.read().rstrip()
 
     dbus_info_file_name = f"{home}/.dbus/session-bus/{machine_id}-{display}"
-    dbus_info: Optional[str] = None
+    dbus_info: str | None = None
     try:
         with open(dbus_info_file_name) as f:
             dbus_info = f.read().rstrip()

@@ -5,6 +5,7 @@ import cython
 from ..message cimport Message
 from ..signature cimport SignatureTree, SignatureType, Variant
 
+cdef bint TYPE_CHECKING
 
 cdef object MAX_UNIX_FDS_SIZE
 cdef object ARRAY
