@@ -40,9 +40,6 @@ cdef class ServiceInterface:
     cdef object _get_enabled_handler_by_name_signature(ServiceInterface interface, object bus, object name, object signature)
 
     @staticmethod
-    cpdef list _msg_body_to_args(Message msg)
-
-    @staticmethod
     cdef list _c_msg_body_to_args(Message msg)
 
     @staticmethod
