@@ -6,6 +6,7 @@ import traceback
 import xml.etree.ElementTree as ET
 from functools import partial
 from typing import Any, Callable, TYPE_CHECKING
+from collections.abc import Iterable
 
 from . import introspection as intr
 from ._private.address import get_bus_address, parse_address
@@ -906,10 +907,7 @@ class BaseMessageBus:
         return partial(self._callback_method_handler, interface, method)
 
     def _find_message_handler(self, msg: _Message) -> HandlerType | None:
-        if TYPE_CHECKING:
-            assert msg.interface is not None
-
-        if "org.freedesktop.DBus." in msg.interface:
+        if msg.interface is not None and "org.freedesktop.DBus." in msg.interface:
             if (
                 msg.interface == "org.freedesktop.DBus.Introspectable"
                 and msg.member == "Introspect"
@@ -933,18 +931,38 @@ class BaseMessageBus:
                 return self._default_get_managed_objects_handler
 
         if (
-            msg.path is not None
-            and msg.member is not None
-            and (interfaces := self._path_exports.get(msg.path)) is not None
-            and (interface := interfaces.get(msg.interface)) is not None
-            and (
+            msg.path is None
+            or msg.member is None
+            or (interfaces := self._path_exports.get(msg.path)) is None
+        ):
+            return None
+
+        if msg.interface is None:
+            return self._find_any_message_handler_matching_signature(
+                interfaces.values(), msg
+            )
+
+        if (interface := interfaces.get(msg.interface)) is not None and (
+            handler := ServiceInterface._get_enabled_handler_by_name_signature(
+                interface, self, msg.member, msg.signature
+            )
+        ) is not None:
+            return handler
+
+        return None
+
+    def _find_any_message_handler_matching_signature(
+        self, interfaces: Iterable[ServiceInterface], msg: _Message
+    ) -> HandlerType | None:
+        # No interface, so we need to search all interfaces for the method
+        # with a matching signature
+        for interface in interfaces:
+            if (
                 handler := ServiceInterface._get_enabled_handler_by_name_signature(
                     interface, self, msg.member, msg.signature
                 )
-            )
-            is not None
-        ):
-            return handler
+            ) is not None:
+                return handler
         return None
 
     def _default_introspect_handler(self, msg: Message, send_reply: SendReply) -> None:
