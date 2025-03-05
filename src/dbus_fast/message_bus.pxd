@@ -4,6 +4,7 @@ from ._private.address cimport get_bus_address, parse_address
 from .message cimport Message
 from .service cimport ServiceInterface, _Method
 
+cdef bint TYPE_CHECKING
 
 cdef object MessageType
 cdef object DBusError
@@ -39,24 +40,26 @@ cdef class BaseMessageBus:
     cdef public object _high_level_client_initialized
     cdef public object _ProxyObject
     cdef public object _machine_id
-    cdef public object _negotiate_unix_fd
+    cdef public bint _negotiate_unix_fd
     cdef public object _sock
     cdef public object _stream
     cdef public object _fd
 
-    cpdef _process_message(self, Message msg)
+    cpdef void _process_message(self, Message msg)
+
+    @cython.locals(exported_service_interface=ServiceInterface)
+    cpdef export(self, str path, ServiceInterface interface)
 
     @cython.locals(
         methods=cython.list,
         method=_Method,
         interface=ServiceInterface,
-        interfaces=cython.list,
+        interfaces=dict,
     )
     cdef _find_message_handler(self, Message msg)
 
     cdef _setup_socket(self)
 
-    @cython.locals(no_reply_expected=bint)
     cpdef _call(self, Message msg, object callback)
 
     cpdef next_serial(self)

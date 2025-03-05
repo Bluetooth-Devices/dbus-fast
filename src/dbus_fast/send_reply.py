@@ -1,6 +1,7 @@
+from __future__ import annotations
 import traceback
 from types import TracebackType
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from .constants import ErrorType
 from .errors import DBusError
@@ -15,12 +16,12 @@ class SendReply:
 
     __slots__ = ("_bus", "_msg")
 
-    def __init__(self, bus: "BaseMessageBus", msg: Message) -> None:
+    def __init__(self, bus: BaseMessageBus, msg: Message) -> None:
         """Create a new reply context manager."""
         self._bus = bus
         self._msg = msg
 
-    def __enter__(self):
+    def __enter__(self) -> SendReply:
         return self
 
     def __call__(self, reply: Message) -> None:
@@ -28,9 +29,9 @@ class SendReply:
 
     def _exit(
         self,
-        exc_type: Optional[type[Exception]],
-        exc_value: Optional[Exception],
-        tb: Optional[TracebackType],
+        exc_type: type[Exception] | None,
+        exc_value: Exception | None,
+        tb: TracebackType | None,
     ) -> bool:
         if exc_value:
             if isinstance(exc_value, DBusError):
@@ -49,9 +50,9 @@ class SendReply:
 
     def __exit__(
         self,
-        exc_type: Optional[type[Exception]],
-        exc_value: Optional[Exception],
-        tb: Optional[TracebackType],
+        exc_type: type[Exception] | None,
+        exc_value: Exception | None,
+        tb: TracebackType | None,
     ) -> bool:
         return self._exit(exc_type, exc_value, tb)
 

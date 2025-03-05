@@ -28,9 +28,14 @@ async def test_export_unexport():
 
     bus = await MessageBus().connect()
     bus.export(export_path, interface)
+
+    with pytest.raises(ValueError):
+        # Already exported
+        bus.export(export_path, interface)
+
     assert export_path in bus._path_exports
     assert len(bus._path_exports[export_path]) == 1
-    assert bus._path_exports[export_path][0] is interface
+    assert bus._path_exports[export_path][interface.name] is interface
     assert len(ServiceInterface._get_buses(interface)) == 1
 
     bus.export(export_path2, interface2)
@@ -60,10 +65,22 @@ async def test_export_unexport():
     assert not bus._path_exports
     assert not ServiceInterface._get_buses(interface)
 
+    # test unexporting by ServiceInterface
+    bus.export(export_path, interface)
+    bus.unexport(export_path, interface)
+    assert not bus._path_exports
+    assert not ServiceInterface._get_buses(interface)
+
+    with pytest.raises(TypeError):
+        bus.unexport(export_path, object())
+
     node = bus._introspect_export_path("/path/doesnt/exist")
     assert type(node) is intr.Node
     assert not node.interfaces
     assert not node.nodes
+
+    # Should to nothing
+    bus.unexport("/path/doesnt/exist", interface)
 
     bus.disconnect()
 

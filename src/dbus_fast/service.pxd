@@ -33,12 +33,11 @@ cdef class ServiceInterface:
     cdef list __signals
     cdef set __buses
     cdef dict __handlers
+    cdef dict __enabled_handlers_by_name_signature
 
+    @cython.locals(handlers=dict,in_signature=str,method=_Method)
     @staticmethod
-    cdef list _c_get_methods(ServiceInterface interface)
-
-    @staticmethod
-    cdef object _c_get_handler(ServiceInterface interface, _Method method, object bus)
+    cdef object _get_enabled_handler_by_name_signature(ServiceInterface interface, object bus, object name, object signature)
 
     @staticmethod
     cdef list _c_msg_body_to_args(Message msg)

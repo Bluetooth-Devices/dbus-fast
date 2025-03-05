@@ -1,8 +1,9 @@
+from __future__ import annotations
 import asyncio
 import copy
 import inspect
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Optional
+from typing import TYPE_CHECKING, Any, Callable, Protocol
 
 from . import introspection as intr
 from ._private.util import (
@@ -20,19 +21,30 @@ from .signature import (
     Variant,
     get_signature_tree,
 )
+from .send_reply import SendReply
 
 if TYPE_CHECKING:
     from .message_bus import BaseMessageBus
 
+str_ = str
+
+HandlerType = Callable[[Message, SendReply], None]
+
+
+class _MethodCallbackProtocol(Protocol):
+    def __call__(self, interface: ServiceInterface, *args: Any) -> Any: ...
+
 
 class _Method:
-    def __init__(self, fn, name: str, disabled=False):
+    def __init__(
+        self, fn: _MethodCallbackProtocol, name: str, disabled: bool = False
+    ) -> None:
         in_signature = ""
         out_signature = ""
 
         inspection = inspect.signature(fn)
 
-        in_args = []
+        in_args: list[intr.Arg] = []
         for i, param in enumerate(inspection.parameters.values()):
             if i == 0:
                 # first is self
@@ -45,7 +57,7 @@ class _Method:
             in_args.append(intr.Arg(annotation, intr.ArgDirection.IN, param.name))
             in_signature += annotation
 
-        out_args = []
+        out_args: list[intr.Arg] = []
         out_signature = parse_annotation(inspection.return_annotation)
         if out_signature:
             for type_ in get_signature_tree(out_signature).types:
@@ -61,7 +73,7 @@ class _Method:
         self.out_signature_tree = get_signature_tree(out_signature)
 
 
-def method(name: Optional[str] = None, disabled: bool = False):
+def method(name: str | None = None, disabled: bool = False) -> Callable:
     """A decorator to mark a class method of a :class:`ServiceInterface` to be a DBus service method.
 
     The parameters and return value must each be annotated with a signature
@@ -99,9 +111,9 @@ def method(name: Optional[str] = None, disabled: bool = False):
     if type(disabled) is not bool:
         raise TypeError("disabled must be a bool")
 
-    def decorator(fn):
+    def decorator(fn: Callable) -> Callable:
         @wraps(fn)
-        def wrapped(*args, **kwargs):
+        def wrapped(*args: Any, **kwargs: Any) -> None:
             fn(*args, **kwargs)
 
         fn_name = name if name else fn.__name__
@@ -113,7 +125,7 @@ def method(name: Optional[str] = None, disabled: bool = False):
 
 
 class _Signal:
-    def __init__(self, fn, name, disabled=False):
+    def __init__(self, fn: Callable, name: str, disabled: bool = False) -> None:
         inspection = inspect.signature(fn)
 
         args = []
@@ -138,7 +150,7 @@ class _Signal:
         self.introspection = intr.Signal(self.name, args)
 
 
-def signal(name: Optional[str] = None, disabled: bool = False):
+def signal(name: str | None = None, disabled: bool = False) -> Callable:
     """A decorator to mark a class method of a :class:`ServiceInterface` to be a DBus signal.
 
     The signal is broadcast on the bus when the decorated class method is
@@ -173,12 +185,12 @@ def signal(name: Optional[str] = None, disabled: bool = False):
     if type(disabled) is not bool:
         raise TypeError("disabled must be a bool")
 
-    def decorator(fn):
+    def decorator(fn: Callable) -> Callable:
         fn_name = name if name else fn.__name__
         signal = _Signal(fn, fn_name, disabled)
 
         @wraps(fn)
-        def wrapped(self, *args, **kwargs):
+        def wrapped(self, *args: Any, **kwargs: Any) -> Any:
             if signal.disabled:
                 raise SignalDisabledError("Tried to call a disabled signal")
             result = fn(self, *args, **kwargs)
@@ -259,9 +271,9 @@ class _Property(property):
 
 def dbus_property(
     access: PropertyAccess = PropertyAccess.READWRITE,
-    name: Optional[str] = None,
+    name: str | None = None,
     disabled: bool = False,
-):
+) -> Callable:
     """A decorator to mark a class method of a :class:`ServiceInterface` to be a DBus property.
 
     The class method must be a Python getter method with a return annotation
@@ -306,7 +318,7 @@ def dbus_property(
     if type(disabled) is not bool:
         raise TypeError("disabled must be a bool")
 
-    def decorator(fn):
+    def decorator(fn: Callable) -> _Property:
         options = {"name": name, "access": access, "disabled": disabled}
         return _Property(fn, options=options)
 
@@ -314,7 +326,7 @@ def dbus_property(
 
 
 def _real_fn_result_to_body(
-    result: Optional[Any],
+    result: Any | None,
     signature_tree: SignatureTree,
     replace_fds: bool,
 ) -> tuple[list[Any], list[int]]:
@@ -334,7 +346,8 @@ def _real_fn_result_to_body(
 
     if out_len != len(final_result):
         raise SignatureBodyMismatchError(
-            f"Signature and function return mismatch, expected {len(signature_tree.types)} arguments but got {len(result)}"
+            f"Signature and function return mismatch, expected "
+            f"{len(signature_tree.types)} arguments but got {len(result)}"  # type: ignore[arg-type]
         )
 
     if not replace_fds:
@@ -365,12 +378,12 @@ class ServiceInterface:
         self.__methods: list[_Method] = []
         self.__properties: list[_Property] = []
         self.__signals: list[_Signal] = []
-        self.__buses = set()
-        self.__handlers: dict[
-            BaseMessageBus,
-            dict[_Method, Callable[[Message, Callable[[Message], None]], None]],
+        self.__buses: set[BaseMessageBus] = set()
+        self.__handlers: dict[BaseMessageBus, dict[_Method, HandlerType]] = {}
+        # Map of methods by bus of name -> method, handler
+        self.__handlers_by_name_signature: dict[
+            BaseMessageBus, dict[str, tuple[_Method, HandlerType]]
         ] = {}
-
         for name, member in inspect.getmembers(type(self)):
             member_dict = getattr(member, "__dict__", {})
             if type(member) is _Property:
@@ -405,7 +418,7 @@ class ServiceInterface:
 
     def emit_properties_changed(
         self, changed_properties: dict[str, Any], invalidated_properties: list[str] = []
-    ):
+    ) -> None:
         """Emit the ``org.freedesktop.DBus.Properties.PropertiesChanged`` signal.
 
         This signal is intended to be used to alert clients when a property of
@@ -464,58 +477,59 @@ class ServiceInterface:
         )
 
     @staticmethod
-    def _get_properties(interface: "ServiceInterface") -> list[_Property]:
+    def _get_properties(interface: ServiceInterface) -> list[_Property]:
         return interface.__properties
 
     @staticmethod
-    def _get_methods(interface: "ServiceInterface") -> list[_Method]:
+    def _get_methods(interface: ServiceInterface) -> list[_Method]:
         return interface.__methods
 
     @staticmethod
-    def _c_get_methods(interface: "ServiceInterface") -> list[_Method]:
-        # _c_get_methods is used by the C code to get the methods for an
-        # interface
-        # https://github.com/cython/cython/issues/3327
-        return interface.__methods
-
-    @staticmethod
-    def _get_signals(interface: "ServiceInterface") -> list[_Signal]:
+    def _get_signals(interface: ServiceInterface) -> list[_Signal]:
         return interface.__signals
 
     @staticmethod
-    def _get_buses(interface: "ServiceInterface") -> set["BaseMessageBus"]:
+    def _get_buses(interface: ServiceInterface) -> set[BaseMessageBus]:
         return interface.__buses
 
     @staticmethod
     def _get_handler(
-        interface: "ServiceInterface", method: _Method, bus: "BaseMessageBus"
-    ) -> Callable[[Message, Callable[[Message], None]], None]:
+        interface: ServiceInterface, method: _Method, bus: BaseMessageBus
+    ) -> HandlerType:
         return interface.__handlers[bus][method]
 
     @staticmethod
-    def _c_get_handler(
-        interface: "ServiceInterface", method: _Method, bus: "BaseMessageBus"
-    ) -> Callable[[Message, Callable[[Message], None]], None]:
-        # _c_get_handler is used by the C code to get the handler for a method
-        # https://github.com/cython/cython/issues/3327
-        return interface.__handlers[bus][method]
+    def _get_enabled_handler_by_name_signature(
+        interface: ServiceInterface,
+        bus: BaseMessageBus,
+        name: str_,
+        signature: str_,
+    ) -> HandlerType | None:
+        handlers = interface.__handlers_by_name_signature[bus]
+        if (method_handler := handlers.get(name)) is None:
+            return None
+        method = method_handler[0]
+        if method.disabled:
+            return None
+        return method_handler[1] if method.in_signature == signature else None
 
     @staticmethod
     def _add_bus(
-        interface: "ServiceInterface",
-        bus: "BaseMessageBus",
-        maker: Callable[
-            ["ServiceInterface", _Method],
-            Callable[[Message, Callable[[Message], None]], None],
-        ],
+        interface: ServiceInterface,
+        bus: BaseMessageBus,
+        maker: Callable[[ServiceInterface, _Method], HandlerType],
     ) -> None:
         interface.__buses.add(bus)
         interface.__handlers[bus] = {
             method: maker(interface, method) for method in interface.__methods
         }
+        interface.__handlers_by_name_signature[bus] = {
+            method.name: (method, handler)
+            for method, handler in interface.__handlers[bus].items()
+        }
 
     @staticmethod
-    def _remove_bus(interface: "ServiceInterface", bus: "BaseMessageBus") -> None:
+    def _remove_bus(interface: ServiceInterface, bus: BaseMessageBus) -> None:
         interface.__buses.remove(bus)
         del interface.__handlers[bus]
 
@@ -538,7 +552,7 @@ class ServiceInterface:
 
     @staticmethod
     def _fn_result_to_body(
-        result: Optional[Any],
+        result: Any | None,
         signature_tree: SignatureTree,
         replace_fds: bool = True,
     ) -> tuple[list[Any], list[int]]:
@@ -546,7 +560,7 @@ class ServiceInterface:
 
     @staticmethod
     def _c_fn_result_to_body(
-        result: Optional[Any],
+        result: Any | None,
         signature_tree: SignatureTree,
         replace_fds: bool,
     ) -> tuple[list[Any], list[int]]:
@@ -558,7 +572,7 @@ class ServiceInterface:
 
     @staticmethod
     def _handle_signal(
-        interface: "ServiceInterface", signal: _Signal, result: Optional[Any]
+        interface: ServiceInterface, signal: _Signal, result: Any | None
     ) -> None:
         body, fds = ServiceInterface._fn_result_to_body(result, signal.signature_tree)
         for bus in ServiceInterface._get_buses(interface):
@@ -567,15 +581,19 @@ class ServiceInterface:
             )
 
     @staticmethod
-    def _get_property_value(interface: "ServiceInterface", prop: _Property, callback):
+    def _get_property_value(
+        interface: ServiceInterface,
+        prop: _Property,
+        callback: Callable[[ServiceInterface, _Property, Any, Exception | None], None],
+    ) -> None:
         # XXX MUST CHECK TYPE RETURNED BY GETTER
         try:
             if asyncio.iscoroutinefunction(prop.prop_getter):
-                task = asyncio.ensure_future(prop.prop_getter(interface))
+                task: asyncio.Task = asyncio.ensure_future(prop.prop_getter(interface))
 
-                def get_property_callback(task):
+                def get_property_callback(task_: asyncio.Task) -> None:
                     try:
-                        result = task.result()
+                        result = task_.result()
                     except Exception as e:
                         callback(interface, prop, None, e)
                         return
@@ -592,15 +610,22 @@ class ServiceInterface:
             callback(interface, prop, None, e)
 
     @staticmethod
-    def _set_property_value(interface: "ServiceInterface", prop, value, callback):
+    def _set_property_value(
+        interface: ServiceInterface,
+        prop: _Property,
+        value: Any,
+        callback: Callable[[ServiceInterface, _Property, Exception | None], None],
+    ) -> None:
         # XXX MUST CHECK TYPE TO SET
         try:
             if asyncio.iscoroutinefunction(prop.prop_setter):
-                task = asyncio.ensure_future(prop.prop_setter(interface, value))
+                task: asyncio.Task = asyncio.ensure_future(
+                    prop.prop_setter(interface, value)
+                )
 
-                def set_property_callback(task):
+                def set_property_callback(task_: asyncio.Task) -> None:
                     try:
-                        task.result()
+                        task_.result()
                     except Exception as e:
                         callback(interface, prop, e)
                         return
@@ -617,9 +642,11 @@ class ServiceInterface:
 
     @staticmethod
     def _get_all_property_values(
-        interface: "ServiceInterface", callback, user_data=None
-    ):
-        result = {}
+        interface: ServiceInterface,
+        callback: Callable[[ServiceInterface, Any, Any, Exception | None], None],
+        user_data: Any | None = None,
+    ) -> None:
+        result: dict[str, Variant | None] = {}
         result_error = None
 
         for prop in ServiceInterface._get_properties(interface):
@@ -632,10 +659,10 @@ class ServiceInterface:
             return
 
         def get_property_callback(
-            interface: "ServiceInterface",
+            interface: ServiceInterface,
             prop: _Property,
             value: Any,
-            e: Optional[Exception],
+            e: Exception | None,
         ) -> None:
             nonlocal result_error
             if e is not None:
