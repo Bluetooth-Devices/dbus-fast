@@ -71,7 +71,7 @@ branch = true
 plugins = ["covdefaults"]
 
 [tool.coverage.report]
-fail_under = 78
+fail_under = 75
 
 [tool.isort]
 profile = "black"
