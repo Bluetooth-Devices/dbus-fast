@@ -35,7 +35,7 @@ cdef class ServiceInterface:
     cdef dict __handlers
     cdef dict __enabled_handlers_by_name_signature
 
-    @cython.locals(handlers=dict,in_signature=str)
+    @cython.locals(handlers=dict,in_signature=str,method=_Method)
     @staticmethod
     cdef object _get_enabled_handler_by_name_signature(ServiceInterface interface, object bus, object name, object signature)
 

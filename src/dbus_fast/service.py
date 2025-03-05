@@ -372,10 +372,13 @@ class ServiceInterface:
             BaseMessageBus,
             dict[_Method, Callable[[Message, Callable[[Message], None]], None]],
         ] = {}
-        # Map of enabled methods by (name, signature)
-        self.__enabled_handlers_by_name_signature: dict[
+        # Map of methods by (name, signature)
+        self.__handlers_by_name_signature: dict[
             BaseMessageBus,
-            dict[str, tuple[str, Callable[[Message, Callable[[Message], None]]], None]],
+            dict[
+                str,
+                tuple[_Method, Callable[[Message, Callable[[Message], None]]], None],
+            ],
         ] = {}
         for name, member in inspect.getmembers(type(self)):
             member_dict = getattr(member, "__dict__", {})
@@ -498,11 +501,13 @@ class ServiceInterface:
         name: str_,
         signature: str_,
     ) -> Callable[[Message, Callable[[Message], None]], None] | None:
-        handlers = interface.__enabled_handlers_by_name_signature[bus]
-        if (in_signature_handler := handlers.get(name)) is None:
+        handlers = interface.__handlers_by_name_signature[bus]
+        if (method_handler := handlers.get(name)) is None:
             return None
-        in_signature = in_signature_handler[0]
-        return in_signature_handler[1] if in_signature == signature else None
+        method = method_handler[0]
+        if method.disabled:
+            return None
+        return method_handler[1] if method.in_signature == signature else None
 
     @staticmethod
     def _add_bus(
@@ -517,8 +522,8 @@ class ServiceInterface:
         interface.__handlers[bus] = {
             method: maker(interface, method) for method in interface.__methods
         }
-        interface.__enabled_handlers_by_name_signature[bus] = {
-            method.name: (method.in_signature, handler)
+        interface.__handlers_by_name_signature[bus] = {
+            method.name: (method, handler)
             for method, handler in interface.__handlers[bus].items()
             if not method.disabled
         }
