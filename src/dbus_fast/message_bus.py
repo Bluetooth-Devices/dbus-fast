@@ -1044,9 +1044,7 @@ class BaseMessageBus:
                     interface, get_all_properties_callback, node
                 )
 
-    def _default_properties_handler(
-        self, msg: Message, send_reply: Callable[[Message], None]
-    ) -> None:
+    def _default_properties_handler(self, msg: Message, send_reply: SendReply) -> None:
         methods = {"Get": "ss", "Set": "ssv", "GetAll": "s"}
         if msg.member not in methods or methods[msg.member] != msg.signature:
             raise DBusError(
