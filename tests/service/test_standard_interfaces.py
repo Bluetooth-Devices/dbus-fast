@@ -149,6 +149,19 @@ async def test_peer_interface():
     assert reply.message_type == MessageType.METHOD_RETURN, reply.body[0]
     assert reply.signature == "s"
 
+    reply2 = await bus2.call(
+        Message(
+            destination=bus1.unique_name,
+            path="/path/doesnt/exist",
+            interface="org.freedesktop.DBus.Peer",
+            member="GetMachineId",
+            signature="",
+        )
+    )
+
+    assert reply2.message_type == MessageType.METHOD_RETURN, reply.body[0]
+    assert reply2.signature == "s"
+
     bus1.disconnect()
     bus2.disconnect()
 
