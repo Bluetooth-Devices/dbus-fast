@@ -21,9 +21,10 @@ from .signature import (
     Variant,
     get_signature_tree,
 )
+from .send_reply import SendReply
 
 if TYPE_CHECKING:
-    from .message_bus import BaseMessageBus, SendReply
+    from .message_bus import BaseMessageBus
 
 str_ = str
 
