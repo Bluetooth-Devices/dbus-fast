@@ -745,12 +745,11 @@ class BaseMessageBus:
         if not msg.serial:
             msg.serial = self.next_serial()
 
-        reply_expected = _expects_reply(msg)
         # Make sure the return reply handler is installed
         # before sending the message to avoid a race condition
         # where the reply is lost in case the backend can
         # send it right away.
-        if reply_expected:
+        if reply_expected := _expects_reply(msg):
             self._method_return_handlers[msg.serial] = partial(
                 self._reply_notify, msg, callback
             )
@@ -838,12 +837,10 @@ class BaseMessageBus:
                     del self._name_owners[name]
             return
 
-        reply_expected = False
         if msg.message_type is MESSAGE_TYPE_CALL:
             if not handled:
                 handler = self._find_message_handler(msg)
-                reply_expected = _expects_reply(msg)
-                if not reply_expected:
+                if not _expects_reply(msg):
                     if handler:
                         handler(msg, BLOCK_UNEXPECTED_REPLY)
                     else:
@@ -889,7 +886,7 @@ class BaseMessageBus:
         result = method.fn(interface, *args)
         if send_reply is BLOCK_UNEXPECTED_REPLY or _expects_reply(msg) is False:
             return
-        body, fds = ServiceInterface._c_fn_result_to_body(
+        body_fds = ServiceInterface._c_fn_result_to_body(
             result,
             method.out_signature_tree,
             self._negotiate_unix_fd,
@@ -900,8 +897,8 @@ class BaseMessageBus:
                 reply_serial=msg.serial,
                 destination=msg.sender,
                 signature=method.out_signature,
-                body=body,
-                unix_fds=fds,
+                body=body_fds[0],
+                unix_fds=body_fds[1],
             )
         )
 

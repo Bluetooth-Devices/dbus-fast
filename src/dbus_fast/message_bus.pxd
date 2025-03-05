@@ -44,7 +44,6 @@ cdef class BaseMessageBus:
     cdef public object _stream
     cdef public object _fd
 
-    @cython.locals(reply_expected=bint)
     cpdef void _process_message(self, Message msg)
 
     @cython.locals(exported_service_interface=ServiceInterface)
@@ -60,7 +59,6 @@ cdef class BaseMessageBus:
 
     cdef _setup_socket(self)
 
-    @cython.locals(reply_expected=bint)
     cpdef _call(self, Message msg, object callback)
 
     cpdef next_serial(self)
