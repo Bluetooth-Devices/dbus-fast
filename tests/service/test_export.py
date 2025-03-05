@@ -28,6 +28,11 @@ async def test_export_unexport():
 
     bus = await MessageBus().connect()
     bus.export(export_path, interface)
+
+    with pytest.raises(ValueError):
+        # Already exported
+        bus.export(export_path, interface)
+
     assert export_path in bus._path_exports
     assert len(bus._path_exports[export_path]) == 1
     assert bus._path_exports[export_path][interface.name] is interface
