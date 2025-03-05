@@ -1,6 +1,28 @@
 # CHANGELOG
 
 
+## v2.36.0 (2025-03-05)
+
+### Chores
+
+- Add covdefaults ([#401](https://github.com/Bluetooth-Devices/dbus-fast/pull/401),
+  [`dc3d8e7`](https://github.com/Bluetooth-Devices/dbus-fast/commit/dc3d8e7609f37a2f064a45ae525c5ce5711ea272))
+
+- Upgrade typing on private modules
+  ([#402](https://github.com/Bluetooth-Devices/dbus-fast/pull/402),
+  [`640e1f8`](https://github.com/Bluetooth-Devices/dbus-fast/commit/640e1f8d87a753d6721dae77ee94ff8702a2f508))
+
+* chore: upgrade typing on private modules
+
+* chore: typing fixes
+
+### Features
+
+- Refactor service bus handler lookup to avoid linear searches
+  ([#400](https://github.com/Bluetooth-Devices/dbus-fast/pull/400),
+  [`996659e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/996659e1b5fefeda7eb01259714a4a17fc224b9f))
+
+
 ## v2.35.1 (2025-03-05)
 
 ### Bug Fixes
