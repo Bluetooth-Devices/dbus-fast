@@ -1,6 +1,69 @@
 # CHANGELOG
 
 
+## v2.35.0 (2025-03-05)
+
+### Chores
+
+- **deps-ci**: Bump python-semantic-release/python-semantic-release from 9.17.0 to 9.21.0 in the
+  github-actions group ([#394](https://github.com/Bluetooth-Devices/dbus-fast/pull/394),
+  [`a7e1a90`](https://github.com/Bluetooth-Devices/dbus-fast/commit/a7e1a907e360c1f3fc01a62a414693782f536e61))
+
+chore(deps-ci): bump python-semantic-release/python-semantic-release
+
+Bumps the github-actions group with 1 update:
+  [python-semantic-release/python-semantic-release](https://github.com/python-semantic-release/python-semantic-release).
+
+Updates `python-semantic-release/python-semantic-release` from 9.17.0 to 9.21.0 - [Release
+  notes](https://github.com/python-semantic-release/python-semantic-release/releases) -
+  [Changelog](https://github.com/python-semantic-release/python-semantic-release/blob/master/CHANGELOG.rst)
+  -
+  [Commits](https://github.com/python-semantic-release/python-semantic-release/compare/v9.17.0...v9.21.0)
+
+--- updated-dependencies: - dependency-name: python-semantic-release/python-semantic-release
+  dependency-type: direct:production
+
+update-type: version-update:semver-minor
+
+dependency-group: github-actions ...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+- **deps-dev**: Bump pytest from 8.3.4 to 8.3.5
+  ([#395](https://github.com/Bluetooth-Devices/dbus-fast/pull/395),
+  [`0d0e600`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0d0e600a940fa4cb82473fec7bfb8706ed7ff7f7))
+
+- **deps-dev**: Bump setuptools from 75.8.0 to 75.8.2
+  ([#396](https://github.com/Bluetooth-Devices/dbus-fast/pull/396),
+  [`2623a74`](https://github.com/Bluetooth-Devices/dbus-fast/commit/2623a7412afeb906b2863b05fefb0d94e8881dcb))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#392](https://github.com/Bluetooth-Devices/dbus-fast/pull/392),
+  [`3ef89bf`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3ef89bfbf45592401dae60bf93104e063f082160))
+
+Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#397](https://github.com/Bluetooth-Devices/dbus-fast/pull/397),
+  [`3dd7c35`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3dd7c358fad92ef7dcb42c361ebac367f10e3ce2))
+
+updates: - [github.com/commitizen-tools/commitizen: v4.2.2 →
+  v4.4.1](https://github.com/commitizen-tools/commitizen/compare/v4.2.2...v4.4.1) -
+  [github.com/astral-sh/ruff-pre-commit: v0.9.7 →
+  v0.9.9](https://github.com/astral-sh/ruff-pre-commit/compare/v0.9.7...v0.9.9)
+
+Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+
+### Features
+
+- Reduce size of wheels ([#398](https://github.com/Bluetooth-Devices/dbus-fast/pull/398),
+  [`a4c2743`](https://github.com/Bluetooth-Devices/dbus-fast/commit/a4c2743420f619d8808413d8877b2c9badc5f3f0))
+
+Compile with -g0 to reduce the binary size
+
+
 ## v2.34.0 (2025-02-24)
 
 ### Chores
