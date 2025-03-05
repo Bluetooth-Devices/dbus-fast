@@ -936,17 +936,18 @@ class BaseMessageBus:
             ):
                 return self._default_get_managed_objects_handler
 
-        if msg.path is not None:
-            if (interfaces := self._path_exports.get(msg.path)) is None:
-                return None
-            if (interface := interfaces.get(msg.interface)) is None:
-                return None
-            if (
+        if (
+            msg.path is not None
+            and (interfaces := self._path_exports.get(msg.path)) is not None
+            and (interface := interfaces.get(msg.interface)) is not None
+            and (
                 handler := ServiceInterface._get_enabled_handler_by_name_signature(
                     interface, self, msg.member, msg.signature
                 )
-            ) is not None:
-                return handler
+            )
+            is not None
+        ):
+            return handler
         return None
 
     def _default_introspect_handler(
