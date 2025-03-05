@@ -24,6 +24,8 @@ from .signature import (
 if TYPE_CHECKING:
     from .message_bus import BaseMessageBus
 
+str_ = str
+
 
 class _Method:
     def __init__(self, fn, name: str, disabled=False):
@@ -370,7 +372,11 @@ class ServiceInterface:
             BaseMessageBus,
             dict[_Method, Callable[[Message, Callable[[Message], None]], None]],
         ] = {}
-
+        # Map of enabled methods by (name, signature)
+        self.__enabled_handlers_by_name_signature: dict[
+            BaseMessageBus,
+            dict[tuple[str, str], Callable[[Message, Callable[[Message], None]], None]],
+        ] = {}
         for name, member in inspect.getmembers(type(self)):
             member_dict = getattr(member, "__dict__", {})
             if type(member) is _Property:
@@ -501,6 +507,17 @@ class ServiceInterface:
         return interface.__handlers[bus][method]
 
     @staticmethod
+    def _get_enabled_handler_by_name_signature(
+        interface: "ServiceInterface",
+        bus: "BaseMessageBus",
+        name: str_,
+        signature: str_,
+    ) -> Callable[[Message, Callable[[Message], None]], None] | None:
+        return interface.__enabled_handlers_by_name_signature[bus].get(
+            (name, signature)
+        )
+
+    @staticmethod
     def _add_bus(
         interface: "ServiceInterface",
         bus: "BaseMessageBus",
@@ -512,6 +529,11 @@ class ServiceInterface:
         interface.__buses.add(bus)
         interface.__handlers[bus] = {
             method: maker(interface, method) for method in interface.__methods
+        }
+        interface.__enabled_handlers_by_name_signature[bus] = {
+            (method.name, method.in_signature): handler
+            for method, handler in interface.__handlers[bus].items()
+            if not method.disabled
         }
 
     @staticmethod

@@ -145,7 +145,7 @@ class BaseMessageBus:
         # high level client only)
         self._name_owners: dict[str, str] = {}
         # used for the high level service
-        self._path_exports: dict[str, list[ServiceInterface]] = {}
+        self._path_exports: dict[str, dict[str, ServiceInterface]] = {}
         self._bus_address = (
             parse_address(bus_address)
             if bus_address
@@ -193,15 +193,13 @@ class BaseMessageBus:
             raise TypeError("interface must be a ServiceInterface")
 
         if path not in self._path_exports:
-            self._path_exports[path] = []
+            self._path_exports[path] = {}
+        elif interface.name in self._path_exports[path]:
+            raise ValueError(
+                f'An interface with this name is already exported on this bus at path "{path}": "{interface.name}"'
+            )
 
-        for f in self._path_exports[path]:
-            if f.name == interface.name:
-                raise ValueError(
-                    f'An interface with this name is already exported on this bus at path "{path}": "{interface.name}"'
-                )
-
-        self._path_exports[path].append(interface)
+        self._path_exports[path][interface.name] = interface
         ServiceInterface._add_bus(interface, self, self._make_method_handler)
         self._emit_interface_added(path, interface)
 
@@ -227,34 +225,26 @@ class BaseMessageBus:
         ):
             raise TypeError("interface must be a ServiceInterface or interface name")
 
-        if path not in self._path_exports:
+        if (interfaces := self._path_exports.get(path)) is None:
             return
-
-        exports = self._path_exports[path]
+        removed_interface_names: list[str] = []
 
         if type(interface) is str:
-            try:
-                interface = next(iface for iface in exports if iface.name == interface)
-            except StopIteration:
+            if (removed_interface := interfaces.pop(interface, None)) is None:
                 return
-
-        removed_interfaces = []
-        if interface is None:
+            removed_interface_names.append(removed_interface.name)
+            del interfaces[removed_interface.name]
+            if not interfaces:
+                del self._path_exports[path]
+            if not self._has_interface(removed_interface):
+                ServiceInterface._remove_bus(removed_interface, self)
+        elif interface is None:
             del self._path_exports[path]
-            for iface in filter(lambda e: not self._has_interface(e), exports):
-                removed_interfaces.append(iface.name)
-                ServiceInterface._remove_bus(iface, self)
-        else:
-            for i, iface in enumerate(exports):
-                if iface is interface:
-                    removed_interfaces.append(iface.name)
-                    del self._path_exports[path][i]
-                    if not self._path_exports[path]:
-                        del self._path_exports[path]
-                    if not self._has_interface(iface):
-                        ServiceInterface._remove_bus(iface, self)
-                    break
-        self._emit_interface_removed(path, removed_interfaces)
+            for removed_interface in interfaces.values():
+                removed_interface_names.append(removed_interface.name)
+                ServiceInterface._remove_bus(removed_interface, self)
+
+        self._emit_interface_removed(path, removed_interface_names)
 
     def introspect(
         self,
@@ -616,8 +606,8 @@ class BaseMessageBus:
         self._user_message_handlers.clear()
 
     def _has_interface(self, interface: ServiceInterface) -> bool:
-        for _, exports in self._path_exports.items():
-            for iface in exports:
+        for exports in self._path_exports.values():
+            for iface in exports.values():
                 if iface is interface:
                     return True
 
@@ -632,9 +622,9 @@ class BaseMessageBus:
         body: list[Any],
         unix_fds: list[int] = [],
     ) -> None:
-        path = None
+        path: str | None = None
         for p, ifaces in self._path_exports.items():
-            for i in ifaces:
+            for i in ifaces.values():
                 if i is interface:
                     path = p
 
@@ -657,9 +647,9 @@ class BaseMessageBus:
     def _introspect_export_path(self, path: str) -> intr.Node:
         assert_object_path_valid(path)
 
-        if path in self._path_exports:
+        if (interfaces := self._path_exports.get(path)) is not None:
             node = intr.Node.default(path)
-            for interface in self._path_exports[path]:
+            for interface in interfaces.values():
                 node.interfaces.append(interface.introspect())
         else:
             node = intr.Node(path)
@@ -809,8 +799,7 @@ class BaseMessageBus:
         handled = False
         for user_handler in self._user_message_handlers:
             try:
-                result = user_handler(msg)
-                if result:
+                if result := user_handler(msg):
                     if type(result) is Message:
                         self.send(result)
                     handled = True
@@ -842,17 +831,19 @@ class BaseMessageBus:
                 and msg.path == "/org/freedesktop/DBus"
                 and msg.interface == "org.freedesktop.DBus"
             ):
-                [name, old_owner, new_owner] = msg.body
-                if new_owner:
+                name = msg.body[0]
+                if new_owner := msg.body[2]:
                     self._name_owners[name] = new_owner
                 elif name in self._name_owners:
                     del self._name_owners[name]
             return
 
+        reply_expected = False
         if msg.message_type is MESSAGE_TYPE_CALL:
             if not handled:
                 handler = self._find_message_handler(msg)
-                if _expects_reply(msg) is False:
+                reply_expected = _expects_reply(msg)
+                if not reply_expected:
                     if handler:
                         handler(msg, BLOCK_UNEXPECTED_REPLY)
                     else:
@@ -900,8 +891,8 @@ class BaseMessageBus:
             return
         body, fds = ServiceInterface._c_fn_result_to_body(
             result,
-            signature_tree=method.out_signature_tree,
-            replace_fds=self._negotiate_unix_fd,
+            method.out_signature_tree,
+            self._negotiate_unix_fd,
         )
         send_reply(
             Message(
@@ -945,24 +936,17 @@ class BaseMessageBus:
             ):
                 return self._default_get_managed_objects_handler
 
-        msg_path = msg.path
-        if msg_path:
-            interfaces = self._path_exports.get(msg_path)
-            if not interfaces:
+        if msg.path is not None:
+            if (interfaces := self._path_exports.get(msg.path)) is None:
                 return None
-            for interface in interfaces:
-                methods = ServiceInterface._c_get_methods(interface)
-                for method in methods:
-                    if method.disabled:
-                        continue
-
-                    if (
-                        msg.interface == interface.name
-                        and msg.member == method.name
-                        and msg.signature == method.in_signature
-                    ):
-                        return ServiceInterface._c_get_handler(interface, method, self)
-
+            if (interface := interfaces.get(msg.interface)) is None:
+                return None
+            if (
+                handler := ServiceInterface._get_enabled_handler_by_name_signature(
+                    interface, self, msg.member, msg.signature
+                )
+            ) is not None:
+                return handler
         return None
 
     def _default_introspect_handler(
@@ -983,7 +967,7 @@ class BaseMessageBus:
             send_reply(Message.new_method_return(msg, "s", self._machine_id))
             return
 
-        def reply_handler(reply, err):
+        def reply_handler(reply: Message | None, err: Exception | None) -> None:
             if err:
                 # the bus has been disconnected, cannot send a reply
                 return
@@ -1011,11 +995,11 @@ class BaseMessageBus:
     def _default_get_managed_objects_handler(
         self, msg: Message, send_reply: Callable[[Message], None]
     ) -> None:
-        result = {}
+        result: dict[str, dict[str, Any]] = {}
         result_signature = "a{oa{sa{sv}}}"
         error_handled = False
 
-        def is_result_complete():
+        def is_result_complete() -> bool:
             if not result:
                 return True
             for n, interfaces in result.items():
@@ -1055,7 +1039,7 @@ class BaseMessageBus:
                 send_reply(Message.new_method_return(msg, result_signature, [result]))
 
         for node in nodes:
-            for interface in self._path_exports[node]:
+            for interface in self._path_exports[node].values():
                 ServiceInterface._get_all_property_values(
                     interface, get_all_properties_callback, node
                 )
@@ -1082,12 +1066,7 @@ class BaseMessageBus:
                 ErrorType.UNKNOWN_OBJECT, f'no interfaces at path: "{msg.path}"'
             )
 
-        match = [
-            iface
-            for iface in self._path_exports[msg.path]
-            if iface.name == interface_name
-        ]
-        if not match:
+        if (interface := self._path_exports[msg.path].get(interface_name)) is None:
             if interface_name in [
                 "org.freedesktop.DBus.Properties",
                 "org.freedesktop.DBus.Introspectable",
@@ -1111,7 +1090,6 @@ class BaseMessageBus:
                 f'could not find an interface "{interface_name}" at path: "{msg.path}"',
             )
 
-        interface = match[0]
         properties = ServiceInterface._get_properties(interface)
 
         if msg.member == "Get" or msg.member == "Set":

@@ -35,10 +35,10 @@ cdef class ServiceInterface:
     cdef dict __handlers
 
     @staticmethod
-    cdef list _c_get_methods(ServiceInterface interface)
+    cdef object _get_enabled_handler_by_name_signature(ServiceInterface interface, object bus, object name, object signature)
 
     @staticmethod
-    cdef object _c_get_handler(ServiceInterface interface, _Method method, object bus)
+    cdef list _msg_body_to_args(Message msg)
 
     @staticmethod
     cdef list _c_msg_body_to_args(Message msg)

@@ -39,24 +39,28 @@ cdef class BaseMessageBus:
     cdef public object _high_level_client_initialized
     cdef public object _ProxyObject
     cdef public object _machine_id
-    cdef public object _negotiate_unix_fd
+    cdef public bint _negotiate_unix_fd
     cdef public object _sock
     cdef public object _stream
     cdef public object _fd
 
-    cpdef _process_message(self, Message msg)
+    @cython.locals(reply_expected=bint)
+    cpdef void _process_message(self, Message msg)
+
+    @cython.locals(exported_service_interface=ServiceInterface)
+    cpdef export(self, str path, ServiceInterface interface)
 
     @cython.locals(
         methods=cython.list,
         method=_Method,
         interface=ServiceInterface,
-        interfaces=cython.list,
+        interfaces=dict,
     )
     cdef _find_message_handler(self, Message msg)
 
     cdef _setup_socket(self)
 
-    @cython.locals(no_reply_expected=bint)
+    @cython.locals(reply_expected=bint)
     cpdef _call(self, Message msg, object callback)
 
     cpdef next_serial(self)
