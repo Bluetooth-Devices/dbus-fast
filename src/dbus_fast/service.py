@@ -373,7 +373,7 @@ class ServiceInterface:
             BaseMessageBus,
             dict[_Method, Callable[[Message, Callable[[Message], None]], None]],
         ] = {}
-        # Map of methods by (name, signature)
+        # Map of methods by bus of name -> method, handler
         self.__handlers_by_name_signature: dict[
             BaseMessageBus,
             dict[
