@@ -526,7 +526,6 @@ class ServiceInterface:
         interface.__handlers_by_name_signature[bus] = {
             method.name: (method, handler)
             for method, handler in interface.__handlers[bus].items()
-            if not method.disabled
         }
 
     @staticmethod
