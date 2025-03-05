@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 import ast
 import inspect
-from typing import Any, Union
+from typing import Any
 
 from ..signature import SignatureTree, Variant, get_signature_tree
 
 
 def signature_contains_type(
-    signature: Union[str, SignatureTree], body: list[Any], token: str
+    signature: str | SignatureTree, body: list[Any], token: str
 ) -> bool:
     """For a given signature and body, check to see if it contains any members
     with the given token"""
@@ -49,7 +51,7 @@ def signature_contains_type(
 
 
 def replace_fds_with_idx(
-    signature: Union[str, SignatureTree], body: list[Any]
+    signature: str | SignatureTree, body: list[Any]
 ) -> tuple[list[Any], list[int]]:
     """Take the high level body format and convert it into the low level body
     format. Type 'h' refers directly to the fd in the body. Replace that with
@@ -76,7 +78,7 @@ def replace_fds_with_idx(
 
 
 def replace_idx_with_fds(
-    signature: Union[str, SignatureTree], body: list[Any], unix_fds: list[int]
+    signature: str | SignatureTree, body: list[Any], unix_fds: list[int]
 ) -> list[Any]:
     """Take the low level body format and return the high level body format.
     Type 'h' refers to an index in the unix_fds array. Replace those with the

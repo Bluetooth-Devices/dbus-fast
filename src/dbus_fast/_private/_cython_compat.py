@@ -1,5 +1,7 @@
 """Stub for when Cython is not available."""
 
+from __future__ import annotations
+
 
 class FakeCython:
     """Stub for when Cython is not available."""
