@@ -952,19 +952,15 @@ class BaseMessageBus:
             return handler
         return None
 
-    def _default_introspect_handler(
-        self, msg: Message, send_reply: Callable[[Message], None]
-    ) -> None:
+    def _default_introspect_handler(self, msg: Message, send_reply: SendReply) -> None:
         introspection = self._introspect_export_path(msg.path).tostring()
         send_reply(Message.new_method_return(msg, "s", [introspection]))
 
-    def _default_ping_handler(
-        self, msg: Message, send_reply: Callable[[Message], None]
-    ) -> None:
+    def _default_ping_handler(self, msg: Message, send_reply: SendReply) -> None:
         send_reply(Message.new_method_return(msg))
 
     def _default_get_machine_id_handler(
-        self, msg: Message, send_reply: Callable[[Message], None]
+        self, msg: Message, send_reply: SendReply
     ) -> None:
         if self._machine_id:
             send_reply(Message.new_method_return(msg, "s", self._machine_id))
