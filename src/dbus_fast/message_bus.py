@@ -930,11 +930,10 @@ class BaseMessageBus:
             ):
                 return self._default_get_managed_objects_handler
 
-        if (
-            msg.path is None
-            or msg.member is None
-            or (interfaces := self._path_exports.get(msg.path)) is None
-        ):
+        if msg.path is None or msg.member is None:
+            return None
+
+        if (interfaces := self._path_exports.get(msg.path)) is None:
             return None
 
         if msg.interface is None:
