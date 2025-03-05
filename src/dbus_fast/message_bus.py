@@ -884,7 +884,7 @@ class BaseMessageBus:
         interface: ServiceInterface,
         method: _Method,
         msg: Message,
-        send_reply: Callable[[Message], None],
+        send_reply: SendReply,
     ) -> None:
         """This is the callback that will be called when a method call is."""
         args = ServiceInterface._c_msg_body_to_args(msg) if msg.unix_fds else msg.body
@@ -909,7 +909,7 @@ class BaseMessageBus:
 
     def _make_method_handler(
         self, interface: ServiceInterface, method: _Method
-    ) -> Callable[[Message, Callable[[Message], None]], None]:
+    ) -> Callable[[Message, SendReply], None]:
         return partial(self._callback_method_handler, interface, method)
 
     def _find_message_handler(
