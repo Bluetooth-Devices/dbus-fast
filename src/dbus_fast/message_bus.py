@@ -956,11 +956,14 @@ class BaseMessageBus:
     def _default_ping_handler(self, msg: Message, send_reply: SendReply) -> None:
         send_reply(Message.new_method_return(msg))
 
+    def _send_machine_id_reply(self, msg: Message, send_reply: SendReply) -> None:
+        send_reply(Message.new_method_return(msg, "s", [self._machine_id]))
+
     def _default_get_machine_id_handler(
         self, msg: Message, send_reply: SendReply
     ) -> None:
         if self._machine_id:
-            send_reply(Message.new_method_return(msg, "s", [self._machine_id]))
+            self._send_machine_id_reply(msg, send_reply)
             return
 
         def reply_handler(reply: Message | None, err: Exception | None) -> None:
@@ -970,7 +973,7 @@ class BaseMessageBus:
 
             if reply.message_type == MessageType.METHOD_RETURN:
                 self._machine_id = reply.body[0]
-                send_reply(Message.new_method_return(msg, "s", [self._machine_id]))
+                self._send_machine_id_reply(msg, send_reply)
             elif (
                 reply.message_type == MessageType.ERROR and reply.error_name is not None
             ):
