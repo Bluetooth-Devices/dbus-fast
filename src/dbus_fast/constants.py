@@ -37,7 +37,7 @@ class MessageFlag(IntFlag):
     ALLOW_INTERACTIVE_AUTHORIZATION = 4
 
     @cached_property
-    def value(self) -> str:
+    def value(self) -> int:
         """Return the value."""
         return self._value_
 

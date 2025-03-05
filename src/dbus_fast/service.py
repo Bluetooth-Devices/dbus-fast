@@ -23,7 +23,7 @@ from .signature import (
 )
 
 if TYPE_CHECKING:
-    from .message_bus import BaseMessageBus
+    from .message_bus import BaseMessageBus, SendReply
 
 str_ = str
 
@@ -516,7 +516,7 @@ class ServiceInterface:
         bus: BaseMessageBus,
         maker: Callable[
             [ServiceInterface, _Method],
-            Callable[[Message, Callable[[Message], None]], None],
+            Callable[[Message, SendReply], None],
         ],
     ) -> None:
         interface.__buses.add(bus)
@@ -606,7 +606,12 @@ class ServiceInterface:
             callback(interface, prop, None, e)
 
     @staticmethod
-    def _set_property_value(interface: ServiceInterface, prop, value, callback):
+    def _set_property_value(
+        interface: ServiceInterface,
+        prop: _Property,
+        value,
+        callback: Callable[[ServiceInterface, _Property, Exception | None], None],
+    ) -> None:
         # XXX MUST CHECK TYPE TO SET
         try:
             if asyncio.iscoroutinefunction(prop.prop_setter):
@@ -630,7 +635,11 @@ class ServiceInterface:
             callback(interface, prop, e)
 
     @staticmethod
-    def _get_all_property_values(interface: ServiceInterface, callback, user_data=None):
+    def _get_all_property_values(
+        interface: ServiceInterface,
+        callback: Callable[[ServiceInterface, Any, Any, Exception | None], None],
+        user_data=Any | None,
+    ) -> None:
         result = {}
         result_error = None
 

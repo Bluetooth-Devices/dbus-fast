@@ -5,7 +5,7 @@ import socket
 import traceback
 import xml.etree.ElementTree as ET
 from functools import partial
-from typing import Any, Callable
+from typing import Any, Callable, TYPE_CHECKING
 
 from . import introspection as intr
 from ._private.address import get_bus_address, parse_address
@@ -23,7 +23,7 @@ from .errors import DBusError, InvalidAddressError
 from .message import Message
 from .proxy_object import BaseProxyObject
 from .send_reply import SendReply
-from .service import ServiceInterface, _Method
+from .service import ServiceInterface, _Method, _Property
 from .signature import Variant
 from .validators import assert_bus_name_valid, assert_object_path_valid
 
@@ -290,8 +290,9 @@ class BaseMessageBus:
             try:
                 BaseMessageBus._check_method_return(reply, err, "s")
                 result = intr.Node.parse(
-                    reply.body[0], validate_property_names=validate_property_names
-                )  # type: ignore[union-attr]
+                    reply.body[0],
+                    validate_property_names=validate_property_names,  # type: ignore[union-attr]
+                )
             except Exception as e:
                 callback(None, e)
                 return
@@ -425,10 +426,10 @@ class BaseMessageBus:
                 BaseMessageBus._check_method_return(reply, err, "u")
                 result = RequestNameReply(reply.body[0])  # type: ignore[union-attr]
             except Exception as e:
-                callback(None, e)  # type: ignore[misc]
+                callback(None, e)
                 return
 
-            callback(result, None)  # type: ignore[misc]
+            callback(result, None)
 
         self._call(message, reply_notify)
 
@@ -474,10 +475,10 @@ class BaseMessageBus:
                 BaseMessageBus._check_method_return(reply, err, "u")
                 result = ReleaseNameReply(reply.body[0])  # type: ignore[union-attr]
             except Exception as e:
-                callback(None, e)  # type: ignore[misc]
+                callback(None, e)
                 return
 
-            callback(result, None)  # type: ignore[misc]
+            callback(result, None)
 
         self._call(message, reply_notify)
 
@@ -521,10 +522,11 @@ class BaseMessageBus:
         All pending  and future calls will error with a connection error.
         """
         self._user_disconnect = True
-        try:
-            self._sock.shutdown(socket.SHUT_RDWR)
-        except Exception:
-            logging.warning("could not shut down socket", exc_info=True)
+        if self._sock:
+            try:
+                self._sock.shutdown(socket.SHUT_RDWR)
+            except Exception:
+                logging.warning("could not shut down socket", exc_info=True)
 
     def next_serial(self) -> int:
         """Get the next serial for this bus. This can be used as the ``serial``
@@ -682,7 +684,7 @@ class BaseMessageBus:
         err = None
 
         for transport, options in self._bus_address:
-            filename = None
+            filename: bytes | str | None = None
             ip_addr = ""
             ip_port = 0
 
@@ -733,7 +735,7 @@ class BaseMessageBus:
     def _reply_notify(
         self,
         msg: Message,
-        callback: Callable[[Message | None, Exception | None], None] | None,
+        callback: Callable[[Message | None, Exception | None], None],
         reply: Message | None,
         err: Exception | None,
     ) -> None:
@@ -754,14 +756,14 @@ class BaseMessageBus:
         # before sending the message to avoid a race condition
         # where the reply is lost in case the backend can
         # send it right away.
-        if reply_expected := _expects_reply(msg):
+        if (reply_expected := _expects_reply(msg)) and callback is not None:
             self._method_return_handlers[msg.serial] = partial(
                 self._reply_notify, msg, callback
             )
 
         self.send(msg)
 
-        if not reply_expected:
+        if not reply_expected and callback is not None:
             callback(None, None)
 
     @staticmethod
@@ -847,7 +849,7 @@ class BaseMessageBus:
                 handler = self._find_message_handler(msg)
                 if not _expects_reply(msg):
                     if handler:
-                        handler(msg, BLOCK_UNEXPECTED_REPLY)
+                        handler(msg, BLOCK_UNEXPECTED_REPLY)  # type: ignore[arg-type]
                     else:
                         _LOGGER.error(
                             '"%s.%s" with signature "%s" could not be found',
@@ -915,6 +917,9 @@ class BaseMessageBus:
     def _find_message_handler(
         self, msg: _Message
     ) -> Callable[[Message, SendReply], None] | None:
+        if msg.interface is None:
+            return None
+
         if "org.freedesktop.DBus." in msg.interface:
             if (
                 msg.interface == "org.freedesktop.DBus.Introspectable"
@@ -940,6 +945,7 @@ class BaseMessageBus:
 
         if (
             msg.path is not None
+            and msg.member is not None
             and (interfaces := self._path_exports.get(msg.path)) is not None
             and (interface := interfaces.get(msg.interface)) is not None
             and (
@@ -953,6 +959,8 @@ class BaseMessageBus:
         return None
 
     def _default_introspect_handler(self, msg: Message, send_reply: SendReply) -> None:
+        if TYPE_CHECKING:
+            assert msg.path is not None
         introspection = self._introspect_export_path(msg.path).tostring()
         send_reply(Message.new_method_return(msg, "s", [introspection]))
 
@@ -963,19 +971,21 @@ class BaseMessageBus:
         self, msg: Message, send_reply: SendReply
     ) -> None:
         if self._machine_id:
-            send_reply(Message.new_method_return(msg, "s", self._machine_id))
+            send_reply(Message.new_method_return(msg, "s", [self._machine_id]))
             return
 
         def reply_handler(reply: Message | None, err: Exception | None) -> None:
-            if err:
+            if err or reply is None:
                 # the bus has been disconnected, cannot send a reply
                 return
 
             if reply.message_type == MessageType.METHOD_RETURN:
                 self._machine_id = reply.body[0]
                 send_reply(Message.new_method_return(msg, "s", [self._machine_id]))
-            elif reply.message_type == MessageType.ERROR:
-                send_reply(Message.new_error(msg, reply.error_name, reply.body))
+            elif (
+                reply.message_type == MessageType.ERROR and reply.error_name is not None
+            ):
+                send_reply(Message.new_error(msg, reply.error_name, str(reply.body)))
             else:
                 send_reply(
                     Message.new_error(msg, ErrorType.FAILED, "could not get machine_id")
@@ -1006,6 +1016,9 @@ class BaseMessageBus:
                         return False
 
             return True
+
+        if TYPE_CHECKING:
+            assert msg.path is not None
 
         nodes = [
             node
@@ -1111,7 +1124,12 @@ class BaseMessageBus:
                         "the property does not have read access",
                     )
 
-                def get_property_callback(interface, prop, prop_value, err):
+                def get_property_callback(
+                    interface: ServiceInterface,
+                    prop: _Property,
+                    prop_value: Any,
+                    err: Exception | None,
+                ) -> None:
                     try:
                         if err is not None:
                             send_reply.send_error(err)
@@ -1149,7 +1167,9 @@ class BaseMessageBus:
                     )
                 assert prop.prop_setter
 
-                def set_property_callback(interface, prop, err):
+                def set_property_callback(
+                    interface: ServiceInterface, prop: _Property, err: Exception | None
+                ) -> None:
                     if err is not None:
                         send_reply.send_error(err)
                         return
@@ -1164,7 +1184,12 @@ class BaseMessageBus:
 
         elif msg.member == "GetAll":
 
-            def get_all_properties_callback(interface, values, user_data, err):
+            def get_all_properties_callback(
+                interface: ServiceInterface,
+                values: Any,
+                user_data: Any,
+                err: Exception | None,
+            ) -> None:
                 if err is not None:
                     send_reply.send_error(err)
                     return
@@ -1188,12 +1213,12 @@ class BaseMessageBus:
             return
         self._high_level_client_initialized = True
 
-        def add_match_notify(msg, err):
+        def add_match_notify(msg: Message | None, err: Exception | None) -> None:
             if err:
                 logging.error(
                     f'add match request failed. match="{self._name_owner_match_rule}", {err}'
                 )
-            elif msg.message_type == MessageType.ERROR:
+            elif msg is not None and msg.message_type == MessageType.ERROR:
                 logging.error(
                     f'add match request failed. match="{self._name_owner_match_rule}", {msg.body[0]}'
                 )
@@ -1210,7 +1235,7 @@ class BaseMessageBus:
             add_match_notify,
         )
 
-    def _add_match_rule(self, match_rule):
+    def _add_match_rule(self, match_rule: str) -> None:
         """Add a match rule. Match rules added by this function are refcounted
         and must be removed by _remove_match_rule(). This is for use in the
         high level client only."""
@@ -1223,10 +1248,10 @@ class BaseMessageBus:
 
         self._match_rules[match_rule] = 1
 
-        def add_match_notify(msg: Message, err: Exception | None) -> None:
+        def add_match_notify(msg: Message | None, err: Exception | None) -> None:
             if err:
                 logging.error(f'add match request failed. match="{match_rule}", {err}')
-            elif msg.message_type == MessageType.ERROR:
+            elif msg is not None and msg.message_type == MessageType.ERROR:
                 logging.error(
                     f'add match request failed. match="{match_rule}", {msg.body[0]}'
                 )
@@ -1243,7 +1268,7 @@ class BaseMessageBus:
             add_match_notify,
         )
 
-    def _remove_match_rule(self, match_rule):
+    def _remove_match_rule(self, match_rule: str) -> None:
         """Remove a match rule added with _add_match_rule(). This is for use in
         the high level client only."""
         if match_rule == self._name_owner_match_rule:
@@ -1256,7 +1281,7 @@ class BaseMessageBus:
 
         del self._match_rules[match_rule]
 
-        def remove_match_notify(msg, err):
+        def remove_match_notify(msg: Message | None, err: Exception | None) -> None:
             if self._disconnected:
                 return
 
@@ -1264,7 +1289,7 @@ class BaseMessageBus:
                 logging.error(
                     f'remove match request failed. match="{match_rule}", {err}'
                 )
-            elif msg.message_type == MessageType.ERROR:
+            elif msg is not None and msg.message_type == MessageType.ERROR:
                 logging.error(
                     f'remove match request failed. match="{match_rule}", {msg.body[0]}'
                 )
