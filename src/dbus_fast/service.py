@@ -506,10 +506,9 @@ class ServiceInterface:
         signature: str_,
     ) -> HandlerType | None:
         handlers = interface.__handlers_by_name_signature[bus]
-        if (method_handler := handlers.get(name)) is None:
-            return None
-        method = method_handler[0]
-        if method.disabled:
+        if (method_handler := handlers.get(name)) is None or (
+            method := method_handler[0]
+        ).disabled:
             return None
         return method_handler[1] if method.in_signature == signature else None
 
