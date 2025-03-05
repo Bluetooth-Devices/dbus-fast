@@ -1,6 +1,16 @@
 # CHANGELOG
 
 
+## v2.35.1 (2025-03-05)
+
+### Bug Fixes
+
+- Reduce size of wheels ([#399](https://github.com/Bluetooth-Devices/dbus-fast/pull/399),
+  [`6531b93`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6531b93a5ba5447494818cf7f8c38454b1338052))
+
+first attempt failed to change the correct constant in build_ext.py
+
+
 ## v2.35.0 (2025-03-05)
 
 ### Chores
