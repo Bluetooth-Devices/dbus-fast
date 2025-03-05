@@ -222,7 +222,7 @@ class BaseMessageBus:
         """
         assert_object_path_valid(path)
         interface_name: str | None
-        if type(interface) is None:
+        if interface is None:
             interface_name = None
         elif type(interface) is str:
             interface_name = interface
