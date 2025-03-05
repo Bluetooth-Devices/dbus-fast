@@ -30,7 +30,7 @@ async def test_export_unexport():
     bus.export(export_path, interface)
     assert export_path in bus._path_exports
     assert len(bus._path_exports[export_path]) == 1
-    assert bus._path_exports[export_path][0] is interface
+    assert bus._path_exports[export_path][interface.name] is interface
     assert len(ServiceInterface._get_buses(interface)) == 1
 
     bus.export(export_path2, interface2)
