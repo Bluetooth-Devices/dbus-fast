@@ -469,8 +469,8 @@ class Unmarshaller:
     def _read_uint32_unpack(self) -> int:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
         if cython.compiled:
-            if self._buf_len < self._pos:
-                raise IndexError("Not enough data to read uint32")
+            #            if self._buf_len < self._pos:
+            #                raise IndexError("Not enough data to read uint32")
             if self._endian == LITTLE_ENDIAN:
                 return _ustr_uint32_little_end(self._buf_ustr, self._pos - UINT32_SIZE)
             return _ustr_uint32_big_end(self._buf_ustr, self._pos - UINT32_SIZE)
@@ -482,8 +482,8 @@ class Unmarshaller:
     def _read_uint16_unpack(self) -> int:
         self._pos += UINT16_SIZE + (-self._pos & (UINT16_SIZE - 1))  # align
         if cython.compiled:
-            if self._buf_len < self._pos:
-                raise IndexError("Not enough data to read uint16")
+            #            if self._buf_len < self._pos:
+            #                raise IndexError("Not enough data to read uint16")
             if self._endian == LITTLE_ENDIAN:
                 return _ustr_uint16_little_end(self._buf_ustr, self._pos - UINT16_SIZE)
             return _ustr_uint16_big_end(self._buf_ustr, self._pos - UINT16_SIZE)
@@ -495,8 +495,8 @@ class Unmarshaller:
     def _read_int16_unpack(self) -> int:
         self._pos += INT16_SIZE + (-self._pos & (INT16_SIZE - 1))  # align
         if cython.compiled:
-            if self._buf_len < self._pos:
-                raise IndexError("Not enough data to read int16")
+            #            if self._buf_len < self._pos:
+            #                raise IndexError("Not enough data to read int16")
             if self._endian == LITTLE_ENDIAN:
                 return _ustr_int16_little_end(self._buf_ustr, self._pos - INT16_SIZE)
             return _ustr_int16_big_end(self._buf_ustr, self._pos - INT16_SIZE)
@@ -517,8 +517,8 @@ class Unmarshaller:
         str_start = self._pos
         # read terminating '\0' byte as well (str_length + 1)
         if cython.compiled:
-            if self._buf_len < self._pos:
-                raise IndexError("Not enough data to read uint32")
+            #            if self._buf_len < self._pos:
+            #                raise IndexError("Not enough data to read uint32")
             if self._endian == LITTLE_ENDIAN:
                 self._pos += (
                     _ustr_uint32_little_end(self._buf_ustr, str_start - UINT32_SIZE) + 1
@@ -627,8 +627,8 @@ class Unmarshaller:
             -self._pos & (UINT32_SIZE - 1)
         ) + UINT32_SIZE  # align for the uint32
         if cython.compiled:
-            if self._buf_len < self._pos:
-                raise IndexError("Not enough data to read uint32")
+            #            if self._buf_len < self._pos:
+            #                raise IndexError("Not enough data to read uint32")
             if self._endian == LITTLE_ENDIAN:
                 array_length = _ustr_uint32_little_end(
                     self._buf_ustr, self._pos - UINT32_SIZE
