@@ -6,7 +6,6 @@ from .constants import ErrorType, MessageFlag, MessageType
 from .errors import InvalidMessageError
 from .signature import (
     SignatureTree,
-    _variant_factory,
     get_signature_tree,
     _SIGNATURE_TREE_O,
     _SIGNATURE_TREE_S,
@@ -333,45 +332,45 @@ class Message:
         # Variant is invalid.
 
         if self.path:
-            fields.append((HEADER_PATH, _variant_factory(_SIGNATURE_TREE_O, self.path)))
+            fields.append((HEADER_PATH, Variant._factory(_SIGNATURE_TREE_O, self.path)))
         if self.interface:
             fields.append(
-                (HEADER_INTERFACE, _variant_factory(_SIGNATURE_TREE_S, self.interface))
+                (HEADER_INTERFACE, Variant._factory(_SIGNATURE_TREE_S, self.interface))
             )
         if self.member:
             fields.append(
-                (HEADER_MEMBER, _variant_factory(_SIGNATURE_TREE_S, self.member))
+                (HEADER_MEMBER, Variant._factory(_SIGNATURE_TREE_S, self.member))
             )
         if self.error_name:
             fields.append(
                 (
                     HEADER_ERROR_NAME,
-                    _variant_factory(_SIGNATURE_TREE_S, self.error_name),
+                    Variant._factory(_SIGNATURE_TREE_S, self.error_name),
                 )
             )
         if self.reply_serial:
             fields.append(
                 (
                     HEADER_REPLY_SERIAL,
-                    _variant_factory(_SIGNATURE_TREE_U, self.reply_serial),
+                    Variant._factory(_SIGNATURE_TREE_U, self.reply_serial),
                 )
             )
         if self.destination:
             fields.append(
                 (
                     HEADER_DESTINATION,
-                    _variant_factory(_SIGNATURE_TREE_S, self.destination),
+                    Variant._factory(_SIGNATURE_TREE_S, self.destination),
                 )
             )
         if self.signature:
             fields.append(
-                (HEADER_SIGNATURE, _variant_factory(_SIGNATURE_TREE_G, self.signature))
+                (HEADER_SIGNATURE, Variant._factory(_SIGNATURE_TREE_G, self.signature))
             )
         if self.unix_fds and negotiate_unix_fd:
             fields.append(
                 (
                     HEADER_UNIX_FDS,
-                    _variant_factory(_SIGNATURE_TREE_U, len(self.unix_fds)),
+                    Variant._factory(_SIGNATURE_TREE_U, len(self.unix_fds)),
                 )
             )
 

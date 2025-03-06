@@ -15,7 +15,6 @@ from ..message import Message
 from ..signature import SignatureType, Variant, get_signature_tree
 from .constants import BIG_ENDIAN, LITTLE_ENDIAN, PROTOCOL_VERSION
 from ..signature import (
-    _variant_factory,
     _SIGNATURE_TREE_EMPTY,
     _SIGNATURE_TREE_B,
     _SIGNATURE_TREE_N,
@@ -527,42 +526,42 @@ class Unmarshaller:
         # verify in Variant is only useful on construction not unmarshalling
         if len(signature) == 1:
             if token_as_int == TOKEN_N_AS_INT:
-                return _variant_factory(_SIGNATURE_TREE_N, self._read_int16_unpack())
+                return Variant._factory(_SIGNATURE_TREE_N, self._read_int16_unpack())
             if token_as_int == TOKEN_S_AS_INT:
-                return _variant_factory(_SIGNATURE_TREE_S, self._read_string_unpack())
+                return Variant._factory(_SIGNATURE_TREE_S, self._read_string_unpack())
             if token_as_int == TOKEN_B_AS_INT:
-                return _variant_factory(_SIGNATURE_TREE_B, self._read_boolean())
+                return Variant._factory(_SIGNATURE_TREE_B, self._read_boolean())
             if token_as_int == TOKEN_O_AS_INT:
-                return _variant_factory(_SIGNATURE_TREE_O, self._read_string_unpack())
+                return Variant._factory(_SIGNATURE_TREE_O, self._read_string_unpack())
             if token_as_int == TOKEN_U_AS_INT:
-                return _variant_factory(_SIGNATURE_TREE_U, self._read_uint32_unpack())
+                return Variant._factory(_SIGNATURE_TREE_U, self._read_uint32_unpack())
             if token_as_int == TOKEN_Y_AS_INT:
                 self._pos += 1
-                return _variant_factory(_SIGNATURE_TREE_Y, self._buf[self._pos - 1])
+                return Variant._factory(_SIGNATURE_TREE_Y, self._buf[self._pos - 1])
         elif token_as_int == TOKEN_A_AS_INT:
             if signature == "ay":
-                return _variant_factory(
+                return Variant._factory(
                     _SIGNATURE_TREE_AY, self.read_array(_SIGNATURE_TREE_AY_TYPES_0)
                 )
             if signature == "a{qv}":
-                return _variant_factory(
+                return Variant._factory(
                     _SIGNATURE_TREE_A_QV, self.read_array(_SIGNATURE_TREE_A_QV_TYPES_0)
                 )
             if signature == "as":
-                return _variant_factory(
+                return Variant._factory(
                     _SIGNATURE_TREE_AS, self.read_array(_SIGNATURE_TREE_AS_TYPES_0)
                 )
             if signature == "a{sv}":
-                return _variant_factory(
+                return Variant._factory(
                     _SIGNATURE_TREE_A_SV, self.read_array(_SIGNATURE_TREE_A_SV_TYPES_0)
                 )
             if signature == "ao":
-                return _variant_factory(
+                return Variant._factory(
                     _SIGNATURE_TREE_AO, self.read_array(_SIGNATURE_TREE_AO_TYPES_0)
                 )
         tree = get_signature_tree(signature)
         signature_type = tree.root_type
-        return _variant_factory(
+        return Variant._factory(
             tree, self._readers[signature_type.token](self, signature_type)
         )
 

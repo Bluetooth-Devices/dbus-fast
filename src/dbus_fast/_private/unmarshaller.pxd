@@ -3,7 +3,7 @@
 import cython
 
 from ..message cimport Message
-from ..signature cimport SignatureTree, SignatureType, Variant, _variant_factory
+from ..signature cimport SignatureTree, SignatureType, Variant
 from ..signature cimport  (
     _SIGNATURE_TREE_EMPTY,
     _SIGNATURE_TREE_B,
