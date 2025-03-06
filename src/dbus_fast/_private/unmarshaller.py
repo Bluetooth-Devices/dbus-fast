@@ -548,7 +548,10 @@ class Unmarshaller:
         return self._read_signature()
 
     def _read_signature(self) -> str:
-        signature_len = self._buf[self._pos]  # byte
+        if cython.compiled:
+            if self._buf_len < self._pos:
+                raise IndexError("Not enough data to read signature")
+        signature_len = self._buf_ustr[self._pos]  # byte
         o = self._pos + 1
         # read terminating '\0' byte as well (str_length + 1)
         self._pos = o + signature_len + 1
