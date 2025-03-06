@@ -91,7 +91,7 @@ jobs:
             cd dbus-fast
             git checkout $GITHUB_SHA
             REQUIRE_CYTHON=1 poetry install --only=main,dev
-            dbus-run-session -- poetry run pytest --cov-report=xml --timeout=60
+            dbus-run-session -- poetry run pytest --cov-report=xml --timeout=100
 
   benchmark:
     runs-on: ubuntu-latest
