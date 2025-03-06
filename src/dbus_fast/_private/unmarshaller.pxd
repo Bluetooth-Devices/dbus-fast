@@ -60,6 +60,7 @@ cdef cython.dict MESSAGE_TYPE_MAP
 cdef cython.dict MESSAGE_FLAG_MAP
 cdef dict HEADER_MESSAGE_ARG_NAME
 
+
 cdef SignatureTree SIGNATURE_TREE_EMPTY
 cdef SignatureTree SIGNATURE_TREE_B
 cdef SignatureTree SIGNATURE_TREE_N
@@ -87,6 +88,7 @@ cdef SignatureTree SIGNATURE_TREE_A_QV
 cdef SignatureType SIGNATURE_TREE_A_QV_TYPES_0
 cdef SignatureTree SIGNATURE_TREE_A_OA_SA_SV
 cdef SignatureType SIGNATURE_TREE_A_OA_SA_SV_TYPES_0
+
 
 cdef unsigned int TOKEN_B_AS_INT
 cdef unsigned int TOKEN_U_AS_INT
@@ -124,7 +126,7 @@ cdef unsigned short _ustr_uint16(const unsigned char * buf, unsigned int offset,
 
 cdef class Unmarshaller:
 
-    cdef object _unix_fds
+    cdef list _unix_fds
     cdef bytearray _buf
     cdef Py_ssize_t _buf_len
     cdef const unsigned char * _buf_ustr
@@ -233,10 +235,11 @@ cdef class Unmarshaller:
     cdef _read_header(self)
 
     @cython.locals(
-        body=cython.list,
-        header_fields=cython.list,
-        token_as_int=cython.uint,
-        signature=cython.str,
+        body=list,
+        header_fields=list,
+        token_as_int="unsigned int",
+        signature=str,
+        tree=SignatureTree,
         message=Message
     )
     cdef _read_body(self)
