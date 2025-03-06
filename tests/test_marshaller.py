@@ -11,50 +11,49 @@ from dbus_fast._private._cython_compat import FakeCython
 from dbus_fast._private.unmarshaller import (
     Unmarshaller,
     is_compiled,
-    bytearray_to_int16_big_end,
-    bytearray_to_uint16_big_end,
-    bytearray_to_uint32_big_end,
+    buffer_to_int16,
+    buffer_to_uint32,
+    buffer_to_uint16,
 )
-from dbus_fast._private.unmarshaller import (
-    bytearray_to_int16_little_end,
-    bytearray_to_uint16_little_end,
-    bytearray_to_uint32_little_end,
-)
+from dbus_fast._private.constants import BIG_ENDIAN, LITTLE_ENDIAN
+
 from dbus_fast.unpack import unpack_variants
 
 
 def test_bytearray_to_uint32_big_end():
-    assert bytearray_to_uint32_big_end(bytearray(b"\x01\x02\x03\x04"), 0) == 16909060
+    assert buffer_to_uint32(bytearray(b"\x01\x02\x03\x04"), 0, BIG_ENDIAN) == 16909060
 
 
 def test_bytearray_to_uint16_big_end():
-    assert bytearray_to_uint16_big_end(bytearray(b"\x01\x02"), 0) == 258
+    assert buffer_to_uint16(bytearray(b"\x01\x02"), 0, BIG_ENDIAN) == 258
 
 
 def test_bytearray_to_int16_big_end():
-    assert bytearray_to_int16_big_end(bytearray(b"\x01\x02"), 0) == 258
+    assert buffer_to_int16(bytearray(b"\x01\x02"), 0, BIG_ENDIAN) == 258
 
 
 @pytest.mark.skipif(not is_compiled(), reason="requires cython")
 def test_bytearray_to_int16_big_end_signed():
-    assert bytearray_to_int16_big_end(bytearray(b"\xff\xff"), 0) == -1
+    assert buffer_to_int16(bytearray(b"\xff\xff"), 0, BIG_ENDIAN) == -1
 
 
 def test_bytearray_to_uint32_little_end():
-    assert bytearray_to_uint32_little_end(bytearray(b"\x01\x02\x03\x04"), 0) == 67305985
+    assert (
+        buffer_to_uint32(bytearray(b"\x01\x02\x03\x04"), 0, LITTLE_ENDIAN) == 67305985
+    )
 
 
 def test_bytearray_to_uint16_little_end():
-    assert bytearray_to_uint16_little_end(bytearray(b"\x01\x02"), 0) == 513
+    assert buffer_to_uint16(bytearray(b"\x01\x02"), 0, LITTLE_ENDIAN) == 513
 
 
 def test_bytearray_to_int16_little_end():
-    assert bytearray_to_int16_little_end(bytearray(b"\x01\x02"), 0) == 513
+    assert buffer_to_int16(bytearray(b"\x01\x02"), 0, LITTLE_ENDIAN) == 513
 
 
 @pytest.mark.skipif(not is_compiled(), reason="requires cython")
 def test_bytearray_to_int16_little_end_signed():
-    assert bytearray_to_int16_little_end(bytearray(b"\xff\xff"), 0) == -1
+    assert buffer_to_int16(bytearray(b"\xff\xff"), 0, LITTLE_ENDIAN) == -1
 
 
 def print_buf(buf):
