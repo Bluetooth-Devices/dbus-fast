@@ -231,6 +231,7 @@ cdef class Unmarshaller:
         buffer=cython.bytearray,
         protocol_version=cython.uint,
         key=cython.str,
+        ustring="const unsigned char *",
     )
     cdef _read_header(self)
 

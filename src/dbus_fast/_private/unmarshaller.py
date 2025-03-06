@@ -748,10 +748,11 @@ class Unmarshaller:
         # Signature is of the header is
         # BYTE, BYTE, BYTE, BYTE, UINT32, UINT32, ARRAY of STRUCT of (BYTE,VARIANT)
         self._read_to_pos(HEADER_SIGNATURE_SIZE)
-        endian = self._buf[0]
-        self._message_type = self._buf[1]
-        self._flag = self._buf[2]
-        protocol_version = self._buf[3]
+        ustring = self._buf
+        endian = ustring[0]
+        self._message_type = ustring[1]
+        self._flag = ustring[2]
+        protocol_version = ustring[3]
 
         if protocol_version != PROTOCOL_VERSION:
             raise InvalidMessageError(
@@ -760,13 +761,13 @@ class Unmarshaller:
 
         if cython.compiled:
             if endian == LITTLE_ENDIAN:
-                self._body_len = _bytearray_to_uint32_little_endian(self._buf, 4)
-                self._serial = _bytearray_to_uint32_little_endian(self._buf, 8)
-                self._header_len = _bytearray_to_uint32_little_endian(self._buf, 12)
+                self._body_len = _bytearray_to_uint32_little_endian(ustring, 4)
+                self._serial = _bytearray_to_uint32_little_endian(ustring, 8)
+                self._header_len = _bytearray_to_uint32_little_endian(ustring, 12)
             elif endian == BIG_ENDIAN:
-                self._body_len = _bytearray_to_uint32_big_endian(self._buf, 4)
-                self._serial = _bytearray_to_uint32_big_endian(self._buf, 8)
-                self._header_len = _bytearray_to_uint32_big_endian(self._buf, 12)
+                self._body_len = _bytearray_to_uint32_big_endian(ustring, 4)
+                self._serial = _bytearray_to_uint32_big_endian(ustring, 8)
+                self._header_len = _bytearray_to_uint32_big_endian(ustring, 12)
             else:
                 raise InvalidMessageError(
                     f"Expecting endianness as the first byte, got {endian} from {self._buf}"
