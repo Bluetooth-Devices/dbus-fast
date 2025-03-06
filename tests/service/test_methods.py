@@ -124,12 +124,14 @@ async def test_methods(interface_class):
     interface = interface_class("test.interface")
     export_path = "/test/path"
 
-    async def call(member, signature="", body=[], flags=MessageFlag.NONE):
+    async def call(
+        member, signature="", body=[], flags=MessageFlag.NONE, interface=interface.name
+    ):
         return await bus2.call(
             Message(
                 destination=bus1.unique_name,
                 path=export_path,
-                interface=interface.name,
+                interface=interface,
                 member=member,
                 signature=signature,
                 body=body,
@@ -161,6 +163,13 @@ async def test_methods(interface_class):
     signature = "asva{sv}(s(s(v)))"
     SignatureTree(signature).verify(body)
     reply = await call("echo_containers", signature, body)
+    assert reply.message_type == MessageType.METHOD_RETURN, reply.body[0]
+    assert reply.signature == signature
+    assert reply.body == body
+
+    # No interface should result in finding anything that matches the member name
+    # and the signature
+    reply = await call("echo_containers", signature, body, interface=None)
     assert reply.message_type == MessageType.METHOD_RETURN, reply.body[0]
     assert reply.signature == signature
     assert reply.body == body
