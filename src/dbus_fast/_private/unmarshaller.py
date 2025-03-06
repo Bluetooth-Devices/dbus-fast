@@ -754,10 +754,10 @@ class Unmarshaller:
         # Signature is of the header is
         # BYTE, BYTE, BYTE, BYTE, UINT32, UINT32, ARRAY of STRUCT of (BYTE,VARIANT)
         self._read_to_pos(HEADER_SIGNATURE_SIZE)
-        endian = self._buf_ustr[0]
-        self._message_type = self._buf_ustr[1]
-        self._flag = self._buf_ustr[2]
-        protocol_version = self._buf_ustr[3]
+        endian = self._buf[0]
+        self._message_type = self._buf[1]
+        self._flag = self._buf[2]
+        protocol_version = self._buf[3]
 
         if protocol_version != PROTOCOL_VERSION:
             raise InvalidMessageError(
