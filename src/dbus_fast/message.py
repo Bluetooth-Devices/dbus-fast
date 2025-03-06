@@ -4,7 +4,7 @@ from ._private.constants import LITTLE_ENDIAN, PROTOCOL_VERSION, HeaderField
 from ._private.marshaller import Marshaller
 from .constants import ErrorType, MessageFlag, MessageType
 from .errors import InvalidMessageError
-from .signature import Variant, SignatureTree, get_signature_tree
+from .signature import SignatureTree, Variant, get_signature_tree
 from .validators import (
     assert_bus_name_valid,
     assert_interface_name_valid,
