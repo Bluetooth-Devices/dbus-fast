@@ -739,19 +739,22 @@ class Unmarshaller:
         beginning_pos = self._pos
         readers = self._readers
         headers = _EMPTY_HEADERS.copy()
+        if cython.compiled:
+            if self._buf_len < self._pos + header_length:
+                raise IndexError("Not enough data to read header")
         while self._pos - beginning_pos < header_length:
             # Now read the y (byte) of struct (yv)
             self._pos += (-self._pos & 7) + 1  # align 8 + 1 for 'y' byte
-            field_0 = self._buf[self._pos - 1]
+            field_0 = self._buf_ustr[self._pos - 1]
 
             # Now read the v (variant) of struct (yv)
             # first we read the signature
-            signature_len = self._buf[self._pos]  # byte
+            signature_len = self._buf_ustr[self._pos]  # byte
             o = self._pos + 1
             self._pos += signature_len + 2  # one for the byte, one for the '\0'
             if field_0 == HEADER_UNIX_FDS_IDX:  # defined by self._unix_fds
                 continue
-            token_as_int = self._buf[o]
+            token_as_int = self._buf_ustr[o]
             # Now that we have the token we can read the variant value
             # Strings and signatures are the most common types
             # so we inline them for performance
