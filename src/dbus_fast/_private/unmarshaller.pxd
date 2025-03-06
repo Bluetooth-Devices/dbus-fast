@@ -235,10 +235,11 @@ cdef class Unmarshaller:
     cdef _read_header(self)
 
     @cython.locals(
-        body=cython.list,
-        header_fields=cython.list,
-        token_as_int=cython.uint,
-        signature=cython.str,
+        body=list,
+        header_fields=list,
+        token_as_int="unsigned int",
+        signature=str,
+        tree=SignatureTree,
         message=Message
     )
     cdef _read_body(self)
