@@ -179,7 +179,7 @@ async def test_methods(interface_class):
     # the signature is wrong
     reply = await call("echo_containers", "as", body, interface=None)
     assert reply.message_type == MessageType.ERROR, reply.body[0]
-    assert reply.error_name == "test.error", reply.body[0]
+    assert reply.error_name == "org.freedesktop.DBus.Error.UnknownMethod", reply.body[0]
     assert reply.body == ["an error ocurred"]
 
     reply = await call("ping")
@@ -207,7 +207,7 @@ async def test_methods(interface_class):
 
     reply = await call("does_not_exist")
     assert reply.message_type == MessageType.ERROR, reply.body[0]
-    assert reply.error_name == "test.error", reply.body[0]
+    assert reply.error_name == "org.freedesktop.DBus.Error.UnknownMethod", reply.body[0]
     assert reply.body == ["an error ocurred"]
 
     bus1.disconnect()
