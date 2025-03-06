@@ -432,11 +432,6 @@ class Variant:
                 )
             self.type.verify(value)
 
-    def _init(self, signature_tree: SignatureTree, value: Any) -> None:
-        self.signature = signature_tree.signature
-        self.type = signature_tree.root_type
-        self.value = value
-
     def __eq__(self, other: Any) -> bool:
         if type(other) is Variant:
             return self.signature == other.signature and self.value == other.value
@@ -446,6 +441,13 @@ class Variant:
         return "<dbus_fast.signature.Variant ('{}', {})>".format(
             self.type.signature, self.value
         )
+
+
+def _variant_factory(signature_tree: SignatureTree, value: Any) -> "Variant":
+    self = Variant.__new__(Variant)
+    self.signature = signature_tree.signature
+    self.type = signature_tree.root_type
+    self.value = value
 
 
 get_signature_tree = lru_cache(maxsize=None)(SignatureTree)

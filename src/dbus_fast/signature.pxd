@@ -24,7 +24,8 @@ cdef class Variant:
     cdef public str signature
     cdef public object value
 
-    cdef _init(self, SignatureTree signature_Tree, object value)
+@cython.locals(self=Variant)
+cdef Variant _variant_factory(SignatureTree signature_tree, object value)
 
 
 cdef SignatureTree _SIGNATURE_TREE_EMPTY

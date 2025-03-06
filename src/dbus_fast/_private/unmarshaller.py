@@ -15,6 +15,7 @@ from ..message import Message
 from ..signature import SignatureType, Variant, get_signature_tree
 from .constants import BIG_ENDIAN, LITTLE_ENDIAN, PROTOCOL_VERSION
 from ..signature import (
+    _variant_factory,
     _SIGNATURE_TREE_EMPTY,
     _SIGNATURE_TREE_B,
     _SIGNATURE_TREE_N,
@@ -523,58 +524,47 @@ class Unmarshaller:
     def _read_variant(self) -> Variant:
         signature = self._read_signature()
         token_as_int = ord(signature[0])
-        var = Variant.__new__(Variant)
         # verify in Variant is only useful on construction not unmarshalling
         if len(signature) == 1:
             if token_as_int == TOKEN_N_AS_INT:
-                var._init(_SIGNATURE_TREE_N, self._read_int16_unpack())
-                return var
+                return _variant_factory(_SIGNATURE_TREE_N, self._read_int16_unpack())
             if token_as_int == TOKEN_S_AS_INT:
-                var._init(_SIGNATURE_TREE_S, self._read_string_unpack())
-                return var
+                return _variant_factory(_SIGNATURE_TREE_S, self._read_string_unpack())
             if token_as_int == TOKEN_B_AS_INT:
-                var._init(_SIGNATURE_TREE_B, self._read_boolean())
-                return var
+                return _variant_factory(_SIGNATURE_TREE_B, self._read_boolean())
             if token_as_int == TOKEN_O_AS_INT:
-                var._init(_SIGNATURE_TREE_O, self._read_string_unpack())
-                return var
+                return _variant_factory(_SIGNATURE_TREE_O, self._read_string_unpack())
             if token_as_int == TOKEN_U_AS_INT:
-                var._init(_SIGNATURE_TREE_U, self._read_uint32_unpack())
-                return var
+                return _variant_factory(_SIGNATURE_TREE_U, self._read_uint32_unpack())
             if token_as_int == TOKEN_Y_AS_INT:
                 self._pos += 1
-                var._init(_SIGNATURE_TREE_Y, self._buf[self._pos - 1])
-                return var
+                return _variant_factory(_SIGNATURE_TREE_Y, self._buf[self._pos - 1])
         elif token_as_int == TOKEN_A_AS_INT:
             if signature == "ay":
-                var._init(
+                return _variant_factory(
                     _SIGNATURE_TREE_AY, self.read_array(_SIGNATURE_TREE_AY_TYPES_0)
                 )
-                return var
             if signature == "a{qv}":
-                var._init(
+                return _variant_factory(
                     _SIGNATURE_TREE_A_QV, self.read_array(_SIGNATURE_TREE_A_QV_TYPES_0)
                 )
-                return var
             if signature == "as":
-                var._init(
+                return _variant_factory(
                     _SIGNATURE_TREE_AS, self.read_array(_SIGNATURE_TREE_AS_TYPES_0)
                 )
-                return var
             if signature == "a{sv}":
-                var._init(
+                return _variant_factory(
                     _SIGNATURE_TREE_A_SV, self.read_array(_SIGNATURE_TREE_A_SV_TYPES_0)
                 )
-                return var
             if signature == "ao":
-                var._init(
+                return _variant_factory(
                     _SIGNATURE_TREE_AO, self.read_array(_SIGNATURE_TREE_AO_TYPES_0)
                 )
-                return var
         tree = get_signature_tree(signature)
         signature_type = tree.root_type
-        var._init(tree, self._readers[signature_type.token](self, signature_type))
-        return var
+        return _variant_factory(
+            tree, self._readers[signature_type.token](self, signature_type)
+        )
 
     def read_struct(self, type_: _SignatureType) -> list[Any]:
         self._pos += -self._pos & 7  # align 8
