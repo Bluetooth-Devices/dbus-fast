@@ -194,62 +194,56 @@ def is_compiled() -> bool:
     return cython.compiled
 
 
-def _ustr_uint32_little_end(buffer: bytearray_, pos: int_) -> int_:
+def _ustr_uint32_little_end(buf: bytearray_, pos: int_) -> int_:
     return (  # pragma: no cover
-        buffer[pos]
-        | (buffer[pos + 1] << 8)
-        | (buffer[pos + 2] << 16)
-        | (buffer[pos + 3] << 24)
+        buf[pos] | (buf[pos + 1] << 8) | (buf[pos + 2] << 16) | (buf[pos + 3] << 24)
     )
 
 
-def bytearray_to_uint32_little_end(buffer: bytearray, pos: int) -> int:
-    return _ustr_uint32_little_end(buffer, pos)
+def bytearray_to_uint32_little_end(buf: bytearray, pos: int) -> int:
+    return _ustr_uint32_little_end(buf, pos)
 
 
-def _ustr_uint32_big_end(buffer: bytearray_, pos: int_) -> int_:
+def _ustr_uint32_big_end(buf: bytearray_, pos: int_) -> int_:
     return (  # pragma: no cover
-        buffer[pos + 3]
-        | (buffer[pos + 2] << 8)
-        | (buffer[pos + 1] << 16)
-        | (buffer[pos] << 24)
+        buf[pos + 3] | (buf[pos + 2] << 8) | (buf[pos + 1] << 16) | (buf[pos] << 24)
     )
 
 
-def bytearray_to_uint32_big_end(buffer: bytearray, pos: int) -> int:
-    return _ustr_uint32_big_end(buffer, pos)
+def bytearray_to_uint32_big_end(buf: bytearray, pos: int) -> int:
+    return _ustr_uint32_big_end(buf, pos)
 
 
-def _ustr_int16_little_end(buffer: bytearray_, pos: int_) -> int_:
-    return buffer[pos] | (buffer[pos + 1] << 8)  # pragma: no cover
+def _ustr_int16_little_end(buf: bytearray_, pos: int_) -> int_:
+    return buf[pos] | (buf[pos + 1] << 8)  # pragma: no cover
 
 
-def bytearray_to_int16_little_end(buffer: bytearray, pos: int) -> int:
-    return _ustr_int16_little_end(buffer, pos)
+def bytearray_to_int16_little_end(buf: bytearray, pos: int) -> int:
+    return _ustr_int16_little_end(buf, pos)
 
 
-def _ustr_int16_big_end(buffer: bytearray_, pos: int_) -> int_:
-    return buffer[pos + 1] | (buffer[pos] << 8)  # pragma: no cover
+def _ustr_int16_big_end(buf: bytearray_, pos: int_) -> int_:
+    return buf[pos + 1] | (buf[pos] << 8)  # pragma: no cover
 
 
-def bytearray_to_int16_big_end(buffer: bytearray, pos: int) -> int:
-    return _ustr_int16_big_end(buffer, pos)
+def bytearray_to_int16_big_end(buf: bytearray, pos: int) -> int:
+    return _ustr_int16_big_end(buf, pos)
 
 
-def _ustr_uint16_little_end(buffer: bytearray_, pos: int_) -> int_:
-    return buffer[pos] | (buffer[pos + 1] << 8)  # pragma: no cover
+def _ustr_uint16_little_end(buf: bytearray_, pos: int_) -> int_:
+    return buf[pos] | (buf[pos + 1] << 8)  # pragma: no cover
 
 
-def bytearray_to_uint16_little_end(buffer: bytearray, pos: int) -> int:
-    return _ustr_uint16_little_end(buffer, pos)
+def bytearray_to_uint16_little_end(buf: bytearray, pos: int) -> int:
+    return _ustr_uint16_little_end(buf, pos)
 
 
-def _ustr_uint16_big_end(buffer: bytearray_, pos: int_) -> int_:
-    return buffer[pos + 1] | (buffer[pos] << 8)  # pragma: no cover
+def _ustr_uint16_big_end(buf: bytearray_, pos: int_) -> int_:
+    return buf[pos + 1] | (buf[pos] << 8)  # pragma: no cover
 
 
-def bytearray_to_uint16_big_end(buffer: bytearray, pos: int) -> int:
-    return _ustr_uint16_big_end(buffer, pos)
+def bytearray_to_uint16_big_end(buf: bytearray, pos: int) -> int:
+    return _ustr_uint16_big_end(buf, pos)
 
 
 # Alignment padding is handled with the following formula below

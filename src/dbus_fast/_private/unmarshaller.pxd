@@ -115,17 +115,17 @@ cdef cython.uint EWOULDBLOCK
 cdef get_signature_tree
 
 
-cdef unsigned long _ustr_uint32_little_end(const unsigned char * buffer, unsigned int offset) noexcept
+cdef unsigned long _ustr_uint32_little_end(const unsigned char * buf, unsigned int offset) noexcept
 
-cdef unsigned long _ustr_uint32_big_end(const unsigned char * buffer, unsigned int offset) noexcept
+cdef unsigned long _ustr_uint32_big_end(const unsigned char * buf, unsigned int offset) noexcept
 
-cdef short _ustr_int16_little_end(const unsigned char * buffer, unsigned int offset) noexcept
+cdef short _ustr_int16_little_end(const unsigned char * buf, unsigned int offset) noexcept
 
-cdef short _ustr_int16_big_end(const unsigned char * buffer, unsigned int offset) noexcept
+cdef short _ustr_int16_big_end(const unsigned char * buf, unsigned int offset) noexcept
 
-cdef unsigned short _ustr_uint16_little_end(const unsigned char * buffer, unsigned int offset) noexcept
+cdef unsigned short _ustr_uint16_little_end(const unsigned char * buf, unsigned int offset) noexcept
 
-cdef unsigned short _ustr_uint16_big_end(const unsigned char * buffer, unsigned int offset) noexcept
+cdef unsigned short _ustr_uint16_big_end(const unsigned char * buf, unsigned int offset) noexcept
 
 
 cdef class Unmarshaller:
