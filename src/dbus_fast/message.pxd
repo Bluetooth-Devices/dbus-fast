@@ -3,13 +3,7 @@
 import cython
 
 from ._private.marshaller cimport Marshaller
-from .signature cimport (
-    Variant,
-    _SIGNATURE_TREE_O,
-    _SIGNATURE_TREE_S,
-    _SIGNATURE_TREE_U,
-    _SIGNATURE_TREE_G,
-)
+from .signature cimport Variant
 
 cdef object ErrorType
 cdef object SignatureTree
@@ -34,6 +28,11 @@ cdef object PROTOCOL_VERSION
 cdef object MESSAGE_FLAG
 cdef object MESSAGE_FLAG_NONE
 cdef object MESSAGE_TYPE_METHOD_CALL
+
+cdef SignatureTree _SIGNATURE_TREE_G
+cdef SignatureTree _SIGNATURE_TREE_O
+cdef SignatureTree _SIGNATURE_TREE_S
+cdef SignatureTree _SIGNATURE_TREE_U
 
 cdef get_signature_tree
 

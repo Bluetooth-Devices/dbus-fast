@@ -14,34 +14,6 @@ from ..errors import InvalidMessageError
 from ..message import Message
 from ..signature import SignatureType, Variant, get_signature_tree
 from .constants import BIG_ENDIAN, LITTLE_ENDIAN, PROTOCOL_VERSION
-from ..signature import (
-    _SIGNATURE_TREE_EMPTY,
-    _SIGNATURE_TREE_B,
-    _SIGNATURE_TREE_N,
-    _SIGNATURE_TREE_S,
-    _SIGNATURE_TREE_O,
-    _SIGNATURE_TREE_U,
-    _SIGNATURE_TREE_Y,
-    _SIGNATURE_TREE_AY,
-    _SIGNATURE_TREE_AS,
-    _SIGNATURE_TREE_AS_TYPES_0,
-    _SIGNATURE_TREE_A_SV,
-    _SIGNATURE_TREE_A_SV_TYPES_0,
-    _SIGNATURE_TREE_AO,
-    _SIGNATURE_TREE_AO_TYPES_0,
-    _SIGNATURE_TREE_OAS,
-    _SIGNATURE_TREE_OAS_TYPES_1,
-    _SIGNATURE_TREE_AY_TYPES_0,
-    _SIGNATURE_TREE_A_QV,
-    _SIGNATURE_TREE_A_QV_TYPES_0,
-    _SIGNATURE_TREE_SA_SV_AS,
-    _SIGNATURE_TREE_SA_SV_AS_TYPES_1,
-    _SIGNATURE_TREE_SA_SV_AS_TYPES_2,
-    _SIGNATURE_TREE_OA_SA_SV,
-    _SIGNATURE_TREE_OA_SA_SV_TYPES_1,
-    _SIGNATURE_TREE_A_OA_SA_SV,
-    _SIGNATURE_TREE_A_OA_SA_SV_TYPES_0,
-)
 
 MESSAGE_FLAG_INTENUM = MessageFlag
 
@@ -92,6 +64,43 @@ UINT16_UNPACK_BIG_ENDIAN = Struct(f">{UINT16_CAST}").unpack_from
 
 HEADER_SIGNATURE_SIZE = 16
 HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION = 12
+
+
+# Most common signatures
+
+_SIGNATURE_TREE_EMPTY = get_signature_tree("")
+_SIGNATURE_TREE_B = get_signature_tree("b")
+_SIGNATURE_TREE_N = get_signature_tree("n")
+_SIGNATURE_TREE_S = get_signature_tree("s")
+_SIGNATURE_TREE_O = get_signature_tree("o")
+_SIGNATURE_TREE_U = get_signature_tree("u")
+_SIGNATURE_TREE_Y = get_signature_tree("y")
+
+_SIGNATURE_TREE_AY = get_signature_tree("ay")
+_SIGNATURE_TREE_AS = get_signature_tree("as")
+_SIGNATURE_TREE_AS_TYPES_0 = _SIGNATURE_TREE_AS.root_type
+_SIGNATURE_TREE_A_SV = get_signature_tree("a{sv}")
+_SIGNATURE_TREE_A_SV_TYPES_0 = _SIGNATURE_TREE_A_SV.root_type
+
+_SIGNATURE_TREE_AO = get_signature_tree("ao")
+_SIGNATURE_TREE_AO_TYPES_0 = _SIGNATURE_TREE_AO.root_type
+
+_SIGNATURE_TREE_OAS = get_signature_tree("oas")
+_SIGNATURE_TREE_OAS_TYPES_1 = _SIGNATURE_TREE_OAS.types[1]
+
+_SIGNATURE_TREE_AY_TYPES_0 = _SIGNATURE_TREE_AY.root_type
+_SIGNATURE_TREE_A_QV = get_signature_tree("a{qv}")
+_SIGNATURE_TREE_A_QV_TYPES_0 = _SIGNATURE_TREE_A_QV.root_type
+
+_SIGNATURE_TREE_SA_SV_AS = get_signature_tree("sa{sv}as")
+_SIGNATURE_TREE_SA_SV_AS_TYPES_1 = _SIGNATURE_TREE_SA_SV_AS.types[1]
+_SIGNATURE_TREE_SA_SV_AS_TYPES_2 = _SIGNATURE_TREE_SA_SV_AS.types[2]
+
+_SIGNATURE_TREE_OA_SA_SV = get_signature_tree("oa{sa{sv}}")
+_SIGNATURE_TREE_OA_SA_SV_TYPES_1 = _SIGNATURE_TREE_OA_SA_SV.types[1]
+
+_SIGNATURE_TREE_A_OA_SA_SV = get_signature_tree("a{oa{sa{sv}}}")
+_SIGNATURE_TREE_A_OA_SA_SV_TYPES_0 = _SIGNATURE_TREE_A_OA_SA_SV.root_type
 
 
 TOKEN_B_AS_INT = ord("b")

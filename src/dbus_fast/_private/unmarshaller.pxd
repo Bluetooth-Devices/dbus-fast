@@ -4,34 +4,6 @@ import cython
 
 from ..message cimport Message
 from ..signature cimport SignatureTree, SignatureType, Variant
-from ..signature cimport  (
-    _SIGNATURE_TREE_EMPTY,
-    _SIGNATURE_TREE_B,
-    _SIGNATURE_TREE_N,
-    _SIGNATURE_TREE_S,
-    _SIGNATURE_TREE_O,
-    _SIGNATURE_TREE_U,
-    _SIGNATURE_TREE_Y,
-    _SIGNATURE_TREE_AY,
-    _SIGNATURE_TREE_AS,
-    _SIGNATURE_TREE_AS_TYPES_0,
-    _SIGNATURE_TREE_A_SV,
-    _SIGNATURE_TREE_A_SV_TYPES_0,
-    _SIGNATURE_TREE_AO,
-    _SIGNATURE_TREE_AO_TYPES_0,
-    _SIGNATURE_TREE_OAS,
-    _SIGNATURE_TREE_OAS_TYPES_1,
-    _SIGNATURE_TREE_AY_TYPES_0,
-    _SIGNATURE_TREE_A_QV,
-    _SIGNATURE_TREE_A_QV_TYPES_0,
-    _SIGNATURE_TREE_SA_SV_AS,
-    _SIGNATURE_TREE_SA_SV_AS_TYPES_1,
-    _SIGNATURE_TREE_SA_SV_AS_TYPES_2,
-    _SIGNATURE_TREE_OA_SA_SV,
-    _SIGNATURE_TREE_OA_SA_SV_TYPES_1,
-    _SIGNATURE_TREE_A_OA_SA_SV,
-    _SIGNATURE_TREE_A_OA_SA_SV_TYPES_0,
-)
 
 cdef bint TYPE_CHECKING
 
@@ -87,6 +59,36 @@ cdef object UINT16_UNPACK_BIG_ENDIAN
 cdef cython.dict MESSAGE_TYPE_MAP
 cdef cython.dict MESSAGE_FLAG_MAP
 cdef dict HEADER_MESSAGE_ARG_NAME
+
+
+cdef SignatureTree _SIGNATURE_TREE_EMPTY
+cdef SignatureTree _SIGNATURE_TREE_B
+cdef SignatureTree _SIGNATURE_TREE_N
+cdef SignatureTree _SIGNATURE_TREE_O
+cdef SignatureTree _SIGNATURE_TREE_S
+cdef SignatureTree _SIGNATURE_TREE_U
+cdef SignatureTree _SIGNATURE_TREE_Y
+
+cdef SignatureTree _SIGNATURE_TREE_AS
+cdef SignatureType _SIGNATURE_TREE_AS_TYPES_0
+cdef SignatureTree _SIGNATURE_TREE_AO
+cdef SignatureType _SIGNATURE_TREE_AO_TYPES_0
+cdef SignatureTree _SIGNATURE_TREE_A_SV
+cdef SignatureType _SIGNATURE_TREE_A_SV_TYPES_0
+cdef SignatureTree _SIGNATURE_TREE_SA_SV_AS
+cdef SignatureType _SIGNATURE_TREE_SA_SV_AS_TYPES_1
+cdef SignatureType _SIGNATURE_TREE_SA_SV_AS_TYPES_2
+cdef SignatureTree _SIGNATURE_TREE_OAS
+cdef SignatureType _SIGNATURE_TREE_OAS_TYPES_1
+cdef SignatureTree _SIGNATURE_TREE_OA_SA_SV
+cdef SignatureType _SIGNATURE_TREE_OA_SA_SV_TYPES_1
+cdef SignatureTree _SIGNATURE_TREE_AY
+cdef SignatureType _SIGNATURE_TREE_AY_TYPES_0
+cdef SignatureTree _SIGNATURE_TREE_A_QV
+cdef SignatureType _SIGNATURE_TREE_A_QV_TYPES_0
+cdef SignatureTree _SIGNATURE_TREE_A_OA_SA_SV
+cdef SignatureType _SIGNATURE_TREE_A_OA_SA_SV_TYPES_0
+
 
 cdef unsigned int TOKEN_B_AS_INT
 cdef unsigned int TOKEN_U_AS_INT

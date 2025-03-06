@@ -4,15 +4,7 @@ from ._private.constants import LITTLE_ENDIAN, PROTOCOL_VERSION, HeaderField
 from ._private.marshaller import Marshaller
 from .constants import ErrorType, MessageFlag, MessageType
 from .errors import InvalidMessageError
-from .signature import (
-    Variant,
-    SignatureTree,
-    get_signature_tree,
-    _SIGNATURE_TREE_O,
-    _SIGNATURE_TREE_S,
-    _SIGNATURE_TREE_U,
-    _SIGNATURE_TREE_G,
-)
+from .signature import Variant, SignatureTree, get_signature_tree
 from .validators import (
     assert_bus_name_valid,
     assert_interface_name_valid,
@@ -41,6 +33,10 @@ MESSAGE_FLAG = MessageFlag
 MESSAGE_FLAG_NONE = MessageFlag.NONE
 MESSAGE_TYPE_METHOD_CALL = MessageType.METHOD_CALL
 
+_SIGNATURE_TREE_G = get_signature_tree("g")
+_SIGNATURE_TREE_O = get_signature_tree("o")
+_SIGNATURE_TREE_S = get_signature_tree("s")
+_SIGNATURE_TREE_U = get_signature_tree("u")
 
 _int = int
 _str = str
