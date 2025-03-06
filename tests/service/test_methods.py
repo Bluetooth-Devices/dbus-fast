@@ -167,6 +167,14 @@ async def test_methods(interface_class):
     assert reply.signature == signature
     assert reply.body == body
 
+    # Wrong interface should be a failure
+    reply = await call("echo_containers", signature, body, interface="wrong")
+    assert reply.message_type == MessageType.ERROR, reply.body[0]
+    assert reply.error_name == "org.freedesktop.DBus.Error.UnknownMethod", reply.body[0]
+    assert reply.body == [
+        'wrong.echo_containers with signature "as" could not be found'
+    ]
+
     # No interface should result in finding anything that matches the member name
     # and the signature
     reply = await call("echo_containers", signature, body, interface=None)
