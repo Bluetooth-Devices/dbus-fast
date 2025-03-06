@@ -168,7 +168,7 @@ async def test_methods(interface_class):
     assert reply.body == body
 
     # Wrong interface should be a failure
-    reply = await call("echo_containers", signature, body, interface="wrong")
+    reply = await call("echo_containers", signature, body, interface="Wrong")
     assert reply.message_type == MessageType.ERROR, reply.body[0]
     assert reply.error_name == "org.freedesktop.DBus.Error.UnknownMethod", reply.body[0]
     assert reply.body == [
