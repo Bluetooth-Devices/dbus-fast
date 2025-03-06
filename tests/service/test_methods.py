@@ -197,6 +197,11 @@ async def test_methods(interface_class):
     reply = await call("throws_dbus_error", flags=MessageFlag.NO_REPLY_EXPECTED)
     assert reply is None
 
+    reply = await call("does_not_exist")
+    assert reply.message_type == MessageType.ERROR, reply.body[0]
+    assert reply.error_name == "test.error", reply.body[0]
+    assert reply.body == ["an error ocurred"]
+
     bus1.disconnect()
     bus2.disconnect()
     bus1._sock.close()
