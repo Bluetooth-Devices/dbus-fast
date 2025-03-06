@@ -267,7 +267,7 @@ class Unmarshaller:
         self._negotiate_unix_fd = negotiate_unix_fd
         self._read_complete = False
         if stream:
-            if isinstance(stream, io.BufferedRWPair) and hasattr(stream, "reader"):
+            if hasattr(stream, "reader"):
                 self._stream_reader = stream.reader.read
             else:
                 self._stream_reader = stream.read
