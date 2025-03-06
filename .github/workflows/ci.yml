@@ -79,13 +79,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Test
-        uses: frequenz-floss/gh-action-run-python-in-qemu@v0.x.x
+      - name: Setup multiarch/qemu-user-static
+        run: |
+          docker run --rm --privileged multiarch/qemu-user-static:register --reset
+      - name: ubuntu-core:s390x-focal
+        uses: docker://multiarch/ubuntu-core:s390x-focal
         with:
-          architecture: s390x
-          script: "scripts/run_test_qemu.sh"
-          ubuntu_version: 22.04
-          python_version: 3.13
+          args: >
+            bash -c
+            "pip3 install poetry &&
+            sudo apt-get install -y dbus-daemon python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0 &&
+            REQUIRE_CYTHON=1 poetry install --only=main,dev &&
+            dbus-run-session -- poetry run pytest --cov-report=xml --timeout=5
+            "
 
   benchmark:
     runs-on: ubuntu-latest
