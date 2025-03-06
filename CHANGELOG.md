@@ -1,6 +1,24 @@
 # CHANGELOG
 
 
+## v2.38.0 (2025-03-06)
+
+### Chores
+
+- Remove unused boilerplate cruft ([#411](https://github.com/Bluetooth-Devices/dbus-fast/pull/411),
+  [`a56381a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/a56381a7a10b243061f29d0f90b3fd63d2e600e4))
+
+### Features
+
+- Improve performance of checking SignatureType tokens
+  ([#410](https://github.com/Bluetooth-Devices/dbus-fast/pull/410),
+  [`4887160`](https://github.com/Bluetooth-Devices/dbus-fast/commit/488716020e275ef777454724d2ab41cfc050b40a))
+
+* feat: improve performance of checking SignatureType tokens
+
+* chore: fixes
+
+
 ## v2.37.1 (2025-03-06)
 
 ### Bug Fixes
