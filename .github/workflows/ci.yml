@@ -79,24 +79,23 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Setup multiarch/qemu-user-static
-        run: |
-          docker run --rm --privileged multiarch/qemu-user-static:register --reset
-      - name: s390x/ubuntu
-        uses: docker://s390x/ubuntu
+      - uses: uraimo/run-on-arch-action@v3
+        name: Run commands
+        id: runcmd
         with:
-          args: >
+          arch: s390x
+          distro: ubuntu24.04
+          run: |
             bash -c
-            "apt-get -y update &&
-            apt-get -y install python3-pip python3-venv &&
-            pip3 install poetry &&
-            apt-get install -y dbus-daemon python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0 &&
-            git clone $GITHUB_REPOSITORY &&
-            cd dbus-fast &&
-            git checkout $GITHUB_SHA &&
-            REQUIRE_CYTHON=1 poetry install --only=main,dev &&
+            apt-get -y update
+            apt-get -y install python3-pip python3-venv
+            pip3 install poetry
+            apt-get install -y dbus-daemon python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
+            git clone $GITHUB_REPOSITORY
+            cd dbus-fast
+            git checkout $GITHUB_SHA
+            REQUIRE_CYTHON=1 poetry install --only=main,dev
             dbus-run-session -- poetry run pytest --cov-report=xml --timeout=5
-            "
 
   benchmark:
     runs-on: ubuntu-latest
