@@ -73,18 +73,8 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   test_big_endian:
-    name: Big-endian tests
-    strategy:
-      fail-fast: false
-      matrix:
-        architecture:
-          - "s390x"
-        ubuntu_version:
-          - "22.04"
-        python_version:
-          - "3.13"
-
-    runs-on: ubuntu-${{ matrix.ubuntu_version }}
+    name: Big-endian s390x tests
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -92,10 +82,10 @@ jobs:
       - name: Test
         uses: frequenz-floss/gh-action-run-python-in-qemu@v0.x.x
         with:
-          architecture: ${{ matrix.architecture }}
+          architecture: s390x
           script: "scripts/run_test_qemu.sh"
-          ubuntu_version: ${{ matrix.ubuntu_version }}
-          python_version: ${{ matrix.python_version }}
+          ubuntu_version: ubuntu-latest
+          python_version: 3.13
 
   benchmark:
     runs-on: ubuntu-latest
