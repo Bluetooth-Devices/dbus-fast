@@ -529,7 +529,7 @@ class Unmarshaller:
                 raise IndexError("Not enough data to read string")
         else:
             self._pos += self._uint32_unpack(self._buf, str_start - UINT32_SIZE)[0] + 1
-        return self._buf_ustr[str_start : self._pos - 1].decode()
+        return self._buf[str_start : self._pos - 1].decode()
 
     def read_signature(self, type_: _SignatureType) -> str:
         return self._read_signature()
@@ -542,7 +542,7 @@ class Unmarshaller:
         if cython.compiled:
             if self._buf_len < self._pos:
                 raise IndexError("Not enough data to read signature")
-        return self._buf_ustr[o : o + signature_len].decode()
+        return self._buf[o : o + signature_len].decode()
 
     def read_variant(self, type_: _SignatureType) -> Variant:
         return self._read_variant()
