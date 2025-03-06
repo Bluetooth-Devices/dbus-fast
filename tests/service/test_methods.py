@@ -61,7 +61,7 @@ class ExampleInterface(ServiceInterface):
     @method()
     def throws_dbus_error(self):
         assert type(self) is ExampleInterface
-        raise DBusError("test.error", "an error ocurred")
+        raise DBusError("test.error", "an error occurred")
 
 
 class AsyncInterface(ServiceInterface):
@@ -112,7 +112,7 @@ class AsyncInterface(ServiceInterface):
     @method()
     def throws_dbus_error(self):
         assert type(self) is AsyncInterface
-        raise DBusError("test.error", "an error ocurred")
+        raise DBusError("test.error", "an error occurred")
 
 
 @pytest.mark.parametrize("interface_class", [ExampleInterface, AsyncInterface])
@@ -175,12 +175,12 @@ async def test_methods(interface_class):
     assert reply.body == body
 
     # No interface should result in finding anything that matches the member name
-    # and the signature, but in thie case it will be nothing because
+    # and the signature, but in this case it will be nothing because
     # the signature is wrong
     reply = await call("echo_containers", "as", body, interface=None)
     assert reply.message_type == MessageType.ERROR, reply.body[0]
     assert reply.error_name == "org.freedesktop.DBus.Error.UnknownMethod", reply.body[0]
-    assert reply.body == ["an error ocurred"]
+    assert reply.body == ['None.echo_containers with signature "as" could not be found']
 
     reply = await call("ping")
     assert reply.message_type == MessageType.METHOD_RETURN, reply.body[0]
@@ -194,7 +194,7 @@ async def test_methods(interface_class):
     reply = await call("throws_dbus_error")
     assert reply.message_type == MessageType.ERROR, reply.body[0]
     assert reply.error_name == "test.error", reply.body[0]
-    assert reply.body == ["an error ocurred"]
+    assert reply.body == ["an error occurred"]
 
     reply = await call("ping", flags=MessageFlag.NO_REPLY_EXPECTED)
     assert reply is None
@@ -208,7 +208,7 @@ async def test_methods(interface_class):
     reply = await call("does_not_exist")
     assert reply.message_type == MessageType.ERROR, reply.body[0]
     assert reply.error_name == "org.freedesktop.DBus.Error.UnknownMethod", reply.body[0]
-    assert reply.body == ["an error ocurred"]
+    assert reply.body == ["an error occurred"]
 
     bus1.disconnect()
     bus2.disconnect()
