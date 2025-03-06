@@ -83,7 +83,7 @@ jobs:
         run: |
           docker run --rm --privileged multiarch/qemu-user-static:register --reset
       - name: ubuntu-core:s390x-noble
-        uses: docker://multiarch/ubuntu-core:s390x-noble
+        uses: docker://s390x/ubuntu:noble
         with:
           args: >
             bash -c
