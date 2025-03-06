@@ -4,7 +4,12 @@ import cython
 
 from ._private.marshaller cimport Marshaller
 from .signature cimport Variant
-
+from .signature cimport (
+    _SIGNATURE_TREE_O,
+    _SIGNATURE_TREE_S,
+    _SIGNATURE_TREE_U,
+    _SIGNATURE_TREE_G,
+)
 
 cdef object ErrorType
 cdef object SignatureTree

@@ -4,7 +4,15 @@ from ._private.constants import LITTLE_ENDIAN, PROTOCOL_VERSION, HeaderField
 from ._private.marshaller import Marshaller
 from .constants import ErrorType, MessageFlag, MessageType
 from .errors import InvalidMessageError
-from .signature import SignatureTree, Variant, get_signature_tree
+from .signature import (
+    SignatureTree,
+    Variant,
+    get_signature_tree,
+    _SIGNATURE_TREE_O,
+    _SIGNATURE_TREE_S,
+    _SIGNATURE_TREE_U,
+    _SIGNATURE_TREE_G,
+)
 from .validators import (
     assert_bus_name_valid,
     assert_interface_name_valid,
@@ -326,35 +334,35 @@ class Message:
 
         if self.path:
             var = Variant.__new__(Variant)
-            var._init_variant("o", self.path, False)
+            var._init(_SIGNATURE_TREE_O, self.path)
             fields.append((HEADER_PATH, var))
         if self.interface:
             var = Variant.__new__(Variant)
-            var._init_variant("s", self.interface, False)
+            var._init(_SIGNATURE_TREE_S, self.interface)
             fields.append((HEADER_INTERFACE, var))
         if self.member:
             var = Variant.__new__(Variant)
-            var._init_variant("s", self.member, False)
+            var._init(_SIGNATURE_TREE_S, self.member)
             fields.append((HEADER_MEMBER, var))
         if self.error_name:
             var = Variant.__new__(Variant)
-            var._init_variant("s", self.error_name, False)
+            var._init(_SIGNATURE_TREE_S, self.error_name)
             fields.append((HEADER_ERROR_NAME, var))
         if self.reply_serial:
             var = Variant.__new__(Variant)
-            var._init_variant("u", self.reply_serial, False)
+            var._init(_SIGNATURE_TREE_U, self.reply_serial)
             fields.append((HEADER_REPLY_SERIAL, var))
         if self.destination:
             var = Variant.__new__(Variant)
-            var._init_variant("s", self.destination, False)
+            var._init(_SIGNATURE_TREE_S, self.destination)
             fields.append((HEADER_DESTINATION, var))
         if self.signature:
             var = Variant.__new__(Variant)
-            var._init_variant("g", self.signature, False)
+            var._init(_SIGNATURE_TREE_G, self.signature)
             fields.append((HEADER_SIGNATURE, var))
         if self.unix_fds and negotiate_unix_fd:
             var = Variant.__new__(Variant)
-            var._init_variant("u", len(self.unix_fds), False)
+            var._init(_SIGNATURE_TREE_U, len(self.unix_fds))
             fields.append((HEADER_UNIX_FDS, var))
 
         header_body = [
