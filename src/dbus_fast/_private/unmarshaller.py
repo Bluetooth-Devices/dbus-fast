@@ -190,6 +190,10 @@ int_ = int
 bytearray_ = bytearray
 
 
+def is_compiled() -> bool:
+    return cython.compiled
+
+
 def _bytearray_to_uint32_little_endian(buffer: bytearray_, pos: int_) -> int_:
     return (  # pragma: no cover
         buffer[pos]
@@ -197,6 +201,10 @@ def _bytearray_to_uint32_little_endian(buffer: bytearray_, pos: int_) -> int_:
         | (buffer[pos + 2] << 16)
         | (buffer[pos + 3] << 24)
     )
+
+
+def bytearray_to_uint32_little_endian(buffer: bytearray, pos: int) -> int:
+    return _bytearray_to_uint32_little_endian(buffer, pos)
 
 
 def _bytearray_to_uint32_big_endian(buffer: bytearray_, pos: int_) -> int_:
@@ -208,20 +216,40 @@ def _bytearray_to_uint32_big_endian(buffer: bytearray_, pos: int_) -> int_:
     )
 
 
+def bytearray_to_uint32_big_endian(buffer: bytearray, pos: int) -> int:
+    return _bytearray_to_uint32_big_endian(buffer, pos)
+
+
 def _bytearray_to_int16_little_endian(buffer: bytearray_, pos: int_) -> int_:
     return buffer[pos] | (buffer[pos + 1] << 8)  # pragma: no cover
+
+
+def bytearray_to_int16_little_endian(buffer: bytearray, pos: int) -> int:
+    return _bytearray_to_int16_little_endian(buffer, pos)
 
 
 def _bytearray_to_int16_big_endian(buffer: bytearray_, pos: int_) -> int_:
     return buffer[pos + 1] | (buffer[pos] << 8)  # pragma: no cover
 
 
+def bytearray_to_int16_big_endian(buffer: bytearray, pos: int) -> int:
+    return _bytearray_to_int16_big_endian(buffer, pos)
+
+
 def _bytearray_to_uint16_little_endian(buffer: bytearray_, pos: int_) -> int_:
     return buffer[pos] | (buffer[pos + 1] << 8)  # pragma: no cover
 
 
+def bytearray_to_uint16_little_endian(buffer: bytearray, pos: int) -> int:
+    return _bytearray_to_uint16_little_endian(buffer, pos)
+
+
 def _bytearray_to_uint16_big_endian(buffer: bytearray_, pos: int_) -> int_:
     return buffer[pos + 1] | (buffer[pos] << 8)  # pragma: no cover
+
+
+def bytearray_to_uint16_big_endian(buffer: bytearray, pos: int) -> int:
+    return _bytearray_to_uint16_big_endian(buffer, pos)
 
 
 # Alignment padding is handled with the following formula below
@@ -433,7 +461,7 @@ class Unmarshaller:
 
     def _read_uint32_unpack(self) -> int:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
-        if cython.compiled:
+        if cython.compiled and len(self._buf) >= self._pos:
             if self._endian == LITTLE_ENDIAN:
                 return _bytearray_to_uint32_little_endian(
                     self._buf, self._pos - UINT32_SIZE
@@ -446,7 +474,7 @@ class Unmarshaller:
 
     def _read_uint16_unpack(self) -> int:
         self._pos += UINT16_SIZE + (-self._pos & (UINT16_SIZE - 1))  # align
-        if cython.compiled:
+        if cython.compiled and len(self._buf) >= self._pos:
             if self._endian == LITTLE_ENDIAN:
                 return _bytearray_to_uint16_little_endian(
                     self._buf, self._pos - UINT16_SIZE
@@ -459,7 +487,7 @@ class Unmarshaller:
 
     def _read_int16_unpack(self) -> int:
         self._pos += INT16_SIZE + (-self._pos & (INT16_SIZE - 1))  # align
-        if cython.compiled:
+        if cython.compiled and len(self._buf) >= self._pos:
             if self._endian == LITTLE_ENDIAN:
                 return _bytearray_to_int16_little_endian(
                     self._buf, self._pos - INT16_SIZE
@@ -481,7 +509,7 @@ class Unmarshaller:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
         str_start = self._pos
         # read terminating '\0' byte as well (str_length + 1)
-        if cython.compiled:
+        if cython.compiled and len(self._buf) >= self._pos:
             if self._endian == LITTLE_ENDIAN:
                 self._pos += (
                     _bytearray_to_uint32_little_endian(
@@ -593,7 +621,7 @@ class Unmarshaller:
         self._pos += (
             -self._pos & (UINT32_SIZE - 1)
         ) + UINT32_SIZE  # align for the uint32
-        if cython.compiled:
+        if cython.compiled and len(self._buf) >= self._pos:
             if self._endian == LITTLE_ENDIAN:
                 array_length = _bytearray_to_uint32_little_endian(
                     self._buf, self._pos - UINT32_SIZE
@@ -720,6 +748,7 @@ class Unmarshaller:
         # Signature is of the header is
         # BYTE, BYTE, BYTE, BYTE, UINT32, UINT32, ARRAY of STRUCT of (BYTE,VARIANT)
         self._read_to_pos(HEADER_SIGNATURE_SIZE)
+        print(["Header size", len(self._buf), self._buf])
         endian = self._buf[0]
         self._message_type = self._buf[1]
         self._flag = self._buf[2]

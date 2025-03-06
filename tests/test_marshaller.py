@@ -8,8 +8,49 @@ import pytest
 
 from dbus_fast import Message, MessageFlag, MessageType, SignatureTree, Variant
 from dbus_fast._private._cython_compat import FakeCython
-from dbus_fast._private.unmarshaller import Unmarshaller
+from dbus_fast._private.unmarshaller import (
+    Unmarshaller,
+    is_compiled,
+    bytearray_to_int16_big_endian,
+    bytearray_to_uint16_big_endian,
+    bytearray_to_uint32_big_endian,
+)
+from dbus_fast._private.unmarshaller import (
+    bytearray_to_int16_little_endian,
+    bytearray_to_uint16_little_endian,
+    bytearray_to_uint32_little_endian,
+)
 from dbus_fast.unpack import unpack_variants
+
+
+def test_bytearray_to_uint32_big_endian():
+    assert bytearray_to_uint32_big_endian(bytearray(b"\x01\x02\x03\x04"), 0) == 16909060
+
+
+def test_bytearray_to_uint16_big_endian():
+    assert bytearray_to_uint16_big_endian(bytearray(b"\x01\x02"), 0) == 258
+
+
+@pytest.mark.skipif(not is_compiled(), reason="requires cython")
+def test_bytearray_to_int16_big_endian():
+    assert bytearray_to_int16_big_endian(bytearray(b"\x01\x02"), 0) == 258
+    assert bytearray_to_int16_big_endian(bytearray(b"\xff\xff"), 0) == -1
+
+
+def test_bytearray_to_uint32_little_endian():
+    assert (
+        bytearray_to_uint32_little_endian(bytearray(b"\x01\x02\x03\x04"), 0) == 67305985
+    )
+
+
+def test_bytearray_to_uint16_little_endian():
+    assert bytearray_to_uint16_little_endian(bytearray(b"\x01\x02"), 0) == 513
+
+
+@pytest.mark.skipif(not is_compiled(), reason="requires cython")
+def test_bytearray_to_int16_little_endian():
+    assert bytearray_to_int16_little_endian(bytearray(b"\x01\x02"), 0) == 513
+    assert bytearray_to_int16_little_endian(bytearray(b"\xff\xff"), 0) == -1
 
 
 def print_buf(buf):
