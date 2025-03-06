@@ -115,15 +115,15 @@ cdef cython.uint EWOULDBLOCK
 cdef get_signature_tree
 
 
-cdef inline unsigned long _cast_uint32_native(const char * payload, unsigned int offset):
+cdef inline unsigned long _cast_uint32_native(const char * payload, unsigned int offset) noexcept:
     cdef unsigned long *u32p = <unsigned long *> &payload[offset]
     return u32p[0]
 
-cdef inline short _cast_int16_native(const char *  payload, unsigned int offset):
+cdef inline short _cast_int16_native(const char *  payload, unsigned int offset) noexcept:
     cdef short *s16p = <short *> &payload[offset]
     return s16p[0]
 
-cdef inline unsigned short _cast_uint16_native(const char *  payload, unsigned int offset):
+cdef inline unsigned short _cast_uint16_native(const char *  payload, unsigned int offset) noexcept:
     cdef unsigned short *u16p = <unsigned short *> &payload[offset]
     return u16p[0]
 
