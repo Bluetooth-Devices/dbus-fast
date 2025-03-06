@@ -147,7 +147,7 @@ class BaseProxyInterface:
                 task.add_done_callback(self._background_tasks.remove)
 
     def _add_signal(self, intr_signal: intr.Signal, interface: intr.Interface) -> None:
-        def on_signal_fn(fn: Callable, *, unpack_variants: bool = False):
+        def on_signal_fn(fn: Callable | Coroutine, *, unpack_variants: bool = False):
             fn_signature = inspect.signature(fn)
             if (
                 len(
@@ -189,7 +189,9 @@ class BaseProxyInterface:
                 SignalHandler(fn, unpack_variants)
             )
 
-        def off_signal_fn(fn: Callable, *, unpack_variants: bool = False) -> None:
+        def off_signal_fn(
+            fn: Callable | Coroutine, *, unpack_variants: bool = False
+        ) -> None:
             try:
                 i = self._signal_handlers[intr_signal.name].index(
                     SignalHandler(fn, unpack_variants)
