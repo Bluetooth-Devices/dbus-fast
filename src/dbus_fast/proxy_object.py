@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import inspect
 import logging
@@ -6,7 +8,7 @@ import xml.etree.ElementTree as ET
 from collections.abc import Coroutine
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Callable, Optional, Union
+from typing import Callable
 
 from . import introspection as intr
 from . import message_bus
@@ -22,7 +24,7 @@ from .validators import assert_bus_name_valid, assert_object_path_valid
 class SignalHandler:
     """Signal handler."""
 
-    fn: Callable
+    fn: Callable | Coroutine
     unpack_variants: bool
 
 
@@ -57,7 +59,7 @@ class BaseProxyInterface:
         bus_name: str,
         path: str,
         introspection: intr.Interface,
-        bus: "message_bus.BaseMessageBus",
+        bus: message_bus.BaseMessageBus,
     ) -> None:
         self.bus_name = bus_name
         self.path = path
@@ -77,7 +79,7 @@ class BaseProxyInterface:
         return BaseProxyInterface._underscorer2.sub(r"\1_\2", subbed).lower()
 
     @staticmethod
-    def _check_method_return(msg: Message, signature: Optional[str] = None):
+    def _check_method_return(msg: Message, signature: str | None = None):
         if msg.message_type == MessageType.ERROR:
             raise DBusError._from_message(msg)
         if msg.message_type != MessageType.METHOD_RETURN:
@@ -246,8 +248,8 @@ class BaseProxyObject:
         self,
         bus_name: str,
         path: str,
-        introspection: Union[intr.Node, str, ET.Element],
-        bus: "message_bus.BaseMessageBus",
+        introspection: intr.Node | str | ET.Element,
+        bus: message_bus.BaseMessageBus,
         ProxyInterface: type[BaseProxyInterface],
     ) -> None:
         assert_object_path_valid(path)
@@ -310,7 +312,7 @@ class BaseProxyObject:
         for intr_signal in intr_interface.signals:
             interface._add_signal(intr_signal, interface)
 
-        def get_owner_notify(msg: Message, err: Optional[Exception]) -> None:
+        def get_owner_notify(msg: Message, err: Exception | None) -> None:
             if err:
                 logging.error(f'getting name owner for "{name}" failed, {err}')
                 return
@@ -339,7 +341,7 @@ class BaseProxyObject:
         self._interfaces[name] = interface
         return interface
 
-    def get_children(self) -> list["BaseProxyObject"]:
+    def get_children(self) -> list[BaseProxyObject]:
         """Get the child nodes of this proxy object according to the introspection data."""
         if self._children is None:
             self._children = [
