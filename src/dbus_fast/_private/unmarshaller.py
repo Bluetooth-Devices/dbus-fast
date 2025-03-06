@@ -402,7 +402,7 @@ class Unmarshaller:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
         if self._is_native and cython.compiled:
             return _cast_uint32_native(  # type: ignore[name-defined] # pragma: no cover
-                self._buf, self._pos - UINT32_SIZE
+                self._buf[self._pos - UINT32_SIZE : self._pos]
             )
         return self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]  # type: ignore[misc]
 
@@ -413,7 +413,7 @@ class Unmarshaller:
         self._pos += UINT16_SIZE + (-self._pos & (UINT16_SIZE - 1))  # align
         if self._is_native and cython.compiled:
             return _cast_uint16_native(  # type: ignore[name-defined] # pragma: no cover
-                self._buf, self._pos - UINT16_SIZE
+                self._buf[self._pos - UINT16_SIZE : self._pos]
             )
         return self._uint16_unpack(self._buf, self._pos - UINT16_SIZE)[0]  # type: ignore[misc]
 
@@ -424,7 +424,7 @@ class Unmarshaller:
         self._pos += INT16_SIZE + (-self._pos & (INT16_SIZE - 1))  # align
         if self._is_native and cython.compiled:
             return _cast_int16_native(  # type: ignore[name-defined] # pragma: no cover
-                self._buf, self._pos - INT16_SIZE
+                self._buf[self._pos - INT16_SIZE : self._pos]
             )
         return self._int16_unpack(self._buf, self._pos - INT16_SIZE)[0]  # type: ignore[misc]
 
@@ -444,7 +444,7 @@ class Unmarshaller:
         # read terminating '\0' byte as well (str_length + 1)
         if self._is_native and cython.compiled:
             self._pos += (  # pragma: no cover
-                _cast_uint32_native(self._buf, str_start - UINT32_SIZE) + 1  # type: ignore[name-defined]
+                _cast_uint32_native(self._buf[str_start - UINT32_SIZE : str_start]) + 1  # type: ignore[name-defined]
             )
         else:
             self._pos += self._uint32_unpack(self._buf, str_start - UINT32_SIZE)[0] + 1  # type: ignore[misc]
@@ -547,7 +547,7 @@ class Unmarshaller:
         ) + UINT32_SIZE  # align for the uint32
         if self._is_native and cython.compiled:
             array_length = _cast_uint32_native(  # type: ignore[name-defined] # pragma: no cover
-                self._buf, self._pos - UINT32_SIZE
+                self._buf[self._pos - UINT32_SIZE, self._pos]
             )
         else:
             array_length = self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]  # type: ignore[misc]
@@ -685,13 +685,13 @@ class Unmarshaller:
         ):
             self._is_native = 1  # pragma: no cover
             self._body_len = _cast_uint32_native(  # type: ignore[name-defined] # pragma: no cover
-                buffer, 4
+                buffer[0:4]
             )
             self._serial = _cast_uint32_native(  # type: ignore[name-defined] # pragma: no cover
-                buffer, 8
+                buffer[4:8]
             )
             self._header_len = _cast_uint32_native(  # type: ignore[name-defined] # pragma: no cover
-                buffer, 12
+                buffer[8:12]
             )
         elif endian == LITTLE_ENDIAN:
             (
