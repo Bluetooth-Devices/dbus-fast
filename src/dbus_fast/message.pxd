@@ -3,13 +3,10 @@
 import cython
 
 from ._private.marshaller cimport Marshaller
-from .signature cimport Variant
+from .signature cimport Variant, SignatureTree, SignatureType
 
 cdef object ErrorType
-cdef object SignatureTree
-cdef object SignatureType
 cdef object MessageType
-
 
 cdef object HEADER_PATH
 cdef object HEADER_INTERFACE
@@ -48,8 +45,8 @@ cdef class Message:
     cdef public unsigned int reply_serial
     cdef public object sender
     cdef public list unix_fds
-    cdef public object signature
-    cdef public object signature_tree
+    cdef public str signature
+    cdef public SignatureTree signature_tree
     cdef public object body
     cdef public unsigned int serial
 
@@ -72,7 +69,7 @@ cdef class Message:
         unsigned int reply_serial,
         object sender,
         list unix_fds,
-        object signature_tree,
+        SignatureTree signature_tree,
         object body,
         unsigned int serial,
         bint validate
