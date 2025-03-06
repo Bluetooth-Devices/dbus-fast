@@ -1,6 +1,26 @@
 # CHANGELOG
 
 
+## v2.39.0 (2025-03-06)
+
+### Chores
+
+- Enable some more ruff rules ([#414](https://github.com/Bluetooth-Devices/dbus-fast/pull/414),
+  [`2bad648`](https://github.com/Bluetooth-Devices/dbus-fast/commit/2bad648c61f139e168c083b05e183ceaa29005f8))
+
+- Sort imports ([#413](https://github.com/Bluetooth-Devices/dbus-fast/pull/413),
+  [`a589651`](https://github.com/Bluetooth-Devices/dbus-fast/commit/a589651511e1787f0025d7ab440ed1617b133b48))
+
+### Features
+
+- Improve performance of signature lookups
+  ([#412](https://github.com/Bluetooth-Devices/dbus-fast/pull/412),
+  [`5068e41`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5068e41488e71499265e1fc3ea7d4210821e09a2))
+
+- Added `SignatureTree` type in a few more places to avoid python lookups - Improved performance and
+  reduced code to create `Variant` object
+
+
 ## v2.38.0 (2025-03-06)
 
 ### Chores
