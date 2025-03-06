@@ -5,6 +5,7 @@ from ._private.marshaller import Marshaller
 from .constants import ErrorType, MessageFlag, MessageType
 from .errors import InvalidMessageError
 from .signature import (
+    Variant,
     SignatureTree,
     get_signature_tree,
     _SIGNATURE_TREE_O,
