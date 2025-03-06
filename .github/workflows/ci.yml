@@ -49,8 +49,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - name: Update apt
-        run: sudo apt update
       - name: Install libs
         run: sudo apt-get install -y dbus-daemon python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
       - uses: snok/install-poetry@v1.4.1
@@ -74,12 +72,35 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
+  test_big_endian:
+    name: Big-endian tests
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture:
+          - "s390x"
+        ubuntu_version:
+          - "22.04"
+        python_version:
+          - "3.13"
+
+    runs-on: ubuntu-${{ matrix.ubuntu_version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Test
+        uses: frequenz-floss/gh-action-run-python-in-qemu@v0.x.x
+        with:
+          architecture: ${{ matrix.architecture }}
+          script: "scripts/run_test_qemu.sh"
+          ubuntu_version: ${{ matrix.ubuntu_version }}
+          python_version: ${{ matrix.python_version }}
+
   benchmark:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Update apt
-        run: sudo apt update
       - name: Install libs
         run: sudo apt-get install -y dbus-daemon python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
       - uses: snok/install-poetry@v1.4.1
