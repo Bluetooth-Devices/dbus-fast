@@ -328,11 +328,14 @@ class SignatureTree:
     :ivar ~.signature: The signature of this signature tree.
     :vartype ~.signature: str
 
+    :ivar root_type: The root type of this signature tree.
+    :vartype root_type: :class:`SignatureType
+
     :raises:
         :class:`InvalidSignatureError` if the given signature is not valid.
     """
 
-    __slots__ = ("signature", "types")
+    __slots__ = ("root_type", "signature", "types")
 
     def __init__(self, signature: str = "") -> None:
         self.signature = signature
@@ -345,6 +348,8 @@ class SignatureTree:
         while signature:
             (type_, signature) = SignatureType._parse_next(signature)
             self.types.append(type_)
+
+        self.root_type = self.types[0] if self.types else None
 
     def __eq__(self, other: object) -> bool:
         if type(other) is SignatureTree:
@@ -403,14 +408,6 @@ class Variant:
         verify: bool = True,
     ) -> None:
         """Init a new Variant."""
-        self._init_variant(signature, value, verify)
-
-    def _init_variant(
-        self,
-        signature: Union[str, SignatureTree, SignatureType],
-        value: Any,
-        verify: bool,
-    ) -> None:
         if type(signature) is SignatureTree:
             signature_tree = signature
             self.signature = signature_tree.signature
@@ -434,6 +431,14 @@ class Variant:
                     "variants must have a signature for a single complete type"
                 )
             self.type.verify(value)
+
+    @staticmethod
+    def _factory(signature_tree: SignatureTree, value: Any) -> "Variant":
+        self = Variant.__new__(Variant)
+        self.signature = signature_tree.signature
+        self.type = signature_tree.root_type
+        self.value = value
+        return self
 
     def __eq__(self, other: object) -> bool:
         if type(other) is Variant:
