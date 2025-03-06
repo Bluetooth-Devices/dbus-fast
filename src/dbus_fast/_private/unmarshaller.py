@@ -191,7 +191,7 @@ bytearray_ = bytearray
 
 
 def _bytearray_to_uint32_little_endian(buffer: bytearray_, pos: int_) -> int_:
-    return (
+    return (  # pragma: no cover
         buffer[pos]
         | (buffer[pos + 1] << 8)
         | (buffer[pos + 2] << 16)
@@ -200,7 +200,7 @@ def _bytearray_to_uint32_little_endian(buffer: bytearray_, pos: int_) -> int_:
 
 
 def _bytearray_to_uint32_big_endian(buffer: bytearray_, pos: int_) -> int_:
-    return (
+    return (  # pragma: no cover
         buffer[pos + 3]
         | (buffer[pos + 2] << 8)
         | (buffer[pos + 1] << 16)
@@ -209,19 +209,19 @@ def _bytearray_to_uint32_big_endian(buffer: bytearray_, pos: int_) -> int_:
 
 
 def _bytearray_to_int16_little_endian(buffer: bytearray_, pos: int_) -> int_:
-    return buffer[pos] | (buffer[pos + 1] << 8)
+    return buffer[pos] | (buffer[pos + 1] << 8)  # pragma: no cover
 
 
 def _bytearray_to_int16_big_endian(buffer: bytearray_, pos: int_) -> int_:
-    return buffer[pos + 1] | (buffer[pos] << 8)
+    return buffer[pos + 1] | (buffer[pos] << 8)  # pragma: no cover
 
 
 def _bytearray_to_uint16_little_endian(buffer: bytearray_, pos: int_) -> int_:
-    return buffer[pos] | (buffer[pos + 1] << 8)
+    return buffer[pos] | (buffer[pos + 1] << 8)  # pragma: no cover
 
 
 def _bytearray_to_uint16_big_endian(buffer: bytearray_, pos: int_) -> int_:
-    return buffer[pos + 1] | (buffer[pos] << 8)
+    return buffer[pos + 1] | (buffer[pos] << 8)  # pragma: no cover
 
 
 # Alignment padding is handled with the following formula below
