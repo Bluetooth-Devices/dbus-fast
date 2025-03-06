@@ -527,23 +527,22 @@ class Unmarshaller:
                 )
             if self._buf_len < self._pos:
                 raise IndexError("Not enough data to read string")
-            return self._buf_ustr[str_start : self._pos - 1].decode()
-        self._pos += self._uint32_unpack(self._buf, str_start - UINT32_SIZE)[0] + 1
-        return self._buf[str_start : self._pos - 1].decode()
+        else:
+            self._pos += self._uint32_unpack(self._buf, str_start - UINT32_SIZE)[0] + 1
+        return self._buf_ustr[str_start : self._pos - 1].decode()
 
     def read_signature(self, type_: _SignatureType) -> str:
         return self._read_signature()
 
     def _read_signature(self) -> str:
-        signature_len = self._buf[self._pos]  # byte
+        signature_len = self._buf_ustr[self._pos]  # byte
         o = self._pos + 1
         # read terminating '\0' byte as well (str_length + 1)
         self._pos = o + signature_len + 1
         if cython.compiled:
             if self._buf_len < self._pos:
                 raise IndexError("Not enough data to read signature")
-            return self._buf_ustr[o : o + signature_len].decode()
-        return self._buf[o : o + signature_len].decode()
+        return self._buf_ustr[o : o + signature_len].decode()
 
     def read_variant(self, type_: _SignatureType) -> Variant:
         return self._read_variant()
@@ -722,22 +721,21 @@ class Unmarshaller:
     def _header_fields(self, header_length: _int) -> list[Any]:
         """Header fields are always a(yv)."""
         beginning_pos = self._pos
-        buf = self._buf
         readers = self._readers
         headers = _EMPTY_HEADERS.copy()
         while self._pos - beginning_pos < header_length:
             # Now read the y (byte) of struct (yv)
             self._pos += (-self._pos & 7) + 1  # align 8 + 1 for 'y' byte
-            field_0 = buf[self._pos - 1]
+            field_0 = self._buf[self._pos - 1]
 
             # Now read the v (variant) of struct (yv)
             # first we read the signature
-            signature_len = buf[self._pos]  # byte
+            signature_len = self._buf[self._pos]  # byte
             o = self._pos + 1
             self._pos += signature_len + 2  # one for the byte, one for the '\0'
             if field_0 == HEADER_UNIX_FDS_IDX:  # defined by self._unix_fds
                 continue
-            token_as_int = buf[o]
+            token_as_int = self._buf[o]
             # Now that we have the token we can read the variant value
             # Strings and signatures are the most common types
             # so we inline them for performance
@@ -746,7 +744,7 @@ class Unmarshaller:
             elif token_as_int == TOKEN_G_AS_INT:
                 headers[field_0] = self._read_signature()
             else:
-                token = buf[o : o + signature_len].decode()
+                token = self._buf[o : o + signature_len].decode()
                 # There shouldn't be any other types in the header
                 # but just in case, we'll read it using the slow path
                 headers[field_0] = readers[token](
