@@ -906,10 +906,12 @@ class BaseMessageBus:
         return partial(self._callback_method_handler, interface, method)
 
     def _find_message_handler(self, msg: _Message) -> HandlerType | None:
+        """Find the message handler for for METHOD_CALL messages."""
         if TYPE_CHECKING:
-            assert msg.interface is not None
+            assert msg.member is not None
+            assert msg.path is not None
 
-        if "org.freedesktop.DBus." in msg.interface:
+        if msg.interface is not None and "org.freedesktop.DBus." in msg.interface:
             if (
                 msg.interface == "org.freedesktop.DBus.Introspectable"
                 and msg.member == "Introspect"
@@ -932,19 +934,33 @@ class BaseMessageBus:
             ):
                 return self._default_get_managed_objects_handler
 
-        if (
-            msg.path is not None
-            and msg.member is not None
-            and (interfaces := self._path_exports.get(msg.path)) is not None
-            and (interface := interfaces.get(msg.interface)) is not None
-            and (
+        if (interfaces := self._path_exports.get(msg.path)) is None:
+            return None
+
+        if msg.interface is None:
+            return self._find_any_message_handler_matching_signature(interfaces, msg)
+
+        if (interface := interfaces.get(msg.interface)) is not None and (
+            handler := ServiceInterface._get_enabled_handler_by_name_signature(
+                interface, self, msg.member, msg.signature
+            )
+        ) is not None:
+            return handler
+
+        return None
+
+    def _find_any_message_handler_matching_signature(
+        self, interfaces: dict[str, ServiceInterface], msg: _Message
+    ) -> HandlerType | None:
+        # No interface, so we need to search all interfaces for the method
+        # with a matching signature
+        for interface in interfaces.values():
+            if (
                 handler := ServiceInterface._get_enabled_handler_by_name_signature(
                     interface, self, msg.member, msg.signature
                 )
-            )
-            is not None
-        ):
-            return handler
+            ) is not None:
+                return handler
         return None
 
     def _default_introspect_handler(self, msg: Message, send_reply: SendReply) -> None:
