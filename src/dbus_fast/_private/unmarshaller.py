@@ -239,6 +239,8 @@ class Unmarshaller:
         "_endian",
     )
 
+    _stream_reader: Callable[[int], bytes]
+
     def __init__(
         self,
         stream: io.BufferedRWPair | None = None,
