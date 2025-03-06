@@ -280,6 +280,7 @@ class Unmarshaller:
         "_unix_fds",
         "_buf",
         "_buf_ustr",
+        "_buf_len",
         "_pos",
         "_stream",
         "_sock",
@@ -313,6 +314,7 @@ class Unmarshaller:
         self._unix_fds: list[int] = []
         self._buf: bytearray = bytearray.__new__(bytearray)  # Actual buffer
         self._buf_ustr = self._buf  # Used to avoid type checks
+        self._buf_len = 0
         self._stream = stream
         self._sock = sock
         self._message: Message | None = None
@@ -351,10 +353,12 @@ class Unmarshaller:
         """
         self._unix_fds = []
         to_clear = HEADER_SIGNATURE_SIZE + self._msg_len
-        if len(self._buf) == to_clear:
+        if self._buf_len == to_clear:
             self._buf = bytearray.__new__(bytearray)
+            self._buf_len = 0
         else:
             del self._buf[:to_clear]
+            self._buf_len -= to_clear
         self._buf_ustr = self._buf
         self._msg_len = 0  # used to check if we have ready the header
         self._read_complete = False  # used to check if we have ready the message
@@ -370,7 +374,7 @@ class Unmarshaller:
 
     def _has_another_message_in_buffer(self) -> bool:
         """Check if there is another message in the buffer."""
-        return len(self._buf) > HEADER_SIGNATURE_SIZE + self._msg_len
+        return self._buf_len > HEADER_SIGNATURE_SIZE + self._msg_len
 
     def _read_sock_with_fds(self, pos: _int, missing_bytes: _int) -> None:
         """reads from the socket, storing any fds sent and handling errors
@@ -400,7 +404,8 @@ class Unmarshaller:
         if not msg:
             raise EOFError()
         self._buf += msg
-        if len(self._buf) < pos:
+        self._buf_len = len(self._buf)
+        if self._buf_len < pos:
             raise MARSHALL_STREAM_END_ERROR
 
     def _read_sock_without_fds(self, pos: _int) -> None:
@@ -422,7 +427,8 @@ class Unmarshaller:
             if not data:
                 raise EOFError()
             self._buf += data
-            if len(self._buf) >= pos:
+            self._buf_len = len(self._buf)
+            if self._buf_len >= pos:
                 return
 
     def _read_stream(self, pos: _int, missing_bytes: _int) -> None:
@@ -433,7 +439,8 @@ class Unmarshaller:
         if not data:
             raise EOFError()
         self._buf += data
-        if len(self._buf) < pos:
+        self._buf_len = len(self._buf)
+        if self._buf_len < pos:
             raise MARSHALL_STREAM_END_ERROR
 
     def _read_to_pos(self, pos: _int) -> None:
@@ -449,7 +456,7 @@ class Unmarshaller:
         :returns:
             None
         """
-        missing_bytes = pos - len(self._buf)
+        missing_bytes = pos - self._buf_len
         if missing_bytes <= 0:
             return
         if self._sock is None:
@@ -466,7 +473,7 @@ class Unmarshaller:
     def _read_uint32_unpack(self) -> int:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
         if cython.compiled:
-            if len(self._buf) < self._pos:
+            if self._buf_len < self._pos:
                 raise IndexError("Not enough data to read uint32")
             if self._endian == LITTLE_ENDIAN:
                 return _bytearray_to_uint32_little_endian(
@@ -483,7 +490,7 @@ class Unmarshaller:
     def _read_uint16_unpack(self) -> int:
         self._pos += UINT16_SIZE + (-self._pos & (UINT16_SIZE - 1))  # align
         if cython.compiled:
-            if len(self._buf) < self._pos:
+            if self._buf_len < self._pos:
                 raise IndexError("Not enough data to read uint16")
             if self._endian == LITTLE_ENDIAN:
                 return _bytearray_to_uint16_little_endian(
@@ -500,7 +507,7 @@ class Unmarshaller:
     def _read_int16_unpack(self) -> int:
         self._pos += INT16_SIZE + (-self._pos & (INT16_SIZE - 1))  # align
         if cython.compiled:
-            if len(self._buf) < self._pos:
+            if self._buf_len < self._pos:
                 raise IndexError("Not enough data to read int16")
             if self._endian == LITTLE_ENDIAN:
                 return _bytearray_to_int16_little_endian(
@@ -526,7 +533,7 @@ class Unmarshaller:
         str_start = self._pos
         # read terminating '\0' byte as well (str_length + 1)
         if cython.compiled:
-            if len(self._buf) < self._pos:
+            if self._buf_len < self._pos:
                 raise IndexError("Not enough data to read uint32")
             if self._endian == LITTLE_ENDIAN:
                 self._pos += (
@@ -542,8 +549,10 @@ class Unmarshaller:
                     )
                     + 1
                 )
-        else:
-            self._pos += self._uint32_unpack(self._buf, str_start - UINT32_SIZE)[0] + 1
+            if self._buf_len < self._pos:
+                raise IndexError("Not enough data to read string")
+            return self._buf_ustr[str_start : self._pos - 1].decode()
+        self._pos += self._uint32_unpack(self._buf, str_start - UINT32_SIZE)[0] + 1
         return self._buf[str_start : self._pos - 1].decode()
 
     def read_signature(self, type_: _SignatureType) -> str:
@@ -642,7 +651,7 @@ class Unmarshaller:
             -self._pos & (UINT32_SIZE - 1)
         ) + UINT32_SIZE  # align for the uint32
         if cython.compiled:
-            if len(self._buf) < self._pos:
+            if self._buf_len < self._pos:
                 raise IndexError("Not enough data to read uint32")
             if self._endian == LITTLE_ENDIAN:
                 array_length = _bytearray_to_uint32_little_endian(
