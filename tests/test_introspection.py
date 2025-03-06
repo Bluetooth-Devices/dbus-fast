@@ -2,9 +2,9 @@ import os
 
 from dbus_fast import (
     ArgDirection,
+    InvalidMemberNameError,
     PropertyAccess,
     SignatureType,
-    InvalidMemberNameError,
 )
 from dbus_fast import introspection as intr
 
