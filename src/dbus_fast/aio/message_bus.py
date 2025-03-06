@@ -29,13 +29,15 @@ NO_REPLY_EXPECTED_VALUE = MessageFlag.NO_REPLY_EXPECTED.value
 
 
 def _generate_hello_serialized(next_serial: int) -> bytes:
-    return Message(
-        destination="org.freedesktop.DBus",
-        path="/org/freedesktop/DBus",
-        interface="org.freedesktop.DBus",
-        member="Hello",
-        serial=next_serial,
-    )._marshall(False)
+    return bytes(
+        Message(
+            destination="org.freedesktop.DBus",
+            path="/org/freedesktop/DBus",
+            interface="org.freedesktop.DBus",
+            member="Hello",
+            serial=next_serial,
+        )._marshall(False)
+    )
 
 
 HELLO_1_SERIALIZED = _generate_hello_serialized(1)
