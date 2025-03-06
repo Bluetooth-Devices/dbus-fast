@@ -208,7 +208,9 @@ async def test_methods(interface_class):
     reply = await call("does_not_exist")
     assert reply.message_type == MessageType.ERROR, reply.body[0]
     assert reply.error_name == "org.freedesktop.DBus.Error.UnknownMethod", reply.body[0]
-    assert reply.body == ["an error occurred"]
+    assert reply.body == [
+        'test.interface.does_not_exist with signature "" could not be found'
+    ]
 
     bus1.disconnect()
     bus2.disconnect()
