@@ -26,6 +26,7 @@ class SignatureType:
     def __init__(self, token: str) -> None:
         """Init a new SignatureType."""
         self.token: str = token
+        self.token_as_int = ord(token)
         self.children: list[SignatureType] = []
         self._signature: Optional[str] = None
 
