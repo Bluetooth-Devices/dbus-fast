@@ -139,6 +139,7 @@ class BaseProxyInterface:
                 data = body
 
             cb_result = handler.fn(*data)
+            raise ValueError("signal handlers cannot return values")
             if isinstance(cb_result, Coroutine):
                 # Save a strong reference to the task so it doesn't get garbage
                 # collected before it finishes.
