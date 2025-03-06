@@ -24,7 +24,7 @@ def signature_contains_type(
         st = queue.pop()
         if st.token == token:
             return True
-        elif st.token == "v":
+        if st.token == "v":
             contains_variants = True
         queue.extend(st.children)
 
@@ -42,7 +42,7 @@ def signature_contains_type(
             member.signature, [member.value], token
         ):
             return True
-        elif type(member) is list:
+        if type(member) is list:
             queue.extend(member)
         elif type(member) is dict:
             queue.extend(member.values())

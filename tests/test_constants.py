@@ -9,4 +9,4 @@ def test_message_flag_map():
 
 def test_error_type():
     err = DBusError(ErrorType.FAILED, "")
-    assert ErrorType.FAILED == err.type
+    assert err.type == ErrorType.FAILED

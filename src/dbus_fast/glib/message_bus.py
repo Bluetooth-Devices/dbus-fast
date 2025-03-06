@@ -97,10 +97,9 @@ class _MessageWritableSource(_GLibSource):
 
             if not self.bus._buffered_messages:
                 return GLib.SOURCE_REMOVE
-            else:
-                message = self.bus._buffered_messages.pop(0)
-                self.message_stream = io.BytesIO(message._marshall(False))
-                return GLib.SOURCE_CONTINUE
+            message = self.bus._buffered_messages.pop(0)
+            self.message_stream = io.BytesIO(message._marshall(False))
+            return GLib.SOURCE_CONTINUE
         except BlockingIOError:
             return GLib.SOURCE_CONTINUE
         except Exception as e:
@@ -180,7 +179,7 @@ class MessageBus(BaseMessageBus):
         try:
             self._process_message(msg)
         except Exception as e:
-            logging.error(
+            logging.exception(
                 f"got unexpected error processing a message: {e}.\n{traceback.format_exc()}"
             )
 

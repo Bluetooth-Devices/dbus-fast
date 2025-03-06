@@ -11,7 +11,7 @@ async def test_multiple_flags_in_message():
             super().__init__(name)
 
         @method()
-        def Echo(self, what: "s") -> "s":  # noqa: F821
+        def Echo(self, what: "s") -> "s":
             return what
 
     bus = await MessageBus().connect()

@@ -125,8 +125,7 @@ async def main():
     def default(o):
         if type(o) is Variant:
             return [o.signature, o.value]
-        else:
-            raise json.JSONDecodeError()
+        raise json.JSONDecodeError()
 
     print(json.dumps(result.body, indent=2, default=default))
 

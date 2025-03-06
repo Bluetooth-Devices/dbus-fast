@@ -132,10 +132,10 @@ def test_marshalling_with_table():
         if buf != data:
             print("message:")
             print(json_dump(item["message"]))
-            print("")
+            print()
             print("mine:")
             print_buf(bytes(buf))
-            print("")
+            print()
             print("theirs:")
             print_buf(data)
 
