@@ -259,9 +259,9 @@ class Unmarshaller:
         self._flag = 0
         self._msg_len = 0
         self._is_native = 0
-        self._uint32_unpack: Callable | None = None
-        self._int16_unpack: Callable | None = None
-        self._uint16_unpack: Callable | None = None
+        self._uint32_unpack: Callable[[bytearray], int] | None = None
+        self._int16_unpack: Callable[[bytearray], int] | None = None
+        self._uint16_unpack: Callable[[bytearray], int] | None = None
         self._negotiate_unix_fd = negotiate_unix_fd
         self._read_complete = False
         if stream:
