@@ -6,7 +6,6 @@ import traceback
 import xml.etree.ElementTree as ET
 from functools import partial
 from typing import Any, Callable, TYPE_CHECKING
-from collections.abc import Iterable
 
 from . import introspection as intr
 from ._private.address import get_bus_address, parse_address
@@ -939,9 +938,7 @@ class BaseMessageBus:
             return None
 
         if msg.interface is None:
-            return self._find_any_message_handler_matching_signature(
-                interfaces.values(), msg
-            )
+            return self._find_any_message_handler_matching_signature(interfaces, msg)
 
         if (interface := interfaces.get(msg.interface)) is not None and (
             handler := ServiceInterface._get_enabled_handler_by_name_signature(
@@ -953,11 +950,11 @@ class BaseMessageBus:
         return None
 
     def _find_any_message_handler_matching_signature(
-        self, interfaces: Iterable[ServiceInterface], msg: _Message
+        self, interfaces: dict[str, ServiceInterface], msg: _Message
     ) -> HandlerType | None:
         # No interface, so we need to search all interfaces for the method
         # with a matching signature
-        for interface in interfaces:
+        for interface in interfaces.values():
             if (
                 handler := ServiceInterface._get_enabled_handler_by_name_signature(
                     interface, self, msg.member, msg.signature

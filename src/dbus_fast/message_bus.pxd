@@ -58,7 +58,7 @@ cdef class BaseMessageBus:
     )
     cdef _find_message_handler(self, Message msg)
 
-    cdef _find_any_message_handler_matching_signature(self, object interfaces, Message msg)
+    cdef _find_any_message_handler_matching_signature(self, dict interfaces, Message msg)
 
     cdef _setup_socket(self)
 
