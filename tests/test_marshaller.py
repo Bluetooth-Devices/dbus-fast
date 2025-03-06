@@ -31,9 +31,12 @@ def test_bytearray_to_uint16_big_endian():
     assert bytearray_to_uint16_big_endian(bytearray(b"\x01\x02"), 0) == 258
 
 
-@pytest.mark.skipif(not is_compiled(), reason="requires cython")
 def test_bytearray_to_int16_big_endian():
     assert bytearray_to_int16_big_endian(bytearray(b"\x01\x02"), 0) == 258
+
+
+@pytest.mark.skipif(not is_compiled(), reason="requires cython")
+def test_bytearray_to_int16_big_endian_signed():
     assert bytearray_to_int16_big_endian(bytearray(b"\xff\xff"), 0) == -1
 
 
@@ -47,9 +50,12 @@ def test_bytearray_to_uint16_little_endian():
     assert bytearray_to_uint16_little_endian(bytearray(b"\x01\x02"), 0) == 513
 
 
-@pytest.mark.skipif(not is_compiled(), reason="requires cython")
 def test_bytearray_to_int16_little_endian():
     assert bytearray_to_int16_little_endian(bytearray(b"\x01\x02"), 0) == 513
+
+
+@pytest.mark.skipif(not is_compiled(), reason="requires cython")
+def test_bytearray_to_int16_little_endian_signed():
     assert bytearray_to_int16_little_endian(bytearray(b"\xff\xff"), 0) == -1
 
 
