@@ -132,6 +132,7 @@ cdef class Unmarshaller:
 
     cdef object _unix_fds
     cdef bytearray _buf
+    cdef const unsigned char * _buf_ustr
     cdef unsigned int _pos
     cdef object _stream
     cdef object _sock

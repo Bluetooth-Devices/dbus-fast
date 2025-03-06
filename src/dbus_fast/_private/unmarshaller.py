@@ -279,6 +279,7 @@ class Unmarshaller:
     __slots__ = (
         "_unix_fds",
         "_buf",
+        "_buf_ustr",
         "_pos",
         "_stream",
         "_sock",
@@ -311,6 +312,7 @@ class Unmarshaller:
     ) -> None:
         self._unix_fds: list[int] = []
         self._buf: bytearray = bytearray.__new__(bytearray)  # Actual buffer
+        self._buf_ustr = self._buf  # Used to avoid type checks
         self._stream = stream
         self._sock = sock
         self._message: Message | None = None
@@ -353,6 +355,7 @@ class Unmarshaller:
             self._buf = bytearray.__new__(bytearray)
         else:
             del self._buf[:to_clear]
+        self._buf_ustr = self._buf
         self._msg_len = 0  # used to check if we have ready the header
         self._read_complete = False  # used to check if we have ready the message
         # No need to reset the unpack functions, they are set in _read_header
@@ -455,6 +458,7 @@ class Unmarshaller:
             self._read_sock_with_fds(pos, missing_bytes)
         else:
             self._read_sock_without_fds(pos)
+        self._buf_ustr = self._buf
 
     def read_uint32_unpack(self, type_: _SignatureType) -> int:
         return self._read_uint32_unpack()
@@ -466,9 +470,11 @@ class Unmarshaller:
                 raise IndexError("Not enough data to read uint32")
             if self._endian == LITTLE_ENDIAN:
                 return _bytearray_to_uint32_little_endian(
-                    self._buf, self._pos - UINT32_SIZE
+                    self._buf_ustr, self._pos - UINT32_SIZE
                 )
-            return _bytearray_to_uint32_big_endian(self._buf, self._pos - UINT32_SIZE)
+            return _bytearray_to_uint32_big_endian(
+                self._buf_ustr, self._pos - UINT32_SIZE
+            )
         return self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
 
     def read_uint16_unpack(self, type_: _SignatureType) -> int:
@@ -481,9 +487,11 @@ class Unmarshaller:
                 raise IndexError("Not enough data to read uint16")
             if self._endian == LITTLE_ENDIAN:
                 return _bytearray_to_uint16_little_endian(
-                    self._buf, self._pos - UINT16_SIZE
+                    self._buf_ustr, self._pos - UINT16_SIZE
                 )
-            return _bytearray_to_uint16_big_endian(self._buf, self._pos - UINT16_SIZE)
+            return _bytearray_to_uint16_big_endian(
+                self._buf_ustr, self._pos - UINT16_SIZE
+            )
         return self._uint16_unpack(self._buf, self._pos - UINT16_SIZE)[0]
 
     def read_int16_unpack(self, type_: _SignatureType) -> int:
@@ -496,9 +504,11 @@ class Unmarshaller:
                 raise IndexError("Not enough data to read int16")
             if self._endian == LITTLE_ENDIAN:
                 return _bytearray_to_int16_little_endian(
-                    self._buf, self._pos - INT16_SIZE
+                    self._buf_ustr, self._pos - INT16_SIZE
                 )
-            return _bytearray_to_int16_big_endian(self._buf, self._pos - INT16_SIZE)
+            return _bytearray_to_int16_big_endian(
+                self._buf_ustr, self._pos - INT16_SIZE
+            )
         return self._int16_unpack(self._buf, self._pos - INT16_SIZE)[0]
 
     def read_boolean(self, type_: _SignatureType) -> bool:
@@ -521,13 +531,15 @@ class Unmarshaller:
             if self._endian == LITTLE_ENDIAN:
                 self._pos += (
                     _bytearray_to_uint32_little_endian(
-                        self._buf, str_start - UINT32_SIZE
+                        self._buf_ustr, str_start - UINT32_SIZE
                     )
                     + 1
                 )
             else:
                 self._pos += (
-                    _bytearray_to_uint32_big_endian(self._buf, str_start - UINT32_SIZE)
+                    _bytearray_to_uint32_big_endian(
+                        self._buf_ustr, str_start - UINT32_SIZE
+                    )
                     + 1
                 )
         else:
@@ -634,11 +646,11 @@ class Unmarshaller:
                 raise IndexError("Not enough data to read uint32")
             if self._endian == LITTLE_ENDIAN:
                 array_length = _bytearray_to_uint32_little_endian(
-                    self._buf, self._pos - UINT32_SIZE
+                    self._buf_ustr, self._pos - UINT32_SIZE
                 )
             else:
                 array_length = _bytearray_to_uint32_big_endian(
-                    self._buf, self._pos - UINT32_SIZE
+                    self._buf_ustr, self._pos - UINT32_SIZE
                 )
         else:
             array_length = self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
@@ -758,11 +770,10 @@ class Unmarshaller:
         # Signature is of the header is
         # BYTE, BYTE, BYTE, BYTE, UINT32, UINT32, ARRAY of STRUCT of (BYTE,VARIANT)
         self._read_to_pos(HEADER_SIGNATURE_SIZE)
-        ustring = self._buf
-        endian = ustring[0]
-        self._message_type = ustring[1]
-        self._flag = ustring[2]
-        protocol_version = ustring[3]
+        endian = self._buf_ustr[0]
+        self._message_type = self._buf_ustr[1]
+        self._flag = self._buf_ustr[2]
+        protocol_version = self._buf_ustr[3]
 
         if protocol_version != PROTOCOL_VERSION:
             raise InvalidMessageError(
@@ -771,13 +782,15 @@ class Unmarshaller:
 
         if cython.compiled:
             if endian == LITTLE_ENDIAN:
-                self._body_len = _bytearray_to_uint32_little_endian(ustring, 4)
-                self._serial = _bytearray_to_uint32_little_endian(ustring, 8)
-                self._header_len = _bytearray_to_uint32_little_endian(ustring, 12)
+                self._body_len = _bytearray_to_uint32_little_endian(self._buf_ustr, 4)
+                self._serial = _bytearray_to_uint32_little_endian(self._buf_ustr, 8)
+                self._header_len = _bytearray_to_uint32_little_endian(
+                    self._buf_ustr, 12
+                )
             elif endian == BIG_ENDIAN:
-                self._body_len = _bytearray_to_uint32_big_endian(ustring, 4)
-                self._serial = _bytearray_to_uint32_big_endian(ustring, 8)
-                self._header_len = _bytearray_to_uint32_big_endian(ustring, 12)
+                self._body_len = _bytearray_to_uint32_big_endian(self._buf_ustr, 4)
+                self._serial = _bytearray_to_uint32_big_endian(self._buf_ustr, 8)
+                self._header_len = _bytearray_to_uint32_big_endian(self._buf_ustr, 12)
             else:
                 raise InvalidMessageError(
                     f"Expecting endianness as the first byte, got {endian} from {self._buf}"
