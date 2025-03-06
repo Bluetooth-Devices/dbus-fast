@@ -65,6 +65,7 @@ class BaseProxyInterface:
         self.bus = bus
         self._signal_handlers: dict[str, list[SignalHandler]] = {}
         self._signal_match_rule = f"type='signal',sender={bus_name},interface={introspection.name},path={path}"
+        self._background_tasks: set[asyncio.Task] = set()
 
     _underscorer1 = re.compile(r"(.)([A-Z][a-z]+)")
     _underscorer2 = re.compile(r"([a-z0-9])([A-Z])")
@@ -137,7 +138,11 @@ class BaseProxyInterface:
 
             cb_result = handler.fn(*data)
             if isinstance(cb_result, Coroutine):
-                asyncio.create_task(cb_result)
+                # Save a strong reference to the task so it doesn't get garbage
+                # collected before it finishes.
+                task = asyncio.create_task(cb_result)
+                self._background_tasks.add(task)
+                task.add_done_callback(self._background_tasks.remove)
 
     def _add_signal(self, intr_signal: intr.Signal, interface: intr.Interface) -> None:
         def on_signal_fn(fn: Callable, *, unpack_variants: bool = False):
