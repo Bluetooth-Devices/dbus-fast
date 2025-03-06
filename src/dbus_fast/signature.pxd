@@ -6,6 +6,7 @@ import cython
 cdef class SignatureType:
 
     cdef public str token
+    cdef public unsigned int token_as_int
     cdef public list children
     cdef str _signature
 

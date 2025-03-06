@@ -568,9 +568,8 @@ class Node:
                     indent(elem, level + 1)
                 if not elem.tail or not elem.tail.strip():
                     elem.tail = i
-            else:
-                if level and (not elem.tail or not elem.tail.strip()):
-                    elem.tail = i
+            elif level and (not elem.tail or not elem.tail.strip()):
+                elem.tail = i
 
         xml = self.to_xml()
         indent(xml)

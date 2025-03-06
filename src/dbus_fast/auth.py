@@ -87,8 +87,7 @@ class AuthExternal(Authenticator):
             if self.negotiate_unix_fd:
                 self.negotiating_fds = True
                 return "NEGOTIATE_UNIX_FD"
-            else:
-                return "BEGIN"
+            return "BEGIN"
 
         if response is _AuthResponse.AGREE_UNIX_FD:
             return "BEGIN"

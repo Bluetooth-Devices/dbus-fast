@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from struct import Struct, error
 from typing import Any, Callable
 
@@ -8,8 +9,8 @@ PACK_LITTLE_ENDIAN = "<"
 
 PACK_UINT32 = Struct(f"{PACK_LITTLE_ENDIAN}I").pack
 PACKED_UINT32_ZERO = PACK_UINT32(0)
-PACKED_BOOL_FALSE = PACK_UINT32(int(0))
-PACKED_BOOL_TRUE = PACK_UINT32(int(1))
+PACKED_BOOL_FALSE = PACK_UINT32(0)
+PACKED_BOOL_TRUE = PACK_UINT32(1)
 
 _int = int
 _bytes = bytes
@@ -19,7 +20,7 @@ _str = str
 class Marshaller:
     """Marshall data for Dbus."""
 
-    __slots__ = ("signature_tree", "_buf", "body")
+    __slots__ = ("_buf", "body", "signature_tree")
 
     def __init__(self, signature: str, body: list[Any]) -> None:
         """Marshaller constructor."""
@@ -157,25 +158,24 @@ class Marshaller:
         if t == "y":
             self._buf.append(body)
             return 1
-        elif t == "u":
+        if t == "u":
             written = self._align(4)
             self._buf += PACK_UINT32(body)
             return written + 4
-        elif t == "a":
+        if t == "a":
             return self._write_array(body, type_)
-        elif t == "s" or t == "o":
+        if t == "s" or t == "o":
             return self._write_string(body)
-        elif t == "v":
+        if t == "v":
             return self._write_variant(body, type_)
-        elif t == "b":
+        if t == "b":
             return self._write_boolean(body)
-        else:
-            writer, packer, size = self._writers[t]
-            if not writer:
-                written = self._align(size)
-                self._buf += packer(body)  # type: ignore[misc]
-                return written + size
-            return writer(self, body, type_)
+        writer, packer, size = self._writers[t]
+        if not writer:
+            written = self._align(size)
+            self._buf += packer(body)  # type: ignore[misc]
+            return written + size
+        return writer(self, body, type_)
 
     def marshall(self) -> bytearray:
         """Marshalls the body into a byte array"""
