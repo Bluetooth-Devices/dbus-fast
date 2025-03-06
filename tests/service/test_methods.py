@@ -172,7 +172,7 @@ async def test_methods(interface_class):
     assert reply.message_type == MessageType.ERROR, reply.body[0]
     assert reply.error_name == "org.freedesktop.DBus.Error.UnknownMethod", reply.body[0]
     assert reply.body == [
-        'wrong.echo_containers with signature "as" could not be found'
+        'Wrong.echo_containers with signature "as" could not be found'
     ]
 
     # No interface should result in finding anything that matches the member name
