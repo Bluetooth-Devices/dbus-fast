@@ -149,7 +149,8 @@ cdef class Unmarshaller:
     cdef object _int16_unpack
     cdef object _uint16_unpack
     cdef object _stream_reader
-    cdef object _sock_reader
+    cdef object _sock_with_fds_reader
+    cdef object _sock_without_fds_reader
     cdef bint _negotiate_unix_fd
     cdef bint _read_complete
     cdef unsigned int _endian
