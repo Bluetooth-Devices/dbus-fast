@@ -84,7 +84,7 @@ jobs:
         with:
           architecture: s390x
           script: "scripts/run_test_qemu.sh"
-          ubuntu_version: ubuntu-latest
+          ubuntu_version: 22.04
           python_version: 3.13
 
   benchmark:
