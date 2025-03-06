@@ -737,7 +737,6 @@ class Unmarshaller:
     def _header_fields(self, header_length: _int) -> list[Any]:
         """Header fields are always a(yv)."""
         beginning_pos = self._pos
-        readers = self._readers
         headers = _EMPTY_HEADERS.copy()
         if cython.compiled:
             if self._buf_len < self._pos + header_length:
@@ -766,7 +765,7 @@ class Unmarshaller:
                 token = self._buf[o : o + signature_len].decode()
                 # There shouldn't be any other types in the header
                 # but just in case, we'll read it using the slow path
-                headers[field_0] = readers[token](
+                headers[field_0] = self._readers[token](
                     self, get_signature_tree(token).types[0]
                 )
         return headers
