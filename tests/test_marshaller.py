@@ -8,15 +8,14 @@ import pytest
 
 from dbus_fast import Message, MessageFlag, MessageType, SignatureTree, Variant
 from dbus_fast._private._cython_compat import FakeCython
+from dbus_fast._private.constants import BIG_ENDIAN, LITTLE_ENDIAN
 from dbus_fast._private.unmarshaller import (
     Unmarshaller,
-    is_compiled,
     buffer_to_int16,
-    buffer_to_uint32,
     buffer_to_uint16,
+    buffer_to_uint32,
+    is_compiled,
 )
-from dbus_fast._private.constants import BIG_ENDIAN, LITTLE_ENDIAN
-
 from dbus_fast.unpack import unpack_variants
 
 
@@ -133,10 +132,10 @@ def test_marshalling_with_table():
         if buf != data:
             print("message:")
             print(json_dump(item["message"]))
-            print("")
+            print()
             print("mine:")
             print_buf(bytes(buf))
-            print("")
+            print()
             print("theirs:")
             print_buf(data)
 

@@ -1,5 +1,6 @@
-from dbus_fast import Message
 from pytest_codspeed import BenchmarkFixture
+
+from dbus_fast import Message
 
 message = Message(
     destination="org.bluez",

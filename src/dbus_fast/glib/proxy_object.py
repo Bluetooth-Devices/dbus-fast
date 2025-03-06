@@ -253,12 +253,12 @@ class ProxyInterface(BaseProxyInterface):
             def call_notify(msg, err):
                 if err:
                     callback(None, err)
-                    return
+                    return None
                 try:
                     BaseProxyInterface._check_method_return(msg)
                 except Exception as e:
                     callback(None, e)
-                    return
+                    return None
 
                 return callback(None, None)
 
@@ -289,7 +289,6 @@ class ProxyInterface(BaseProxyInterface):
             main.run()
             if reply_error:
                 raise reply_error
-            return None
 
         snake_case = super()._to_snake_case(intr_property.name)
         setattr(self, f"get_{snake_case}", property_getter)

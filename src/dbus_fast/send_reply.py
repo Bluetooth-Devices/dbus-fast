@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import traceback
 from types import TracebackType
 from typing import TYPE_CHECKING

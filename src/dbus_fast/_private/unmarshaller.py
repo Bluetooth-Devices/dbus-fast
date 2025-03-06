@@ -7,7 +7,7 @@ import socket
 import sys
 from collections.abc import Iterable
 from struct import Struct
-from typing import Any, Callable, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable
 
 from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP, MessageFlag
 from ..errors import InvalidMessageError
@@ -260,30 +260,30 @@ class Unmarshaller:
     """
 
     __slots__ = (
-        "_unix_fds",
-        "_buf",
-        "_buf_ustr",
-        "_buf_len",
-        "_pos",
-        "_stream",
-        "_sock",
-        "_message",
-        "_readers",
         "_body_len",
-        "_serial",
-        "_header_len",
-        "_message_type",
+        "_buf",
+        "_buf_len",
+        "_buf_ustr",
+        "_endian",
         "_flag",
-        "_msg_len",
-        "_uint32_unpack",
+        "_header_len",
         "_int16_unpack",
-        "_uint16_unpack",
-        "_stream_reader",
+        "_message",
+        "_message_type",
+        "_msg_len",
+        "_negotiate_unix_fd",
+        "_pos",
+        "_read_complete",
+        "_readers",
+        "_serial",
+        "_sock",
         "_sock_with_fds_reader",
         "_sock_without_fds_reader",
-        "_negotiate_unix_fd",
-        "_read_complete",
-        "_endian",
+        "_stream",
+        "_stream_reader",
+        "_uint16_unpack",
+        "_uint32_unpack",
+        "_unix_fds",
     )
 
     _stream_reader: Callable[[int], bytes]
@@ -386,7 +386,7 @@ class Unmarshaller:
                     ARRAY("i", data[: len(data) - (len(data) % MAX_UNIX_FDS_SIZE)])
                 )
         if not msg:
-            raise EOFError()
+            raise EOFError
         self._buf += msg
         self._buf_len = len(self._buf)
         if self._buf_len < pos:
@@ -409,7 +409,7 @@ class Unmarshaller:
                     raise MARSHALL_STREAM_END_ERROR
                 raise
             if not data:
-                raise EOFError()
+                raise EOFError
             self._buf += data
             self._buf_len = len(self._buf)
             if self._buf_len >= pos:
@@ -421,7 +421,7 @@ class Unmarshaller:
         if data is None:
             raise MARSHALL_STREAM_END_ERROR
         if not data:
-            raise EOFError()
+            raise EOFError
         self._buf += data
         self._buf_len = len(self._buf)
         if self._buf_len < pos:

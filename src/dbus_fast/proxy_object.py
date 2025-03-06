@@ -79,11 +79,11 @@ class BaseProxyInterface:
     def _check_method_return(msg: Message, signature: Optional[str] = None):
         if msg.message_type == MessageType.ERROR:
             raise DBusError._from_message(msg)
-        elif msg.message_type != MessageType.METHOD_RETURN:
+        if msg.message_type != MessageType.METHOD_RETURN:
             raise DBusError(
                 ErrorType.CLIENT_ERROR, "method call didnt return a method return", msg
             )
-        elif signature is not None and msg.signature != signature:
+        if signature is not None and msg.signature != signature:
             raise DBusError(
                 ErrorType.CLIENT_ERROR,
                 f'method call returned unexpected signature: "{msg.signature}"',
@@ -137,18 +137,21 @@ class BaseProxyInterface:
 
             cb_result = handler.fn(*data)
             if isinstance(cb_result, Coroutine):
-                asyncio.create_task(cb_result)
+                asyncio.create_task(cb_result)  # noqa: RUF006
 
     def _add_signal(self, intr_signal: intr.Signal, interface: intr.Interface) -> None:
         def on_signal_fn(fn: Callable, *, unpack_variants: bool = False):
             fn_signature = inspect.signature(fn)
-            if 0 < len(
-                [
-                    par
-                    for par in fn_signature.parameters.values()
-                    if par.kind == inspect.Parameter.KEYWORD_ONLY
-                    and par.default == inspect.Parameter.empty
-                ]
+            if (
+                len(
+                    [
+                        par
+                        for par in fn_signature.parameters.values()
+                        if par.kind == inspect.Parameter.KEYWORD_ONLY
+                        and par.default == inspect.Parameter.empty
+                    ]
+                )
+                > 0
             ):
                 raise TypeError(
                     "reply_notify cannot have required keyword only parameters"

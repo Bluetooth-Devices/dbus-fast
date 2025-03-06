@@ -94,20 +94,20 @@ class Message:
     """
 
     __slots__ = (
+        "body",
         "destination",
-        "path",
+        "error_name",
+        "flags",
         "interface",
         "member",
         "message_type",
-        "flags",
-        "error_name",
+        "path",
         "reply_serial",
         "sender",
-        "unix_fds",
+        "serial",
         "signature",
         "signature_tree",
-        "body",
-        "serial",
+        "unix_fds",
     )
 
     def __init__(
