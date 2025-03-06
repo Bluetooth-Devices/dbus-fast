@@ -21,7 +21,7 @@ class SignatureType:
     """
 
     _tokens = "ybnqiuxtdsogavh({"
-    __slots__ = ("token", "children", "_signature")
+    __slots__ = ("token", "token_as_int", "children", "_signature")
 
     def __init__(self, token: str) -> None:
         """Init a new SignatureType."""
