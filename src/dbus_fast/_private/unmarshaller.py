@@ -353,7 +353,7 @@ class Unmarshaller:
         else:
             del self._buf[:to_clear]
             self._buf_len -= to_clear
-        self._buf_ustr = self._buf
+            self._buf_ustr = self._buf
         self._msg_len = 0  # used to check if we have ready the header
         self._read_complete = False  # used to check if we have ready the message
         # No need to reset the unpack functions, they are set in _read_header
