@@ -86,7 +86,6 @@ jobs:
           arch: s390x
           distro: ubuntu_latest
           run: |
-            bash -c
             apt-get -y update
             apt-get -y install python3-pip python3-venv
             pip3 install poetry
