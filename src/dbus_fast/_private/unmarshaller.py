@@ -748,7 +748,6 @@ class Unmarshaller:
         # Signature is of the header is
         # BYTE, BYTE, BYTE, BYTE, UINT32, UINT32, ARRAY of STRUCT of (BYTE,VARIANT)
         self._read_to_pos(HEADER_SIGNATURE_SIZE)
-        print(["Header size", len(self._buf), self._buf])
         endian = self._buf[0]
         self._message_type = self._buf[1]
         self._flag = self._buf[2]
