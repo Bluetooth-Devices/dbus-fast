@@ -746,10 +746,16 @@ class Unmarshaller:
                 )
         else:
             if endian == LITTLE_ENDIAN:
+                self._body_len, self._serial, self._header_len = (
+                    UNPACK_HEADER_LITTLE_ENDIAN(self._buf, 4)
+                )
                 self._uint32_unpack = UINT32_UNPACK_LITTLE_ENDIAN
                 self._int16_unpack = INT16_UNPACK_LITTLE_ENDIAN
                 self._uint16_unpack = UINT16_UNPACK_LITTLE_ENDIAN
             elif endian == BIG_ENDIAN:
+                self._body_len, self._serial, self._header_len = (
+                    UNPACK_HEADER_BIG_ENDIAN(self._buf, 4)
+                )
                 self._uint32_unpack = UINT32_UNPACK_BIG_ENDIAN
                 self._int16_unpack = INT16_UNPACK_BIG_ENDIAN
                 self._uint16_unpack = UINT16_UNPACK_BIG_ENDIAN
@@ -757,9 +763,6 @@ class Unmarshaller:
                 raise InvalidMessageError(
                     f"Expecting endianness as the first byte, got {endian} from {self._buf}"
                 )
-            self._body_len = self._read_uint32_unpack()
-            self._serial = self._read_uint32_unpack()
-            self._header_len = self._read_uint32_unpack()
 
         self._msg_len = (
             self._header_len + (-self._header_len & 7) + self._body_len
