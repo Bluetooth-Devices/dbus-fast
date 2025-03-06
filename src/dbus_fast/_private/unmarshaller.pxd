@@ -115,24 +115,19 @@ cdef cython.uint EWOULDBLOCK
 cdef get_signature_tree
 
 
-cdef inline unsigned long _cast_uint32_native(const char * payload, unsigned int offset):
-    cdef unsigned long *u32p = <unsigned long *> &payload[offset]
-    return u32p[0]
+cdef unsigned long _ustr_uint32(const unsigned char * buf, unsigned int offset, unsigned int endian) noexcept
 
-cdef inline short _cast_int16_native(const char *  payload, unsigned int offset):
-    cdef short *s16p = <short *> &payload[offset]
-    return s16p[0]
+cdef short _ustr_int16(const unsigned char * buf, unsigned int offset, unsigned int endian) noexcept
 
-cdef inline unsigned short _cast_uint16_native(const char *  payload, unsigned int offset):
-    cdef unsigned short *u16p = <unsigned short *> &payload[offset]
-    return u16p[0]
-
+cdef unsigned short _ustr_uint16(const unsigned char * buf, unsigned int offset, unsigned int endian) noexcept
 
 
 cdef class Unmarshaller:
 
     cdef object _unix_fds
     cdef bytearray _buf
+    cdef Py_ssize_t _buf_len
+    cdef const unsigned char * _buf_ustr
     cdef unsigned int _pos
     cdef object _stream
     cdef object _sock
@@ -144,16 +139,17 @@ cdef class Unmarshaller:
     cdef object _message_type
     cdef object _flag
     cdef unsigned int _msg_len
-    cdef unsigned int _is_native
     cdef object _uint32_unpack
     cdef object _int16_unpack
     cdef object _uint16_unpack
     cdef object _stream_reader
-    cdef object _sock_reader
+    cdef object _sock_with_fds_reader
+    cdef object _sock_without_fds_reader
     cdef bint _negotiate_unix_fd
     cdef bint _read_complete
     cdef unsigned int _endian
 
+    @cython.locals(to_clear=Py_ssize_t)
     cdef _next_message(self)
 
     cdef bint _has_another_message_in_buffer(self)
@@ -232,6 +228,7 @@ cdef class Unmarshaller:
         buffer=cython.bytearray,
         protocol_version=cython.uint,
         key=cython.str,
+        ustring="const unsigned char *",
     )
     cdef _read_header(self)
 

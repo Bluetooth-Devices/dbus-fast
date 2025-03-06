@@ -49,8 +49,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - name: Update apt
-        run: sudo apt update
       - name: Install libs
         run: sudo apt-get install -y dbus-daemon python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
       - uses: snok/install-poetry@v1.4.1
@@ -74,12 +72,33 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
+  test_big_endian:
+    name: Big-endian s390x tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - uses: uraimo/run-on-arch-action@v3
+        name: Run commands
+        id: runcmd
+        with:
+          arch: s390x
+          distro: ubuntu_latest
+          run: |
+            apt-get -y update
+            apt-get -y install git python3-pip python3-venv python3-poetry dbus-daemon python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
+            git clone --depth 1 $GITHUB_SERVER_URL/$GITHUB_REPOSITORY
+            cd dbus-fast
+            git fetch origin --depth 1 $GITHUB_SHA
+            git checkout $GITHUB_SHA
+            REQUIRE_CYTHON=1 poetry install --only=main,dev
+            dbus-run-session -- poetry run pytest --no-cov --timeout=100
+
   benchmark:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Update apt
-        run: sudo apt update
       - name: Install libs
         run: sudo apt-get install -y dbus-daemon python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
       - uses: snok/install-poetry@v1.4.1
