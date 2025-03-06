@@ -93,7 +93,7 @@ jobs:
             git fetch origin --depth 1 $GITHUB_SHA
             git checkout $GITHUB_SHA
             REQUIRE_CYTHON=1 poetry install --only=main,dev
-            dbus-run-session -- poetry run pytest --cov-report=xml --timeout=
+            dbus-run-session -- poetry run pytest --no-cov --timeout=100
 
   benchmark:
     runs-on: ubuntu-latest
