@@ -215,18 +215,30 @@ def bytearray_to_uint32_big_end(buf: bytearray, pos: int) -> int:
 
 
 def _ustr_int16_little_end(buf: bytearray_, pos: int_) -> int_:
+    # Caution: this function will only work with Cython
+    # because it relies on casting the result to a signed int
+    # and will return an unsigned int if not compiled.
     return buf[pos] | (buf[pos + 1] << 8)  # pragma: no cover
 
 
 def bytearray_to_int16_little_end(buf: bytearray, pos: int) -> int:
+    # Caution: this function will only work with Cython
+    # because it relies on casting the result to a signed int
+    # and will return an unsigned int if not compiled.
     return _ustr_int16_little_end(buf, pos)
 
 
 def _ustr_int16_big_end(buf: bytearray_, pos: int_) -> int_:
+    # Caution: this function will only work with Cython
+    # because it relies on casting the result to a signed int
+    # and will return an unsigned int if not compiled.
     return buf[pos + 1] | (buf[pos] << 8)  # pragma: no cover
 
 
 def bytearray_to_int16_big_end(buf: bytearray, pos: int) -> int:
+    # Caution: this function will only work with Cython
+    # because it relies on casting the result to a signed int
+    # and will return an unsigned int if not compiled.
     return _ustr_int16_big_end(buf, pos)
 
 
