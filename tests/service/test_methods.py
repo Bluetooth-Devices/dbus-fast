@@ -174,6 +174,14 @@ async def test_methods(interface_class):
     assert reply.signature == signature
     assert reply.body == body
 
+    # No interface should result in finding anything that matches the member name
+    # and the signature, but in thie case it will be nothing because
+    # the signature is wrong
+    reply = await call("echo_containers", "as", body, interface=None)
+    assert reply.message_type == MessageType.ERROR, reply.body[0]
+    assert reply.error_name == "test.error", reply.body[0]
+    assert reply.body == ["an error ocurred"]
+
     reply = await call("ping")
     assert reply.message_type == MessageType.METHOD_RETURN, reply.body[0]
     assert reply.signature == ""
