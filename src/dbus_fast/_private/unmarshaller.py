@@ -767,9 +767,8 @@ class Unmarshaller:
             self._int16_unpack = INT16_UNPACK_BIG_ENDIAN
             self._uint16_unpack = UINT16_UNPACK_BIG_ENDIAN
 
-        self._msg_len = (
-            self._header_len + (-self._header_len & 7) + self._body_len
-        )  # align 8
+        # align 8
+        self._msg_len = self._header_len + (-self._header_len & 7) + self._body_len
         if self._endian != endian:
             self._readers = self._readers_by_type[endian]
             self._endian = endian
