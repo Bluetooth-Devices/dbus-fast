@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 import inspect
 import logging
 import socket
 import traceback
 import xml.etree.ElementTree as ET
 from functools import partial
-from typing import Any, Callable, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable
 
 from . import introspection as intr
 from ._private.address import get_bus_address, parse_address
@@ -23,7 +24,7 @@ from .errors import DBusError, InvalidAddressError
 from .message import Message
 from .proxy_object import BaseProxyObject
 from .send_reply import SendReply
-from .service import ServiceInterface, _Method, _Property, HandlerType
+from .service import HandlerType, ServiceInterface, _Method, _Property
 from .signature import Variant
 from .validators import assert_bus_name_valid, assert_object_path_valid
 

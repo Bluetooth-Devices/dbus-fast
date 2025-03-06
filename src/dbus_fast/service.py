@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import asyncio
 import copy
 import inspect
@@ -15,13 +16,13 @@ from ._private.util import (
 from .constants import PropertyAccess
 from .errors import SignalDisabledError
 from .message import Message
+from .send_reply import SendReply
 from .signature import (
     SignatureBodyMismatchError,
     SignatureTree,
     Variant,
     get_signature_tree,
 )
-from .send_reply import SendReply
 
 if TYPE_CHECKING:
     from .message_bus import BaseMessageBus

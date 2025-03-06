@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from struct import Struct, error
 from typing import Any, Callable
 

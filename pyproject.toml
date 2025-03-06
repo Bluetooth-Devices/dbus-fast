@@ -115,3 +115,6 @@ line-length = 88
 ignore = [
     "F821", # undefined names are used for decorators
 ]
+select = [
+    "I",  # isort formatting.
+]
