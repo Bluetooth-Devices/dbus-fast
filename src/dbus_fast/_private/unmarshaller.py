@@ -274,7 +274,6 @@ class Unmarshaller:
         "_unix_fds",
         "_buf",
         "_buf_ustr",
-        "_buf_len",
         "_pos",
         "_stream",
         "_sock",
@@ -308,7 +307,6 @@ class Unmarshaller:
         self._unix_fds: list[int] = []
         self._buf: bytearray = bytearray.__new__(bytearray)  # Actual buffer
         self._buf_ustr = self._buf  # Used to avoid type checks
-        self._buf_len = 0
         self._stream = stream
         self._sock = sock
         self._message: Message | None = None
@@ -347,12 +345,10 @@ class Unmarshaller:
         """
         self._unix_fds = []
         to_clear = HEADER_SIGNATURE_SIZE + self._msg_len
-        if self._buf_len == to_clear:
+        if len(self._buf) == to_clear:
             self._buf = bytearray.__new__(bytearray)
-            self._buf_len = 0
         else:
             del self._buf[:to_clear]
-            self._buf_len -= to_clear
         self._buf_ustr = self._buf
         self._msg_len = 0  # used to check if we have ready the header
         self._read_complete = False  # used to check if we have ready the message
@@ -368,7 +364,7 @@ class Unmarshaller:
 
     def _has_another_message_in_buffer(self) -> bool:
         """Check if there is another message in the buffer."""
-        return self._buf_len > HEADER_SIGNATURE_SIZE + self._msg_len
+        return len(self._buf) > HEADER_SIGNATURE_SIZE + self._msg_len
 
     def _read_sock_with_fds(self, pos: _int, missing_bytes: _int) -> None:
         """reads from the socket, storing any fds sent and handling errors
@@ -399,8 +395,7 @@ class Unmarshaller:
             raise EOFError()
         self._buf += msg
         self._buf_ustr = self._buf
-        self._buf_len = len(self._buf)
-        if self._buf_len < pos:
+        if len(self._buf) < pos:
             raise MARSHALL_STREAM_END_ERROR
 
     def _read_sock_without_fds(self, pos: _int) -> None:
@@ -423,8 +418,7 @@ class Unmarshaller:
                 raise EOFError()
             self._buf += data
             self._buf_ustr = self._buf
-            self._buf_len = len(self._buf)
-            if self._buf_len >= pos:
+            if len(self._buf) >= pos:
                 return
 
     def _read_stream(self, pos: _int, missing_bytes: _int) -> None:
@@ -436,8 +430,7 @@ class Unmarshaller:
             raise EOFError()
         self._buf += data
         self._buf_ustr = self._buf
-        self._buf_len = len(self._buf)
-        if self._buf_len < pos:
+        if len(self._buf) < pos:
             raise MARSHALL_STREAM_END_ERROR
 
     def _read_to_pos(self, pos: _int) -> None:
@@ -453,7 +446,7 @@ class Unmarshaller:
         :returns:
             None
         """
-        missing_bytes = pos - self._buf_len
+        missing_bytes = pos - len(self._buf)
         if missing_bytes <= 0:
             return
         if self._sock is None:
