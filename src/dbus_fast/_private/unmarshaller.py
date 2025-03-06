@@ -603,7 +603,7 @@ class Unmarshaller:
         else:
             array_length = self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
         child_type: SignatureType = type_.children[0]
-        token_as_int = ord(child_type.token[0])
+        token_as_int = child_type.token_as_int
 
         if (
             token_as_int == TOKEN_X_AS_INT
@@ -621,12 +621,13 @@ class Unmarshaller:
 
         if token_as_int == TOKEN_LEFT_CURLY_AS_INT:
             result_dict: dict[Any, Any] = {}
+            key: str | int
             beginning_pos = self._pos
             children = child_type.children
             child_0 = children[0]
             child_1 = children[1]
-            child_0_token_as_int = ord(child_0.token[0])
-            child_1_token_as_int = ord(child_1.token[0])
+            child_0_token_as_int = child_0.token_as_int
+            child_1_token_as_int = child_1.token_as_int
             # Strings with variant values are the most common case
             # so we optimize for that by inlining the string reading
             # and the variant reading here
@@ -636,7 +637,7 @@ class Unmarshaller:
             ) and child_1_token_as_int == TOKEN_V_AS_INT:
                 while self._pos - beginning_pos < array_length:
                     self._pos += -self._pos & 7  # align 8
-                    key: str | int = self._read_string_unpack()
+                    key = self._read_string_unpack()
                     result_dict[key] = self._read_variant()
             elif (
                 child_0_token_as_int == TOKEN_Q_AS_INT

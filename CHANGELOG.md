@@ -1,6 +1,36 @@
 # CHANGELOG
 
 
+## v2.37.1 (2025-03-06)
+
+### Bug Fixes
+
+- Correctly handle big endian data ([#405](https://github.com/Bluetooth-Devices/dbus-fast/pull/405),
+  [`0adab93`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0adab935e3c5850647e640c777daf4273ea1efd9))
+
+### Chores
+
+- Add s390x tests ([#408](https://github.com/Bluetooth-Devices/dbus-fast/pull/408),
+  [`81ce030`](https://github.com/Bluetooth-Devices/dbus-fast/commit/81ce03058a64e9fd304981ef9e05bf6415dc1fb3))
+
+- Add more coverage for marshall ([#406](https://github.com/Bluetooth-Devices/dbus-fast/pull/406),
+  [`ed38f69`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ed38f690f5926b17354810c51ac0dee900d9f01e))
+
+- Fix type for hello message constant
+  ([#407](https://github.com/Bluetooth-Devices/dbus-fast/pull/407),
+  [`df5325a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/df5325a7ef80de544e16783deec3ea183e02d6ba))
+
+core: fix type for hello message constant
+
+- Update deps ([#404](https://github.com/Bluetooth-Devices/dbus-fast/pull/404),
+  [`6dca98d`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6dca98d68af494641c91cf53949fe207188b99a3))
+
+dependabot is still broken with poetry 2
+
+- Updating certifi (2024.12.14 -> 2025.1.31) - Updating babel (2.16.0 -> 2.17.0) - Updating jinja2
+  (3.1.5 -> 3.1.6) - Updating coverage (7.6.10 -> 7.6.12)
+
+
 ## v2.37.0 (2025-03-06)
 
 ### Features
