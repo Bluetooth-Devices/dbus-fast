@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v2.37.0 (2025-03-06)
+
+### Features
+
+- Add support for finding message handlers when interface is None
+  ([#403](https://github.com/Bluetooth-Devices/dbus-fast/pull/403),
+  [`bfd48a3`](https://github.com/Bluetooth-Devices/dbus-fast/commit/bfd48a3a38cba0dc66d581eedd0da0b228bc1953))
+
+
 ## v2.36.0 (2025-03-05)
 
 ### Chores
