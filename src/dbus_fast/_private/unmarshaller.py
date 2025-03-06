@@ -461,7 +461,9 @@ class Unmarshaller:
 
     def _read_uint32_unpack(self) -> int:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
-        if cython.compiled and len(self._buf) >= self._pos:
+        if cython.compiled:
+            if len(self._buf) < self._pos:
+                raise IndexError("Not enough data to read uint32")
             if self._endian == LITTLE_ENDIAN:
                 return _bytearray_to_uint32_little_endian(
                     self._buf, self._pos - UINT32_SIZE
@@ -474,7 +476,9 @@ class Unmarshaller:
 
     def _read_uint16_unpack(self) -> int:
         self._pos += UINT16_SIZE + (-self._pos & (UINT16_SIZE - 1))  # align
-        if cython.compiled and len(self._buf) >= self._pos:
+        if cython.compiled:
+            if len(self._buf) < self._pos:
+                raise IndexError("Not enough data to read uint16")
             if self._endian == LITTLE_ENDIAN:
                 return _bytearray_to_uint16_little_endian(
                     self._buf, self._pos - UINT16_SIZE
@@ -487,7 +491,9 @@ class Unmarshaller:
 
     def _read_int16_unpack(self) -> int:
         self._pos += INT16_SIZE + (-self._pos & (INT16_SIZE - 1))  # align
-        if cython.compiled and len(self._buf) >= self._pos:
+        if cython.compiled:
+            if len(self._buf) < self._pos:
+                raise IndexError("Not enough data to read int16")
             if self._endian == LITTLE_ENDIAN:
                 return _bytearray_to_int16_little_endian(
                     self._buf, self._pos - INT16_SIZE
@@ -509,7 +515,9 @@ class Unmarshaller:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
         str_start = self._pos
         # read terminating '\0' byte as well (str_length + 1)
-        if cython.compiled and len(self._buf) >= self._pos:
+        if cython.compiled:
+            if len(self._buf) < self._pos:
+                raise IndexError("Not enough data to read uint32")
             if self._endian == LITTLE_ENDIAN:
                 self._pos += (
                     _bytearray_to_uint32_little_endian(
@@ -621,7 +629,9 @@ class Unmarshaller:
         self._pos += (
             -self._pos & (UINT32_SIZE - 1)
         ) + UINT32_SIZE  # align for the uint32
-        if cython.compiled and len(self._buf) >= self._pos:
+        if cython.compiled:
+            if len(self._buf) < self._pos:
+                raise IndexError("Not enough data to read uint32")
             if self._endian == LITTLE_ENDIAN:
                 array_length = _bytearray_to_uint32_little_endian(
                     self._buf, self._pos - UINT32_SIZE

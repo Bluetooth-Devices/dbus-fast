@@ -74,7 +74,6 @@ plugins = ["covdefaults"]
 fail_under = 30 # cython version will have low cover because we do not have Cython tracing
 exclude_also = [
     "if cython.compiled:",
-    "if cython.compiled and"
 ]
 
 [tool.isort]
