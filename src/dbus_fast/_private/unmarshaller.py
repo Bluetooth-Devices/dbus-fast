@@ -224,7 +224,6 @@ def _bytearray_to_uint16_big_endian(buffer: bytearray_, pos: int_) -> int_:
     return buffer[pos + 1] | (buffer[pos] << 8)
 
 
-#
 # Alignment padding is handled with the following formula below
 #
 # For any align value, the correct padding formula is:

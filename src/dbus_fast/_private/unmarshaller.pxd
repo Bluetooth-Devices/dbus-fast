@@ -115,17 +115,17 @@ cdef cython.uint EWOULDBLOCK
 cdef get_signature_tree
 
 
-cdef unsigned long _bytearray_to_uint32_little_endian(const char * buffer, unsigned int offset) noexcept
+cdef unsigned long _bytearray_to_uint32_little_endian(const unsigned char * buffer, unsigned int offset) noexcept
 
-cdef unsigned long _bytearray_to_uint32_big_endian(const char * buffer, unsigned int offset) noexcept
+cdef unsigned long _bytearray_to_uint32_big_endian(const unsigned char * buffer, unsigned int offset) noexcept
 
-cdef short _bytearray_to_int16_little_endian(const char * buffer, unsigned int offset) noexcept
+cdef short _bytearray_to_int16_little_endian(const unsigned char * buffer, unsigned int offset) noexcept
 
-cdef short _bytearray_to_int16_big_endian(const char * buffer, unsigned int offset) noexcept
+cdef short _bytearray_to_int16_big_endian(const unsigned char * buffer, unsigned int offset) noexcept
 
-cdef unsigned short _bytearray_to_uint16_little_endian(const char * buffer, unsigned int offset) noexcept
+cdef unsigned short _bytearray_to_uint16_little_endian(const unsigned char * buffer, unsigned int offset) noexcept
 
-cdef unsigned short _bytearray_to_uint16_big_endian(const char * buffer, unsigned int offset) noexcept
+cdef unsigned short _bytearray_to_uint16_big_endian(const unsigned char * buffer, unsigned int offset) noexcept
 
 
 cdef class Unmarshaller:
