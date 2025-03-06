@@ -29,10 +29,10 @@ cdef object MESSAGE_FLAG
 cdef object MESSAGE_FLAG_NONE
 cdef object MESSAGE_TYPE_METHOD_CALL
 
-cdef SignatureTree _SIGNATURE_TREE_G
-cdef SignatureTree _SIGNATURE_TREE_O
-cdef SignatureTree _SIGNATURE_TREE_S
-cdef SignatureTree _SIGNATURE_TREE_U
+cdef SignatureTree SIGNATURE_TREE_G
+cdef SignatureTree SIGNATURE_TREE_O
+cdef SignatureTree SIGNATURE_TREE_S
+cdef SignatureTree SIGNATURE_TREE_U
 
 cdef get_signature_tree
 
