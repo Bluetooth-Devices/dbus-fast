@@ -335,7 +335,7 @@ class SignatureTree:
         :class:`InvalidSignatureError` if the given signature is not valid.
     """
 
-    __slots__ = ("signature", "types", "root_type")
+    __slots__ = ("root_type", "signature", "types")
 
     def __init__(self, signature: str = "") -> None:
         self.signature = signature
