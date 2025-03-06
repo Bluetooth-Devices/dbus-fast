@@ -72,7 +72,7 @@ plugins = ["covdefaults"]
 
 [tool.coverage.report]
 fail_under = 30 # cython version will have low cover because we do not have Cython tracing
-also_exclude = [
+exclude_also = [
     "if cython.compiled:"
 ]
 
