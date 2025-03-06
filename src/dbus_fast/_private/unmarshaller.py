@@ -398,6 +398,7 @@ class Unmarshaller:
         if not msg:
             raise EOFError()
         self._buf += msg
+        self._buf_ustr = self._buf
         self._buf_len = len(self._buf)
         if self._buf_len < pos:
             raise MARSHALL_STREAM_END_ERROR
@@ -421,6 +422,7 @@ class Unmarshaller:
             if not data:
                 raise EOFError()
             self._buf += data
+            self._buf_ustr = self._buf
             self._buf_len = len(self._buf)
             if self._buf_len >= pos:
                 return
@@ -433,6 +435,7 @@ class Unmarshaller:
         if not data:
             raise EOFError()
         self._buf += data
+        self._buf_ustr = self._buf
         self._buf_len = len(self._buf)
         if self._buf_len < pos:
             raise MARSHALL_STREAM_END_ERROR
@@ -459,7 +462,6 @@ class Unmarshaller:
             self._read_sock_with_fds(pos, missing_bytes)
         else:
             self._read_sock_without_fds(pos)
-        self._buf_ustr = self._buf
 
     def read_uint32_unpack(self, type_: _SignatureType) -> int:
         return self._read_uint32_unpack()
