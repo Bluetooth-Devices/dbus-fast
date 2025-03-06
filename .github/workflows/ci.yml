@@ -82,8 +82,8 @@ jobs:
       - name: Setup multiarch/qemu-user-static
         run: |
           docker run --rm --privileged multiarch/qemu-user-static:register --reset
-      - name: ubuntu-core:s390x-noble
-        uses: docker://s390x/ubuntu:noble
+      - name: s390x/ubuntu
+        uses: docker://s390x/ubuntu
         with:
           args: >
             bash -c
