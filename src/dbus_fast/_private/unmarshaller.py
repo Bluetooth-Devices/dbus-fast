@@ -525,9 +525,11 @@ class Unmarshaller:
                 self._pos += (
                     _ustr_uint32_big_end(self._buf_ustr, str_start - UINT32_SIZE) + 1
                 )
+            if self._buf_len < self._pos:
+                raise IndexError("Not enough data to read string")
         else:
             self._pos += self._uint32_unpack(self._buf, str_start - UINT32_SIZE)[0] + 1
-        return self._buf[str_start : self._pos - 1].decode()
+        return self._buf_ustr[str_start : self._pos - 1].decode()
 
     def read_signature(self, type_: _SignatureType) -> str:
         return self._read_signature()
@@ -537,7 +539,10 @@ class Unmarshaller:
         o = self._pos + 1
         # read terminating '\0' byte as well (str_length + 1)
         self._pos = o + signature_len + 1
-        return self._buf[o : o + signature_len].decode()
+        if cython.compiled:
+            if self._buf_len < self._pos:
+                raise IndexError("Not enough data to read signature")
+        return self._buf_ustr[o : o + signature_len].decode()
 
     def read_variant(self, type_: _SignatureType) -> Variant:
         return self._read_variant()
