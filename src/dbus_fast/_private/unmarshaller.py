@@ -525,8 +525,6 @@ class Unmarshaller:
                 self._pos += (
                     _ustr_uint32_big_end(self._buf_ustr, str_start - UINT32_SIZE) + 1
                 )
-            if self._buf_len < self._pos:
-                raise IndexError("Not enough data to read string")
         else:
             self._pos += self._uint32_unpack(self._buf, str_start - UINT32_SIZE)[0] + 1
         return self._buf[str_start : self._pos - 1].decode()
