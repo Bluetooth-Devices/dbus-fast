@@ -33,7 +33,7 @@ class ExampleInterface(ServiceInterface):
         array: "as",  # noqa: F722
         variant: "v",
         dict_entries: "a{sv}",  # noqa: F722
-        struct: "(s(s(v)))",  # noqa: F722
+        struct: "(s(s(v)))",
     ) -> "asva{sv}(s(s(v)))":  # noqa: F722
         assert type(self) is ExampleInterface
         return [array, variant, dict_entries, struct]
@@ -41,17 +41,14 @@ class ExampleInterface(ServiceInterface):
     @method()
     def ping(self):
         assert type(self) is ExampleInterface
-        pass
 
     @method(name="renamed")
     def original_name(self):
         assert type(self) is ExampleInterface
-        pass
 
     @method(disabled=True)
     def not_here(self):
         assert type(self) is ExampleInterface
-        pass
 
     @method()
     def throws_unexpected_error(self):
@@ -84,7 +81,7 @@ class AsyncInterface(ServiceInterface):
         array: "as",  # noqa: F722
         variant: "v",
         dict_entries: "a{sv}",  # noqa: F722
-        struct: "(s(s(v)))",  # noqa: F722
+        struct: "(s(s(v)))",
     ) -> "asva{sv}(s(s(v)))":  # noqa: F722
         assert type(self) is AsyncInterface
         return [array, variant, dict_entries, struct]
@@ -92,17 +89,14 @@ class AsyncInterface(ServiceInterface):
     @method()
     async def ping(self):
         assert type(self) is AsyncInterface
-        pass
 
     @method(name="renamed")
     async def original_name(self):
         assert type(self) is AsyncInterface
-        pass
 
     @method(disabled=True)
     async def not_here(self):
         assert type(self) is AsyncInterface
-        pass
 
     @method()
     async def throws_unexpected_error(self):

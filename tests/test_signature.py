@@ -19,7 +19,7 @@ def test_simple():
 def test_multiple_simple():
     tree = SignatureTree("sss")
     assert len(tree.types) == 3
-    for i in range(0, 3):
+    for i in range(3):
         assert_simple_type("s", tree.types[i])
 
 
@@ -37,7 +37,7 @@ def test_array_multiple():
     tree = SignatureTree("asasass")
     assert len(tree.types) == 4
     assert_simple_type("s", tree.types[3])
-    for i in range(0, 3):
+    for i in range(3):
         array_child = tree.types[i]
         assert array_child.token == "a"
         assert array_child.signature == "as"
@@ -65,7 +65,7 @@ def test_simple_struct():
     child = tree.types[0]
     assert child.signature == "(sss)"
     assert len(child.children) == 3
-    for i in range(0, 3):
+    for i in range(3):
         assert_simple_type("s", child.children[i])
 
 
@@ -92,7 +92,7 @@ def test_nested_struct():
 def test_struct_multiple():
     tree = SignatureTree("(s)(s)(s)")
     assert len(tree.types) == 3
-    for i in range(0, 3):
+    for i in range(3):
         child = tree.types[0]
         assert child.token == "("
         assert child.signature == "(s)"
@@ -111,7 +111,7 @@ def test_array_of_structs():
     assert struct_child.token == "("
     assert struct_child.signature == "(ss)"
     assert len(struct_child.children) == 2
-    for i in range(0, 2):
+    for i in range(2):
         assert_simple_type("s", struct_child.children[i])
 
 
@@ -146,7 +146,7 @@ def test_dict_of_structs():
     assert struct_child.token == "("
     assert struct_child.signature == "(ss)"
     assert len(struct_child.children) == 2
-    for i in range(0, 2):
+    for i in range(2):
         assert_simple_type("s", struct_child.children[i])
 
 

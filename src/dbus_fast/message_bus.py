@@ -99,24 +99,24 @@ class BaseMessageBus:
     """
 
     __slots__ = (
-        "unique_name",
-        "_disconnected",
-        "_user_disconnect",
-        "_method_return_handlers",
-        "_serial",
-        "_user_message_handlers",
-        "_name_owners",
-        "_path_exports",
-        "_bus_address",
-        "_name_owner_match_rule",
-        "_match_rules",
-        "_high_level_client_initialized",
         "_ProxyObject",
+        "_bus_address",
+        "_disconnected",
+        "_fd",
+        "_high_level_client_initialized",
         "_machine_id",
+        "_match_rules",
+        "_method_return_handlers",
+        "_name_owner_match_rule",
+        "_name_owners",
         "_negotiate_unix_fd",
+        "_path_exports",
+        "_serial",
         "_sock",
         "_stream",
-        "_fd",
+        "_user_disconnect",
+        "_user_message_handlers",
+        "unique_name",
     )
 
     def __init__(
@@ -777,20 +777,17 @@ class BaseMessageBus:
     ) -> None:
         if err:
             raise err
-        elif msg is None:
+        if msg is None:
             raise DBusError(
                 ErrorType.INTERNAL_ERROR, "invalid message type for method call", msg
             )
-        elif (
-            msg.message_type == MessageType.METHOD_RETURN and msg.signature == signature
-        ):
+        if msg.message_type == MessageType.METHOD_RETURN and msg.signature == signature:
             return
-        elif msg.message_type == MessageType.ERROR:
+        if msg.message_type == MessageType.ERROR:
             raise DBusError._from_message(msg)
-        else:
-            raise DBusError(
-                ErrorType.INTERNAL_ERROR, "invalid message type for method call", msg
-            )
+        raise DBusError(
+            ErrorType.INTERNAL_ERROR, "invalid message type for method call", msg
+        )
 
     def _process_message(self, msg: _Message) -> None:
         """Process a message received from the message bus."""
@@ -807,8 +804,7 @@ class BaseMessageBus:
                     self.send(e._as_message(msg))
                     handled = True
                     break
-                else:
-                    logging.exception("A message handler raised an exception: %s", e)
+                logging.exception("A message handler raised an exception: %s", e)
             except Exception as e:
                 logging.exception("A message handler raised an exception: %s", e)
                 if msg.message_type is MESSAGE_TYPE_CALL:
@@ -926,7 +922,7 @@ class BaseMessageBus:
             if msg.interface == "org.freedesktop.DBus.Peer":
                 if msg.member == "Ping" and msg.signature == "":
                     return self._default_ping_handler
-                elif msg.member == "GetMachineId" and msg.signature == "":
+                if msg.member == "GetMachineId" and msg.signature == "":
                     return self._default_get_machine_id_handler
 
             if (
@@ -1081,7 +1077,7 @@ class BaseMessageBus:
                 "getting and setting properties with an empty interface string is not supported yet",
             )
 
-        elif msg.path not in self._path_exports:
+        if msg.path not in self._path_exports:
             raise DBusError(
                 ErrorType.UNKNOWN_OBJECT, f'no interfaces at path: "{msg.path}"'
             )
@@ -1100,11 +1096,10 @@ class BaseMessageBus:
                         ErrorType.UNKNOWN_PROPERTY,
                         f'interface "{interface_name}" does not have property "{prop_name}"',
                     )
-                elif msg.member == "GetAll":
+                if msg.member == "GetAll":
                     send_reply(Message.new_method_return(msg, "a{sv}", [{}]))
                     return
-                else:
-                    assert False
+                assert False
             raise DBusError(
                 ErrorType.UNKNOWN_INTERFACE,
                 f'could not find an interface "{interface_name}" at path: "{msg.path}"',

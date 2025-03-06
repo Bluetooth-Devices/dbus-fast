@@ -190,7 +190,7 @@ class MessageBus(BaseMessageBus):
     :vartype connected: bool
     """
 
-    __slots__ = ("_loop", "_auth", "_writer", "_disconnect_future", "_pending_futures")
+    __slots__ = ("_auth", "_disconnect_future", "_loop", "_pending_futures", "_writer")
 
     def __init__(
         self,
@@ -440,7 +440,7 @@ class MessageBus(BaseMessageBus):
         except asyncio.CancelledError:
             pass
         except Exception as e:
-            logging.error("unexpected exception in future", exc_info=e)
+            logging.exception("unexpected exception in future", exc_info=e)
 
     def _make_method_handler(
         self, interface: "ServiceInterface", method: "_Method"

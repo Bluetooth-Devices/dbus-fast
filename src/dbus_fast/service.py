@@ -334,16 +334,15 @@ def _real_fn_result_to_body(
     out_len = len(signature_tree.types)
     if result is None:
         final_result = []
+    elif out_len == 1:
+        final_result = [result]
     else:
-        if out_len == 1:
-            final_result = [result]
-        else:
-            result_type = type(result)
-            if result_type is not list and result_type is not tuple:
-                raise SignatureBodyMismatchError(
-                    "Expected signal to return a list or tuple of arguments"
-                )
-            final_result = result
+        result_type = type(result)
+        if result_type is not list and result_type is not tuple:
+            raise SignatureBodyMismatchError(
+                "Expected signal to return a list or tuple of arguments"
+            )
+        final_result = result
 
     if out_len != len(final_result):
         raise SignatureBodyMismatchError(
