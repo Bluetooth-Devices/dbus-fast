@@ -194,7 +194,7 @@ def is_compiled() -> bool:
     return cython.compiled
 
 
-def _bytearray_to_uint32_little_endian(buffer: bytearray_, pos: int_) -> int_:
+def _ustr_uint32_little_end(buffer: bytearray_, pos: int_) -> int_:
     return (  # pragma: no cover
         buffer[pos]
         | (buffer[pos + 1] << 8)
@@ -203,11 +203,11 @@ def _bytearray_to_uint32_little_endian(buffer: bytearray_, pos: int_) -> int_:
     )
 
 
-def bytearray_to_uint32_little_endian(buffer: bytearray, pos: int) -> int:
-    return _bytearray_to_uint32_little_endian(buffer, pos)
+def bytearray_to_uint32_little_end(buffer: bytearray, pos: int) -> int:
+    return _ustr_uint32_little_end(buffer, pos)
 
 
-def _bytearray_to_uint32_big_endian(buffer: bytearray_, pos: int_) -> int_:
+def _ustr_uint32_big_end(buffer: bytearray_, pos: int_) -> int_:
     return (  # pragma: no cover
         buffer[pos + 3]
         | (buffer[pos + 2] << 8)
@@ -216,40 +216,40 @@ def _bytearray_to_uint32_big_endian(buffer: bytearray_, pos: int_) -> int_:
     )
 
 
-def bytearray_to_uint32_big_endian(buffer: bytearray, pos: int) -> int:
-    return _bytearray_to_uint32_big_endian(buffer, pos)
+def bytearray_to_uint32_big_end(buffer: bytearray, pos: int) -> int:
+    return _ustr_uint32_big_end(buffer, pos)
 
 
-def _bytearray_to_int16_little_endian(buffer: bytearray_, pos: int_) -> int_:
+def _ustr_int16_little_end(buffer: bytearray_, pos: int_) -> int_:
     return buffer[pos] | (buffer[pos + 1] << 8)  # pragma: no cover
 
 
-def bytearray_to_int16_little_endian(buffer: bytearray, pos: int) -> int:
-    return _bytearray_to_int16_little_endian(buffer, pos)
+def bytearray_to_int16_little_end(buffer: bytearray, pos: int) -> int:
+    return _ustr_int16_little_end(buffer, pos)
 
 
-def _bytearray_to_int16_big_endian(buffer: bytearray_, pos: int_) -> int_:
+def _ustr_int16_big_end(buffer: bytearray_, pos: int_) -> int_:
     return buffer[pos + 1] | (buffer[pos] << 8)  # pragma: no cover
 
 
-def bytearray_to_int16_big_endian(buffer: bytearray, pos: int) -> int:
-    return _bytearray_to_int16_big_endian(buffer, pos)
+def bytearray_to_int16_big_end(buffer: bytearray, pos: int) -> int:
+    return _ustr_int16_big_end(buffer, pos)
 
 
-def _bytearray_to_uint16_little_endian(buffer: bytearray_, pos: int_) -> int_:
+def _ustr_uint16_little_end(buffer: bytearray_, pos: int_) -> int_:
     return buffer[pos] | (buffer[pos + 1] << 8)  # pragma: no cover
 
 
-def bytearray_to_uint16_little_endian(buffer: bytearray, pos: int) -> int:
-    return _bytearray_to_uint16_little_endian(buffer, pos)
+def bytearray_to_uint16_little_end(buffer: bytearray, pos: int) -> int:
+    return _ustr_uint16_little_end(buffer, pos)
 
 
-def _bytearray_to_uint16_big_endian(buffer: bytearray_, pos: int_) -> int_:
+def _ustr_uint16_big_end(buffer: bytearray_, pos: int_) -> int_:
     return buffer[pos + 1] | (buffer[pos] << 8)  # pragma: no cover
 
 
-def bytearray_to_uint16_big_endian(buffer: bytearray, pos: int) -> int:
-    return _bytearray_to_uint16_big_endian(buffer, pos)
+def bytearray_to_uint16_big_end(buffer: bytearray, pos: int) -> int:
+    return _ustr_uint16_big_end(buffer, pos)
 
 
 # Alignment padding is handled with the following formula below
@@ -476,12 +476,8 @@ class Unmarshaller:
             if self._buf_len < self._pos:
                 raise IndexError("Not enough data to read uint32")
             if self._endian == LITTLE_ENDIAN:
-                return _bytearray_to_uint32_little_endian(
-                    self._buf_ustr, self._pos - UINT32_SIZE
-                )
-            return _bytearray_to_uint32_big_endian(
-                self._buf_ustr, self._pos - UINT32_SIZE
-            )
+                return _ustr_uint32_little_end(self._buf_ustr, self._pos - UINT32_SIZE)
+            return _ustr_uint32_big_end(self._buf_ustr, self._pos - UINT32_SIZE)
         return self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
 
     def read_uint16_unpack(self, type_: _SignatureType) -> int:
@@ -493,12 +489,8 @@ class Unmarshaller:
             if self._buf_len < self._pos:
                 raise IndexError("Not enough data to read uint16")
             if self._endian == LITTLE_ENDIAN:
-                return _bytearray_to_uint16_little_endian(
-                    self._buf_ustr, self._pos - UINT16_SIZE
-                )
-            return _bytearray_to_uint16_big_endian(
-                self._buf_ustr, self._pos - UINT16_SIZE
-            )
+                return _ustr_uint16_little_end(self._buf_ustr, self._pos - UINT16_SIZE)
+            return _ustr_uint16_big_end(self._buf_ustr, self._pos - UINT16_SIZE)
         return self._uint16_unpack(self._buf, self._pos - UINT16_SIZE)[0]
 
     def read_int16_unpack(self, type_: _SignatureType) -> int:
@@ -510,12 +502,8 @@ class Unmarshaller:
             if self._buf_len < self._pos:
                 raise IndexError("Not enough data to read int16")
             if self._endian == LITTLE_ENDIAN:
-                return _bytearray_to_int16_little_endian(
-                    self._buf_ustr, self._pos - INT16_SIZE
-                )
-            return _bytearray_to_int16_big_endian(
-                self._buf_ustr, self._pos - INT16_SIZE
-            )
+                return _ustr_int16_little_end(self._buf_ustr, self._pos - INT16_SIZE)
+            return _ustr_int16_big_end(self._buf_ustr, self._pos - INT16_SIZE)
         return self._int16_unpack(self._buf, self._pos - INT16_SIZE)[0]
 
     def read_boolean(self, type_: _SignatureType) -> bool:
@@ -537,17 +525,11 @@ class Unmarshaller:
                 raise IndexError("Not enough data to read uint32")
             if self._endian == LITTLE_ENDIAN:
                 self._pos += (
-                    _bytearray_to_uint32_little_endian(
-                        self._buf_ustr, str_start - UINT32_SIZE
-                    )
-                    + 1
+                    _ustr_uint32_little_end(self._buf_ustr, str_start - UINT32_SIZE) + 1
                 )
             else:
                 self._pos += (
-                    _bytearray_to_uint32_big_endian(
-                        self._buf_ustr, str_start - UINT32_SIZE
-                    )
-                    + 1
+                    _ustr_uint32_big_end(self._buf_ustr, str_start - UINT32_SIZE) + 1
                 )
             if self._buf_len < self._pos:
                 raise IndexError("Not enough data to read string")
@@ -658,11 +640,11 @@ class Unmarshaller:
             if self._buf_len < self._pos:
                 raise IndexError("Not enough data to read uint32")
             if self._endian == LITTLE_ENDIAN:
-                array_length = _bytearray_to_uint32_little_endian(
+                array_length = _ustr_uint32_little_end(
                     self._buf_ustr, self._pos - UINT32_SIZE
                 )
             else:
-                array_length = _bytearray_to_uint32_big_endian(
+                array_length = _ustr_uint32_big_end(
                     self._buf_ustr, self._pos - UINT32_SIZE
                 )
         else:
@@ -795,15 +777,13 @@ class Unmarshaller:
 
         if cython.compiled:
             if endian == LITTLE_ENDIAN:
-                self._body_len = _bytearray_to_uint32_little_endian(self._buf_ustr, 4)
-                self._serial = _bytearray_to_uint32_little_endian(self._buf_ustr, 8)
-                self._header_len = _bytearray_to_uint32_little_endian(
-                    self._buf_ustr, 12
-                )
+                self._body_len = _ustr_uint32_little_end(self._buf_ustr, 4)
+                self._serial = _ustr_uint32_little_end(self._buf_ustr, 8)
+                self._header_len = _ustr_uint32_little_end(self._buf_ustr, 12)
             elif endian == BIG_ENDIAN:
-                self._body_len = _bytearray_to_uint32_big_endian(self._buf_ustr, 4)
-                self._serial = _bytearray_to_uint32_big_endian(self._buf_ustr, 8)
-                self._header_len = _bytearray_to_uint32_big_endian(self._buf_ustr, 12)
+                self._body_len = _ustr_uint32_big_end(self._buf_ustr, 4)
+                self._serial = _ustr_uint32_big_end(self._buf_ustr, 8)
+                self._header_len = _ustr_uint32_big_end(self._buf_ustr, 12)
             else:
                 raise InvalidMessageError(
                     f"Expecting endianness as the first byte, got {endian} from {self._buf}"
