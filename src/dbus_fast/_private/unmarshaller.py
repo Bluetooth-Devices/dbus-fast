@@ -345,7 +345,8 @@ class Unmarshaller:
 
         Call this before processing a new message.
         """
-        self._unix_fds = []
+        if self._unix_fds:
+            self._unix_fds = []
         to_clear = HEADER_SIGNATURE_SIZE + self._msg_len
         if self._buf_len == to_clear:
             self._buf = bytearray.__new__(bytearray)

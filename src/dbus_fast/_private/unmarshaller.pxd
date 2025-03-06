@@ -155,6 +155,7 @@ cdef class Unmarshaller:
     cdef bint _read_complete
     cdef unsigned int _endian
 
+    @cython.locals(to_clear=Py_ssize_t)
     cdef _next_message(self)
 
     cdef bint _has_another_message_in_buffer(self)
