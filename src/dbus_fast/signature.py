@@ -448,6 +448,7 @@ def _variant_factory(signature_tree: SignatureTree, value: Any) -> "Variant":
     self.signature = signature_tree.signature
     self.type = signature_tree.root_type
     self.value = value
+    return self
 
 
 get_signature_tree = lru_cache(maxsize=None)(SignatureTree)
