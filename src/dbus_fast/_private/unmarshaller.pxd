@@ -115,18 +115,17 @@ cdef cython.uint EWOULDBLOCK
 cdef get_signature_tree
 
 
-cdef inline unsigned long _cast_uint32_native(const char * payload, unsigned int offset) noexcept:
-    cdef unsigned long *u32p = <unsigned long *> &payload[offset]
-    return u32p[0]
+cdef unsigned long _bytearray_to_uint32_little_endian(const char * buffer, unsigned int offset) noexcept
 
-cdef inline short _cast_int16_native(const char *  payload, unsigned int offset) noexcept:
-    cdef short *s16p = <short *> &payload[offset]
-    return s16p[0]
+cdef unsigned long _bytearray_to_uint32_big_endian(const char * buffer, unsigned int offset) noexcept
 
-cdef inline unsigned short _cast_uint16_native(const char *  payload, unsigned int offset) noexcept:
-    cdef unsigned short *u16p = <unsigned short *> &payload[offset]
-    return u16p[0]
+cdef short _bytearray_to_int16_little_endian(const char * buffer, unsigned int offset) noexcept
 
+cdef short _bytearray_to_int16_big_endian(const char * buffer, unsigned int offset) noexcept
+
+cdef unsigned short _bytearray_to_uint16_little_endian(const char * buffer, unsigned int offset) noexcept
+
+cdef unsigned short _bytearray_to_uint16_big_endian(const char * buffer, unsigned int offset) noexcept
 
 
 cdef class Unmarshaller:
@@ -144,7 +143,6 @@ cdef class Unmarshaller:
     cdef object _message_type
     cdef object _flag
     cdef unsigned int _msg_len
-    cdef unsigned int _is_native
     cdef object _uint32_unpack
     cdef object _int16_unpack
     cdef object _uint16_unpack

@@ -186,6 +186,42 @@ try:
     import cython
 except ImportError:
     from ._cython_compat import FAKE_CYTHON as cython
+int_ = int
+bytearray_ = bytearray
+
+
+def _bytearray_to_uint32_little_endian(buffer: bytearray_, pos: int_) -> int_:
+    return (
+        buffer[pos]
+        | (buffer[pos + 1] << 8)
+        | (buffer[pos + 2] << 16)
+        | (buffer[pos + 3] << 24)
+    )
+
+
+def _bytearray_to_uint32_big_endian(buffer: bytearray_, pos: int_) -> int_:
+    return (
+        buffer[pos + 3]
+        | (buffer[pos + 2] << 8)
+        | (buffer[pos + 1] << 16)
+        | (buffer[pos] << 24)
+    )
+
+
+def _bytearray_to_int16_little_endian(buffer: bytearray_, pos: int_) -> int_:
+    return buffer[pos] | (buffer[pos + 1] << 8)
+
+
+def _bytearray_to_int16_big_endian(buffer: bytearray_, pos: int_) -> int_:
+    return buffer[pos + 1] | (buffer[pos] << 8)
+
+
+def _bytearray_to_uint16_little_endian(buffer: bytearray_, pos: int_) -> int_:
+    return buffer[pos] | (buffer[pos + 1] << 8)
+
+
+def _bytearray_to_uint16_big_endian(buffer: bytearray_, pos: int_) -> int_:
+    return buffer[pos + 1] | (buffer[pos] << 8)
 
 
 #
@@ -230,7 +266,6 @@ class Unmarshaller:
         "_uint32_unpack",
         "_int16_unpack",
         "_uint16_unpack",
-        "_is_native",
         "_stream_reader",
         "_sock_with_fds_reader",
         "_sock_without_fds_reader",
@@ -260,7 +295,6 @@ class Unmarshaller:
         self._message_type = 0
         self._flag = 0
         self._msg_len = 0
-        self._is_native = 0
         self._uint32_unpack: Callable[[bytearray, int], tuple[int]] | None = None
         self._int16_unpack: Callable[[bytearray, int], tuple[int]] | None = None
         self._uint16_unpack: Callable[[bytearray, int], tuple[int]] | None = None
@@ -400,33 +434,39 @@ class Unmarshaller:
 
     def _read_uint32_unpack(self) -> int:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
-        if self._is_native and cython.compiled:
-            return _cast_uint32_native(  # type: ignore[name-defined] # pragma: no cover
-                self._buf, self._pos - UINT32_SIZE
-            )
-        return self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]  # type: ignore[misc]
+        if cython.compiled:
+            if self._endian == LITTLE_ENDIAN:
+                return _bytearray_to_uint32_little_endian(
+                    self._buf, self._pos - UINT32_SIZE
+                )
+            return _bytearray_to_uint32_big_endian(self._buf, self._pos - UINT32_SIZE)
+        return self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
 
     def read_uint16_unpack(self, type_: _SignatureType) -> int:
         return self._read_uint16_unpack()
 
     def _read_uint16_unpack(self) -> int:
         self._pos += UINT16_SIZE + (-self._pos & (UINT16_SIZE - 1))  # align
-        if self._is_native and cython.compiled:
-            return _cast_uint16_native(  # type: ignore[name-defined] # pragma: no cover
-                self._buf, self._pos - UINT16_SIZE
-            )
-        return self._uint16_unpack(self._buf, self._pos - UINT16_SIZE)[0]  # type: ignore[misc]
+        if cython.compiled:
+            if self._endian == LITTLE_ENDIAN:
+                return _bytearray_to_uint16_little_endian(
+                    self._buf, self._pos - UINT16_SIZE
+                )
+            return _bytearray_to_uint16_big_endian(self._buf, self._pos - UINT16_SIZE)
+        return self._uint16_unpack(self._buf, self._pos - UINT16_SIZE)[0]
 
     def read_int16_unpack(self, type_: _SignatureType) -> int:
         return self._read_int16_unpack()
 
     def _read_int16_unpack(self) -> int:
         self._pos += INT16_SIZE + (-self._pos & (INT16_SIZE - 1))  # align
-        if self._is_native and cython.compiled:
-            return _cast_int16_native(  # type: ignore[name-defined] # pragma: no cover
-                self._buf, self._pos - INT16_SIZE
-            )
-        return self._int16_unpack(self._buf, self._pos - INT16_SIZE)[0]  # type: ignore[misc]
+        if cython.compiled:
+            if self._endian == LITTLE_ENDIAN:
+                return _bytearray_to_int16_little_endian(
+                    self._buf, self._pos - INT16_SIZE
+                )
+            return _bytearray_to_int16_big_endian(self._buf, self._pos - INT16_SIZE)
+        return self._int16_unpack(self._buf, self._pos - INT16_SIZE)[0]
 
     def read_boolean(self, type_: _SignatureType) -> bool:
         return self._read_boolean()
@@ -442,12 +482,21 @@ class Unmarshaller:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
         str_start = self._pos
         # read terminating '\0' byte as well (str_length + 1)
-        if self._is_native and cython.compiled:
-            self._pos += (  # pragma: no cover
-                _cast_uint32_native(self._buf, str_start - UINT32_SIZE) + 1  # type: ignore[name-defined]
-            )
+        if cython.compiled:
+            if self._endian == LITTLE_ENDIAN:
+                self._pos += (
+                    _bytearray_to_uint32_little_endian(
+                        self._buf, str_start - UINT32_SIZE
+                    )
+                    + 1
+                )
+            else:
+                self._pos += (
+                    _bytearray_to_uint32_big_endian(self._buf, str_start - UINT32_SIZE)
+                    + 1
+                )
         else:
-            self._pos += self._uint32_unpack(self._buf, str_start - UINT32_SIZE)[0] + 1  # type: ignore[misc]
+            self._pos += self._uint32_unpack(self._buf, str_start - UINT32_SIZE)[0] + 1
         return self._buf[str_start : self._pos - 1].decode()
 
     def read_signature(self, type_: _SignatureType) -> str:
@@ -545,13 +594,17 @@ class Unmarshaller:
         self._pos += (
             -self._pos & (UINT32_SIZE - 1)
         ) + UINT32_SIZE  # align for the uint32
-        if self._is_native and cython.compiled:
-            array_length = _cast_uint32_native(  # type: ignore[name-defined] # pragma: no cover
-                self._buf, self._pos - UINT32_SIZE
-            )
+        if cython.compiled:
+            if self._endian == LITTLE_ENDIAN:
+                array_length = _bytearray_to_uint32_little_endian(
+                    self._buf, self._pos - UINT32_SIZE
+                )
+            else:
+                array_length = _bytearray_to_uint32_big_endian(
+                    self._buf, self._pos - UINT32_SIZE
+                )
         else:
-            array_length = self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]  # type: ignore[misc]
-
+            array_length = self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
         child_type: SignatureType = type_.children[0]
         token_as_int = ord(child_type.token[0])
 
@@ -668,51 +721,45 @@ class Unmarshaller:
         # Signature is of the header is
         # BYTE, BYTE, BYTE, BYTE, UINT32, UINT32, ARRAY of STRUCT of (BYTE,VARIANT)
         self._read_to_pos(HEADER_SIGNATURE_SIZE)
-        buffer = self._buf
-        endian = buffer[0]
-        self._message_type = buffer[1]
-        self._flag = buffer[2]
-        protocol_version = buffer[3]
+        endian = self._buf[0]
+        self._message_type = self._buf[1]
+        self._flag = self._buf[2]
+        protocol_version = self._buf[3]
 
         if protocol_version != PROTOCOL_VERSION:
             raise InvalidMessageError(
                 f"got unknown protocol version: {protocol_version}"
             )
 
-        if cython.compiled and (
-            (endian == LITTLE_ENDIAN and SYS_IS_LITTLE_ENDIAN)
-            or (endian == BIG_ENDIAN and SYS_IS_BIG_ENDIAN)
-        ):
-            self._is_native = 1  # pragma: no cover
-            self._body_len = _cast_uint32_native(  # type: ignore[name-defined] # pragma: no cover
-                buffer, 4
-            )
-            self._serial = _cast_uint32_native(  # type: ignore[name-defined] # pragma: no cover
-                buffer, 8
-            )
-            self._header_len = _cast_uint32_native(  # type: ignore[name-defined] # pragma: no cover
-                buffer, 12
-            )
-        elif endian == LITTLE_ENDIAN:
-            (
-                self._body_len,
-                self._serial,
-                self._header_len,
-            ) = UNPACK_HEADER_LITTLE_ENDIAN(buffer, 4)
-            self._uint32_unpack = UINT32_UNPACK_LITTLE_ENDIAN
-            self._int16_unpack = INT16_UNPACK_LITTLE_ENDIAN
-            self._uint16_unpack = UINT16_UNPACK_LITTLE_ENDIAN
-        elif endian == BIG_ENDIAN:
-            self._body_len, self._serial, self._header_len = UNPACK_HEADER_BIG_ENDIAN(
-                buffer, 4
-            )
-            self._uint32_unpack = UINT32_UNPACK_BIG_ENDIAN
-            self._int16_unpack = INT16_UNPACK_BIG_ENDIAN
-            self._uint16_unpack = UINT16_UNPACK_BIG_ENDIAN
+        if cython.compiled:
+            if endian == LITTLE_ENDIAN:
+                self._body_len = _bytearray_to_uint32_little_endian(self._buf, 4)
+                self._serial = _bytearray_to_uint32_little_endian(self._buf, 8)
+                self._header_len = _bytearray_to_uint32_little_endian(self._buf, 12)
+            elif endian == BIG_ENDIAN:
+                self._body_len = _bytearray_to_uint32_big_endian(self._buf, 4)
+                self._serial = _bytearray_to_uint32_big_endian(self._buf, 8)
+                self._header_len = _bytearray_to_uint32_big_endian(self._buf, 12)
+            else:
+                raise InvalidMessageError(
+                    f"Expecting endianness as the first byte, got {endian} from {self._buf}"
+                )
         else:
-            raise InvalidMessageError(
-                f"Expecting endianness as the first byte, got {endian} from {buffer}"
-            )
+            if endian == LITTLE_ENDIAN:
+                self._uint32_unpack = UINT32_UNPACK_LITTLE_ENDIAN
+                self._int16_unpack = INT16_UNPACK_LITTLE_ENDIAN
+                self._uint16_unpack = UINT16_UNPACK_LITTLE_ENDIAN
+            elif endian == BIG_ENDIAN:
+                self._uint32_unpack = UINT32_UNPACK_BIG_ENDIAN
+                self._int16_unpack = INT16_UNPACK_BIG_ENDIAN
+                self._uint16_unpack = UINT16_UNPACK_BIG_ENDIAN
+            else:
+                raise InvalidMessageError(
+                    f"Expecting endianness as the first byte, got {endian} from {self._buf}"
+                )
+            self._body_len = self._read_uint32_unpack()
+            self._serial = self._read_uint32_unpack()
+            self._header_len = self._read_uint32_unpack()
 
         self._msg_len = (
             self._header_len + (-self._header_len & 7) + self._body_len
