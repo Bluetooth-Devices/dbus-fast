@@ -398,7 +398,6 @@ class Unmarshaller:
         if not msg:
             raise EOFError()
         self._buf += msg
-        self._buf_ustr = self._buf
         self._buf_len = len(self._buf)
         if self._buf_len < pos:
             raise MARSHALL_STREAM_END_ERROR
@@ -422,7 +421,6 @@ class Unmarshaller:
             if not data:
                 raise EOFError()
             self._buf += data
-            self._buf_ustr = self._buf
             self._buf_len = len(self._buf)
             if self._buf_len >= pos:
                 return
@@ -435,7 +433,6 @@ class Unmarshaller:
         if not data:
             raise EOFError()
         self._buf += data
-        self._buf_ustr = self._buf
         self._buf_len = len(self._buf)
         if self._buf_len < pos:
             raise MARSHALL_STREAM_END_ERROR
@@ -462,6 +459,7 @@ class Unmarshaller:
             self._read_sock_with_fds(pos, missing_bytes)
         else:
             self._read_sock_without_fds(pos)
+        self._buf_ustr = self._buf
 
     def read_uint32_unpack(self, type_: _SignatureType) -> int:
         return self._read_uint32_unpack()
@@ -469,8 +467,8 @@ class Unmarshaller:
     def _read_uint32_unpack(self) -> int:
         self._pos += UINT32_SIZE + (-self._pos & (UINT32_SIZE - 1))  # align
         if cython.compiled:
-            #            if self._buf_len < self._pos:
-            #                raise IndexError("Not enough data to read uint32")
+            if self._buf_len < self._pos:
+                raise IndexError("Not enough data to read uint32")
             if self._endian == LITTLE_ENDIAN:
                 return _ustr_uint32_little_end(self._buf_ustr, self._pos - UINT32_SIZE)
             return _ustr_uint32_big_end(self._buf_ustr, self._pos - UINT32_SIZE)
@@ -482,8 +480,8 @@ class Unmarshaller:
     def _read_uint16_unpack(self) -> int:
         self._pos += UINT16_SIZE + (-self._pos & (UINT16_SIZE - 1))  # align
         if cython.compiled:
-            #            if self._buf_len < self._pos:
-            #                raise IndexError("Not enough data to read uint16")
+            if self._buf_len < self._pos:
+                raise IndexError("Not enough data to read uint16")
             if self._endian == LITTLE_ENDIAN:
                 return _ustr_uint16_little_end(self._buf_ustr, self._pos - UINT16_SIZE)
             return _ustr_uint16_big_end(self._buf_ustr, self._pos - UINT16_SIZE)
@@ -495,8 +493,8 @@ class Unmarshaller:
     def _read_int16_unpack(self) -> int:
         self._pos += INT16_SIZE + (-self._pos & (INT16_SIZE - 1))  # align
         if cython.compiled:
-            #            if self._buf_len < self._pos:
-            #                raise IndexError("Not enough data to read int16")
+            if self._buf_len < self._pos:
+                raise IndexError("Not enough data to read int16")
             if self._endian == LITTLE_ENDIAN:
                 return _ustr_int16_little_end(self._buf_ustr, self._pos - INT16_SIZE)
             return _ustr_int16_big_end(self._buf_ustr, self._pos - INT16_SIZE)
@@ -517,8 +515,8 @@ class Unmarshaller:
         str_start = self._pos
         # read terminating '\0' byte as well (str_length + 1)
         if cython.compiled:
-            #            if self._buf_len < self._pos:
-            #                raise IndexError("Not enough data to read uint32")
+            if self._buf_len < self._pos:
+                raise IndexError("Not enough data to read uint32")
             if self._endian == LITTLE_ENDIAN:
                 self._pos += (
                     _ustr_uint32_little_end(self._buf_ustr, str_start - UINT32_SIZE) + 1
@@ -627,8 +625,8 @@ class Unmarshaller:
             -self._pos & (UINT32_SIZE - 1)
         ) + UINT32_SIZE  # align for the uint32
         if cython.compiled:
-            #            if self._buf_len < self._pos:
-            #                raise IndexError("Not enough data to read uint32")
+            if self._buf_len < self._pos:
+                raise IndexError("Not enough data to read uint32")
             if self._endian == LITTLE_ENDIAN:
                 array_length = _ustr_uint32_little_end(
                     self._buf_ustr, self._pos - UINT32_SIZE
