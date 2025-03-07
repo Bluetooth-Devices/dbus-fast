@@ -47,9 +47,9 @@ def test_bytearray_to_int16_big_end():
     assert buffer_to_int16(bytearray(b"\x01\x02"), 0, BIG_ENDIAN) == 258
     assert (
         buffer_to_int16(
-            bytearray((32768).to_bytes(2, byteorder="big", signed=True)), 0, BIG_ENDIAN
+            bytearray((32767).to_bytes(2, byteorder="big", signed=True)), 0, BIG_ENDIAN
         )
-        == 32768
+        == 32767
     )
 
 
@@ -96,11 +96,11 @@ def test_bytearray_to_int16_little_end():
     assert buffer_to_int16(bytearray(b"\x01\x02"), 0, LITTLE_ENDIAN) == 513
     assert (
         buffer_to_int16(
-            bytearray((32768).to_bytes(2, byteorder="little", signed=True)),
+            bytearray((32767).to_bytes(2, byteorder="little", signed=True)),
             0,
             LITTLE_ENDIAN,
         )
-        == 32768
+        == 32767
     )
 
 
