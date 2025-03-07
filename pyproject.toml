@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dbus-fast"
-version = "2.39.2"
+version = "2.39.3"
 description = "A faster version of dbus-next"
 authors = ["Bluetooth Devices Authors <bluetooth@koston.org>"]
 license = "MIT"

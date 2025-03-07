@@ -1,6 +1,20 @@
 # CHANGELOG
 
 
+## v2.39.3 (2025-03-07)
+
+### Bug Fixes
+
+- Ensure void methods that can raise exceptions are marked
+  ([#417](https://github.com/Bluetooth-Devices/dbus-fast/pull/417),
+  [`c433dab`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c433dab7b5622f3103607acb1acd7a91db841419))
+
+### Chores
+
+- Update aio package typing ([#416](https://github.com/Bluetooth-Devices/dbus-fast/pull/416),
+  [`28888b9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/28888b9f49e063b122d6116309fbb3d0aec984f7))
+
+
 ## v2.39.2 (2025-03-07)
 
 ### Bug Fixes
