@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import logging
 import socket
 from functools import partial
-from typing import Callable, Optional
+from typing import Callable
 
 from .._private.unmarshaller import Unmarshaller
 from ..message import Message
@@ -10,7 +12,7 @@ from ..message import Message
 def _message_reader(
     unmarshaller: Unmarshaller,
     process: Callable[[Message], None],
-    finalize: Callable[[Optional[Exception]], None],
+    finalize: Callable[[Exception | None], None],
     negotiate_unix_fd: bool,
 ) -> None:
     """Reads messages from the unmarshaller and passes them to the process function."""
@@ -35,9 +37,9 @@ def _message_reader(
 
 
 def build_message_reader(
-    sock: Optional[socket.socket],
+    sock: socket.socket | None,
     process: Callable[[Message], None],
-    finalize: Callable[[Optional[Exception]], None],
+    finalize: Callable[[Exception | None], None],
     negotiate_unix_fd: bool,
 ) -> Callable[[], None]:
     """Build a callable that reads messages from the unmarshaller and passes them to the process function."""
