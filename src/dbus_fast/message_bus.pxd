@@ -45,7 +45,7 @@ cdef class BaseMessageBus:
     cdef public object _stream
     cdef public object _fd
 
-    cpdef void _process_message(self, Message msg)
+    cpdef void _process_message(self, Message msg) except *
 
     @cython.locals(exported_service_interface=ServiceInterface)
     cpdef export(self, str path, ServiceInterface interface)
@@ -72,4 +72,4 @@ cdef class BaseMessageBus:
         _Method method,
         Message msg,
         object send_reply
-    )
+    ) except *

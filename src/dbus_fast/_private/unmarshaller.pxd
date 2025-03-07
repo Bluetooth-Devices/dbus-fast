@@ -161,20 +161,20 @@ cdef class Unmarshaller:
         recv=cython.tuple,
         errno=cython.uint
     )
-    cdef void _read_sock_with_fds(self, unsigned int pos, unsigned int missing_bytes)
+    cdef void _read_sock_with_fds(self, unsigned int pos, unsigned int missing_bytes) except *
 
     @cython.locals(
         data=cython.bytes,
         errno=cython.uint
     )
-    cdef void _read_sock_without_fds(self, unsigned int pos)
+    cdef void _read_sock_without_fds(self, unsigned int pos) except *
 
     @cython.locals(
         data=cython.bytes
     )
-    cdef void _read_stream(self, unsigned int pos, unsigned int missing_bytes)
+    cdef void _read_stream(self, unsigned int pos, unsigned int missing_bytes) except *
 
-    cdef void _read_to_pos(self, unsigned int pos)
+    cdef void _read_to_pos(self, unsigned int pos) except *
 
     cpdef read_boolean(self, SignatureType type_)
 
