@@ -133,7 +133,7 @@ cdef class Unmarshaller:
     cdef unsigned int _pos
     cdef object _stream
     cdef object _sock
-    cdef object _message
+    cdef Message _message
     cdef object _readers
     cdef unsigned int _body_len
     cdef unsigned int _serial
@@ -161,20 +161,20 @@ cdef class Unmarshaller:
         recv=cython.tuple,
         errno=cython.uint
     )
-    cdef void _read_sock_with_fds(self, unsigned int pos, unsigned int missing_bytes)
+    cdef void _read_sock_with_fds(self, unsigned int pos, unsigned int missing_bytes) except *
 
     @cython.locals(
         data=cython.bytes,
         errno=cython.uint
     )
-    cdef void _read_sock_without_fds(self, unsigned int pos)
+    cdef void _read_sock_without_fds(self, unsigned int pos) except *
 
     @cython.locals(
         data=cython.bytes
     )
-    cdef void _read_stream(self, unsigned int pos, unsigned int missing_bytes)
+    cdef void _read_stream(self, unsigned int pos, unsigned int missing_bytes) except *
 
-    cdef void _read_to_pos(self, unsigned int pos)
+    cdef void _read_to_pos(self, unsigned int pos) except *
 
     cpdef read_boolean(self, SignatureType type_)
 
@@ -232,7 +232,7 @@ cdef class Unmarshaller:
         key=cython.str,
         ustring="const unsigned char *",
     )
-    cdef _read_header(self)
+    cdef void _read_header(self) except *
 
     @cython.locals(
         body=list,
@@ -242,9 +242,9 @@ cdef class Unmarshaller:
         tree=SignatureTree,
         message=Message
     )
-    cdef _read_body(self)
+    cdef void _read_body(self) except *
 
-    cdef _unmarshall(self)
+    cdef Message _unmarshall(self)
 
     cpdef unmarshall(self)
 
