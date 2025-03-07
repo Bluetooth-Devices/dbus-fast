@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v2.39.1 (2025-03-07)
+
+### Bug Fixes
+
+- Ensure proxy object tasks do not get garbage collected prematurely
+  ([#409](https://github.com/Bluetooth-Devices/dbus-fast/pull/409),
+  [`4fcdbed`](https://github.com/Bluetooth-Devices/dbus-fast/commit/4fcdbed1e5ab828e95b2a16ac0058ebbe0a64f78))
+
+
 ## v2.39.0 (2025-03-06)
 
 ### Chores
