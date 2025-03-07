@@ -133,7 +133,7 @@ cdef class Unmarshaller:
     cdef unsigned int _pos
     cdef object _stream
     cdef object _sock
-    cdef object _message
+    cdef Message _message
     cdef object _readers
     cdef unsigned int _body_len
     cdef unsigned int _serial
@@ -232,7 +232,7 @@ cdef class Unmarshaller:
         key=cython.str,
         ustring="const unsigned char *",
     )
-    cdef _read_header(self)
+    cdef void _read_header(self) except *
 
     @cython.locals(
         body=list,
@@ -242,9 +242,9 @@ cdef class Unmarshaller:
         tree=SignatureTree,
         message=Message
     )
-    cdef _read_body(self)
+    cdef void _read_body(self) except *
 
-    cdef _unmarshall(self)
+    cdef Message _unmarshall(self)
 
     cpdef unmarshall(self)
 
