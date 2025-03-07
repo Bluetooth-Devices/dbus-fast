@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v2.39.2 (2025-03-07)
+
+### Bug Fixes
+
+- Correct size of uint32 with cython
+  ([#415](https://github.com/Bluetooth-Devices/dbus-fast/pull/415),
+  [`f64eb58`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f64eb58573e068ad731f6dc268dd903dee2e66af))
+
+* chore: add more coverage for big endian systems
+
+* chore: fix overflow
+
+* fix: should have been unsigned int
+
+
 ## v2.39.1 (2025-03-07)
 
 ### Bug Fixes
