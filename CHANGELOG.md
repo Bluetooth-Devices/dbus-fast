@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v2.39.5 (2025-03-13)
+
+### Bug Fixes
+
+- Upgrade to ruff 0.1.0 and fix violations
+  ([#422](https://github.com/Bluetooth-Devices/dbus-fast/pull/422),
+  [`7e4cab6`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7e4cab6778e8cfb2894e638a7d47eff1cc191bff))
+
+
 ## v2.39.4 (2025-03-13)
 
 ### Bug Fixes
