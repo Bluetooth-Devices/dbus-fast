@@ -2,7 +2,6 @@ import asyncio
 from unittest.mock import patch
 
 import pytest
-
 from dbus_fast import Message
 from dbus_fast.aio import MessageBus
 

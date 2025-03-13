@@ -1,7 +1,6 @@
 """This tests setting a hardcoded UID in AuthExternal"""
 
 import pytest
-
 from dbus_fast.auth import (
     UID_NOT_SPECIFIED,
     AuthAnnonymous,
