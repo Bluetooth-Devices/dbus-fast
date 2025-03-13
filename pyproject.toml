@@ -233,4 +233,5 @@ select = [
     "T201", # intended
     "RSE102", # too many to fix
     "C408", # too many to fix
+    "E402", # as intended
 ]
