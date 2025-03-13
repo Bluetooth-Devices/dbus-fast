@@ -1,6 +1,25 @@
 # CHANGELOG
 
 
+## v2.39.4 (2025-03-13)
+
+### Bug Fixes
+
+- Multiple calls on the root logger instead of module logger
+  ([#421](https://github.com/Bluetooth-Devices/dbus-fast/pull/421),
+  [`b7c4a31`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b7c4a3117e5978cb712469f75f49d5e2002614b8))
+
+### Chores
+
+- **deps-dev**: Bump setuptools from 75.8.2 to 76.0.0
+  ([#418](https://github.com/Bluetooth-Devices/dbus-fast/pull/418),
+  [`128ba12`](https://github.com/Bluetooth-Devices/dbus-fast/commit/128ba128586ea740fa60d6be8ba311791b6dabb6))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#420](https://github.com/Bluetooth-Devices/dbus-fast/pull/420),
+  [`45acd54`](https://github.com/Bluetooth-Devices/dbus-fast/commit/45acd54868c12f784287fb19104a3bf6bc17d745))
+
+
 ## v2.39.3 (2025-03-07)
 
 ### Bug Fixes
