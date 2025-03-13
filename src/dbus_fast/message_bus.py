@@ -1033,7 +1033,8 @@ class BaseMessageBus:
 
         # first build up the result object to know when it's complete
         result: dict[str, dict[str, Any]] = {
-            node: dict.fromkeys(self._path_exports[node]) for node in nodes
+            node: {interface: None for interface in self._path_exports[node]}
+            for node in nodes
         }
 
         if is_result_complete():
