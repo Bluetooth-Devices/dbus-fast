@@ -235,3 +235,6 @@ select = [
     "C408", # too many to fix
     "E402", # as intended
 ]
+"docs/**/*" = [
+    "E402", # as intended
+]
