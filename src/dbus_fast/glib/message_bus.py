@@ -19,6 +19,9 @@ from ..message import Message
 from ..message_bus import BaseMessageBus
 from .proxy_object import ProxyObject
 
+_LOGGER = logging.getLogger(__name__)
+
+
 # glib is optional
 _import_error = None
 try:
@@ -179,7 +182,7 @@ class MessageBus(BaseMessageBus):
         try:
             self._process_message(msg)
         except Exception as e:
-            logging.exception(
+            _LOGGER.exception(
                 f"got unexpected error processing a message: {e}.\n{traceback.format_exc()}"
             )
 

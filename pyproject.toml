@@ -171,6 +171,7 @@ select = [
     "W",   # pycodestyle
     "UP",  # pyupgrade
     "I",   # isort
+    "LOG",  # log
     "RUF", # ruff specific
     "FLY", # flynt
     "FURB", # refurb

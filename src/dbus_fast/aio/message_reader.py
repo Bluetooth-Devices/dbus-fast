@@ -8,6 +8,8 @@ from typing import Callable
 from .._private.unmarshaller import Unmarshaller
 from ..message import Message
 
+_LOGGER = logging.getLogger(__name__)
+
 
 def _message_reader(
     unmarshaller: Unmarshaller,
@@ -24,7 +26,7 @@ def _message_reader(
             try:
                 process(message)
             except Exception:
-                logging.error("Unexpected error processing message: %s", exc_info=True)
+                _LOGGER.error("Unexpected error processing message: %s", exc_info=True)
             # If we are not negotiating unix fds, we can stop reading as soon as we have
             # the buffer is empty as asyncio will call us again when there is more data.
             if (
