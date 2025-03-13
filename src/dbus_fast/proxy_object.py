@@ -121,7 +121,7 @@ class BaseProxyInterface:
             return
 
         match = [s for s in self.introspection.signals if s.name == msg.member]
-        if not match:
+        if not len(match):
             return
         intr_signal = match[0]
         if intr_signal.signature != msg.signature:
