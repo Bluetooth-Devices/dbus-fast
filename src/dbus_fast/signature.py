@@ -205,10 +205,10 @@ class SignatureType:
     def _verify_unix_fd(self, body: Any) -> None:
         try:
             self._verify_uint32(body)
-        except SignatureBodyMismatchError:
+        except SignatureBodyMismatchError as ex:
             raise SignatureBodyMismatchError(
                 'DBus UNIX_FD type "h" must be a valid UINT32'
-            )
+            ) from ex
 
     def _verify_object_path(self, body: Any) -> None:
         if not is_object_path_valid(body):
