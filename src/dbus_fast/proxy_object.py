@@ -121,7 +121,7 @@ class BaseProxyInterface:
             return
 
         match = [s for s in self.introspection.signals if s.name == msg.member]
-        if not len(match):
+        if not match:
             return
         intr_signal = match[0]
         if intr_signal.signature != msg.signature:
@@ -302,8 +302,10 @@ class BaseProxyObject:
             intr_interface = next(
                 i for i in self.introspection.interfaces if i.name == name
             )
-        except StopIteration:
-            raise InterfaceNotFoundError(f"interface not found on this object: {name}")
+        except StopIteration as ex:
+            raise InterfaceNotFoundError(
+                f"interface not found on this object: {name}"
+            ) from ex
 
         interface = self.ProxyInterface(
             self.bus_name, self.path, intr_interface, self.bus
