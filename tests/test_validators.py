@@ -66,13 +66,13 @@ def test_interface_name_validator():
     ]
 
     for name in valid_names:
-        assert is_interface_name_valid(name), (
-            f'interface name should be valid: "{name}"'
-        )
+        assert is_interface_name_valid(
+            name
+        ), f'interface name should be valid: "{name}"'
     for name in invalid_names:
-        assert not is_interface_name_valid(name), (
-            f'interface name should be invalid: "{name}"'
-        )
+        assert not is_interface_name_valid(
+            name
+        ), f'interface name should be invalid: "{name}"'
 
 
 def test_member_name_validator():
@@ -82,6 +82,6 @@ def test_member_name_validator():
     for member in valid_members:
         assert is_member_name_valid(member), f'member name should be valid: "{member}"'
     for member in invalid_members:
-        assert not is_member_name_valid(member), (
-            f'member name should be invalid: "{member}"'
-        )
+        assert not is_member_name_valid(
+            member
+        ), f'member name should be invalid: "{member}"'
