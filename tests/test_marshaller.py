@@ -5,7 +5,6 @@ from enum import Enum
 from typing import Any
 
 import pytest
-
 from dbus_fast import Message, MessageFlag, MessageType, SignatureTree, Variant
 from dbus_fast._private._cython_compat import FakeCython
 from dbus_fast._private.constants import BIG_ENDIAN, LITTLE_ENDIAN
@@ -234,9 +233,9 @@ def test_unmarshalling_with_table(unmarshall_table):
             "flags",
             "serial",
         ]:
-            assert getattr(unmarshaller.message, attr) == getattr(message, attr), (
-                f"attr doesnt match: {attr}"
-            )
+            assert getattr(unmarshaller.message, attr) == getattr(
+                message, attr
+            ), f"attr doesnt match: {attr}"
 
 
 def test_unmarshall_can_resume():

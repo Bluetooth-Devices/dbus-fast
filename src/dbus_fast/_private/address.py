@@ -73,10 +73,10 @@ def get_session_bus_address() -> str:
     display = os.environ["DISPLAY"]
     try:
         display = display_re.search(display).group(1)
-    except Exception:
+    except Exception as ex:
         raise InvalidAddressError(
             f"DBUS_SESSION_BUS_ADDRESS not set and could not parse DISPLAY environment variable to get bus address: {display}"
-        )
+        ) from ex
 
     # XXX: this will block but they're very small files and fs operations
     # should be fairly reliable. fix this by passing in an async func to read
@@ -90,10 +90,10 @@ def get_session_bus_address() -> str:
     try:
         with open(dbus_info_file_name) as f:
             dbus_info = f.read().rstrip()
-    except Exception:
+    except Exception as ex:
         raise InvalidAddressError(
             f"could not open dbus info file: {dbus_info_file_name}"
-        )
+        ) from ex
 
     for line in dbus_info.split("\n"):
         if line.strip().startswith("DBUS_SESSION_BUS_ADDRESS="):

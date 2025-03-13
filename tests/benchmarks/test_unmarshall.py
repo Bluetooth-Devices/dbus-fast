@@ -1,8 +1,7 @@
 import io
 
-from pytest_codspeed import BenchmarkFixture
-
 from dbus_fast._private.unmarshaller import Unmarshaller
+from pytest_codspeed import BenchmarkFixture
 
 
 def test_unmarshall_bluez_rssi_message(benchmark: BenchmarkFixture) -> None:

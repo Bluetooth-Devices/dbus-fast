@@ -33,7 +33,8 @@ HandlerType = Callable[[Message, SendReply], None]
 
 
 class _MethodCallbackProtocol(Protocol):
-    def __call__(self, interface: ServiceInterface, *args: Any) -> Any: ...
+    def __call__(self, interface: ServiceInterface, *args: Any) -> Any:
+        ...
 
 
 class _Method:
@@ -206,7 +207,7 @@ def signal(name: str | None = None, disabled: bool = False) -> Callable:
 
 
 class _Property(property):
-    def set_options(self, options):
+    def set_options(self, options: dict[str, Any]) -> None:
         self.options = getattr(self, "options", {})
         for k, v in options.items():
             self.options[k] = v
@@ -221,11 +222,7 @@ class _Property(property):
         else:
             self.access = PropertyAccess.READWRITE
 
-        if "disabled" in options:
-            self.disabled = options["disabled"]
-        else:
-            self.disabled = False
-
+        self.disabled = options.get("disabled", False)
         self.introspection = intr.Property(self.name, self.signature, self.access)
 
         self.__dict__["__DBUS_PROPERTY"] = True

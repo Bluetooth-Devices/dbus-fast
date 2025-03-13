@@ -3,7 +3,6 @@ import os
 from contextlib import suppress
 
 import pytest
-
 from dbus_fast import Message
 from dbus_fast._private.address import parse_address
 from dbus_fast.aio import MessageBus

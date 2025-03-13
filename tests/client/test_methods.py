@@ -3,13 +3,13 @@ import sys
 from logging.handlers import QueueHandler
 from queue import SimpleQueue
 
-import pytest
-
 import dbus_fast.introspection as intr
+import pytest
 from dbus_fast import DBusError, aio, glib
 from dbus_fast.message import MessageFlag
 from dbus_fast.service import ServiceInterface, method
 from dbus_fast.signature import Variant
+
 from tests.util import check_gi_repository, skip_reason_no_gi
 
 has_gi = check_gi_repository()

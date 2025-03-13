@@ -738,9 +738,11 @@ class Unmarshaller:
             self._serial = _ustr_uint32(self._buf_ustr, 8, endian)
             self._header_len = _ustr_uint32(self._buf_ustr, 12, endian)
         elif endian == LITTLE_ENDIAN:
-            self._body_len, self._serial, self._header_len = (
-                UNPACK_HEADER_LITTLE_ENDIAN(self._buf, 4)
-            )
+            (
+                self._body_len,
+                self._serial,
+                self._header_len,
+            ) = UNPACK_HEADER_LITTLE_ENDIAN(self._buf, 4)
             self._uint32_unpack = UINT32_UNPACK_LITTLE_ENDIAN
             self._int16_unpack = INT16_UNPACK_LITTLE_ENDIAN
             self._uint16_unpack = UINT16_UNPACK_LITTLE_ENDIAN

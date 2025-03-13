@@ -108,9 +108,15 @@ class ErrorType(str, Enum):
     :seealso: http://man7.org/linux/man-pages/man3/sd-bus-errors.3.html
     """
 
-    SERVICE_ERROR = "com.dubstepdish.dbus.next.ServiceError"  #: A custom error to indicate an exported service threw an exception.
-    INTERNAL_ERROR = "com.dubstepdish.dbus.next.InternalError"  #: A custom error to indicate something went wrong with the library.
-    CLIENT_ERROR = "com.dubstepdish.dbus.next.ClientError"  #: A custom error to indicate something went wrong with the client.
+    SERVICE_ERROR = (
+        "com.dubstepdish.dbus.next.ServiceError"
+    )  #: A custom error to indicate an exported service threw an exception.
+    INTERNAL_ERROR = (
+        "com.dubstepdish.dbus.next.InternalError"
+    )  #: A custom error to indicate something went wrong with the library.
+    CLIENT_ERROR = (
+        "com.dubstepdish.dbus.next.ClientError"
+    )  #: A custom error to indicate something went wrong with the client.
 
     FAILED = "org.freedesktop.DBus.Error.Failed"
     NO_MEMORY = "org.freedesktop.DBus.Error.NoMemory"

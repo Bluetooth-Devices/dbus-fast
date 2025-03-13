@@ -186,7 +186,9 @@ class Marshaller:
         try:
             return self._construct_buffer()
         except KeyError as ex:
-            raise NotImplementedError(f'type is not implemented yet: "{ex.args}"')
+            raise NotImplementedError(
+                f'type is not implemented yet: "{ex.args}"'
+            ) from ex
         except error:
             self.signature_tree.verify(self.body)
         raise RuntimeError("should not reach here")

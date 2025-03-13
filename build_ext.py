@@ -44,7 +44,7 @@ class BuildExt(build_ext):
 
 
 def build(setup_kwargs):
-    if os.environ.get("SKIP_CYTHON", False):
+    if os.environ.get("SKIP_CYTHON"):
         return
     try:
         from Cython.Build import cythonize

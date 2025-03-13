@@ -1,5 +1,4 @@
 import pytest
-
 from dbus_fast import (
     DBusError,
     ErrorType,
