@@ -19,6 +19,8 @@ from .message import Message
 from .unpack import unpack_variants as unpack
 from .validators import assert_bus_name_valid, assert_object_path_valid
 
+_LOGGER = logging.getLogger(__name__)
+
 
 @dataclass
 class SignalHandler:
@@ -123,7 +125,7 @@ class BaseProxyInterface:
             return
         intr_signal = match[0]
         if intr_signal.signature != msg.signature:
-            logging.warning(
+            _LOGGER.warning(
                 f'got signal "{self.introspection.name}.{msg.member}" with unexpected signature "{msg.signature}"'
             )
             return
@@ -316,11 +318,11 @@ class BaseProxyObject:
 
         def get_owner_notify(msg: Message, err: Exception | None) -> None:
             if err:
-                logging.error(f'getting name owner for "{name}" failed, {err}')
+                _LOGGER.error(f'getting name owner for "{name}" failed, {err}')
                 return
             if msg.message_type == MessageType.ERROR:
                 if msg.error_name != ErrorType.NAME_HAS_NO_OWNER.value:
-                    logging.error(
+                    _LOGGER.error(
                         f'getting name owner for "{name}" failed, {msg.body[0]}'
                     )
                 return

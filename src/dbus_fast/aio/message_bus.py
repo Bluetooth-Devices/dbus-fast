@@ -29,6 +29,8 @@ from .proxy_object import ProxyObject
 
 NO_REPLY_EXPECTED_VALUE = MessageFlag.NO_REPLY_EXPECTED.value
 
+_LOGGER = logging.getLogger(__name__)
+
 
 def _generate_hello_serialized(next_serial: int) -> bytes:
     return bytes(
@@ -442,7 +444,7 @@ class MessageBus(BaseMessageBus):
         except asyncio.CancelledError:
             pass
         except Exception as e:
-            logging.exception("unexpected exception in future", exc_info=e)
+            _LOGGER.exception("unexpected exception in future", exc_info=e)
 
     def _make_method_handler(
         self, interface: ServiceInterface, method: _Method
@@ -534,17 +536,17 @@ class MessageBus(BaseMessageBus):
         try:
             self._sock.close()
         except Exception:
-            logging.warning("could not close socket", exc_info=True)
+            _LOGGER.warning("could not close socket", exc_info=True)
 
     def _finalize(self, err: Exception | None = None) -> None:
         try:
             self._loop.remove_reader(self._fd)
         except Exception:
-            logging.warning("could not remove message reader", exc_info=True)
+            _LOGGER.warning("could not remove message reader", exc_info=True)
         try:
             self._loop.remove_writer(self._fd)
         except Exception:
-            logging.warning("could not remove message writer", exc_info=True)
+            _LOGGER.warning("could not remove message writer", exc_info=True)
 
         had_handlers = bool(self._method_return_handlers or self._user_message_handlers)
 

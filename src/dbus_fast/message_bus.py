@@ -334,7 +334,7 @@ class BaseMessageBus:
                 try:
                     raise e
                 except Exception:
-                    logging.error(
+                    _LOGGER.error(
                         "An exception ocurred when emitting ObjectManager.InterfacesAdded for %s. "
                         "Some properties will not be included in the signal.",
                         interface.name,
@@ -526,7 +526,7 @@ class BaseMessageBus:
             try:
                 self._sock.shutdown(socket.SHUT_RDWR)
             except Exception:
-                logging.warning("could not shut down socket", exc_info=True)
+                _LOGGER.warning("could not shut down socket", exc_info=True)
 
     def next_serial(self) -> int:
         """Get the next serial for this bus. This can be used as the ``serial``
@@ -601,7 +601,7 @@ class BaseMessageBus:
             try:
                 handler(None, err)
             except Exception:
-                logging.warning(
+                _LOGGER.warning(
                     "a message handler threw an exception on shutdown", exc_info=True
                 )
 
@@ -804,9 +804,9 @@ class BaseMessageBus:
                     self.send(e._as_message(msg))
                     handled = True
                     break
-                logging.exception("A message handler raised an exception: %s", e)
+                _LOGGER.exception("A message handler raised an exception: %s", e)
             except Exception as e:
-                logging.exception("A message handler raised an exception: %s", e)
+                _LOGGER.exception("A message handler raised an exception: %s", e)
                 if msg.message_type is MESSAGE_TYPE_CALL:
                     self.send(
                         Message.new_error(
@@ -1219,11 +1219,11 @@ class BaseMessageBus:
 
         def add_match_notify(msg: Message | None, err: Exception | None) -> None:
             if err:
-                logging.error(
+                _LOGGER.error(
                     f'add match request failed. match="{self._name_owner_match_rule}", {err}'
                 )
             elif msg is not None and msg.message_type == MessageType.ERROR:
-                logging.error(
+                _LOGGER.error(
                     f'add match request failed. match="{self._name_owner_match_rule}", {msg.body[0]}'
                 )
 
@@ -1254,9 +1254,9 @@ class BaseMessageBus:
 
         def add_match_notify(msg: Message | None, err: Exception | None) -> None:
             if err:
-                logging.error(f'add match request failed. match="{match_rule}", {err}')
+                _LOGGER.error(f'add match request failed. match="{match_rule}", {err}')
             elif msg is not None and msg.message_type == MessageType.ERROR:
-                logging.error(
+                _LOGGER.error(
                     f'add match request failed. match="{match_rule}", {msg.body[0]}'
                 )
 
@@ -1290,11 +1290,11 @@ class BaseMessageBus:
                 return
 
             if err:
-                logging.error(
+                _LOGGER.error(
                     f'remove match request failed. match="{match_rule}", {err}'
                 )
             elif msg is not None and msg.message_type == MessageType.ERROR:
-                logging.error(
+                _LOGGER.error(
                     f'remove match request failed. match="{match_rule}", {msg.body[0]}'
                 )
 
