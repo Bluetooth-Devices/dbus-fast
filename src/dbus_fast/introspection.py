@@ -564,8 +564,8 @@ class Node:
                     elem.text = i + "  "
                 if not elem.tail or not elem.tail.strip():
                     elem.tail = i
-                for elem in elem:
-                    indent(elem, level + 1)
+                for elem_ in elem:
+                    indent(elem_, level + 1)
                 if not elem.tail or not elem.tail.strip():
                     elem.tail = i
             elif level and (not elem.tail or not elem.tail.strip()):
