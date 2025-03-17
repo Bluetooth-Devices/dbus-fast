@@ -2,6 +2,7 @@ import os
 from unittest.mock import patch
 
 import pytest
+
 from dbus_fast.constants import ErrorType, MessageType
 from dbus_fast.errors import DBusError
 from dbus_fast.message import Message

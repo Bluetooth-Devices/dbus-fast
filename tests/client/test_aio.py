@@ -1,4 +1,5 @@
 import pytest
+
 from dbus_fast import aio
 from dbus_fast.service import ServiceInterface
 

@@ -1,4 +1,5 @@
 import pytest
+
 from dbus_fast import Message, MessageType
 from dbus_fast import introspection as intr
 from dbus_fast.aio import MessageBus

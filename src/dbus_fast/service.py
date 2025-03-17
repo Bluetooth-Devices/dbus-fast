@@ -33,8 +33,7 @@ HandlerType = Callable[[Message, SendReply], None]
 
 
 class _MethodCallbackProtocol(Protocol):
-    def __call__(self, interface: ServiceInterface, *args: Any) -> Any:
-        ...
+    def __call__(self, interface: ServiceInterface, *args: Any) -> Any: ...
 
 
 class _Method:
