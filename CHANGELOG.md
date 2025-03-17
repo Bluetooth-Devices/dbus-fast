@@ -1,6 +1,30 @@
 # CHANGELOG
 
 
+## v2.39.6 (2025-03-17)
+
+### Bug Fixes
+
+- Don't limit python upper bound ([#424](https://github.com/Bluetooth-Devices/dbus-fast/pull/424),
+  [`9cafbb6`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9cafbb6a0b70d975b73889ded99e2e0a6af2b467))
+
+This requires all projects that depend on dbus-fast to have to set the same limit, which is an
+  unnecessary burden.
+
+* fix: adjust pygobject pin to required python < 4 (see
+  https://gitlab.gnome.org/GNOME/pygobject/-/merge_requests/418)
+
+---------
+
+Co-authored-by: J. Nick Koston <nick@koston.org>
+
+### Chores
+
+- Remove workflow from previous failed attempt at testing big-endian
+  ([#423](https://github.com/Bluetooth-Devices/dbus-fast/pull/423),
+  [`20e102c`](https://github.com/Bluetooth-Devices/dbus-fast/commit/20e102ca8f0606f6abe26fb35a30e94997740bcc))
+
+
 ## v2.39.5 (2025-03-13)
 
 ### Bug Fixes
