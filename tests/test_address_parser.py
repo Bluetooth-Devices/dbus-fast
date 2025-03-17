@@ -2,6 +2,7 @@ import os
 from unittest.mock import patch
 
 import pytest
+
 from dbus_fast._private.address import (
     get_bus_address,
     get_session_bus_address,

@@ -1,10 +1,10 @@
 import sys
 
 import pytest
+
 from dbus_fast import DBusError, Message, aio, glib
 from dbus_fast.service import PropertyAccess, ServiceInterface, dbus_property
 from dbus_fast.signature import Variant
-
 from tests.util import check_gi_repository, skip_reason_no_gi
 
 has_gi = check_gi_repository()

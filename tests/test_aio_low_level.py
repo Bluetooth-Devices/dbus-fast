@@ -1,4 +1,5 @@
 import pytest
+
 from dbus_fast import Message, MessageFlag, MessageType
 from dbus_fast.aio import MessageBus
 

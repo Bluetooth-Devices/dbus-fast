@@ -33,8 +33,7 @@ HandlerType = Callable[[Message, SendReply], None]
 
 
 class _MethodCallbackProtocol(Protocol):
-    def __call__(self, interface: ServiceInterface, *args: Any) -> Any:
-        ...
+    def __call__(self, interface: ServiceInterface, *args: Any) -> Any: ...
 
 
 class _Method:
@@ -381,7 +380,7 @@ class ServiceInterface:
         self.__handlers_by_name_signature: dict[
             BaseMessageBus, dict[str, tuple[_Method, HandlerType]]
         ] = {}
-        for name, member in inspect.getmembers(type(self)):
+        for _, member in inspect.getmembers(type(self)):
             member_dict = getattr(member, "__dict__", {})
             if type(member) is _Property:
                 # XXX The getter and the setter may show up as different
@@ -668,8 +667,8 @@ class ServiceInterface:
             else:
                 try:
                     result[prop.name] = Variant(prop.signature, value)
-                except SignatureBodyMismatchError as e:
-                    result_error = e
+                except SignatureBodyMismatchError as exc:
+                    result_error = exc
                     del result[prop.name]
 
             if any(v is None for v in result.values()):

@@ -1,4 +1,5 @@
 import pytest
+
 from dbus_fast import SignatureBodyMismatchError, SignatureTree, Variant
 from dbus_fast._private.util import signature_contains_type
 

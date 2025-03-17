@@ -1,6 +1,7 @@
 import asyncio
 
 import pytest
+
 from dbus_fast import Message, MessageType
 from dbus_fast.aio import MessageBus
 from dbus_fast.constants import PropertyAccess
