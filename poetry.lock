@@ -750,6 +750,7 @@ description = "Python bindings for GObject Introspection"
 optional = false
 python-versions = "*"
 groups = ["dev"]
+markers = "python_version < \"4\""
 files = [
     {file = "PyGObject-3.32.1.tar.gz", hash = "sha256:4165d9fb4157e69c76f29e52a6d73a39a804e18ad9ef0eede15efd9c57c52bf2"},
 ]
@@ -1300,4 +1301,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9"
-content-hash = "8fe5ddc537ac5258c3f3f76e9391ff7d10486d807bef7845c672713244b6ada3"
+content-hash = "f6e53d60a20f9f57141ab682c58a9fc64949b6486f3196a56fbee099d7ae7eae"
