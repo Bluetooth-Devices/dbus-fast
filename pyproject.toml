@@ -34,7 +34,7 @@ script = "build_ext.py"
 "Changelog" = "https://github.com/bluetooth-devices/dbus-fast/blob/main/CHANGELOG.md"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = ">=3.9"
 
 # duplicated in docs/requirements.txt for readthedocs compatibility
 [tool.poetry.group.docs.dependencies]
