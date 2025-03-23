@@ -345,7 +345,10 @@ class Unmarshaller:
             self._buf_len = 0
         else:
             if self._mutable_buf is None:
-                self._mutable_buf = self._buf
+                if cython.compiled:
+                    self._mutable_buf = self._buf
+                else:
+                    self._mutable_buf = bytearray(self._buf)
                 self._buf = None
             del self._mutable_buf[:to_clear]
             self._buf_len -= to_clear
@@ -406,7 +409,10 @@ class Unmarshaller:
         elif self._mutable_buf is not None:
             self._mutable_buf += data
         else:
-            self._mutable_buf = self._buf + data
+            if cython.compiled:
+                self._mutable_buf = self._buf + data
+            else:
+                self._mutable_buf = bytearray(self._buf) + data
             self._buf = None
         self._buf_len += data_len
 
