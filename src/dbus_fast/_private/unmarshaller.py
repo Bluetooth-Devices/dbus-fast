@@ -338,7 +338,7 @@ class Unmarshaller:
             self._unix_fds = []
         to_clear = HEADER_SIGNATURE_SIZE + self._msg_len
         if self._buf_len == to_clear:
-            self._buf = bytearray.__new__(bytearray)
+            self._buf = None
             self._buf_len = 0
         else:
             del self._buf[:to_clear]
