@@ -23,6 +23,15 @@ def test_multiple_simple():
         assert_simple_type("s", tree.types[i])
 
 
+def test_children():
+    tree = SignatureTree("ss")
+    assert len(tree.types) == 2
+    parent = tree.types[0]
+    assert parent.token == "s"
+    assert parent.signature == "s"
+    assert len(parent.children) == 0
+
+
 def test_array():
     tree = SignatureTree("as")
     assert len(tree.types) == 1
@@ -31,6 +40,11 @@ def test_array():
     assert child.token == "a"
     assert len(child.children) == 1
     assert_simple_type("s", child.children[0])
+    assert child.children[0].token == "s"
+    assert child._child_0.signature == "s"
+    assert child._child_1 is None
+    with pytest.raises(AttributeError):
+        _ = child._child_1.signature
 
 
 def test_array_multiple():
@@ -67,6 +81,8 @@ def test_simple_struct():
     assert len(child.children) == 3
     for i in range(3):
         assert_simple_type("s", child.children[i])
+    assert child._child_0.signature == "s"
+    assert child._child_1.signature == "s"
 
 
 def test_nested_struct():
