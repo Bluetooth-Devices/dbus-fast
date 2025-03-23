@@ -22,9 +22,9 @@ class SignatureType:
 
     _tokens = "ybnqiuxtdsogavh({"
     __slots__ = (
+        "_child_0",
+        "_child_1",
         "_signature",
-        "child_0",
-        "child_1",
         "children",
         "token",
         "token_as_int",
@@ -35,8 +35,8 @@ class SignatureType:
         self.token: str = token
         self.token_as_int = ord(token)
         self.children: list[SignatureType] = []
-        self.child_0: Optional[SignatureType] = None
-        self.child_1: Optional[SignatureType] = None
+        self._child_0: Optional[SignatureType] = None
+        self._child_1: Optional[SignatureType] = None
         self._signature: Optional[str] = None
 
     def __eq__(self, other: object) -> bool:
@@ -75,10 +75,10 @@ class SignatureType:
         :param child: The child type to add.
         :type child: :class:`SignatureType`
         """
-        if self.child_0 is None:
-            self.child_0 = child
-        elif self.child_1 is None:
-            self.child_1 = child
+        if self._child_0 is None:
+            self._child_0 = child
+        elif self._child_1 is None:
+            self._child_1 = child
         self.children.append(child)
 
     @staticmethod

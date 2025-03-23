@@ -607,7 +607,7 @@ class Unmarshaller:
             )
         else:
             array_length = self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
-        child_type = type_.child_0
+        child_type = type_._child_0
         token_as_int = child_type.token_as_int
 
         if token_as_int in {
@@ -631,8 +631,8 @@ class Unmarshaller:
             result_dict: dict[Any, Any] = {}
             key: str | int
             beginning_pos = self._pos
-            child_0 = child_type.child_0
-            child_1 = child_type.child_1
+            child_0 = child_type._child_0
+            child_1 = child_type._child_1
             child_0_token_as_int = child_0.token_as_int
             child_1_token_as_int = child_1.token_as_int
             # Strings with variant values are the most common case
