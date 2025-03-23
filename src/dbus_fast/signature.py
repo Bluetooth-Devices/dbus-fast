@@ -21,13 +21,22 @@ class SignatureType:
     """
 
     _tokens = "ybnqiuxtdsogavh({"
-    __slots__ = ("_signature", "children", "token", "token_as_int")
+    __slots__ = (
+        "_signature",
+        "child_0",
+        "child_1",
+        "children",
+        "token",
+        "token_as_int",
+    )
 
     def __init__(self, token: str) -> None:
         """Init a new SignatureType."""
         self.token: str = token
         self.token_as_int = ord(token)
         self.children: list[SignatureType] = []
+        self.child_0: Optional[SignatureType] = None
+        self.child_1: Optional[SignatureType] = None
         self._signature: Optional[str] = None
 
     def __eq__(self, other: object) -> bool:
@@ -60,6 +69,18 @@ class SignatureType:
         self._signature = self._collapse()
         return self._signature
 
+    def _add_child(self, child: "SignatureType") -> None:
+        """Add a child type to this type.
+
+        :param child: The child type to add.
+        :type child: :class:`SignatureType`
+        """
+        if self.child_0 is None:
+            self.child_0 = child
+        elif self.child_1 is None:
+            self.child_1 = child
+        self.children.append(child)
+
     @staticmethod
     def _parse_next(signature: str) -> tuple["SignatureType", str]:
         if not signature:
@@ -76,7 +97,7 @@ class SignatureType:
             (child, signature) = SignatureType._parse_next(signature[1:])
             if not child:
                 raise InvalidSignatureError("missing type for array")
-            self.children.append(child)
+            self._add_child(child)
             return (self, signature)
         if token == "(":
             self = SignatureType("(")
@@ -85,7 +106,7 @@ class SignatureType:
                 (child, signature) = SignatureType._parse_next(signature)
                 if not signature:
                     raise InvalidSignatureError('missing closing ")" for struct')
-                self.children.append(child)
+                self._add_child(child)
                 if signature[0] == ")":
                     return (self, signature[1:])
         elif token == "{":
@@ -94,13 +115,13 @@ class SignatureType:
             (key_child, signature) = SignatureType._parse_next(signature)
             if not key_child or len(key_child.children):
                 raise InvalidSignatureError("expected a simple type for dict entry key")
-            self.children.append(key_child)
+            self._add_child(key_child)
             (value_child, signature) = SignatureType._parse_next(signature)
             if not value_child:
                 raise InvalidSignatureError("expected a value for dict entry")
             if not signature or signature[0] != "}":
                 raise InvalidSignatureError('missing closing "}" for dict entry')
-            self.children.append(value_child)
+            self._add_child(value_child)
             return (self, signature[1:])
 
         # basic type

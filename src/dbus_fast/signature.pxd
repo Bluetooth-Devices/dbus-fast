@@ -9,6 +9,8 @@ cdef class SignatureType:
     cdef public unsigned int token_as_int
     cdef public list children
     cdef str _signature
+    cdef public SignatureType child_0
+    cdef public SignatureType child_1
 
 
 cdef class SignatureTree:
