@@ -545,8 +545,11 @@ class Unmarshaller:
             if token_as_int == TOKEN_U_AS_INT:
                 return Variant._factory(SIGNATURE_TREE_U, self._read_uint32_unpack())
             if token_as_int == TOKEN_Y_AS_INT:
+                if cython.compiled:
+                    if self._buf_len < self._pos:
+                        raise IndexError("Not enough data to read byte")
                 self._pos += 1
-                return Variant._factory(SIGNATURE_TREE_Y, self._buf[self._pos - 1])
+                return Variant._factory(SIGNATURE_TREE_Y, self._buf_ustr[self._pos - 1])
         elif token_as_int == TOKEN_A_AS_INT:
             if signature == "ay":
                 return Variant._factory(
@@ -615,7 +618,10 @@ class Unmarshaller:
 
         if token_as_int == TOKEN_Y_AS_INT:
             self._pos += array_length
-            return self._buf[self._pos - array_length : self._pos]
+            if cython.compiled:
+                if self._buf_len < self._pos:
+                    raise IndexError("Not enough data to read byte")
+            return self._buf_ustr[self._pos - array_length : self._pos]
 
         if token_as_int == TOKEN_LEFT_CURLY_AS_INT:
             result_dict: dict[Any, Any] = {}
@@ -693,6 +699,9 @@ class Unmarshaller:
             # first we read the signature
             signature_len = self._buf_ustr[self._pos]  # byte
             o = self._pos + 1
+            if cython.compiled:
+                if self._buf_len < o + signature_len:
+                    raise IndexError("Not enough data to read signature")
             self._pos += signature_len + 2  # one for the byte, one for the '\0'
             if field_0 == HEADER_UNIX_FDS_IDX:  # defined by self._unix_fds
                 continue
@@ -705,7 +714,7 @@ class Unmarshaller:
             elif token_as_int == TOKEN_G_AS_INT:
                 headers[field_0] = self._read_signature()
             else:
-                token = self._buf[o : o + signature_len].decode()
+                token = self._buf_ustr[o : o + signature_len].decode()
                 # There shouldn't be any other types in the header
                 # but just in case, we'll read it using the slow path
                 headers[field_0] = self._readers[token](
