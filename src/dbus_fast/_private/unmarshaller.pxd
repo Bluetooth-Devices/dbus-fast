@@ -235,6 +235,7 @@ cdef class Unmarshaller:
     )
     cdef void _read_header(self) except *
 
+    @cython.locals(data_len=Py_ssize_t)
     cdef void _extend_buf(self, bytes data) except *
 
     @cython.locals(
