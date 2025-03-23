@@ -1,6 +1,27 @@
 # CHANGELOG
 
 
+## v2.41.0 (2025-03-23)
+
+### Chores
+
+- Add benchmark for interfaces added message
+  ([#432](https://github.com/Bluetooth-Devices/dbus-fast/pull/432),
+  [`1988984`](https://github.com/Bluetooth-Devices/dbus-fast/commit/1988984398dac14daf93f11005b647b646bdf00a))
+
+### Features
+
+- Improve performance of unmarshalling boolean Variants
+  ([#431](https://github.com/Bluetooth-Devices/dbus-fast/pull/431),
+  [`888a3c3`](https://github.com/Bluetooth-Devices/dbus-fast/commit/888a3c3ea57e1d8c5f415f2efdf7aa6eed5c9fcd))
+
+* feat: improve performance of boolean Variants
+
+There are only two of these type and relatively common so we can use pre-constructed objects
+
+* chore: tweaks
+
+
 ## v2.40.0 (2025-03-23)
 
 ### Chores
