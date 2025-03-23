@@ -1,8 +1,6 @@
-import asyncio
 import io
 import socket
 
-import pytest
 from pytest_codspeed import BenchmarkFixture
 
 from dbus_fast._private.unmarshaller import Unmarshaller
@@ -71,18 +69,33 @@ def test_unmarshall_bluez_properties_message(benchmark: BenchmarkFixture) -> Non
         unmarshaller.unmarshall()
 
 
-@pytest.mark.asyncio
-async def test_unmarshall_bluez_properties_message_socket(
+def test_unmarshall_multiple_bluez_properties_message(
+    benchmark: BenchmarkFixture,
+) -> None:
+    stream = io.BytesIO(bluez_properties_message)
+
+    unmarshaller = Unmarshaller(stream)
+
+    @benchmark
+    def unmarshall_bluez_properties_message():
+        stream.seek(0)
+        for _ in range(9):
+            unmarshaller.unmarshall()
+
+
+def test_unmarshall_multiple_bluez_properties_message_socket(
     benchmark: BenchmarkFixture,
 ) -> None:
     sock1, sock2 = socket.socketpair()
     sock1.setblocking(False)
     sock2.setblocking(False)
     unmarshaller = Unmarshaller(None, sock1, False)
-    sock2.send(bluez_properties_message)
 
     @benchmark
     def unmarshall_bluez_properties_message():
-        unmarshaller.unmarshall()
+        sock2.send(bluez_properties_message)
+        for _ in range(9):
+            unmarshaller.unmarshall()
 
-    await asyncio.sleep(0)
+    sock1.close()
+    sock2.close()
