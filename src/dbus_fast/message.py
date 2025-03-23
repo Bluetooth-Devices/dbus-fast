@@ -48,7 +48,6 @@ _MessageFlag = MessageFlag
 _list = list
 
 
-@staticmethod
 @lru_cache
 def _int16_variant(value: int) -> Variant:
     return Variant._factory(SIGNATURE_TREE_N, value)
