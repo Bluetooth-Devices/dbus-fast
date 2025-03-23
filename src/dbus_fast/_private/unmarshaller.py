@@ -296,7 +296,7 @@ class Unmarshaller:
     ) -> None:
         self._unix_fds: list[int] = []
         self._buf: bytes | bytearray | None = None
-        self._buf_ustr = self._buf  # Used to avoid type checks
+        self._buf_ustr = b""  # Used to avoid type checks
         self._buf_len = 0
         self._stream = stream
         self._sock = sock
