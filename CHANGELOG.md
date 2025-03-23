@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v2.43.0 (2025-03-23)
+
+### Features
+
+- Improve unmarshall performance for SignatureType
+  ([#436](https://github.com/Bluetooth-Devices/dbus-fast/pull/436),
+  [`e0aeeac`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e0aeeacf8db3819f7771be35880fbbc2696ef434))
+
+
 ## v2.42.0 (2025-03-23)
 
 ### Features
