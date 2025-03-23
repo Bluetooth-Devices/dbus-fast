@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v2.42.0 (2025-03-23)
+
+### Features
+
+- Simplify code to unmarshall arrays
+  ([#435](https://github.com/Bluetooth-Devices/dbus-fast/pull/435),
+  [`958115f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/958115f77bee0b35fde11386f507d96ad26597cc))
+
+
 ## v2.41.1 (2025-03-23)
 
 ### Bug Fixes
