@@ -821,9 +821,6 @@ class Unmarshaller:
                 tree = get_signature_tree(signature)
                 body = [self._readers[t.token](self, t) for t in tree.types]
 
-        flags = MESSAGE_FLAG_MAP.get(self._flag)
-        if flags is None:
-            flags = MESSAGE_FLAG_INTENUM(self._flag)
         message = Message.__new__(Message)
         message._fast_init(
             header_fields[HEADER_DESTINATION_IDX],
@@ -831,7 +828,9 @@ class Unmarshaller:
             header_fields[HEADER_INTERFACE_IDX],
             header_fields[HEADER_MEMBER_IDX],
             MESSAGE_TYPE_MAP[self._message_type],
-            flags,
+            MESSAGE_FLAG_INTENUM(self._flag)
+            if (flags := MESSAGE_FLAG_MAP.get(self._flag)) is None
+            else flags,
             header_fields[HEADER_ERROR_NAME_IDX],
             header_fields[HEADER_REPLY_SERIAL_IDX] or 0,
             header_fields[HEADER_SENDER_IDX],
