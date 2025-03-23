@@ -295,7 +295,7 @@ class Unmarshaller:
         negotiate_unix_fd: bool = True,
     ) -> None:
         self._unix_fds: list[int] = []
-        self._buf: bytearray = bytearray.__new__(bytearray)  # Actual buffer
+        self._buf: bytes | bytearray | None = None
         self._buf_ustr = self._buf  # Used to avoid type checks
         self._buf_len = 0
         self._stream = stream
@@ -387,10 +387,20 @@ class Unmarshaller:
                 )
         if not msg:
             raise EOFError
-        self._buf += msg
-        self._buf_len = len(self._buf)
+        self._extend_buf(msg)
         if self._buf_len < pos:
             raise MARSHALL_STREAM_END_ERROR
+
+    def _extend_buf(self, data: bytes) -> None:
+        """Extend the buffer with the given data."""
+        data_len = len(data)
+        if self._buf_len == 0:
+            self._buf = data
+        elif type(self._buf) is bytearray:
+            self._buf += data
+        else:
+            self._buf = bytearray(self._buf + data)
+        self._buf_len += data_len
 
     def _read_sock_without_fds(self, pos: _int) -> None:
         """reads from the socket and handling errors from the read itself.
@@ -410,8 +420,7 @@ class Unmarshaller:
                 raise
             if not data:
                 raise EOFError
-            self._buf += data
-            self._buf_len = len(self._buf)
+            self._extend_buf(data)
             if self._buf_len >= pos:
                 return
 
@@ -422,8 +431,7 @@ class Unmarshaller:
             raise MARSHALL_STREAM_END_ERROR
         if not data:
             raise EOFError
-        self._buf += data
-        self._buf_len = len(self._buf)
+        self._extend_buf(data)
         if self._buf_len < pos:
             raise MARSHALL_STREAM_END_ERROR
 
@@ -545,8 +553,11 @@ class Unmarshaller:
             if token_as_int == TOKEN_U_AS_INT:
                 return Variant._factory(SIGNATURE_TREE_U, self._read_uint32_unpack())
             if token_as_int == TOKEN_Y_AS_INT:
+                if cython.compiled:
+                    if self._buf_len < self._pos:
+                        raise IndexError("Not enough data to read byte")
                 self._pos += 1
-                return Variant._factory(SIGNATURE_TREE_Y, self._buf[self._pos - 1])
+                return Variant._factory(SIGNATURE_TREE_Y, self._buf_ustr[self._pos - 1])
         elif token_as_int == TOKEN_A_AS_INT:
             if signature == "ay":
                 return Variant._factory(
@@ -599,7 +610,9 @@ class Unmarshaller:
                 self._buf_ustr, self._pos - UINT32_SIZE, self._endian
             )
         else:
-            array_length = self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
+            array_length = self._uint32_unpack(self._buf_ustr, self._pos - UINT32_SIZE)[
+                0
+            ]
         child_type: SignatureType = type_.children[0]
         token_as_int = child_type.token_as_int
 
@@ -614,8 +627,11 @@ class Unmarshaller:
             self._pos += -self._pos & 7  # align 8
 
         if token_as_int == TOKEN_Y_AS_INT:
+            if cython.compiled:
+                if self._buf_len < self._pos + array_length:
+                    raise IndexError("Not enough data to read byte array")
             self._pos += array_length
-            return self._buf[self._pos - array_length : self._pos]
+            return self._buf_ustr[self._pos - array_length : self._pos]
 
         if token_as_int == TOKEN_LEFT_CURLY_AS_INT:
             result_dict: dict[Any, Any] = {}
@@ -697,6 +713,9 @@ class Unmarshaller:
             if field_0 == HEADER_UNIX_FDS_IDX:  # defined by self._unix_fds
                 continue
             token_as_int = self._buf_ustr[o]
+            if cython.compiled:
+                if self._buf_len < o + signature_len:
+                    raise IndexError("Not enough data to read header")
             # Now that we have the token we can read the variant value
             # Strings and signatures are the most common types
             # so we inline them for performance
@@ -705,7 +724,7 @@ class Unmarshaller:
             elif token_as_int == TOKEN_G_AS_INT:
                 headers[field_0] = self._read_signature()
             else:
-                token = self._buf[o : o + signature_len].decode()
+                token = self._buf_ustr[o : o + signature_len].decode()
                 # There shouldn't be any other types in the header
                 # but just in case, we'll read it using the slow path
                 headers[field_0] = self._readers[token](

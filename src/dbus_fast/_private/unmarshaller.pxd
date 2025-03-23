@@ -127,7 +127,7 @@ cdef unsigned short _ustr_uint16(const unsigned char * buf, unsigned int offset,
 cdef class Unmarshaller:
 
     cdef list _unix_fds
-    cdef bytearray _buf
+    cdef object _buf
     cdef Py_ssize_t _buf_len
     cdef const unsigned char * _buf_ustr
     cdef unsigned int _pos
@@ -233,6 +233,8 @@ cdef class Unmarshaller:
         ustring="const unsigned char *",
     )
     cdef void _read_header(self) except *
+
+    cdef void _extend_buf(self, bytes data) except *
 
     @cython.locals(
         body=list,
