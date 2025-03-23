@@ -109,6 +109,9 @@ cdef unsigned int TOKEN_LEFT_PAREN_AS_INT
 cdef object MARSHALL_STREAM_END_ERROR
 cdef object DEFAULT_BUFFER_SIZE
 
+cdef Variant VARIANT_BOOL_TRUE
+cdef Variant VARIANT_BOOL_FALSE
+
 cdef list _EMPTY_HEADERS
 
 cdef cython.uint EAGAIN
@@ -178,7 +181,7 @@ cdef class Unmarshaller:
 
     cpdef read_boolean(self, SignatureType type_)
 
-    cdef _read_boolean(self)
+    cdef bint _read_boolean(self)
 
     cpdef read_uint32_unpack(self, SignatureType type_)
 

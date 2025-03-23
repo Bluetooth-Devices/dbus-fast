@@ -120,6 +120,10 @@ TOKEN_LEFT_CURLY_AS_INT = ord("{")
 TOKEN_LEFT_PAREN_AS_INT = ord("(")
 
 
+VARIANT_BOOL_TRUE = Variant._factory(SIGNATURE_TREE_B, True)
+VARIANT_BOOL_FALSE = Variant._factory(SIGNATURE_TREE_B, False)
+
+
 ARRAY = array.array
 SOL_SOCKET = socket.SOL_SOCKET
 SCM_RIGHTS = socket.SCM_RIGHTS
@@ -539,7 +543,7 @@ class Unmarshaller:
             if token_as_int == TOKEN_S_AS_INT:
                 return Variant._factory(SIGNATURE_TREE_S, self._read_string_unpack())
             if token_as_int == TOKEN_B_AS_INT:
-                return Variant._factory(SIGNATURE_TREE_B, self._read_boolean())
+                return VARIANT_BOOL_TRUE if self._read_boolean() else VARIANT_BOOL_FALSE
             if token_as_int == TOKEN_O_AS_INT:
                 return Variant._factory(SIGNATURE_TREE_O, self._read_string_unpack())
             if token_as_int == TOKEN_U_AS_INT:
