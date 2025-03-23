@@ -1,6 +1,47 @@
 # CHANGELOG
 
 
+## v2.40.0 (2025-03-23)
+
+### Chores
+
+- Add socket unmarshall benchmark ([#428](https://github.com/Bluetooth-Devices/dbus-fast/pull/428),
+  [`1802f35`](https://github.com/Bluetooth-Devices/dbus-fast/commit/1802f35ce9267d8af728045ba47277779af7fea7))
+
+* chore: add socket unmarshall benchmark
+
+* chore: bench multiple messages
+
+- Remove lower python bound from PyGObject
+  ([#425](https://github.com/Bluetooth-Devices/dbus-fast/pull/425),
+  [`28615ee`](https://github.com/Bluetooth-Devices/dbus-fast/commit/28615ee7eb00d7e50f68818f8c9915a1f570c8e5))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#427](https://github.com/Bluetooth-Devices/dbus-fast/pull/427),
+  [`bfc8151`](https://github.com/Bluetooth-Devices/dbus-fast/commit/bfc8151005e143c961421d4e2c5e05ac58964100))
+
+* chore(pre-commit.ci): pre-commit autoupdate
+
+updates: - [github.com/astral-sh/ruff-pre-commit: v0.1.0 →
+  v0.11.0](https://github.com/astral-sh/ruff-pre-commit/compare/v0.1.0...v0.11.0)
+
+* chore(pre-commit.ci): auto fixes
+
+* chore: fix violations
+
+---------
+
+Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+
+Co-authored-by: J. Nick Koston <nick@koston.org>
+
+### Features
+
+- Improve unmarshaller performance for byte strings
+  ([#430](https://github.com/Bluetooth-Devices/dbus-fast/pull/430),
+  [`3b4bac5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3b4bac5524435e5669bd5f513a9175f71af7f7a9))
+
+
 ## v2.39.6 (2025-03-17)
 
 ### Bug Fixes
