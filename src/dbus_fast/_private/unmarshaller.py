@@ -610,13 +610,13 @@ class Unmarshaller:
         child_type: SignatureType = type_.children[0]
         token_as_int = child_type.token_as_int
 
-        if (
-            token_as_int == TOKEN_X_AS_INT
-            or token_as_int == TOKEN_T_AS_INT
-            or token_as_int == TOKEN_D_AS_INT
-            or token_as_int == TOKEN_LEFT_CURLY_AS_INT
-            or token_as_int == TOKEN_LEFT_PAREN_AS_INT
-        ):
+        if token_as_int in {
+            TOKEN_X_AS_INT,
+            TOKEN_T_AS_INT,
+            TOKEN_D_AS_INT,
+            TOKEN_LEFT_CURLY_AS_INT,
+            TOKEN_LEFT_PAREN_AS_INT,
+        }:
             # the first alignment is not included in the array size
             self._pos += -self._pos & 7  # align 8
 
@@ -640,9 +640,9 @@ class Unmarshaller:
             # so we optimize for that by inlining the string reading
             # and the variant reading here
             if (
-                child_0_token_as_int == TOKEN_O_AS_INT
-                or child_0_token_as_int == TOKEN_S_AS_INT
-            ) and child_1_token_as_int == TOKEN_V_AS_INT:
+                child_0_token_as_int in {TOKEN_O_AS_INT, TOKEN_S_AS_INT}
+                and child_1_token_as_int == TOKEN_V_AS_INT
+            ):
                 while self._pos - beginning_pos < array_length:
                     self._pos += -self._pos & 7  # align 8
                     key = self._read_string_unpack()
@@ -656,9 +656,9 @@ class Unmarshaller:
                     key = self._read_uint16_unpack()
                     result_dict[key] = self._read_variant()
             elif (
-                child_0_token_as_int == TOKEN_O_AS_INT
-                or child_0_token_as_int == TOKEN_S_AS_INT
-            ) and child_1_token_as_int == TOKEN_A_AS_INT:
+                child_0_token_as_int in {TOKEN_O_AS_INT, TOKEN_S_AS_INT}
+                and child_1_token_as_int == TOKEN_A_AS_INT
+            ):
                 while self._pos - beginning_pos < array_length:
                     self._pos += -self._pos & 7  # align 8
                     key = self._read_string_unpack()
