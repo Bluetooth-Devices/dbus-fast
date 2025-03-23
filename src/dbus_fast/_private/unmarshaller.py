@@ -341,6 +341,8 @@ class Unmarshaller:
             self._buf = None
             self._buf_len = 0
         else:
+            if type(self._buf) is not bytearray:
+                self._buf = bytearray(self._buf)
             del self._buf[:to_clear]
             self._buf_len -= to_clear
             self._buf_ustr = self._buf
