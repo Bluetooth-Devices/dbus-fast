@@ -166,7 +166,7 @@ def unpack_parser_factory(unpack_from: Callable, size: int) -> READER_TYPE:
 
     def _unpack_from_parser(self: Unmarshaller, signature: SignatureType) -> Any:
         self._pos += size + (-self._pos & (size - 1))  # align
-        return unpack_from(self._buf, self._pos - size)[0]
+        return unpack_from(self._buf_ustr, self._pos - size)[0]
 
     return _unpack_from_parser
 
@@ -468,7 +468,7 @@ class Unmarshaller:
             if self._buf_len < self._pos:
                 raise IndexError("Not enough data to read uint32")
             return _ustr_uint32(self._buf_ustr, self._pos - UINT32_SIZE, self._endian)
-        return self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
+        return self._uint32_unpack(self._buf_ustr, self._pos - UINT32_SIZE)[0]
 
     def read_uint16_unpack(self, type_: _SignatureType) -> int:
         return self._read_uint16_unpack()
@@ -479,7 +479,7 @@ class Unmarshaller:
             if self._buf_len < self._pos:
                 raise IndexError("Not enough data to read uint16")
             return _ustr_uint16(self._buf_ustr, self._pos - UINT16_SIZE, self._endian)
-        return self._uint16_unpack(self._buf, self._pos - UINT16_SIZE)[0]
+        return self._uint16_unpack(self._buf_ustr, self._pos - UINT16_SIZE)[0]
 
     def read_int16_unpack(self, type_: _SignatureType) -> int:
         return self._read_int16_unpack()
@@ -490,7 +490,7 @@ class Unmarshaller:
             if self._buf_len < self._pos:
                 raise IndexError("Not enough data to read int16")
             return _ustr_int16(self._buf_ustr, self._pos - INT16_SIZE, self._endian)
-        return self._int16_unpack(self._buf, self._pos - INT16_SIZE)[0]
+        return self._int16_unpack(self._buf_ustr, self._pos - INT16_SIZE)[0]
 
     def read_boolean(self, type_: _SignatureType) -> bool:
         return self._read_boolean()
@@ -515,7 +515,9 @@ class Unmarshaller:
             if self._buf_len < self._pos:
                 raise IndexError("Not enough data to read string")
         else:
-            self._pos += self._uint32_unpack(self._buf, str_start - UINT32_SIZE)[0] + 1
+            self._pos += (
+                self._uint32_unpack(self._buf_ustr, str_start - UINT32_SIZE)[0] + 1
+            )
         return self._buf_ustr[str_start : self._pos - 1].decode()
 
     def read_signature(self, type_: _SignatureType) -> str:
@@ -761,13 +763,13 @@ class Unmarshaller:
                 self._body_len,
                 self._serial,
                 self._header_len,
-            ) = UNPACK_HEADER_LITTLE_ENDIAN(self._buf, 4)
+            ) = UNPACK_HEADER_LITTLE_ENDIAN(self._buf_ustr, 4)
             self._uint32_unpack = UINT32_UNPACK_LITTLE_ENDIAN
             self._int16_unpack = INT16_UNPACK_LITTLE_ENDIAN
             self._uint16_unpack = UINT16_UNPACK_LITTLE_ENDIAN
         else:  # BIG_ENDIAN
             self._body_len, self._serial, self._header_len = UNPACK_HEADER_BIG_ENDIAN(
-                self._buf, 4
+                self._buf_ustr, 4
             )
             self._uint32_unpack = UINT32_UNPACK_BIG_ENDIAN
             self._int16_unpack = INT16_UNPACK_BIG_ENDIAN
