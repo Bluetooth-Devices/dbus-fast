@@ -271,6 +271,7 @@ class Unmarshaller:
         "_message",
         "_message_type",
         "_msg_len",
+        "_mutable_buf",
         "_negotiate_unix_fd",
         "_pos",
         "_read_complete",
@@ -295,7 +296,8 @@ class Unmarshaller:
         negotiate_unix_fd: bool = True,
     ) -> None:
         self._unix_fds: list[int] = []
-        self._buf: bytes | bytearray | None = None
+        self._buf: bytes | None = None
+        self._mutable_buf: bytearray | None = None
         self._buf_ustr = b""  # Used to avoid type checks
         self._buf_len = 0
         self._stream = stream
@@ -339,13 +341,15 @@ class Unmarshaller:
         to_clear = HEADER_SIGNATURE_SIZE + self._msg_len
         if self._buf_len == to_clear:
             self._buf = None
+            self._mutable_buf = None
             self._buf_len = 0
         else:
-            if type(self._buf) is not bytearray:
-                self._buf = bytearray(self._buf)
-            del self._buf[:to_clear]
+            if self._mutable_buf is None:
+                self._mutable_buf = self._buf
+                self._buf = None
+            del self._mutable_buf[:to_clear]
             self._buf_len -= to_clear
-            self._buf_ustr = self._buf
+            self._buf_ustr = self._mutable_buf
         self._msg_len = 0  # used to check if we have ready the header
         self._read_complete = False  # used to check if we have ready the message
         # No need to reset the unpack functions, they are set in _read_header
@@ -398,10 +402,12 @@ class Unmarshaller:
         data_len = len(data)
         if self._buf_len == 0:
             self._buf = data
-        elif type(self._buf) is bytearray:
-            self._buf += data
+            self._mutable_buf = None
+        elif self._mutable_buf is not None:
+            self._mutable_buf += data
         else:
-            self._buf = bytearray(self._buf + data)
+            self._mutable_buf = self._buf + data
+            self._buf = None
         self._buf_len += data_len
 
     def _read_sock_without_fds(self, pos: _int) -> None:
@@ -459,7 +465,10 @@ class Unmarshaller:
             self._read_sock_with_fds(pos, missing_bytes)
         else:
             self._read_sock_without_fds(pos)
-        self._buf_ustr = self._buf
+        if self._buf is not None:
+            self._buf_ustr = self._buf
+        else:
+            self._buf_ustr = self._mutable_buf
 
     def read_uint32_unpack(self, type_: _SignatureType) -> int:
         return self._read_uint32_unpack()

@@ -127,7 +127,8 @@ cdef unsigned short _ustr_uint16(const unsigned char * buf, unsigned int offset,
 cdef class Unmarshaller:
 
     cdef list _unix_fds
-    cdef object _buf
+    cdef bytes _buf
+    cdef bytearray _mutable_buf
     cdef Py_ssize_t _buf_len
     cdef const unsigned char * _buf_ustr
     cdef unsigned int _pos
