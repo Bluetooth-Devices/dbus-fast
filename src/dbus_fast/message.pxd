@@ -27,6 +27,7 @@ cdef object MESSAGE_FLAG_NONE
 cdef object MESSAGE_TYPE_METHOD_CALL
 
 cdef SignatureTree SIGNATURE_TREE_G
+cdef SignatureTree SIGNATURE_TREE_N
 cdef SignatureTree SIGNATURE_TREE_O
 cdef SignatureTree SIGNATURE_TREE_S
 cdef SignatureTree SIGNATURE_TREE_U

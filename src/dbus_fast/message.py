@@ -1,3 +1,4 @@
+from functools import lru_cache
 from typing import Any, Optional, Union
 
 from ._private.constants import LITTLE_ENDIAN, PROTOCOL_VERSION, HeaderField
@@ -34,6 +35,7 @@ MESSAGE_FLAG_NONE = MessageFlag.NONE
 MESSAGE_TYPE_METHOD_CALL = MessageType.METHOD_CALL
 
 SIGNATURE_TREE_G = get_signature_tree("g")
+SIGNATURE_TREE_N = get_signature_tree("n")
 SIGNATURE_TREE_O = get_signature_tree("o")
 SIGNATURE_TREE_S = get_signature_tree("s")
 SIGNATURE_TREE_U = get_signature_tree("u")
@@ -44,6 +46,12 @@ _bool = bool
 _MessageType = MessageType
 _MessageFlag = MessageFlag
 _list = list
+
+
+@staticmethod
+@lru_cache
+def _int16_variant(value: int) -> Variant:
+    return Variant._factory(SIGNATURE_TREE_N, value)
 
 
 class Message:

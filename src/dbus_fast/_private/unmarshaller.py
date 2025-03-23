@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, Callable
 
 from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP, MessageFlag
 from ..errors import InvalidMessageError
-from ..message import Message
+from ..message import Message, _int16_variant
 from ..signature import SignatureType, Variant, get_signature_tree
 from .constants import BIG_ENDIAN, LITTLE_ENDIAN, PROTOCOL_VERSION
 
@@ -539,7 +539,7 @@ class Unmarshaller:
         # verify in Variant is only useful on construction not unmarshalling
         if len(signature) == 1:
             if token_as_int == TOKEN_N_AS_INT:
-                return Variant._factory(SIGNATURE_TREE_N, self._read_int16_unpack())
+                return _int16_variant(self._read_int16_unpack())
             if token_as_int == TOKEN_S_AS_INT:
                 return Variant._factory(SIGNATURE_TREE_S, self._read_string_unpack())
             if token_as_int == TOKEN_B_AS_INT:
