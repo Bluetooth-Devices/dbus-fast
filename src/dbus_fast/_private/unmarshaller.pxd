@@ -181,7 +181,7 @@ cdef class Unmarshaller:
 
     cpdef read_boolean(self, SignatureType type_)
 
-    cdef _read_boolean(self)
+    cdef bint _read_boolean(self)
 
     cpdef read_uint32_unpack(self, SignatureType type_)
 
