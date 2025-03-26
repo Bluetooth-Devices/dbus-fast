@@ -226,7 +226,7 @@ cdef class Unmarshaller:
         o=cython.ulong,
         signature_len=cython.uint,
     )
-    cdef bytes _read_signature(self)
+    cdef bytearray _read_signature(self)
 
     @cython.locals(
         endian=cython.uint,
