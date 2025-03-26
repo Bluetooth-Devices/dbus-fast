@@ -240,7 +240,7 @@ cdef class Unmarshaller:
     @cython.locals(
         body=list,
         header_fields=list,
-        token_as_int="unsigned int",
+        token_as_int="unsigned char",
         signature=bytearray,
         tree=SignatureTree,
         message=Message
