@@ -6,7 +6,6 @@ import io
 import socket
 import sys
 from collections.abc import Iterable
-from functools import lru_cache
 from struct import Struct
 from typing import TYPE_CHECKING, Any, Callable
 
@@ -238,14 +237,6 @@ def _ustr_uint16(buf: bytearray_, pos: int_, endian: int_) -> int_:
 
 def buffer_to_uint16(buf: bytearray, pos: int, endian: int) -> int:
     return _ustr_uint16(buf, pos, endian)
-
-
-@lru_cache(maxsize=128)
-def _signature_to_str(signature: bytes) -> str:
-    return signature.decode("utf-8")
-
-
-_cached_signature_to_str = _signature_to_str
 
 
 # Alignment padding is handled with the following formula below
@@ -524,7 +515,7 @@ class Unmarshaller:
         return self._buf_ustr[str_start : self._pos - 1].decode()
 
     def read_signature(self, type_: _SignatureType) -> str:
-        return _cached_signature_to_str(self._read_signature())
+        return self._read_signature().decode()
 
     def _read_signature(self) -> bytes:
         if cython.compiled:
@@ -584,7 +575,7 @@ class Unmarshaller:
                 return Variant._factory(
                     SIGNATURE_TREE_AO, self.read_array(SIGNATURE_TREE_AO_TYPES_0)
                 )
-        tree = get_signature_tree(_cached_signature_to_str(signature))
+        tree = get_signature_tree(signature.decode())
         signature_type = tree.root_type
         return Variant._factory(
             tree, self._readers[signature_type.token](self, signature_type)
@@ -724,7 +715,7 @@ class Unmarshaller:
             if token_as_int == TOKEN_O_AS_INT or token_as_int == TOKEN_S_AS_INT:
                 headers[field_0] = self._read_string_unpack()
             elif token_as_int == TOKEN_G_AS_INT:
-                headers[field_0] = _cached_signature_to_str(self._read_signature)
+                headers[field_0] = self._read_signature().decode()
             else:
                 token = self._buf_ustr[o : o + signature_len].decode()
                 # There shouldn't be any other types in the header

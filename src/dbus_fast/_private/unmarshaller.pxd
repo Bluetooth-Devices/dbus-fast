@@ -119,7 +119,6 @@ cdef cython.uint EWOULDBLOCK
 
 cdef get_signature_tree
 
-cdef _cached_signature_to_str
 
 cdef unsigned int _ustr_uint32(const unsigned char * buf, unsigned int offset, unsigned int endian) noexcept
 
