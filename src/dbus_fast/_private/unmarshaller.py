@@ -724,7 +724,7 @@ class Unmarshaller:
             if token_as_int == TOKEN_O_AS_INT or token_as_int == TOKEN_S_AS_INT:
                 headers[field_0] = self._read_string_unpack()
             elif token_as_int == TOKEN_G_AS_INT:
-                headers[field_0] = _cached_signature_to_str(self._read_signature)
+                headers[field_0] = _cached_signature_to_str(self._read_signature())
             else:
                 token = self._buf_ustr[o : o + signature_len].decode()
                 # There shouldn't be any other types in the header
