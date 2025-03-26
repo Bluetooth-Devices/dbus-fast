@@ -216,7 +216,7 @@ cdef class Unmarshaller:
         child_type=SignatureType,
         child_0=SignatureType,
         child_1=SignatureType,
-        token_as_int=cython.uint,
+        token_as_int="unsigned char",
     )
     cpdef object read_array(self, SignatureType type_)
 
@@ -241,7 +241,7 @@ cdef class Unmarshaller:
         body=list,
         header_fields=list,
         token_as_int="unsigned int",
-        signature=str,
+        signature=bytearray,
         tree=SignatureTree,
         message=Message
     )

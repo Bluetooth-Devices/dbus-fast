@@ -715,7 +715,7 @@ class Unmarshaller:
             if token_as_int == TOKEN_O_AS_INT or token_as_int == TOKEN_S_AS_INT:
                 headers[field_0] = self._read_string_unpack()
             elif token_as_int == TOKEN_G_AS_INT:
-                headers[field_0] = self._read_signature().decode()
+                headers[field_0] = self._read_signature()
             else:
                 token = self._buf_ustr[o : o + signature_len].decode()
                 # There shouldn't be any other types in the header
@@ -778,12 +778,12 @@ class Unmarshaller:
         self._pos = HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
         header_fields = self._header_fields(self._header_len)
         self._pos += -self._pos & 7  # align 8
-        signature: str = header_fields[HEADER_SIGNATURE_IDX]
+        signature: bytearray = header_fields[HEADER_SIGNATURE_IDX]
         if not self._body_len:
             tree = SIGNATURE_TREE_EMPTY
             body: list[Any] = []
         else:
-            token_as_int = ord(signature[0])
+            token_as_int = signature[0]
             if len(signature) == 1:
                 if token_as_int == TOKEN_O_AS_INT:
                     tree = SIGNATURE_TREE_O
@@ -792,32 +792,32 @@ class Unmarshaller:
                     tree = SIGNATURE_TREE_S
                     body = [self._read_string_unpack()]
                 else:
-                    tree = get_signature_tree(signature)
+                    tree = get_signature_tree(signature.decode())
                     body = [self._readers[t.token](self, t) for t in tree.types]
-            elif token_as_int == TOKEN_S_AS_INT and signature == "sa{sv}as":
+            elif token_as_int == TOKEN_S_AS_INT and signature == b"sa{sv}as":
                 tree = SIGNATURE_TREE_SA_SV_AS
                 body = [
                     self._read_string_unpack(),
                     self.read_array(SIGNATURE_TREE_SA_SV_AS_TYPES_1),
                     self.read_array(SIGNATURE_TREE_SA_SV_AS_TYPES_2),
                 ]
-            elif token_as_int == TOKEN_O_AS_INT and signature == "oa{sa{sv}}":
+            elif token_as_int == TOKEN_O_AS_INT and signature == b"oa{sa{sv}}":
                 tree = SIGNATURE_TREE_OA_SA_SV
                 body = [
                     self._read_string_unpack(),
                     self.read_array(SIGNATURE_TREE_OA_SA_SV_TYPES_1),
                 ]
-            elif token_as_int == TOKEN_O_AS_INT and signature == "oas":
+            elif token_as_int == TOKEN_O_AS_INT and signature == b"oas":
                 tree = SIGNATURE_TREE_OAS
                 body = [
                     self._read_string_unpack(),
                     self.read_array(SIGNATURE_TREE_OAS_TYPES_1),
                 ]
-            elif token_as_int == TOKEN_A_AS_INT and signature == "a{oa{sa{sv}}}":
+            elif token_as_int == TOKEN_A_AS_INT and signature == b"a{oa{sa{sv}}}":
                 tree = SIGNATURE_TREE_A_OA_SA_SV
                 body = [self.read_array(SIGNATURE_TREE_A_OA_SA_SV_TYPES_0)]
             else:
-                tree = get_signature_tree(signature)
+                tree = get_signature_tree(signature.decode())
                 body = [self._readers[t.token](self, t) for t in tree.types]
 
         flags = MESSAGE_FLAG_MAP.get(self._flag)
