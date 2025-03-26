@@ -515,9 +515,9 @@ class Unmarshaller:
         return self._buf_ustr[str_start : self._pos - 1].decode()
 
     def read_signature(self, type_: _SignatureType) -> str:
-        return self._read_signature()
+        return self._read_signature().decode()
 
-    def _read_signature(self) -> str:
+    def _read_signature(self) -> bytes:
         if cython.compiled:
             if self._buf_len < self._pos:
                 raise IndexError("Not enough data to read signature")
@@ -528,14 +528,14 @@ class Unmarshaller:
         if cython.compiled:
             if self._buf_len < self._pos:
                 raise IndexError("Not enough data to read signature")
-        return self._buf_ustr[o : o + signature_len].decode()
+        return self._buf_ustr[o : o + signature_len]
 
     def read_variant(self, type_: _SignatureType) -> Variant:
         return self._read_variant()
 
     def _read_variant(self) -> Variant:
         signature = self._read_signature()
-        token_as_int = ord(signature[0])
+        token_as_int = signature[0]
         # verify in Variant is only useful on construction not unmarshalling
         if len(signature) == 1:
             if token_as_int == TOKEN_N_AS_INT:
@@ -555,27 +555,27 @@ class Unmarshaller:
                 self._pos += 1
                 return Variant._factory(SIGNATURE_TREE_Y, self._buf_ustr[self._pos - 1])
         elif token_as_int == TOKEN_A_AS_INT:
-            if signature == "ay":
+            if signature == b"ay":
                 return Variant._factory(
                     SIGNATURE_TREE_AY, self.read_array(SIGNATURE_TREE_AY_TYPES_0)
                 )
-            if signature == "a{qv}":
+            if signature == b"a{qv}":
                 return Variant._factory(
                     SIGNATURE_TREE_A_QV, self.read_array(SIGNATURE_TREE_A_QV_TYPES_0)
                 )
-            if signature == "as":
+            if signature == b"as":
                 return Variant._factory(
                     SIGNATURE_TREE_AS, self.read_array(SIGNATURE_TREE_AS_TYPES_0)
                 )
-            if signature == "a{sv}":
+            if signature == b"a{sv}":
                 return Variant._factory(
                     SIGNATURE_TREE_A_SV, self.read_array(SIGNATURE_TREE_A_SV_TYPES_0)
                 )
-            if signature == "ao":
+            if signature == b"ao":
                 return Variant._factory(
                     SIGNATURE_TREE_AO, self.read_array(SIGNATURE_TREE_AO_TYPES_0)
                 )
-        tree = get_signature_tree(signature)
+        tree = get_signature_tree(signature.decode())
         signature_type = tree.root_type
         return Variant._factory(
             tree, self._readers[signature_type.token](self, signature_type)
@@ -715,7 +715,7 @@ class Unmarshaller:
             if token_as_int == TOKEN_O_AS_INT or token_as_int == TOKEN_S_AS_INT:
                 headers[field_0] = self._read_string_unpack()
             elif token_as_int == TOKEN_G_AS_INT:
-                headers[field_0] = self._read_signature()
+                headers[field_0] = self._read_signature().decode()
             else:
                 token = self._buf_ustr[o : o + signature_len].decode()
                 # There shouldn't be any other types in the header
