@@ -217,7 +217,9 @@ jobs:
     needs: [build_wheels]
     runs-on: ubuntu-latest
     environment: release
-
+    permissions:
+      id-token: write
+      contents: write
     steps:
       - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
         with:
@@ -228,8 +230,3 @@ jobs:
           merge-multiple: true
 
       - uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc # v1.12.4
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_TOKEN }}
-
-          # To test: repository_url: https://test.pypi.org/legacy/
