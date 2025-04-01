@@ -1,6 +1,43 @@
 # CHANGELOG
 
 
+## v2.44.0 (2025-04-01)
+
+### Chores
+
+- Pin github actions to specific SHAs to mitigate supply chain attacks
+  ([#442](https://github.com/Bluetooth-Devices/dbus-fast/pull/442),
+  [`b69c865`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b69c865738af4e72f3e2113cf7362f41d13ce1ef))
+
+- **deps-dev**: Bump pytest-asyncio from 0.25.3 to 0.26.0
+  ([#443](https://github.com/Bluetooth-Devices/dbus-fast/pull/443),
+  [`3f63386`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3f633862a7f4d1dd9ae0c2412ec9cef495b69058))
+
+- **deps-dev**: Bump setuptools from 76.0.0 to 78.0.1
+  ([#439](https://github.com/Bluetooth-Devices/dbus-fast/pull/439),
+  [`33332d9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/33332d9ec0bc980a68916457bcb59c04a3673a01))
+
+Signed-off-by: dependabot[bot] <support@github.com>
+
+Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+- **deps-dev**: Bump setuptools from 78.0.1 to 78.1.0
+  ([#444](https://github.com/Bluetooth-Devices/dbus-fast/pull/444),
+  [`f59d9f9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f59d9f92c795c7aa0c62000a0c7a6c0a86d89337))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#440](https://github.com/Bluetooth-Devices/dbus-fast/pull/440),
+  [`f00f224`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f00f224da36f5a4340ec6641853722f6d7243dfb))
+
+Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+
+### Features
+
+- Use trusted publishing to upload wheels
+  ([#445](https://github.com/Bluetooth-Devices/dbus-fast/pull/445),
+  [`19df266`](https://github.com/Bluetooth-Devices/dbus-fast/commit/19df2666ab599eecb254a7e0c874fc7a5e0a5b01))
+
+
 ## v2.43.0 (2025-03-23)
 
 ### Features
