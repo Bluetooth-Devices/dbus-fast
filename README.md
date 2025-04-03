@@ -115,7 +115,7 @@ asyncio.run(main())
 
 To define a service on the bus, use the `ServiceInterface` class and decorate class methods to specify DBus methods, properties, and signals with their type signatures.
 
-For more information, see the [overview for the high-level service](https://python-dbus-fast.readthedocs.io/en/latest/high-level-service/index.html).
+For more information, see the [overview for the high-level service](https://dbus-fast.readthedocs.io/en/latest/high-level-service/index.html).
 
 ```python
 from dbus_fast.service import ServiceInterface, method, dbus_property, signal, Variant
@@ -168,7 +168,7 @@ asyncio.run(main())
 
 The low-level interface works with DBus messages directly.
 
-For more information, see the [overview for the low-level interface](https://python-dbus-fast.readthedocs.io/en/latest/low-level-interface/index.html).
+For more information, see the [overview for the low-level interface](https://dbus-fast.readthedocs.io/en/latest/low-level-interface/index.html).
 
 ```python
 from dbus_fast.message import Message, MessageType
