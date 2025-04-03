@@ -196,7 +196,7 @@ async def main():
 asyncio.run(main())
 ```
 
-## Projects that use python-dbus-fast
+## Projects that use dbus-fast
 
 - [Bluetooth Adapters](https://github.com/bluetooth-devices/bluetooth-adapters)
 
