@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v2.44.1 (2025-04-03)
+
+### Bug Fixes
+
+- Correct documentation URLs in README
+  ([#446](https://github.com/Bluetooth-Devices/dbus-fast/pull/446),
+  [`0bd01fc`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0bd01fc1aaab3509f5549f1b3eac322e7af6319b))
+
+
 ## v2.44.0 (2025-04-01)
 
 ### Chores
