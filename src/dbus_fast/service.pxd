@@ -33,7 +33,7 @@ cdef class ServiceInterface:
     cdef list __signals
     cdef set __buses
     cdef dict __handlers
-    cdef dict __enabled_handlers_by_name_signature
+    cdef dict __handlers_by_name_signature
 
     @cython.locals(handlers=dict,in_signature=str,method=_Method)
     @staticmethod
