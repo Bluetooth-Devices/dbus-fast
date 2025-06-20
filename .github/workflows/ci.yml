@@ -144,7 +144,7 @@ jobs:
         uses: python-semantic-release/python-semantic-release@1a324000f2251a9e722e77b128bf72712653813f # v10.0.2
         if: github.ref_name != 'main'
         with:
-          root_options: --noop
+          no_operation_mode: true
 
       # On main branch: actual PSR + upload to PyPI & GitHub
       - name: Release
