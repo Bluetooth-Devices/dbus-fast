@@ -296,3 +296,31 @@ async def test_standard_interface_properties():
 
     bus1.disconnect()
     bus2.disconnect()
+
+
+@pytest.mark.asyncio
+async def test_bare_service_interface():
+    bus1 = await MessageBus().connect()
+    bus2 = await MessageBus().connect()
+
+    # ServiceInterface should be overriden but that will hide any issues with the CPython signatures
+    interface = ServiceInterface("test.interface1")
+    export_path = "/test/path"
+    iface = "org.freedesktop.DBus.Properties"
+    bus1.export(export_path, interface)
+
+    result = await bus2.call(
+        Message(
+            destination=bus1.unique_name,
+            path=export_path,
+            interface=iface,
+            member="GetAll",
+            signature="s",
+            body=[iface],
+        )
+    )
+    assert result.message_type is MessageType.METHOD_RETURN
+    assert result.body == [{}]
+
+    bus1.disconnect()
+    bus2.disconnect()
