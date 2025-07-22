@@ -5,7 +5,7 @@ from .errors import InvalidSignatureError, SignatureBodyMismatchError
 from .validators import is_object_path_valid
 
 
-class SignatureType:
+class SignatureType:  # noqa: PLW1641
     """A class that represents a single complete type within a signature.
 
     This class is not meant to be constructed directly. Use the :class:`SignatureTree`
@@ -337,7 +337,7 @@ class SignatureType:
     }
 
 
-class SignatureTree:
+class SignatureTree:  # noqa: PLW1641
     """A class that represents a signature as a tree structure for conveniently
     working with DBus signatures.
 
@@ -402,7 +402,7 @@ class SignatureTree:
         return True
 
 
-class Variant:
+class Variant:  # noqa: PLW1641
     """A class to represent a DBus variant (type "v").
 
     This class is used in message bodies to represent variants. The user can
