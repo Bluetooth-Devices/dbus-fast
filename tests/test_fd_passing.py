@@ -1,5 +1,6 @@
 """This tests the ability to send and receive file descriptors in dbus messages"""
 
+import asyncio
 import os
 
 import pytest
@@ -116,7 +117,7 @@ async def test_sending_file_descriptor_low_level():
 
 
 @pytest.mark.asyncio
-async def test_high_level_service_fd_passing(event_loop):
+async def test_high_level_service_fd_passing():
     bus1 = await MessageBus(negotiate_unix_fd=True).connect()
     bus2 = await MessageBus(negotiate_unix_fd=True).connect()
 
@@ -158,7 +159,7 @@ async def test_high_level_service_fd_passing(event_loop):
     os.close(fd)
 
     # signals
-    fut = event_loop.create_future()
+    fut = asyncio.get_running_loop().create_future()
 
     def fd_listener(msg):
         if msg.sender == bus1.unique_name and msg.message_type == MessageType.SIGNAL:
@@ -227,7 +228,7 @@ async def test_high_level_service_fd_passing(event_loop):
 
 
 @pytest.mark.asyncio
-async def test_sending_file_descriptor_with_proxy(event_loop):
+async def test_sending_file_descriptor_with_proxy():
     name = "dbus.next.test.service"
     path = "/test/path"
     interface_name = "test.interface"
@@ -266,7 +267,7 @@ async def test_sending_file_descriptor_with_proxy(event_loop):
     interface.cleanup()
     os.close(fd)
 
-    fut = event_loop.create_future()
+    fut = asyncio.get_running_loop().create_future()
 
     def on_signal_fd(fd):
         fut.set_result(fd)

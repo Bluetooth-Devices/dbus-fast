@@ -10,7 +10,7 @@ from dbus_fast.aio import MessageBus
 
 
 @pytest.mark.asyncio
-async def test_tcp_connection_with_forwarding(event_loop):
+async def test_tcp_connection_with_forwarding():
     closables = []
     host = "127.0.0.1"
     port = "55556"
