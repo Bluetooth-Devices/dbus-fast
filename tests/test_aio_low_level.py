@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 
 from dbus_fast import Message, MessageFlag, MessageType
@@ -129,7 +131,7 @@ async def test_sending_messages_between_buses():
 
 
 @pytest.mark.asyncio
-async def test_sending_signals_between_buses(event_loop):
+async def test_sending_signals_between_buses():
     bus1 = await MessageBus().connect()
     bus2 = await MessageBus().connect()
 
@@ -145,7 +147,7 @@ async def test_sending_signals_between_buses(event_loop):
     await bus1.call(add_match_msg)
 
     async def wait_for_message():
-        future = event_loop.create_future()
+        future = asyncio.get_running_loop().create_future()
 
         def message_handler(signal):
             if signal.sender == bus2.unique_name:
