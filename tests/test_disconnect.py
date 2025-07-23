@@ -8,7 +8,7 @@ from dbus_fast.aio import MessageBus
 
 
 @pytest.mark.asyncio
-async def test_bus_disconnect_before_reply(event_loop):
+async def test_bus_disconnect_before_reply():
     """In this test, the bus disconnects before the reply comes in. Make sure
     the caller receives a reply with the error instead of hanging."""
     bus = MessageBus()
@@ -26,7 +26,7 @@ async def test_bus_disconnect_before_reply(event_loop):
             )
         )
 
-        event_loop.call_soon(bus.disconnect)
+        asyncio.get_running_loop().call_soon(bus.disconnect)
 
         with pytest.raises((EOFError, BrokenPipeError)):
             await ping
@@ -41,7 +41,7 @@ async def test_bus_disconnect_before_reply(event_loop):
 
 
 @pytest.mark.asyncio
-async def test_unexpected_disconnect(event_loop):
+async def test_unexpected_disconnect():
     bus = MessageBus()
 
     class FakeSocket:
