@@ -14,10 +14,13 @@ from dbus_fast.signature import SignatureTree, Variant
 def open_file():
     return os.open(os.devnull, os.O_RDONLY)
 
+
 open_file_1 = open_file  # For consistency with the original code
+
 
 def open_file_2():
     return os.open("/dev/random", os.O_RDONLY)
+
 
 class ExampleInterface(ServiceInterface):
     def __init__(self, name):
