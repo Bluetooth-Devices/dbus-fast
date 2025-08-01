@@ -112,7 +112,7 @@ jobs:
           REQUIRE_CYTHON=1 poetry install --only=main,dev
         shell: bash
       - name: Run benchmarks
-        uses: CodSpeedHQ/action@0010eb0ca6e89b80c88e8edaaa07cfe5f3e6664d # v3
+        uses: CodSpeedHQ/action@0b6e7a3d96c9d2a6057e7bcea6b45aaf2f7ce60b # v3
         with:
           token: ${{ secrets.CODSPEED_TOKEN }}
           run: dbus-run-session -- poetry run pytest --no-cov -vvvvv --codspeed tests/benchmarks
