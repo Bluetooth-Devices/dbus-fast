@@ -15,6 +15,13 @@ def open_file():
     return os.open(os.devnull, os.O_RDONLY)
 
 
+open_file_1 = open_file  # For consistency with the original code
+
+
+def open_file_2():
+    return os.open("/dev/random", os.O_RDONLY)
+
+
 class ExampleInterface(ServiceInterface):
     def __init__(self, name):
         super().__init__(name)
@@ -75,29 +82,33 @@ async def test_sending_file_descriptor_low_level():
     bus1 = await MessageBus(negotiate_unix_fd=True).connect()
     bus2 = await MessageBus(negotiate_unix_fd=True).connect()
 
-    fd_before = open_file()
-    fd_after = None
+    fd_before_1 = open_file_1()
+    fd_after_1 = None
+
+    fd_before_2 = open_file_2()
+    fd_after_2 = None
 
     msg = Message(
         destination=bus1.unique_name,
         path="/org/test/path",
         interface="org.test.iface",
         member="SomeMember",
-        body=[0],
-        signature="h",
-        unix_fds=[fd_before],
+        body=[0, 1],
+        signature="hh",
+        unix_fds=[fd_before_1, fd_before_2],
     )
 
     def message_handler(sent):
-        nonlocal fd_after
+        nonlocal fd_after_1, fd_after_2
         if sent.sender == bus2.unique_name and sent.serial == msg.serial:
             assert sent.path == msg.path
             assert sent.serial == msg.serial
             assert sent.interface == msg.interface
             assert sent.member == msg.member
-            assert sent.body == [0]
-            assert len(sent.unix_fds) == 1
-            fd_after = sent.unix_fds[0]
+            assert sent.body == [0, 1]
+            assert len(sent.unix_fds) == 2
+            fd_after_1 = sent.unix_fds[0]
+            fd_after_2 = sent.unix_fds[1]
             bus1.send(Message.new_method_return(sent, "s", ["got it"]))
             bus1.remove_message_handler(message_handler)
             return True
@@ -106,11 +117,13 @@ async def test_sending_file_descriptor_low_level():
 
     reply = await bus2.call(msg)
     assert reply.body == ["got it"]
-    assert fd_after is not None
+    assert fd_after_1 is not None
+    assert fd_after_2 is not None
 
-    assert_fds_equal(fd_before, fd_after)
+    assert_fds_equal(fd_before_1, fd_after_1)
+    assert_fds_equal(fd_before_2, fd_after_2)
 
-    for fd in [fd_before, fd_after]:
+    for fd in [fd_before_1, fd_after_1, fd_before_2, fd_after_2]:
         os.close(fd)
     for bus in [bus1, bus2]:
         bus.disconnect()
