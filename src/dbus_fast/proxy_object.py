@@ -311,7 +311,9 @@ class BaseProxyObject:
             - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the introspection data for the node is not valid.
         """
         if self._child_paths is None:
-            self._child_paths = [f"{self.path}/{n.name}" for n in self.introspection.nodes]
+            self._child_paths = [
+                f"{self.path}/{n.name}" for n in self.introspection.nodes
+            ]
         return self._child_paths
 
     def get_interface(self, name: str) -> BaseProxyInterface:
@@ -379,9 +381,12 @@ class BaseProxyObject:
         """Get the child nodes of this proxy object according to the introspection data."""
         if self._children is None:
             self._children = [
-                self.__class__(self.bus_name, f"{self.path}/{child.name}",
-                        child if child.interfaces or child.nodes else None,
-                        self.bus)
+                self.__class__(
+                    self.bus_name,
+                    f"{self.path}/{child.name}",
+                    child if child.interfaces or child.nodes else None,
+                    self.bus,
+                )
                 for child in self.introspection.nodes
             ]
 

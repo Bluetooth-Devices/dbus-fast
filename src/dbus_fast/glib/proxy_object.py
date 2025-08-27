@@ -1,5 +1,4 @@
 import xml.etree.ElementTree as ET
-from typing import Union
 
 from .. import introspection as intr
 from ..constants import ErrorType
