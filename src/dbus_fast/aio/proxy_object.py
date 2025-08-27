@@ -186,7 +186,7 @@ class ProxyInterface(BaseProxyInterface):
 
 
 class ProxyObject(BaseProxyObject):
-    """The proxy object implementation for the GLib :class:`MessageBus <dbus_fast.glib.MessageBus>`.
+    """The proxy object implementation for the asyncio :class:`MessageBus <dbus_fast.aio.MessageBus>`.
 
     For more information, see the :class:`BaseProxyObject <dbus_fast.proxy_object.BaseProxyObject>`.
     """
