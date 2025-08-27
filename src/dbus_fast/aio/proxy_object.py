@@ -186,7 +186,7 @@ class ProxyInterface(BaseProxyInterface):
 
 
 class ProxyObject(BaseProxyObject):
-    """The proxy object implementation for the GLib :class:`MessageBus <dbus_fast.glib.MessageBus>`.
+    """The proxy object implementation for the asyncio :class:`MessageBus <dbus_fast.aio.MessageBus>`.
 
     For more information, see the :class:`BaseProxyObject <dbus_fast.proxy_object.BaseProxyObject>`.
     """
@@ -195,7 +195,7 @@ class ProxyObject(BaseProxyObject):
         self,
         bus_name: str,
         path: str,
-        introspection: intr.Node | str | ET.Element,
+        introspection: intr.Node | str | ET.Element | None,
         bus: BaseMessageBus,
     ) -> None:
         super().__init__(bus_name, path, introspection, bus, ProxyInterface)
