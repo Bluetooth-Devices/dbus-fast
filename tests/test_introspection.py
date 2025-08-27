@@ -10,7 +10,7 @@ from dbus_fast import (
 )
 from dbus_fast import introspection as intr
 from dbus_fast.constants import ErrorType
-from dbus_fast.errors import DBusError
+from dbus_fast.errors import DBusError, InterfaceNotFoundError
 from dbus_fast.message_bus import BaseMessageBus
 from dbus_fast.proxy_object import BaseProxyObject, BaseProxyInterface
 
@@ -206,7 +206,6 @@ class MockProxyObject(BaseProxyObject):
         super().__init__(bus_name, path, introspection, bus, MockProxyInterface)
 
 
-@pytest.mark.xfail(reason='buggy BaseProxyObject.get_children', raises=AssertionError, strict=True)
 def test_inline_child():
     bus = MockMessageBus({
             'com.example': {
@@ -255,7 +254,7 @@ def test_inline_child():
     assert bus.introspect_count == 1
 
 
-@pytest.mark.xfail(reason='buggy BaseProxyObject.get_children', raises=AssertionError, strict=True)
+@pytest.mark.xfail(reason='buggy BaseProxyObject.get_children', raises=InterfaceNotFoundError, strict=True)
 def test_noninline_child():
     obj0_node = intr.Node.parse(strict_data)
     bus = MockMessageBus({

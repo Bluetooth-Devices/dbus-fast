@@ -351,7 +351,8 @@ class BaseProxyObject:
         """Get the child nodes of this proxy object according to the introspection data."""
         if self._children is None:
             self._children = [
-                self.__class__(self.bus_name, self.path, child, self.bus)
+                self.__class__(self.bus_name, f"{self.path}/{child.name}",
+                        child, self.bus)
                 for child in self.introspection.nodes
             ]
 
