@@ -234,6 +234,8 @@ class BaseProxyObject:
     :ivar path: The object path exported on the client that owns the bus name.
     :vartype path: str
     :ivar introspection: Parsed introspection data for the proxy object.
+    May be ``None`` if introspection has not yet been performed, in which case
+    the object will be introspected lazily upon first use.
     :vartype introspection: :class:`Node <dbus_fast.introspection.Node>`
     :ivar bus: The message bus this proxy object is connected to.
     :vartype bus: :class:`BaseMessageBus <dbus_fast.message_bus.BaseMessageBus>`
@@ -252,7 +254,7 @@ class BaseProxyObject:
         self,
         bus_name: str,
         path: str,
-        introspection: intr.Node | str | ET.Element,
+        introspection: intr.Node | str | ET.Element | None,
         bus: message_bus.BaseMessageBus,
         ProxyInterface: type[BaseProxyInterface],
     ) -> None:
@@ -264,12 +266,12 @@ class BaseProxyObject:
         if not issubclass(ProxyInterface, BaseProxyInterface):
             raise TypeError("ProxyInterface must be an instance of BaseProxyInterface")
 
-        if type(introspection) is intr.Node:
-            self.introspection = introspection
+        if introspection is None or type(introspection) is intr.Node:
+            self._introspection = introspection
         elif type(introspection) is str:
-            self.introspection = intr.Node.parse(introspection)
+            self._introspection = intr.Node.parse(introspection)
         elif type(introspection) is ET.Element:
-            self.introspection = intr.Node.from_xml(introspection)
+            self._introspection = intr.Node.from_xml(introspection)
         else:
             raise TypeError(
                 "introspection must be xml node introspection or introspection.Node class"
@@ -279,12 +281,38 @@ class BaseProxyObject:
         self.path = path
         self.bus = bus
         self.ProxyInterface = ProxyInterface
-        self.child_paths = [f"{path}/{n.name}" for n in self.introspection.nodes]
+        self._child_paths = None
 
         self._interfaces = {}
 
         # lazy loaded by get_children()
         self._children = None
+
+    @property
+    def introspection(self) -> intr.Node:
+        """Access the introspection of this object, performing it (synchronously) if necessary.
+
+        :raises:
+            - :class:`InvalidBusNameError <dbus_fast.InvalidBusNameError>` - If this object's bus name is not valid.
+            - :class:`InvalidObjectPathError <dbus_fast.InvalidObjectPathError>` - If this object's path is not valid.
+            - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the introspection data for the node is not valid.
+        """
+        if self._introspection is None:
+            self._introspection = self.bus.introspect_sync(self.bus_name, self.path)
+        return self._introspection
+
+    @property
+    def child_paths(self) -> List[str]:
+        """Access the list of paths of this object's children, fetching it (synchronously) if necessary.
+
+        :raises:
+            - :class:`InvalidBusNameError <dbus_fast.InvalidBusNameError>` - If this object's bus name is not valid.
+            - :class:`InvalidObjectPathError <dbus_fast.InvalidObjectPathError>` - If this object's path is not valid.
+            - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the introspection data for the node is not valid.
+        """
+        if self._child_paths is None:
+            self._child_paths = [f"{self.path}/{n.name}" for n in self.introspection.nodes]
+        return self._child_paths
 
     def get_interface(self, name: str) -> BaseProxyInterface:
         """Get an interface exported on this proxy object and connect it to the bus.
@@ -352,7 +380,8 @@ class BaseProxyObject:
         if self._children is None:
             self._children = [
                 self.__class__(self.bus_name, f"{self.path}/{child.name}",
-                        child, self.bus)
+                        child if child.interfaces or child.nodes else None,
+                        self.bus)
                 for child in self.introspection.nodes
             ]
 

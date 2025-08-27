@@ -307,7 +307,7 @@ class ProxyObject(BaseProxyObject):
         self,
         bus_name: str,
         path: str,
-        introspection: Union[intr.Node, str, ET.Element],
+        introspection: intr.Node | str | ET.Element | None,
         bus: BaseMessageBus,
     ):
         super().__init__(bus_name, path, introspection, bus, ProxyInterface)
