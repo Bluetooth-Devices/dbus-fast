@@ -160,13 +160,6 @@ class MockMessageBus(BaseMessageBus):
         self.nodes = nodes
         self.introspect_count = 0
 
-        # disable bus name tracking for testing purposes
-        class MockNameOwners(dict):
-            def get(self, key, default):
-                return dict.get(self, key, default if default else ":")
-
-        self._name_owners = MockNameOwners()
-
     def introspect_sync(self, bus_name: str, path: str) -> intr.Node:
         self.introspect_count = self.introspect_count + 1
         service = self.nodes.get(bus_name)
@@ -201,6 +194,9 @@ class MockProxyObject(BaseProxyObject):
         bus: BaseMessageBus,
     ) -> None:
         super().__init__(bus_name, path, introspection, bus, MockProxyInterface)
+        # defeat name owner tracking for testing purposes
+        if bus_name and not bus_name.startswith(":"):
+            bus._name_owners[bus_name] = ":"
 
 
 def test_inline_child():
