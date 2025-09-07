@@ -318,13 +318,6 @@ class MessageBus(BaseMessageBus):
         finally:
             timer_handle.cancel()
 
-    def introspect_sync(
-        self, bus_name: str, path: str, *args: Any, **kwargs: Any
-    ) -> intr.Node:
-        return self._loop.run_until_complete(
-            self.introspect(bus_name, path, *args, **kwargs)
-        )
-
     async def request_name(
         self, name: str, flags: NameFlag = NameFlag.NONE
     ) -> RequestNameReply:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import pytest
 import xml.etree.ElementTree as ET
 
 from dbus_fast import (
@@ -11,7 +12,7 @@ from dbus_fast import (
 )
 from dbus_fast import introspection as intr
 from dbus_fast.constants import ErrorType
-from dbus_fast.errors import DBusError
+from dbus_fast.errors import DBusError, InterfaceNotFoundError
 from dbus_fast.message_bus import BaseMessageBus
 from dbus_fast.proxy_object import BaseProxyInterface, BaseProxyObject
 
@@ -158,10 +159,8 @@ class MockMessageBus(BaseMessageBus):
     def __init__(self, nodes: dict[str, dict[str, intr.Node]]) -> None:
         super().__init__(ProxyObject=MockProxyObject)
         self.nodes = nodes
-        self.introspect_count = 0
 
     def introspect_sync(self, bus_name: str, path: str) -> intr.Node:
-        self.introspect_count = self.introspect_count + 1
         service = self.nodes.get(bus_name)
         if service is None:
             raise DBusError(ErrorType.NAME_HAS_NO_OWNER, f"unknown service: {bus_name}")
@@ -190,7 +189,7 @@ class MockProxyObject(BaseProxyObject):
         self,
         bus_name: str,
         path: str,
-        introspection: intr.Node | str | ET.Element | None,
+        introspection: intr.Node | str | ET.Element,
         bus: BaseMessageBus,
     ) -> None:
         super().__init__(bus_name, path, introspection, bus, MockProxyInterface)
@@ -221,7 +220,6 @@ def test_inline_child():
         }
     )
     introspection = bus.introspect_sync("com.example", "/com/example/parent_object")
-    assert bus.introspect_count == 1
 
     parent = bus.get_proxy_object(
         "com.example", "/com/example/parent_object", introspection
@@ -244,9 +242,6 @@ def test_inline_child():
         "ChildProperty"
     ]
 
-    # getting the inline child should not have required another introspection
-    assert bus.introspect_count == 1
-
 
 def test_noninline_child():
     obj0_node = intr.Node.parse(strict_data)
@@ -267,7 +262,6 @@ def test_noninline_child():
         }
     )
     introspection = bus.introspect_sync("com.example", "/com/example/sample_object0")
-    assert bus.introspect_count == 1
     parent = bus.get_proxy_object(
         "com.example", "/com/example/sample_object0", introspection
     )
@@ -280,18 +274,15 @@ def test_noninline_child():
     children = parent.get_children()
     assert [child.path for child in children] == parent.child_paths
 
-    # merely listing the children should not have required another introspection
-    assert bus.introspect_count == 1
-
     child = next(
         child
         for child in children
         if child.path == "/com/example/sample_object0/child_of_sample_object"
     )
+    with pytest.raises(InterfaceNotFoundError):
+        interface = child.get_interface("com.example.ChildInterface")
+    child.introspection = bus.introspect_sync(child.bus_name, child.path)
     interface = child.get_interface("com.example.ChildInterface")
-
-    # obtaining the child interface should have required a second introspection
-    assert bus.introspect_count == 2
 
     assert [prop.name for prop in interface.introspection.properties] == [
         "ChildProperty"

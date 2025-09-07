@@ -309,9 +309,6 @@ class BaseMessageBus:
             reply_notify,
         )
 
-    def introspect_sync(self, bus_name: str, path: str) -> intr.Node:
-        raise NotImplementedError("this must be implemented in the inheriting class")
-
     def _emit_interface_added(self, path: str, interface: ServiceInterface) -> None:
         """Emit the ``org.freedesktop.DBus.ObjectManager.InterfacesAdded`` signal.
 
