@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import os
-import pytest
 import xml.etree.ElementTree as ET
+
+import pytest
 
 from dbus_fast import (
     ArgDirection,
