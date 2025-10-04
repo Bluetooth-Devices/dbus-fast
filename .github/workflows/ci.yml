@@ -89,12 +89,13 @@ jobs:
           distro: ubuntu_latest
           run: |
             apt-get -y update
-            apt-get -y install git python3-pip python3-venv python3-poetry dbus-daemon python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
+            apt-get -y install git python3-pip python3-venv dbus-daemon python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0 pipx openssl
             git clone --depth 1 $GITHUB_SERVER_URL/$GITHUB_REPOSITORY
             cd dbus-fast
             git fetch origin --depth 1 $GITHUB_SHA
             git checkout $GITHUB_SHA
-            REQUIRE_CYTHON=1 poetry install --only=main,dev
+            pipx install poetry
+            REQUIRE_CYTHON=1 pipx run poetry install --only=main,dev
             dbus-run-session -- poetry run pytest --no-cov --timeout=100
 
   benchmark:
