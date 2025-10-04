@@ -41,6 +41,8 @@ jobs:
           - "3.11"
           - "3.12"
           - "3.13"
+          - "3.14"
+          - "3.14t"
         os:
           - ubuntu-latest
         extension:
@@ -197,7 +199,7 @@ jobs:
         uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v5
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==2.22.0
+        run: python -m pip install cibuildwheel==3.2.0
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
