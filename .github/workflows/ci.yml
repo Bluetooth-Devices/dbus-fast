@@ -196,7 +196,7 @@ jobs:
           fetch-depth: 0
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@df346e68e9f851bdc1c06a4f9cd1c701dbc82323 # v3.2.0
+        uses: pypa/cibuildwheel@7c619efba910c04005a835b110b057fc28fd6e93 # v3.2.0
         env:
           CIBW_SKIP: "*p36-* *p37-* *p38-* ${{ matrix.musl == 'musllinux' && '*manylinux*' || '*musllinux*' }}"
           CIBW_BEFORE_ALL_LINUX: apt-get install -y gcc || yum install -y gcc || apk add gcc
