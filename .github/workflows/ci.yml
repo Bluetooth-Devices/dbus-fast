@@ -194,16 +194,9 @@ jobs:
         with:
           ref: "v${{ needs.release.outputs.newest_release_tag }}"
           fetch-depth: 0
-      # Used to host cibuildwheel
-      - name: Set up Python
-        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v5
-
-      - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==3.2.0
 
       - name: Build wheels
-        run: python -m cibuildwheel --output-dir wheelhouse
-        # to supply options, put them in 'env', like:
+        uses: pypa/cibuildwheel@df346e68e9f851bdc1c06a4f9cd1c701dbc82323 # v3.2.0
         env:
           CIBW_SKIP: "*p36-* *p37-* *p38-* ${{ matrix.musl == 'musllinux' && '*manylinux*' || '*musllinux*' }}"
           CIBW_BEFORE_ALL_LINUX: apt-get install -y gcc || yum install -y gcc || apk add gcc
