@@ -132,7 +132,7 @@ class Signal:
 
     def __init__(
         self,
-        name: Optional[str],
+        name: str,
         args: Optional[list[Arg]] = None,
         annotations: Optional[dict[str, str]] = None,
     ):
