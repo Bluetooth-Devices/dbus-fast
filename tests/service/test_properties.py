@@ -20,7 +20,7 @@ class ExampleInterface(ServiceInterface):
         self._string_prop = "hi"
         self._readonly_prop = 100
         self._disabled_prop = "1234"
-        self._container_prop = [["hello", "world"]]
+        self._container_prop = [("hello", "world")]
         self._renamed_prop = "65"
 
     @dbus_property()
@@ -84,7 +84,7 @@ class AsyncInterface(ServiceInterface):
         self._string_prop = "hi"
         self._readonly_prop = 100
         self._disabled_prop = "1234"
-        self._container_prop = [["hello", "world"]]
+        self._container_prop = [("hello", "world")]
         self._renamed_prop = "65"
 
     @dbus_property()
