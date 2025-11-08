@@ -515,6 +515,8 @@ class ServiceInterface:
         bus: BaseMessageBus,
         maker: Callable[[ServiceInterface, _Method], HandlerType],
     ) -> None:
+        if bus in interface.__buses:
+            raise ValueError("Same interface instance cannot be added to the same bus twice")
         interface.__buses.add(bus)
         interface.__handlers[bus] = {
             method: maker(interface, method) for method in interface.__methods

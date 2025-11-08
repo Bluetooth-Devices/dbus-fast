@@ -90,12 +90,13 @@ async def test_export_alias():
     bus = await MessageBus().connect()
 
     interface = ExampleInterface("test.interface")
+    interface2 = ExampleInterface("test.interface")
 
     export_path = "/test/path"
     export_path2 = "/test/path/child"
 
     bus.export(export_path, interface)
-    bus.export(export_path2, interface)
+    bus.export(export_path2, interface2)
 
     result = await bus.call(
         Message(
@@ -119,7 +120,7 @@ async def test_export_alias():
         )
     )
     assert result.message_type is MessageType.METHOD_RETURN, result.body[0]
-    assert interface._method_called
+    assert interface2._method_called
 
     bus.disconnect()
 
