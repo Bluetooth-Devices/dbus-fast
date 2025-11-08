@@ -1,7 +1,7 @@
 import pytest
 
 from dbus_fast.aio import MessageBus
-from dbus_fast.service import ServiceInterface, method
+from dbus_fast.service import ServiceInterface, dbus_method
 
 
 @pytest.mark.asyncio
@@ -10,7 +10,7 @@ async def test_multiple_flags_in_message():
         def __init__(self, name):
             super().__init__(name)
 
-        @method()
+        @dbus_method()
         def Echo(self, what: "s") -> "s":
             return what
 

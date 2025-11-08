@@ -11,7 +11,7 @@ from dbus_fast import (
     Variant,
 )
 from dbus_fast.aio import MessageBus
-from dbus_fast.service import ServiceInterface, dbus_property, method
+from dbus_fast.service import ServiceInterface, dbus_property, dbus_method
 
 
 class ExampleInterface(ServiceInterface):
@@ -71,7 +71,7 @@ class ExampleInterface(ServiceInterface):
     def returns_wrong_type(self) -> "s":
         return 5
 
-    @method()
+    @dbus_method()
     def do_emit_properties_changed(self):
         changed = {"string_prop": "asdf"}
         invalidated = ["container_prop"]
@@ -135,7 +135,7 @@ class AsyncInterface(ServiceInterface):
     async def returns_wrong_type(self) -> "s":
         return 5
 
-    @method()
+    @dbus_method()
     def do_emit_properties_changed(self):
         changed = {"string_prop": "asdf"}
         invalidated = ["container_prop"]

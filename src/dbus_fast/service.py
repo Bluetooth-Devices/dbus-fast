@@ -74,7 +74,7 @@ class _Method:
         self.out_signature_tree = get_signature_tree(out_signature)
 
 
-def method(name: str | None = None, disabled: bool = False) -> Callable:
+def dbus_method(name: str | None = None, disabled: bool = False) -> Callable:
     """A decorator to mark a class method of a :class:`ServiceInterface` to be a DBus service method.
 
     The parameters and return value must each be annotated with a signature
@@ -99,13 +99,16 @@ def method(name: str | None = None, disabled: bool = False) -> Callable:
 
     ::
 
-        @method()
+        @dbus_method()
         def echo(self, val: 's') -> 's':
             return val
 
-        @method()
+        @dbus_method()
         def echo_two(self, val1: 's', val2: 'u') -> 'su':
             return [val1, val2]
+
+    .. versionadded:: v2.45.0
+        In older versions, this was named ``@method``. The old name still exists.
     """
     if name is not None and type(name) is not str:
         raise TypeError("name must be a string")
@@ -124,6 +127,7 @@ def method(name: str | None = None, disabled: bool = False) -> Callable:
 
     return decorator
 
+method = dbus_method  # backward compatibility alias
 
 class _Signal:
     def __init__(self, fn: Callable, name: str, disabled: bool = False) -> None:
@@ -151,7 +155,7 @@ class _Signal:
         self.introspection = intr.Signal(self.name, args)
 
 
-def signal(name: str | None = None, disabled: bool = False) -> Callable:
+def dbus_signal(name: str | None = None, disabled: bool = False) -> Callable:
     """A decorator to mark a class method of a :class:`ServiceInterface` to be a DBus signal.
 
     The signal is broadcast on the bus when the decorated class method is
@@ -173,13 +177,16 @@ def signal(name: str | None = None, disabled: bool = False) -> Callable:
 
     ::
 
-        @signal()
+        @dbus_signal()
         def string_signal(self, val) -> 's':
             return val
 
-        @signal()
+        @dbus_signal()
         def two_strings_signal(self, val1, val2) -> 'ss':
             return [val1, val2]
+
+    .. versionadded:: v2.45.0
+        In older versions, this was named ``@signal``. The old name still exists.
     """
     if name is not None and type(name) is not str:
         raise TypeError("name must be a string")
@@ -203,6 +210,9 @@ def signal(name: str | None = None, disabled: bool = False) -> Callable:
         return wrapped
 
     return decorator
+
+
+signal = dbus_signal  # backward compatibility alias
 
 
 class _Property(property):
@@ -358,9 +368,9 @@ class ServiceInterface:
     with the :class:`export <dbus_fast.message_bus.BaseMessageBus.export>`
     method of a :class:`MessageBus <dbus_fast.message_bus.BaseMessageBus>`.
 
-    Use the :func:`@method <dbus_fast.service.method>`, :func:`@dbus_property
-    <dbus_fast.service.dbus_property>`, and :func:`@signal
-    <dbus_fast.service.signal>` decorators to mark class methods as DBus
+    Use the :func:`@dbus_method <dbus_fast.service.dbus_method>`, :func:`@dbus_property
+    <dbus_fast.service.dbus_property>`, and :func:`@dbus_signal
+    <dbus_fast.service.dbus_signal>` decorators to mark class methods as DBus
     methods, properties, and signals respectively.
 
     :ivar name: The name of this interface as it appears to clients. Must be a

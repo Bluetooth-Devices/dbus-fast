@@ -3,7 +3,7 @@ import pytest
 from dbus_fast import Message, MessageType
 from dbus_fast import introspection as intr
 from dbus_fast.aio import MessageBus
-from dbus_fast.service import ServiceInterface, method
+from dbus_fast.service import ServiceInterface, dbus_method
 
 standard_interfaces_count = len(intr.Node.default().interfaces)
 
@@ -13,7 +13,7 @@ class ExampleInterface(ServiceInterface):
         self._method_called = False
         super().__init__(name)
 
-    @method()
+    @dbus_method()
     def some_method(self):
         self._method_called = True
 

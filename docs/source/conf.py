@@ -14,7 +14,7 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + "/.."))
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + "/../../src"))
 
 from dbus_fast.__version__ import __author__, __copyright__, __title__, __version__
 

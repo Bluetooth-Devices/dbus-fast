@@ -1,6 +1,6 @@
 from dbus_fast import PropertyAccess
 from dbus_fast import introspection as intr
-from dbus_fast.service import ServiceInterface, dbus_property, method, signal
+from dbus_fast.service import ServiceInterface, dbus_property, dbus_method, dbus_signal
 
 
 class ExampleInterface(ServiceInterface):
@@ -10,19 +10,19 @@ class ExampleInterface(ServiceInterface):
         self._another_prop = 101
         self._weird_prop = 500
 
-    @method()
+    @dbus_method()
     def some_method(self, one: "s", two: "s") -> "s":
         return "hello"
 
-    @method(name="renamed_method", disabled=True)
+    @dbus_method(name="renamed_method", disabled=True)
     def another_method(self, eight: "o", six: "t"):
         pass
 
-    @signal()
+    @dbus_signal()
     def some_signal(self) -> "as":  # noqa: F722
         return ["result"]
 
-    @signal(name="renamed_signal", disabled=True)
+    @dbus_signal(name="renamed_signal", disabled=True)
     def another_signal(self) -> "(dodo)":
         return [1, "/", 1, "/"]
 
