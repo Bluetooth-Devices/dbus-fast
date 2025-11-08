@@ -84,6 +84,7 @@ async def test_export_unexport():
 
     bus.disconnect()
 
+
 @pytest.mark.asyncio
 async def test_export_twice_raises():
     bus = await MessageBus().connect()
@@ -95,10 +96,13 @@ async def test_export_twice_raises():
 
     bus.export(export_path, interface)
 
-    with pytest.raises(ValueError, match="instance cannot be added to the same bus twice"):
+    with pytest.raises(
+        ValueError, match="instance cannot be added to the same bus twice"
+    ):
         bus.export(export_path2, interface)
 
     bus.disconnect()
+
 
 @pytest.mark.asyncio
 async def test_export_alias():
