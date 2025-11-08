@@ -475,7 +475,7 @@ class Node:
             raise InvalidIntrospectionError('child nodes must have a "name" attribute')
 
         self.interfaces = interfaces if interfaces is not None else []
-        self.nodes = []
+        self.nodes: list[Node] = []
         self.name = name
         self.is_root = is_root
 
