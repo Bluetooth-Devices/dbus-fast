@@ -599,6 +599,9 @@ class BaseMessageBus:
 
         self._disconnected = True
 
+        self._stream.close()
+        self._sock.close()
+
         for handler in self._method_return_handlers.values():
             try:
                 handler(None, err)
