@@ -1,3 +1,4 @@
+import asyncio
 import sys
 
 import pytest
@@ -68,6 +69,8 @@ async def test_name_requests():
 
     bus1.disconnect()
     bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
 
 
 @pytest.mark.skipif(

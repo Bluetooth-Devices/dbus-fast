@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import sys
 from logging.handlers import QueueHandler
@@ -121,8 +122,8 @@ async def test_aio_proxy_object():
 
     bus.disconnect()
     bus2.disconnect()
-    await bus.wait_for_disconnect()
-    await bus2.wait_for_disconnect()
+    await asyncio.wait_for(bus.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
 
 
 @pytest.mark.skipif(
