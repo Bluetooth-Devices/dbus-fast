@@ -150,9 +150,9 @@ async def test_methods(interface_class):
 
     body = [
         ["hello", "world"],
-        Variant("v", Variant("(ss)", ["hello", "world"])),
+        Variant("v", Variant("(ss)", ("hello", "world"))),
         {"foo": Variant("t", 100)},
-        ["one", ["two", [Variant("s", "three")]]],
+        ("one", ("two", (Variant("s", "three"), ))),
     ]
     signature = "asva{sv}(s(s(v)))"
     SignatureTree(signature).verify(body)
