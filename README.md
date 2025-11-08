@@ -128,11 +128,11 @@ class ExampleInterface(ServiceInterface):
         super().__init__(name)
         self._string_prop = 'kevin'
 
-    @method()
+    @dbus_method()
     def Echo(self, what: 's') -> 's':
         return what
 
-    @method()
+    @dbus_method()
     def GetVariantDict() -> 'a{sv}':
         return {
             'foo': Variant('s', 'bar'),
@@ -148,7 +148,7 @@ class ExampleInterface(ServiceInterface):
     def string_prop_setter(self, val: 's'):
         self._string_prop = val
 
-    @signal()
+    @dbus_signal()
     def signal_simple(self) -> 's':
         return 'hello'
 

@@ -7,6 +7,6 @@ ServiceInterface
 
 .. autodecorator:: dbus_fast.service.dbus_property
 
-.. autodecorator:: dbus_fast.service.method
+.. autodecorator:: dbus_fast.service.dbus_method
 
-.. autodecorator:: dbus_fast.service.signal
+.. autodecorator:: dbus_fast.service.dbus_signal
