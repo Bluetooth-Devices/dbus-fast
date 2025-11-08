@@ -1,3 +1,4 @@
+import asyncio
 import pytest
 
 from dbus_fast.aio import MessageBus
@@ -19,4 +20,4 @@ async def test_multiple_flags_in_message():
     bus.export("/test/path", interface)
     await bus.request_name("test.name")
     bus.disconnect()
-    await bus.wait_for_disconnect()
+    await asyncio.wait_for(bus.wait_for_disconnect(), timeout=1)
