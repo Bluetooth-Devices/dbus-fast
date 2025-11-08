@@ -8,7 +8,7 @@ import asyncio
 
 from dbus_fast import Variant
 from dbus_fast.aio.message_bus import MessageBus
-from dbus_fast.service import ServiceInterface, dbus_property, dbus_method, dbus_signal
+from dbus_fast.service import ServiceInterface, dbus_method, dbus_property, dbus_signal
 
 
 class ExampleInterface(ServiceInterface):

@@ -7,7 +7,7 @@ import pytest
 
 from dbus_fast import Message, MessageType
 from dbus_fast.aio import MessageBus
-from dbus_fast.service import ServiceInterface, dbus_property, dbus_method, dbus_signal
+from dbus_fast.service import ServiceInterface, dbus_method, dbus_property, dbus_signal
 from dbus_fast.signature import SignatureTree, Variant
 
 

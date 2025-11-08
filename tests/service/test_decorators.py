@@ -1,6 +1,6 @@
 from dbus_fast import PropertyAccess
 from dbus_fast import introspection as intr
-from dbus_fast.service import ServiceInterface, dbus_property, dbus_method, dbus_signal
+from dbus_fast.service import ServiceInterface, dbus_method, dbus_property, dbus_signal
 
 
 class ExampleInterface(ServiceInterface):

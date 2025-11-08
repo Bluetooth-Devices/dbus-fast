@@ -127,7 +127,9 @@ def dbus_method(name: str | None = None, disabled: bool = False) -> Callable:
 
     return decorator
 
+
 method = dbus_method  # backward compatibility alias
+
 
 class _Signal:
     def __init__(self, fn: Callable, name: str, disabled: bool = False) -> None:
