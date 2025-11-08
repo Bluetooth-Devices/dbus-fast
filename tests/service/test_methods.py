@@ -1,4 +1,5 @@
 import asyncio
+
 import pytest
 
 from dbus_fast import (
