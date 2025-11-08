@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import inspect
 import logging
 import socket
@@ -168,7 +169,7 @@ class BaseMessageBus:
         self._machine_id: int | None = None
         self._sock: socket.socket | None = None
         self._fd: int | None = None
-        self._stream: Any | None = None
+        self._stream: io.BufferedRWPair | None = None
 
         self._setup_socket()
 
@@ -598,6 +599,8 @@ class BaseMessageBus:
             return
 
         self._disconnected = True
+
+        self._stream.close()
 
         for handler in self._method_return_handlers.values():
             try:
