@@ -107,7 +107,7 @@ def dbus_method(name: str | None = None, disabled: bool = False) -> Callable:
         def echo_two(self, val1: 's', val2: 'u') -> 'su':
             return [val1, val2]
 
-    .. versionadded:: v2.45.0
+    .. versionadded:: v2.46.0
         In older versions, this was named ``@method``. The old name still exists.
     """
     if name is not None and type(name) is not str:
@@ -187,7 +187,7 @@ def dbus_signal(name: str | None = None, disabled: bool = False) -> Callable:
         def two_strings_signal(self, val1, val2) -> 'ss':
             return [val1, val2]
 
-    .. versionadded:: v2.45.0
+    .. versionadded:: v2.46.0
         In older versions, this was named ``@signal``. The old name still exists.
     """
     if name is not None and type(name) is not str:
