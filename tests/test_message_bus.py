@@ -5,7 +5,6 @@ from dbus_fast.aio import MessageBus
 
 @pytest.mark.asyncio
 async def test_tcp_socket_cleanup_on_connect_fail(
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Test that socket resources are cleaned up on a failed TCP connection."""
 
@@ -22,7 +21,6 @@ async def test_tcp_socket_cleanup_on_connect_fail(
 
 @pytest.mark.asyncio
 async def test_unix_socket_cleanup_on_connect_fail(
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Test that socket resources are cleaned up on a failed Unix socket connection."""
 
