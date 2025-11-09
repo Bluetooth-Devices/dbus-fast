@@ -735,7 +735,7 @@ class BaseMessageBus:
 
         if last_err is None:  # pragma: no branch
             # Should not normally happen, but just in case
-            raise TypeError("empty list of bus addresses given")
+            raise TypeError("empty list of bus addresses given")  # pragma: no cover
 
         raise last_err
 
