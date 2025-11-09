@@ -4,7 +4,9 @@ from dbus_fast.aio import MessageBus
 
 
 @pytest.mark.asyncio
-async def test_tcp_socket_cleanup_on_connect_fail(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_tcp_socket_cleanup_on_connect_fail(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Test that socket resources are cleaned up on a failed TCP connection."""
 
     # A bit ugly, but we need to access members of the class after __init__()
@@ -18,9 +20,10 @@ async def test_tcp_socket_cleanup_on_connect_fail(monkeypatch: pytest.MonkeyPatc
     assert bus._sock._closed
 
 
-
 @pytest.mark.asyncio
-async def test_unix_socket_cleanup_on_connect_fail(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_unix_socket_cleanup_on_connect_fail(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Test that socket resources are cleaned up on a failed Unix socket connection."""
 
     # A bit ugly, but we need to access members of the class after __init__()

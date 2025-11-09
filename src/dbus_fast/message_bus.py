@@ -7,7 +7,7 @@ import traceback
 import xml.etree.ElementTree as ET
 from contextlib import ExitStack
 from functools import partial
-from typing import TYPE_CHECKING, Any, Callable, Optional
+from typing import TYPE_CHECKING, Any, Callable
 
 from . import introspection as intr
 from ._private.address import get_bus_address, parse_address
@@ -674,7 +674,7 @@ class BaseMessageBus:
         return node
 
     def _setup_socket(self) -> None:
-        last_err: Optional[Exception] = None
+        last_err: Exception | None = None
 
         for transport, options in self._bus_address:
             filename: bytes | str | None = None
@@ -704,7 +704,7 @@ class BaseMessageBus:
                     except Exception as e:
                         last_err = e
                     else:
-                        stack.pop_all() # responsibility to close sockets is deferred
+                        stack.pop_all()  # responsibility to close sockets is deferred
                         return
 
                 elif transport == "tcp":
@@ -729,7 +729,9 @@ class BaseMessageBus:
                         return
 
                 else:
-                    raise InvalidAddressError(f"got unknown address transport: {transport}")
+                    raise InvalidAddressError(
+                        f"got unknown address transport: {transport}"
+                    )
 
         if last_err is None:
             # Should not normally happen, but just in case
