@@ -7,7 +7,7 @@ import traceback
 import xml.etree.ElementTree as ET
 from contextlib import ExitStack
 from functools import partial
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, Optional
 
 from . import introspection as intr
 from ._private.address import get_bus_address, parse_address
@@ -674,6 +674,8 @@ class BaseMessageBus:
         return node
 
     def _setup_socket(self) -> None:
+        last_err: Optional[Exception] = None
+
         for transport, options in self._bus_address:
             filename: bytes | str | None = None
             ip_addr = ""
@@ -696,13 +698,16 @@ class BaseMessageBus:
                             "got unix transport with unknown path specifier"
                         )
 
-                    self._sock.connect(filename)
-                    self._sock.setblocking(False)
+                    try:
+                        self._sock.connect(filename)
+                        self._sock.setblocking(False)
+                    except Exception as e:
+                        last_err = e
+                    else:
+                        stack.pop_all() # responsibility to close sockets is deferred
+                        return
 
-                    stack.pop_all()
-                    return
-
-                if transport == "tcp":
+                elif transport == "tcp":
                     self._sock = stack.enter_context(
                         socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     )
@@ -714,13 +719,23 @@ class BaseMessageBus:
                     if "port" in options:
                         ip_port = int(options["port"])
 
-                    self._sock.connect((ip_addr, ip_port))
-                    self._sock.setblocking(False)
+                    try:
+                        self._sock.connect((ip_addr, ip_port))
+                        self._sock.setblocking(False)
+                    except Exception as e:
+                        last_err = e
+                    else:
+                        stack.pop_all()
+                        return
 
-                    stack.pop_all()
-                    return
+                else:
+                    raise InvalidAddressError(f"got unknown address transport: {transport}")
 
-            raise InvalidAddressError(f"got unknown address transport: {transport}")
+        if last_err is None:
+            # Should not normally happen, but just in case
+            raise TypeError("empty list of bus addresses given")
+
+        raise last_err
 
     def _reply_notify(
         self,
