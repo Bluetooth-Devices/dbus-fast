@@ -33,6 +33,7 @@ async def test_unix_socket_cleanup_on_connect_fail() -> None:
     assert bus._stream.closed
     assert bus._sock._closed
 
+
 @pytest.mark.asyncio
 async def test_unknown_socket_type() -> None:
     """Test that socket resources are cleaned up on a failed Unix socket connection."""
