@@ -733,7 +733,7 @@ class BaseMessageBus:
                         f"got unknown address transport: {transport}"
                     )
 
-        if last_err is None:
+        if last_err is None:  # pragma: no branch
             # Should not normally happen, but just in case
             raise TypeError("empty list of bus addresses given")
 
