@@ -161,8 +161,6 @@ async def test_signals():
 
     bus1.disconnect()
     bus2.disconnect()
-    bus1._sock.close()
-    bus2._sock.close()
 
 
 @pytest.mark.asyncio
@@ -257,5 +255,3 @@ async def test_interface_add_remove_signal():
 
     bus1.disconnect()
     bus2.disconnect()
-    bus1._sock.close()
-    bus2._sock.close()

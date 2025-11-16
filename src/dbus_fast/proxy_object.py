@@ -5,10 +5,9 @@ import inspect
 import logging
 import re
 import xml.etree.ElementTree as ET
-from collections.abc import Coroutine
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Callable
 
 from . import introspection as intr
 from . import message_bus

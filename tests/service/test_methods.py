@@ -218,5 +218,3 @@ async def test_methods(interface_class):
 
     bus1.disconnect()
     bus2.disconnect()
-    bus1._sock.close()
-    bus2._sock.close()
