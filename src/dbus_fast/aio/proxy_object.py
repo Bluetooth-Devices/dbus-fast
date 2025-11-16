@@ -91,21 +91,22 @@ class ProxyInterface(BaseProxyInterface):
                 intr_method.in_signature, list(args)
             )
 
-            msg = await self.bus.call(
-                Message(
-                    destination=self.bus_name,
-                    path=self.path,
-                    interface=self.introspection.name,
-                    member=intr_method.name,
-                    signature=intr_method.in_signature,
-                    body=input_body,
-                    flags=flags,
-                    unix_fds=unix_fds,
-                )
+            request = Message(
+                destination=self.bus_name,
+                path=self.path,
+                interface=self.introspection.name,
+                member=intr_method.name,
+                signature=intr_method.in_signature,
+                body=input_body,
+                flags=flags,
+                unix_fds=unix_fds,
             )
 
-            if flags is not None and flags.value & NO_REPLY_EXPECTED_VALUE:
+            if flags & NO_REPLY_EXPECTED_VALUE:
+                await self.bus.send(request)
                 return None
+
+            msg = await self.bus.call(request)
 
             BaseProxyInterface._check_method_return(msg, intr_method.out_signature)
 
