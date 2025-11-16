@@ -5,9 +5,10 @@ import logging
 import socket
 import traceback
 import xml.etree.ElementTree as ET
+from collections.abc import Callable
 from contextlib import ExitStack
 from functools import partial
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 from . import introspection as intr
 from ._private.address import get_bus_address, parse_address
@@ -202,8 +203,8 @@ class BaseMessageBus:
                 f'An interface with this name is already exported on this bus at path "{path}": "{interface.name}"'
             )
 
-        self._path_exports[path][interface.name] = interface
         ServiceInterface._add_bus(interface, self, self._make_method_handler)
+        self._path_exports[path][interface.name] = interface
         self._emit_interface_added(path, interface)
 
     def unexport(

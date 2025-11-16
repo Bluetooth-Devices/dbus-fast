@@ -9,7 +9,7 @@ from dbus_fast.service import (
     ServiceInterface,
     SignalDisabledError,
     dbus_property,
-    signal,
+    dbus_signal,
 )
 from dbus_fast.signature import Variant
 
@@ -18,25 +18,25 @@ class ExampleInterface(ServiceInterface):
     def __init__(self, name):
         super().__init__(name)
 
-    @signal()
+    @dbus_signal()
     def signal_empty(self):
         assert type(self) is ExampleInterface
 
-    @signal()
+    @dbus_signal()
     def signal_simple(self) -> "s":
         assert type(self) is ExampleInterface
         return "hello"
 
-    @signal()
+    @dbus_signal()
     def signal_multiple(self) -> "ss":
         assert type(self) is ExampleInterface
         return ["hello", "world"]
 
-    @signal(name="renamed")
+    @dbus_signal(name="renamed")
     def original_name(self):
         assert type(self) is ExampleInterface
 
-    @signal(disabled=True)
+    @dbus_signal(disabled=True)
     def signal_disabled(self):
         assert type(self) is ExampleInterface
 
@@ -161,6 +161,8 @@ async def test_signals():
 
     bus1.disconnect()
     bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
 
 
 @pytest.mark.asyncio
@@ -255,3 +257,5 @@ async def test_interface_add_remove_signal():
 
     bus1.disconnect()
     bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)

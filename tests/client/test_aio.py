@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 
 from dbus_fast import aio
@@ -22,5 +24,5 @@ async def test_fast_disconnect():
     bus2.get_proxy_object(bus_name, "/test/path", introspection)
     bus2.disconnect()
     bus.disconnect()
-    await bus.wait_for_disconnect()
-    await bus2.wait_for_disconnect()
+    await asyncio.wait_for(bus.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)

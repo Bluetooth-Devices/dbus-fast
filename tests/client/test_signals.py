@@ -6,7 +6,7 @@ from dbus_fast import Message
 from dbus_fast.aio import MessageBus
 from dbus_fast.constants import RequestNameReply
 from dbus_fast.introspection import Node
-from dbus_fast.service import ServiceInterface, signal
+from dbus_fast.service import ServiceInterface, dbus_signal
 from dbus_fast.signature import Variant
 
 
@@ -14,15 +14,15 @@ class ExampleInterface(ServiceInterface):
     def __init__(self):
         super().__init__("test.interface")
 
-    @signal()
+    @dbus_signal()
     def SomeSignal(self) -> "s":
         return "hello"
 
-    @signal()
+    @dbus_signal()
     def SignalMultiple(self) -> "ss":
         return ["hello", "world"]
 
-    @signal()
+    @dbus_signal()
     def SignalComplex(self) -> "a{sv}":  # noqa: F722
         """Broadcast a complex signal."""
         return {"hello": Variant("s", "world")}
@@ -164,6 +164,9 @@ async def test_signals():
     bus1.disconnect()
     bus2.disconnect()
     bus3.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus3.wait_for_disconnect(), timeout=1)
 
 
 @pytest.mark.asyncio
@@ -227,6 +230,8 @@ async def test_complex_signals():
 
     bus1.disconnect()
     bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
 
 
 @pytest.mark.asyncio
@@ -290,6 +295,8 @@ async def test_varargs_callback():
 
     bus1.disconnect()
     bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
 
 
 @pytest.mark.asyncio
@@ -359,6 +366,8 @@ async def test_kwargs_callback():
 
     bus1.disconnect()
     bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
 
 
 @pytest.mark.asyncio
@@ -429,6 +438,8 @@ async def test_coro_callback():
 
     bus1.disconnect()
     bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
 
 
 @pytest.mark.asyncio
@@ -460,6 +471,8 @@ async def test_on_signal_type_error():
 
     bus1.disconnect()
     bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
 
 
 @pytest.mark.asyncio
@@ -530,3 +543,6 @@ async def test_signals_with_changing_owners():
     bus1.disconnect()
     bus2.disconnect()
     bus3.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus3.wait_for_disconnect(), timeout=1)

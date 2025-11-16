@@ -1,3 +1,4 @@
+import asyncio
 import sys
 
 import pytest
@@ -94,6 +95,8 @@ async def test_aio_properties():
 
     service_bus.disconnect()
     bus.disconnect()
+    await asyncio.wait_for(service_bus.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus.wait_for_disconnect(), timeout=1)
 
 
 @pytest.mark.skipif(
