@@ -65,7 +65,8 @@ async def test_unix_socket_abstract_cleanup_on_connect_fail() -> None:
     """Test that socket resources are cleaned up on a failed abstract Unix socket connection."""
     bus = MessageBus.__new__(MessageBus)
 
-    with pytest.raises(FileNotFoundError):
+    # On Linux: ConnectionRefusedError, on macOS: FileNotFoundError
+    with pytest.raises((FileNotFoundError, ConnectionRefusedError)):
         bus.__init__("unix:abstract=/tmp/nonexistent-abstract-socket")
 
     assert bus._stream.closed
