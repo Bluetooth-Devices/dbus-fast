@@ -1,7 +1,7 @@
 import io
 import logging
 import traceback
-from collections.abc import Callable
+from typing import Callable, Optional
 
 from .. import introspection as intr
 from .._private.unmarshaller import Unmarshaller
@@ -161,9 +161,9 @@ class MessageBus(BaseMessageBus):
 
     def __init__(
         self,
-        bus_address: str | None = None,
+        bus_address: Optional[str] = None,
         bus_type: BusType = BusType.SESSION,
-        auth: Authenticator | None = None,
+        auth: Optional[Authenticator] = None,
     ):
         if _import_error:
             raise _import_error
@@ -188,8 +188,9 @@ class MessageBus(BaseMessageBus):
 
     def connect(
         self,
-        connect_notify: None
-        | (Callable[["MessageBus", Exception | None], None]) = None,
+        connect_notify: Optional[
+            Callable[["MessageBus", Optional[Exception]], None]
+        ] = None,
     ):
         """Connect this message bus to the DBus daemon.
 
@@ -276,8 +277,9 @@ class MessageBus(BaseMessageBus):
     def call(
         self,
         msg: Message,
-        reply_notify: None
-        | (Callable[[Message | None, Exception | None], None]) = None,
+        reply_notify: Optional[
+            Callable[[Optional[Message], Optional[Exception]], None]
+        ] = None,
     ):
         """Send a method call and asynchronously wait for a reply from the DBus
         daemon.
@@ -291,7 +293,7 @@ class MessageBus(BaseMessageBus):
         BaseMessageBus._check_callback_type(reply_notify)
         self._call(msg, reply_notify)
 
-    def call_sync(self, msg: Message) -> Message | None:
+    def call_sync(self, msg: Message) -> Optional[Message]:
         """Send a method call and synchronously wait for a reply from the DBus
         daemon.
 

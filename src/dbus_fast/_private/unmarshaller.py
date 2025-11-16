@@ -5,9 +5,9 @@ import errno
 import io
 import socket
 import sys
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 from struct import Struct
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 
 from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP, MessageFlag
 from ..errors import InvalidMessageError

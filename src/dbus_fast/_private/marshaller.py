@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Callable
 from struct import Struct, error
-from typing import Any
+from typing import Any, Callable
 
 from ..signature import SignatureType, Variant, get_signature_tree
 

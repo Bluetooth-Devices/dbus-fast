@@ -5,9 +5,8 @@ import logging
 import socket
 import traceback
 import xml.etree.ElementTree as ET
-from collections.abc import Callable
 from functools import partial
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 
 from . import introspection as intr
 from ._private.address import get_bus_address, parse_address

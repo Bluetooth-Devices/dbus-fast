@@ -1,3 +1,6 @@
+from typing import Optional, Union
+
+
 class SignatureBodyMismatchError(ValueError):
     pass
 
@@ -57,7 +60,7 @@ from .validators import assert_interface_name_valid  # noqa: E402
 
 class DBusError(Exception):
     def __init__(
-        self, type_: ErrorType | str, text: str, reply: Message | None = None
+        self, type_: Union[ErrorType, str], text: str, reply: Optional[Message] = None
     ) -> None:
         super().__init__(text)
 

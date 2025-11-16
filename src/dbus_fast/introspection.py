@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as ET
+from typing import Optional, Union
 
 from .constants import ArgDirection, PropertyAccess
 from .errors import InvalidIntrospectionError
@@ -49,10 +50,10 @@ class Arg:
 
     def __init__(
         self,
-        signature: SignatureType | str,
-        direction: ArgDirection | None = None,
-        name: str | None = None,
-        annotations: dict[str, str] | None = None,
+        signature: Union[SignatureType, str],
+        direction: Optional[ArgDirection] = None,
+        name: Optional[str] = None,
+        annotations: Optional[dict[str, str]] = None,
     ):
         type_ = None
         if type(signature) is SignatureType:
@@ -131,9 +132,9 @@ class Signal:
 
     def __init__(
         self,
-        name: str | None,
-        args: list[Arg] | None = None,
-        annotations: dict[str, str] | None = None,
+        name: Optional[str],
+        args: Optional[list[Arg]] = None,
+        annotations: Optional[dict[str, str]] = None,
     ):
         if name is not None:
             assert_member_name_valid(name)
@@ -209,7 +210,7 @@ class Method:
         name: str,
         in_args: list[Arg] = [],
         out_args: list[Arg] = [],
-        annotations: dict[str, str] | None = None,
+        annotations: Optional[dict[str, str]] = None,
     ):
         assert_member_name_valid(name)
 
@@ -294,7 +295,7 @@ class Property:
         name: str,
         signature: str,
         access: PropertyAccess = PropertyAccess.READWRITE,
-        annotations: dict[str, str] | None = None,
+        annotations: Optional[dict[str, str]] = None,
         validate: bool = True,
     ):
         if validate:
@@ -372,10 +373,10 @@ class Interface:
     def __init__(
         self,
         name: str,
-        methods: list[Method] | None = None,
-        signals: list[Signal] | None = None,
-        properties: list[Property] | None = None,
-        annotations: dict[str, str] | None = None,
+        methods: Optional[list[Method]] = None,
+        signals: Optional[list[Signal]] = None,
+        properties: Optional[list[Property]] = None,
+        annotations: Optional[dict[str, str]] = None,
     ):
         assert_interface_name_valid(name)
 
@@ -466,8 +467,8 @@ class Node:
 
     def __init__(
         self,
-        name: str | None = None,
-        interfaces: list[Interface] | None = None,
+        name: Optional[str] = None,
+        interfaces: Optional[list[Interface]] = None,
         is_root: bool = True,
     ):
         if not is_root and not name:
@@ -575,7 +576,7 @@ class Node:
         return header + ET.tostring(xml, encoding="unicode").rstrip()
 
     @staticmethod
-    def default(name: str | None = None) -> "Node":
+    def default(name: Optional[str] = None) -> "Node":
         """Create a :class:`Node` with the default interfaces supported by this library.
 
         The default interfaces include:
