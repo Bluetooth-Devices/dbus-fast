@@ -61,6 +61,28 @@ async def test_tcp_socket_cleanup_with_port_only() -> None:
 
 
 @pytest.mark.asyncio
+async def test_unix_socket_abstract_cleanup_on_connect_fail() -> None:
+    """Test that socket resources are cleaned up on a failed abstract Unix socket connection."""
+    bus = MessageBus.__new__(MessageBus)
+
+    with pytest.raises(FileNotFoundError):
+        bus.__init__("unix:abstract=/tmp/nonexistent-abstract-socket")
+
+    assert bus._stream.closed
+    assert bus._sock._closed
+
+
+@pytest.mark.asyncio
+async def test_unix_socket_invalid_path_specifier() -> None:
+    """Test that Unix socket with invalid path specifier raises error."""
+
+    with pytest.raises(
+        InvalidAddressError, match="got unix transport with unknown path specifier"
+    ):
+        MessageBus("unix:invalid=foo")
+
+
+@pytest.mark.asyncio
 async def test_unknown_socket_type() -> None:
     """Test that unknown socket types raise InvalidAddressError."""
 
