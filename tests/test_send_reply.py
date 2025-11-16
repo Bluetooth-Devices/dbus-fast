@@ -1,4 +1,5 @@
 import os
+from collections.abc import Generator
 from unittest.mock import patch
 
 import pytest
@@ -11,7 +12,7 @@ from dbus_fast.send_reply import SendReply
 
 
 @pytest.fixture(autouse=True)
-def mock_address() -> None:
+def mock_address() -> Generator[None, None, None]:
     original_address = os.environ.get("DBUS_SESSION_BUS_ADDRESS")
     os.environ["DBUS_SESSION_BUS_ADDRESS"] = "unix:path=/dev/null"
     yield
@@ -24,7 +25,7 @@ def mock_address() -> None:
 def test_send_reply_exception() -> None:
     """Test that SendReply sends an error message when DBusError is raised."""
 
-    messages = []
+    messages: list[Message] = []
 
     class MockClosable:
         def close(self) -> None:
@@ -63,7 +64,7 @@ def test_send_reply_exception() -> None:
 def test_send_reply_happy_path() -> None:
     """Test that SendReply sends a message."""
 
-    messages = []
+    messages: list[Message] = []
 
     class MockClosable:
         def close(self) -> None:
