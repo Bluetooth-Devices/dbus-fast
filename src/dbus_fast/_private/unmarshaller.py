@@ -583,12 +583,12 @@ class Unmarshaller:
             tree, self._readers[signature_type.token](self, signature_type)
         )
 
-    def read_struct(self, type_: _SignatureType) -> list[Any]:
+    def read_struct(self, type_: _SignatureType) -> tuple[Any, ...]:
         self._pos += -self._pos & 7  # align 8
         readers = self._readers
-        return [
+        return tuple(
             readers[child_type.token](self, child_type) for child_type in type_.children
-        ]
+        )
 
     def read_dict_entry(self, type_: _SignatureType) -> tuple[Any, Any]:
         self._pos += -self._pos & 7  # align 8

@@ -290,7 +290,7 @@ class SignatureType:  # noqa: PLW1641
 
         if len(body) != len(self.children):
             raise SignatureBodyMismatchError(
-                'DBus STRUCT type "(" must have Python list members equal to the number of struct type members'
+                'DBus STRUCT type "(" must have Python tuple members equal to the number of struct type members'
             )
 
         for i, member in enumerate(body):

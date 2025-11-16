@@ -56,7 +56,10 @@ below.
 +-------------+-------+--------------------------------------+-------------------------------------------------------------------------+
 | ARRAY       | a     | list                                 | Must be followed by a complete type which specifies the child type.     |
 +-------------+-------+--------------------------------------+-------------------------------------------------------------------------+
-| STRUCT      | (     | list                                 | Types in the Python ``list`` must match the types between the parens.   |
+| STRUCT      | (     | tuple                                | Types in the Python ``tuple`` must match the types between the parens.  |
+|             |       |                                      |                                                                         |
+|             |       |                                      | .. versionchanged:: 3.0.0                                               |
+|             |       |                                      |     Changed from ``list`` to ``tuple``                                  |
 +-------------+-------+--------------------------------------+-------------------------------------------------------------------------+
 | VARIANT     | v     | :class:`Variant <dbus_fast.Variant>` | This class is provided by the library.                                  |
 |             |       |                                      |                                                                         |
@@ -71,7 +74,7 @@ table below.
 +-----------+--------------------------------------+-------------------------------------------------------+
 | Signature | Example                              | Notes                                                 |
 +===========+======================================+=======================================================+
-| ``(su)``  | ``[ 'foo', 5 ]``                     | Each element in the array must match the              |
+| ``(su)``  | ``( 'foo', 5 )``                     | Each element in the tuple must match the              |
 |           |                                      | corresponding type of the struct member.              |
 +-----------+--------------------------------------+-------------------------------------------------------+
 | ``as``    | ``[ 'foo', 'bar' ]``                 | The child type comes immediately after the ``a``.     |
@@ -95,7 +98,7 @@ table below.
 |           |                                      |                                                       |
 |           |                                      |                                                       |
 +-----------+--------------------------------------+-------------------------------------------------------+
-| ``(asv)`` | ``[ ['foo'], Variant('s', 'bar') ]`` | Containers may be nested.                             |
+| ``(asv)`` | ``( ['foo'], Variant('s', 'bar') )`` | Containers may be nested.                             |
 +-----------+--------------------------------------+-------------------------------------------------------+
 
 For more information on the DBus type system, see `the
