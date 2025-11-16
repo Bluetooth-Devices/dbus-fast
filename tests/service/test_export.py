@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 
 from dbus_fast import Message, MessageType
@@ -102,6 +104,7 @@ async def test_export_twice_raises():
         bus.export(export_path2, interface)
 
     bus.disconnect()
+    await asyncio.wait_for(bus.wait_for_disconnect(), timeout=1)
 
 
 @pytest.mark.asyncio

@@ -202,8 +202,8 @@ class BaseMessageBus:
                 f'An interface with this name is already exported on this bus at path "{path}": "{interface.name}"'
             )
 
-        self._path_exports[path][interface.name] = interface
         ServiceInterface._add_bus(interface, self, self._make_method_handler)
+        self._path_exports[path][interface.name] = interface
         self._emit_interface_added(path, interface)
 
     def unexport(
