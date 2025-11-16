@@ -35,8 +35,34 @@ async def test_unix_socket_cleanup_on_connect_fail() -> None:
 
 
 @pytest.mark.asyncio
-async def test_unknown_socket_type() -> None:
-    """Test that socket resources are cleaned up on a failed Unix socket connection."""
+async def test_tcp_socket_cleanup_with_host_only() -> None:
+    """Test TCP connection with host option only (no port)."""
+    bus = MessageBus.__new__(MessageBus)
 
-    with pytest.raises(InvalidAddressError, match=": unknown"):
+    with pytest.raises(OSError):
+        # Port defaults to 0, which will fail
+        bus.__init__("tcp:host=127.0.0.1")
+
+    assert bus._stream.closed
+    assert bus._sock._closed
+
+
+@pytest.mark.asyncio
+async def test_tcp_socket_cleanup_with_port_only() -> None:
+    """Test TCP connection with port option only (no host)."""
+    bus = MessageBus.__new__(MessageBus)
+
+    with pytest.raises(OSError):
+        # Host defaults to empty string, which will fail
+        bus.__init__("tcp:port=1")
+
+    assert bus._stream.closed
+    assert bus._sock._closed
+
+
+@pytest.mark.asyncio
+async def test_unknown_socket_type() -> None:
+    """Test that unknown socket types raise InvalidAddressError."""
+
+    with pytest.raises(InvalidAddressError, match="got unknown address transport"):
         MessageBus("unknown:works=nope")
