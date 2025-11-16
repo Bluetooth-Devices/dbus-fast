@@ -528,17 +528,6 @@ class MessageBus(BaseMessageBus):
                 # of D-Bus messages.
                 break
 
-    def disconnect(self) -> None:
-        """Disconnect the message bus by closing the underlying connection asynchronously.
-
-        All pending  and future calls will error with a connection error.
-        """
-        super().disconnect()
-        try:
-            self._sock.close()
-        except Exception:
-            _LOGGER.warning("could not close socket", exc_info=True)
-
     def _finalize(self, err: Exception | None = None) -> None:
         try:
             self._loop.remove_reader(self._fd)
