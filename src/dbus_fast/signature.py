@@ -1,5 +1,6 @@
+from collections.abc import Callable
 from functools import lru_cache
-from typing import Any, Callable, Optional, Union
+from typing import Any
 
 from .errors import InvalidSignatureError, SignatureBodyMismatchError
 from .validators import is_object_path_valid
@@ -35,9 +36,9 @@ class SignatureType:  # noqa: PLW1641
         self.token: str = token
         self.token_as_int = ord(token)
         self.children: list[SignatureType] = []
-        self._child_0: Optional[SignatureType] = None
-        self._child_1: Optional[SignatureType] = None
-        self._signature: Optional[str] = None
+        self._child_0: SignatureType | None = None
+        self._child_1: SignatureType | None = None
+        self._signature: str | None = None
 
     def __eq__(self, other: object) -> bool:
         """Compare this type to another type or signature string."""
@@ -424,7 +425,7 @@ class Variant:  # noqa: PLW1641
 
     def __init__(
         self,
-        signature: Union[str, SignatureTree, SignatureType],
+        signature: str | SignatureTree | SignatureType,
         value: Any,
         verify: bool = True,
     ) -> None:
