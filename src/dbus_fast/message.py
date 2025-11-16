@@ -1,3 +1,5 @@
+# cython: freethreading_compatible = True
+
 from typing import Any
 
 from ._private.constants import LITTLE_ENDIAN, PROTOCOL_VERSION, HeaderField
