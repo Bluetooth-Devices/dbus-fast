@@ -3,6 +3,7 @@ from __future__ import annotations
 import array
 import asyncio
 import contextlib
+import inspect
 import logging
 import socket
 from collections import deque
@@ -450,7 +451,7 @@ class MessageBus(BaseMessageBus):
     def _make_method_handler(
         self, interface: ServiceInterface, method: _Method
     ) -> Callable[[Message, Callable[[Message], None]], None]:
-        if not asyncio.iscoroutinefunction(method.fn):
+        if not inspect.iscoroutinefunction(method.fn):
             return super()._make_method_handler(interface, method)
 
         negotiate_unix_fd = self._negotiate_unix_fd
@@ -527,17 +528,6 @@ class MessageBus(BaseMessageBus):
                 # from the client must be the first octet of the authenticated/encrypted stream
                 # of D-Bus messages.
                 break
-
-    def disconnect(self) -> None:
-        """Disconnect the message bus by closing the underlying connection asynchronously.
-
-        All pending  and future calls will error with a connection error.
-        """
-        super().disconnect()
-        try:
-            self._sock.close()
-        except Exception:
-            _LOGGER.warning("could not close socket", exc_info=True)
 
     def _finalize(self, err: Exception | None = None) -> None:
         try:

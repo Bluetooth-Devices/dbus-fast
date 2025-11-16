@@ -1,3 +1,5 @@
+# cython: freethreading_compatible = True
+
 from collections.abc import Callable
 from functools import lru_cache
 from typing import Any

@@ -1,3 +1,5 @@
+# cython: freethreading_compatible = True
+
 from typing import Any
 
 from .signature import Variant

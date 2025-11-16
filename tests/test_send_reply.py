@@ -1,4 +1,5 @@
 import os
+from collections.abc import Generator
 from unittest.mock import patch
 
 import pytest
@@ -11,7 +12,7 @@ from dbus_fast.send_reply import SendReply
 
 
 @pytest.fixture(autouse=True)
-def mock_address() -> None:
+def mock_address() -> Generator[None, None, None]:
     original_address = os.environ.get("DBUS_SESSION_BUS_ADDRESS")
     os.environ["DBUS_SESSION_BUS_ADDRESS"] = "unix:path=/dev/null"
     yield
@@ -24,7 +25,11 @@ def mock_address() -> None:
 def test_send_reply_exception() -> None:
     """Test that SendReply sends an error message when DBusError is raised."""
 
-    messages = []
+    messages: list[Message] = []
+
+    class MockClosable:
+        def close(self) -> None:
+            pass
 
     class MockBus(BaseMessageBus):
         def send(self, msg: Message) -> None:
@@ -34,7 +39,8 @@ def test_send_reply_exception() -> None:
             messages.append(msg)
 
         def _setup_socket(self) -> None:
-            pass
+            self._sock = MockClosable()  # type: ignore
+            self._stream = MockClosable()  # type: ignore
 
     with patch("socket.socket.connect"):
         mock_message_bus = MockBus()
@@ -51,11 +57,18 @@ def test_send_reply_exception() -> None:
     assert messages[0].error_name == "org.freedesktop.DBus.Error.Disconnected"
     assert messages[0].reply_serial == 1
 
+    mock_message_bus.disconnect()
+    mock_message_bus._finalize(None)
+
 
 def test_send_reply_happy_path() -> None:
     """Test that SendReply sends a message."""
 
-    messages = []
+    messages: list[Message] = []
+
+    class MockClosable:
+        def close(self) -> None:
+            pass
 
     class MockBus(BaseMessageBus):
         def send(self, msg: Message) -> None:
@@ -65,7 +78,8 @@ def test_send_reply_happy_path() -> None:
             messages.append(msg)
 
         def _setup_socket(self) -> None:
-            pass
+            self._sock = MockClosable()  # type: ignore
+            self._stream = MockClosable()  # type: ignore
 
     with patch("socket.socket.connect"):
         mock_message_bus = MockBus()
@@ -80,3 +94,6 @@ def test_send_reply_happy_path() -> None:
     assert len(messages) == 1
     assert messages[0].message_type == MessageType.METHOD_CALL
     assert messages[0].error_name is None
+
+    mock_message_bus.disconnect()
+    mock_message_bus._finalize(None)

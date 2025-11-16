@@ -1,3 +1,5 @@
+# cython: freethreading_compatible = True
+
 from __future__ import annotations
 
 import asyncio
@@ -601,7 +603,7 @@ class ServiceInterface:
     ) -> None:
         # XXX MUST CHECK TYPE RETURNED BY GETTER
         try:
-            if asyncio.iscoroutinefunction(prop.prop_getter):
+            if inspect.iscoroutinefunction(prop.prop_getter):
                 task: asyncio.Task = asyncio.ensure_future(prop.prop_getter(interface))
 
                 def get_property_callback(task_: asyncio.Task) -> None:
@@ -631,7 +633,7 @@ class ServiceInterface:
     ) -> None:
         # XXX MUST CHECK TYPE TO SET
         try:
-            if asyncio.iscoroutinefunction(prop.prop_setter):
+            if inspect.iscoroutinefunction(prop.prop_setter):
                 task: asyncio.Task = asyncio.ensure_future(
                     prop.prop_setter(interface, value)
                 )
