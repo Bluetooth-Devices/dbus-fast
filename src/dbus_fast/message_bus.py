@@ -6,6 +6,7 @@ import socket
 import traceback
 import xml.etree.ElementTree as ET
 from collections.abc import Callable
+from contextlib import ExitStack
 from functools import partial
 from typing import TYPE_CHECKING, Any
 
@@ -674,56 +675,70 @@ class BaseMessageBus:
         return node
 
     def _setup_socket(self) -> None:
-        err = None
+        last_err: Exception | None = None
 
         for transport, options in self._bus_address:
             filename: bytes | str | None = None
             ip_addr = ""
             ip_port = 0
 
-            if transport == "unix":
-                self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-                self._stream = self._sock.makefile("rwb")
-                self._fd = self._sock.fileno()
+            with ExitStack() as stack:
+                if transport == "unix":
+                    self._sock = stack.enter_context(
+                        socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                    )
+                    self._stream = stack.enter_context(self._sock.makefile("rwb"))
+                    self._fd = self._sock.fileno()
 
-                if "path" in options:
-                    filename = options["path"]
-                elif "abstract" in options:
-                    filename = b"\0" + options["abstract"].encode()
+                    if "path" in options:
+                        filename = options["path"]
+                    elif "abstract" in options:
+                        filename = b"\0" + options["abstract"].encode()
+                    else:
+                        raise InvalidAddressError(
+                            "got unix transport with unknown path specifier"
+                        )
+
+                    try:
+                        self._sock.connect(filename)
+                        self._sock.setblocking(False)
+                    except Exception as e:
+                        last_err = e
+                    else:
+                        stack.pop_all()  # responsibility to close sockets is deferred
+                        return
+
+                elif transport == "tcp":
+                    self._sock = stack.enter_context(
+                        socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    )
+                    self._stream = stack.enter_context(self._sock.makefile("rwb"))
+                    self._fd = self._sock.fileno()
+
+                    if "host" in options:
+                        ip_addr = options["host"]
+                    if "port" in options:
+                        ip_port = int(options["port"])
+
+                    try:
+                        self._sock.connect((ip_addr, ip_port))
+                        self._sock.setblocking(False)
+                    except Exception as e:
+                        last_err = e
+                    else:
+                        stack.pop_all()
+                        return
+
                 else:
                     raise InvalidAddressError(
-                        "got unix transport with unknown path specifier"
+                        f"got unknown address transport: {transport}"
                     )
 
-                try:
-                    self._sock.connect(filename)
-                    self._sock.setblocking(False)
-                    break
-                except Exception as e:
-                    err = e
+        if last_err is None:  # pragma: no branch
+            # Should not normally happen, but just in case
+            raise TypeError("empty list of bus addresses given")  # pragma: no cover
 
-            elif transport == "tcp":
-                self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self._stream = self._sock.makefile("rwb")
-                self._fd = self._sock.fileno()
-
-                if "host" in options:
-                    ip_addr = options["host"]
-                if "port" in options:
-                    ip_port = int(options["port"])
-
-                try:
-                    self._sock.connect((ip_addr, ip_port))
-                    self._sock.setblocking(False)
-                    break
-                except Exception as e:
-                    err = e
-
-            else:
-                raise InvalidAddressError(f"got unknown address transport: {transport}")
-
-        if err:
-            raise err
+        raise last_err
 
     def _reply_notify(
         self,
