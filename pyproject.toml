@@ -63,7 +63,7 @@ version_variables = ["src/dbus_fast/__version__.py:__version__"]
 build_command = "pip install poetry && poetry build"
 
 [tool.pytest.ini_options]
-addopts = "-v -Wdefault --cov=dbus_fast --cov-report=term-missing:skip-covered"
+addopts = "-v -Werror --cov=dbus_fast --cov-report=term-missing:skip-covered"
 pythonpath = ["src"]
 
 [tool.coverage.run]
