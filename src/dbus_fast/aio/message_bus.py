@@ -11,6 +11,7 @@ from collections.abc import Callable
 from copy import copy
 from functools import partial
 from typing import Any
+from warnings import warn
 
 from .. import introspection as intr
 from ..auth import Authenticator, AuthExternal
@@ -372,24 +373,32 @@ class MessageBus(BaseMessageBus):
 
         return await future
 
-    async def call(self, msg: Message) -> Message | None:
+    async def call(self, msg: Message) -> Message:
         """Send a method call and wait for a reply from the DBus daemon.
 
         :param msg: The method call message to send.
         :type msg: :class:`Message <dbus_fast.Message>`
 
-        :returns: A message in reply to the message sent. If the message does
-            not expect a reply based on the message flags or type, returns
-            ``None`` after the message is sent.
-        :rtype: :class:`Message <dbus_fast.Message>` or :class:`None` if no reply is expected.
+        :returns: A message in reply to the method call sent.
+        :rtype: :class:`Message <dbus_fast.Message>`
 
         :raises:
             - :class:`Exception` - If a connection error occurred.
+
+        .. versionchanged:: 3.1.0
+            Using this to call methods that do not expect a reply or messages
+            that are not a method call is deprecated. Use :func:`send()
+            <dbus_fast.aio.MessageBus.send>` instead for those cases.
         """
         if (
             msg.flags.value & NO_REPLY_EXPECTED_VALUE
             or msg.message_type is not MessageType.METHOD_CALL
         ):
+            warn(
+                "Using this to call methods that do not expect a reply or messages that are not a method call is deprecated. Use send() instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
             await self.send(msg)
             return None
 
