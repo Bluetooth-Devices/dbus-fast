@@ -24,9 +24,9 @@ class _AuthResponse(enum.Enum):
     AGREE_UNIX_FD = "AGREE_UNIX_FD"
 
     @classmethod
-    def parse(klass, line: str) -> tuple["_AuthResponse", list[str]]:
+    def parse(cls, line: str) -> tuple["_AuthResponse", list[str]]:
         args = line.split(" ")
-        response = klass(args[0])
+        response = cls(args[0])
         return response, args[1:]
 
 
