@@ -245,6 +245,8 @@ async def test_property_methods(interface_class):
 
     bus1.disconnect()
     bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
 
 
 @pytest.mark.parametrize("interface_class", [ExampleInterface, AsyncInterface])
@@ -301,3 +303,5 @@ async def test_property_changed_signal(interface_class):
 
     bus1.disconnect()
     bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
