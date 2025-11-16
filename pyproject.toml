@@ -63,8 +63,12 @@ version_variables = ["src/dbus_fast/__version__.py:__version__"]
 build_command = "pip install poetry && poetry build"
 
 [tool.pytest.ini_options]
-addopts = "-v -Wdefault --cov=dbus_fast --cov-report=term-missing:skip-covered"
+addopts = "-v --cov=dbus_fast --cov-report=term-missing:skip-covered"
 pythonpath = ["src"]
+filterwarnings = [
+    "error",
+    '''ignore:The global interpreter lock \(GIL\) has been enabled to load module 'gi\._gi'.*:RuntimeWarning''',
+]
 
 [tool.coverage.run]
 branch = true
