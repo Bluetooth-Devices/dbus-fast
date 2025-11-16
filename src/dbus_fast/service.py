@@ -3,8 +3,9 @@ from __future__ import annotations
 import asyncio
 import copy
 import inspect
+from collections.abc import Callable
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 from . import introspection as intr
 from ._private.util import (

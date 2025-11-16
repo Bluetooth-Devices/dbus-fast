@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import ast
 import inspect
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from ..signature import SignatureTree, SignatureType, Variant, get_signature_tree
 

@@ -6,9 +6,10 @@ import contextlib
 import logging
 import socket
 from collections import deque
+from collections.abc import Callable
 from copy import copy
 from functools import partial
-from typing import Any, Callable
+from typing import Any
 
 from .. import introspection as intr
 from ..auth import Authenticator, AuthExternal
