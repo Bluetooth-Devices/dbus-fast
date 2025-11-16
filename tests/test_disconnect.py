@@ -33,11 +33,8 @@ async def test_bus_disconnect_before_reply():
 
     assert bus._disconnected
     assert not bus.connected
-    assert (await bus.wait_for_disconnect()) is None
-    # Let the exception propagate to the event loop
-    # so the next test does not fail
-    await asyncio.sleep(0)
-    await asyncio.sleep(0)
+
+    await asyncio.wait_for(bus.wait_for_disconnect(), timeout=1)
 
 
 @pytest.mark.asyncio
@@ -72,8 +69,8 @@ async def test_unexpected_disconnect():
         assert not bus.connected
 
     with pytest.raises(OSError):
-        await bus.wait_for_disconnect()
+        await asyncio.wait_for(bus.wait_for_disconnect(), timeout=1)
 
     bus.disconnect()
     with pytest.raises(OSError):
-        await bus.wait_for_disconnect()
+        await asyncio.wait_for(bus.wait_for_disconnect(), timeout=1)

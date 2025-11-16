@@ -11,7 +11,7 @@ from dbus_fast import (
     Variant,
 )
 from dbus_fast.aio import MessageBus
-from dbus_fast.service import ServiceInterface, dbus_property, method
+from dbus_fast.service import ServiceInterface, dbus_method, dbus_property
 
 
 class ExampleInterface(ServiceInterface):
@@ -71,7 +71,7 @@ class ExampleInterface(ServiceInterface):
     def returns_wrong_type(self) -> "s":
         return 5
 
-    @method()
+    @dbus_method()
     def do_emit_properties_changed(self):
         changed = {"string_prop": "asdf"}
         invalidated = ["container_prop"]
@@ -135,7 +135,7 @@ class AsyncInterface(ServiceInterface):
     async def returns_wrong_type(self) -> "s":
         return 5
 
-    @method()
+    @dbus_method()
     def do_emit_properties_changed(self):
         changed = {"string_prop": "asdf"}
         invalidated = ["container_prop"]
@@ -245,6 +245,8 @@ async def test_property_methods(interface_class):
 
     bus1.disconnect()
     bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
 
 
 @pytest.mark.parametrize("interface_class", [ExampleInterface, AsyncInterface])
@@ -301,3 +303,5 @@ async def test_property_changed_signal(interface_class):
 
     bus1.disconnect()
     bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)

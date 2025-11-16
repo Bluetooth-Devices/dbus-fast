@@ -8,7 +8,7 @@ import asyncio
 
 from dbus_fast import Variant
 from dbus_fast.aio.message_bus import MessageBus
-from dbus_fast.service import ServiceInterface, dbus_property, method, signal
+from dbus_fast.service import ServiceInterface, dbus_method, dbus_property, dbus_signal
 
 
 class ExampleInterface(ServiceInterface):
@@ -16,15 +16,15 @@ class ExampleInterface(ServiceInterface):
         super().__init__(name)
         self._string_prop = "kevin"
 
-    @method()
+    @dbus_method()
     def Echo(self, what: "s") -> "s":
         return what
 
-    @method()
+    @dbus_method()
     def EchoMultiple(self, what1: "s", what2: "s") -> "ss":
         return [what1, what2]
 
-    @method()
+    @dbus_method()
     def GetVariantDict(self) -> "a{sv}":  # noqa: F722
         return {
             "foo": Variant("s", "bar"),
@@ -40,11 +40,11 @@ class ExampleInterface(ServiceInterface):
     def string_prop_setter(self, val: "s"):
         self._string_prop = val
 
-    @signal()
+    @dbus_signal()
     def signal_simple(self) -> "s":
         return "hello"
 
-    @signal()
+    @dbus_signal()
     def signal_multiple(self) -> "ss":
         return ["hello", "world"]
 

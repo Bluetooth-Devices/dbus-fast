@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 
 from dbus_fast import (
@@ -10,24 +12,24 @@ from dbus_fast import (
     Variant,
 )
 from dbus_fast.aio import MessageBus
-from dbus_fast.service import ServiceInterface, method
+from dbus_fast.service import ServiceInterface, dbus_method
 
 
 class ExampleInterface(ServiceInterface):
     def __init__(self, name):
         super().__init__(name)
 
-    @method()
+    @dbus_method()
     def echo(self, what: "s") -> "s":
         assert type(self) is ExampleInterface
         return what
 
-    @method()
+    @dbus_method()
     def echo_multiple(self, what1: "s", what2: "s") -> "ss":
         assert type(self) is ExampleInterface
         return [what1, what2]
 
-    @method()
+    @dbus_method()
     def echo_containers(
         self,
         array: "as",  # noqa: F722
@@ -38,24 +40,24 @@ class ExampleInterface(ServiceInterface):
         assert type(self) is ExampleInterface
         return [array, variant, dict_entries, struct]
 
-    @method()
+    @dbus_method()
     def ping(self):
         assert type(self) is ExampleInterface
 
-    @method(name="renamed")
+    @dbus_method(name="renamed")
     def original_name(self):
         assert type(self) is ExampleInterface
 
-    @method(disabled=True)
+    @dbus_method(disabled=True)
     def not_here(self):
         assert type(self) is ExampleInterface
 
-    @method()
+    @dbus_method()
     def throws_unexpected_error(self):
         assert type(self) is ExampleInterface
         raise Exception("oops")
 
-    @method()
+    @dbus_method()
     def throws_dbus_error(self):
         assert type(self) is ExampleInterface
         raise DBusError("test.error", "an error occurred")
@@ -65,17 +67,17 @@ class AsyncInterface(ServiceInterface):
     def __init__(self, name):
         super().__init__(name)
 
-    @method()
+    @dbus_method()
     async def echo(self, what: "s") -> "s":
         assert type(self) is AsyncInterface
         return what
 
-    @method()
+    @dbus_method()
     async def echo_multiple(self, what1: "s", what2: "s") -> "ss":
         assert type(self) is AsyncInterface
         return [what1, what2]
 
-    @method()
+    @dbus_method()
     async def echo_containers(
         self,
         array: "as",  # noqa: F722
@@ -86,24 +88,24 @@ class AsyncInterface(ServiceInterface):
         assert type(self) is AsyncInterface
         return [array, variant, dict_entries, struct]
 
-    @method()
+    @dbus_method()
     async def ping(self):
         assert type(self) is AsyncInterface
 
-    @method(name="renamed")
+    @dbus_method(name="renamed")
     async def original_name(self):
         assert type(self) is AsyncInterface
 
-    @method(disabled=True)
+    @dbus_method(disabled=True)
     async def not_here(self):
         assert type(self) is AsyncInterface
 
-    @method()
+    @dbus_method()
     async def throws_unexpected_error(self):
         assert type(self) is AsyncInterface
         raise Exception("oops")
 
-    @method()
+    @dbus_method()
     def throws_dbus_error(self):
         assert type(self) is AsyncInterface
         raise DBusError("test.error", "an error occurred")
@@ -218,3 +220,5 @@ async def test_methods(interface_class):
 
     bus1.disconnect()
     bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
