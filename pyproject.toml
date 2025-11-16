@@ -13,7 +13,6 @@ classifiers = [
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Topic :: Software Development :: Libraries",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -35,7 +34,7 @@ script = "build_ext.py"
 "Changelog" = "https://github.com/bluetooth-devices/dbus-fast/blob/main/CHANGELOG.md"
 
 [tool.poetry.dependencies]
-python = ">=3.9"
+python = ">=3.10"
 
 # duplicated in docs/requirements.txt for readthedocs compatibility
 [tool.poetry.group.docs.dependencies]
@@ -109,7 +108,7 @@ requires = ['setuptools>=65.4.1', 'wheel', 'Cython>=3,<3.3.0', "poetry-core>=1.0
 build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 line-length = 88
 
 [tool.ruff.lint]
