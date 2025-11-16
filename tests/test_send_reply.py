@@ -26,6 +26,10 @@ def test_send_reply_exception() -> None:
 
     messages = []
 
+    class MockClosable:
+        def close(self) -> None:
+            pass
+
     class MockBus(BaseMessageBus):
         def send(self, msg: Message) -> None:
             messages.append(msg)
@@ -34,7 +38,8 @@ def test_send_reply_exception() -> None:
             messages.append(msg)
 
         def _setup_socket(self) -> None:
-            pass
+            self._sock = MockClosable()  # type: ignore
+            self._stream = MockClosable()  # type: ignore
 
     with patch("socket.socket.connect"):
         mock_message_bus = MockBus()
@@ -60,6 +65,10 @@ def test_send_reply_happy_path() -> None:
 
     messages = []
 
+    class MockClosable:
+        def close(self) -> None:
+            pass
+
     class MockBus(BaseMessageBus):
         def send(self, msg: Message) -> None:
             messages.append(msg)
@@ -68,7 +77,8 @@ def test_send_reply_happy_path() -> None:
             messages.append(msg)
 
         def _setup_socket(self) -> None:
-            pass
+            self._sock = MockClosable()  # type: ignore
+            self._stream = MockClosable()  # type: ignore
 
     with patch("socket.socket.connect"):
         mock_message_bus = MockBus()
