@@ -89,10 +89,12 @@ async def test_introspect_matching_sub_paths():
     bus2 = await MessageBus().connect()
 
     interface = ExampleInterface("test.interface1")
+    interface2 = ExampleInterface("test.interface1")
+    interface3 = ExampleInterface("test.interface1")
 
     bus1.export("/a/test/path1", interface)
-    bus1.export("/a/test/path10", interface)
-    bus1.export("/a/subpath/a/test/path2", interface)
+    bus1.export("/a/test/path10", interface2)
+    bus1.export("/a/subpath/a/test/path2", interface3)
 
     async def introspect_subpath(path, expected_subnodes):
         reply = await bus2.call(
@@ -193,11 +195,12 @@ async def test_object_manager():
 
     interface = ExampleInterface("test.interface1")
     interface2 = ExampleComplexInterface("test.interface2")
+    interface_deeper = ExampleComplexInterface("test.interface2")
 
     export_path = "/test/path"
     bus1.export(export_path, interface)
     bus1.export(export_path, interface2)
-    bus1.export(export_path + "/deeper", interface2)
+    bus1.export(export_path + "/deeper", interface_deeper)
 
     reply_root = await bus2.call(
         Message(
