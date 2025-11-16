@@ -51,6 +51,9 @@ def test_send_reply_exception() -> None:
     assert messages[0].error_name == "org.freedesktop.DBus.Error.Disconnected"
     assert messages[0].reply_serial == 1
 
+    mock_message_bus.disconnect()
+    mock_message_bus._finalize(None)
+
 
 def test_send_reply_happy_path() -> None:
     """Test that SendReply sends a message."""
@@ -80,3 +83,6 @@ def test_send_reply_happy_path() -> None:
     assert len(messages) == 1
     assert messages[0].message_type == MessageType.METHOD_CALL
     assert messages[0].error_name is None
+
+    mock_message_bus.disconnect()
+    mock_message_bus._finalize(None)
