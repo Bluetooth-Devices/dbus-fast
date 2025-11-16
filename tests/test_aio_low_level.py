@@ -125,6 +125,11 @@ async def test_sending_messages_between_buses():
 
     msg.serial = bus2.next_serial()
     msg.flags = MessageFlag.NO_REPLY_EXPECTED
+
+    with pytest.warns(DeprecationWarning):
+        reply = await bus2.call(msg)
+        assert reply is None
+
     reply = await bus2.send(msg)
     assert reply is None
 
