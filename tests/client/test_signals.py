@@ -6,7 +6,7 @@ from dbus_fast import Message
 from dbus_fast.aio import MessageBus
 from dbus_fast.constants import RequestNameReply
 from dbus_fast.introspection import Node
-from dbus_fast.service import ServiceInterface, signal
+from dbus_fast.service import ServiceInterface, dbus_signal
 from dbus_fast.signature import Variant
 
 
@@ -14,15 +14,15 @@ class ExampleInterface(ServiceInterface):
     def __init__(self):
         super().__init__("test.interface")
 
-    @signal()
+    @dbus_signal()
     def SomeSignal(self) -> "s":
         return "hello"
 
-    @signal()
+    @dbus_signal()
     def SignalMultiple(self) -> "ss":
         return ["hello", "world"]
 
-    @signal()
+    @dbus_signal()
     def SignalComplex(self) -> "a{sv}":  # noqa: F722
         """Broadcast a complex signal."""
         return {"hello": Variant("s", "world")}

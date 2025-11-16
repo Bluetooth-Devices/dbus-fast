@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union
+from typing import Any
 
 from ._private.constants import LITTLE_ENDIAN, PROTOCOL_VERSION, HeaderField
 from ._private.marshaller import Marshaller
@@ -112,19 +112,19 @@ class Message:
 
     def __init__(
         self,
-        destination: Optional[str] = None,
-        path: Optional[str] = None,
-        interface: Optional[str] = None,
-        member: Optional[str] = None,
+        destination: str | None = None,
+        path: str | None = None,
+        interface: str | None = None,
+        member: str | None = None,
         message_type: MessageType = MESSAGE_TYPE_METHOD_CALL,
-        flags: Union[MessageFlag, int] = MESSAGE_FLAG_NONE,
-        error_name: Optional[Union[str, ErrorType]] = None,
-        reply_serial: Optional[int] = None,
-        sender: Optional[str] = None,
+        flags: MessageFlag | int = MESSAGE_FLAG_NONE,
+        error_name: str | ErrorType | None = None,
+        reply_serial: int | None = None,
+        sender: str | None = None,
         unix_fds: list[int] = [],
-        signature: Optional[Union[SignatureTree, str]] = None,
+        signature: SignatureTree | str | None = None,
         body: list[Any] = [],
-        serial: Optional[int] = None,
+        serial: int | None = None,
         validate: bool = True,
     ) -> None:
         self._fast_init(
@@ -148,13 +148,13 @@ class Message:
 
     def _fast_init(
         self,
-        destination: Optional[_str],
-        path: Optional[_str],
-        interface: Optional[_str],
-        member: Optional[_str],
+        destination: _str | None,
+        path: _str | None,
+        interface: _str | None,
+        member: _str | None,
         message_type: _MessageType,
         flags: _MessageFlag,
-        error_name: Optional[_str],
+        error_name: _str | None,
         reply_serial: _int,
         sender: _str,
         unix_fds: _list[int],
@@ -216,7 +216,7 @@ class Message:
 
     @staticmethod
     def new_error(
-        msg: "Message", error_name: Union[str, ErrorType], error_text: str
+        msg: "Message", error_name: str | ErrorType, error_text: str
     ) -> "Message":
         """A convenience constructor to create an error message in reply to the given message.
 
@@ -280,8 +280,8 @@ class Message:
         interface: str,
         member: str,
         signature: str = "",
-        body: Optional[list[Any]] = None,
-        unix_fds: Optional[list[int]] = None,
+        body: list[Any] | None = None,
+        unix_fds: list[int] | None = None,
     ) -> "Message":
         """A convenience constructor to create a new signal message.
 

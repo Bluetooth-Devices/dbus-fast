@@ -9,7 +9,7 @@ import pytest
 import dbus_fast.introspection as intr
 from dbus_fast import DBusError, aio, glib
 from dbus_fast.message import MessageFlag
-from dbus_fast.service import ServiceInterface, method
+from dbus_fast.service import ServiceInterface, dbus_method
 from dbus_fast.signature import Variant
 from tests.util import check_gi_repository, skip_reason_no_gi
 
@@ -20,32 +20,32 @@ class ExampleInterface(ServiceInterface):
     def __init__(self):
         super().__init__("test.interface")
 
-    @method()
+    @dbus_method()
     def Ping(self):
         pass
 
-    @method()
+    @dbus_method()
     def EchoInt64(self, what: "x") -> "x":
         return what
 
-    @method()
+    @dbus_method()
     def EchoString(self, what: "s") -> "s":
         return what
 
-    @method()
+    @dbus_method()
     def ConcatStrings(self, what1: "s", what2: "s") -> "s":
         return what1 + what2
 
-    @method()
+    @dbus_method()
     def EchoThree(self, what1: "s", what2: "s", what3: "s") -> "sss":
         return [what1, what2, what3]
 
-    @method()
+    @dbus_method()
     def GetComplex(self) -> "a{sv}":  # noqa: F722
         """Return complex output."""
         return {"hello": Variant("s", "world")}
 
-    @method()
+    @dbus_method()
     def ThrowsError(self):
         raise DBusError("test.error", "something went wrong")
 

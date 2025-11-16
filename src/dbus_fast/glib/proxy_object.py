@@ -1,5 +1,4 @@
 import xml.etree.ElementTree as ET
-from typing import Union
 
 from .. import introspection as intr
 from ..constants import ErrorType
@@ -307,7 +306,7 @@ class ProxyObject(BaseProxyObject):
         self,
         bus_name: str,
         path: str,
-        introspection: Union[intr.Node, str, ET.Element],
+        introspection: intr.Node | str | ET.Element,
         bus: BaseMessageBus,
     ):
         super().__init__(bus_name, path, introspection, bus, ProxyInterface)
