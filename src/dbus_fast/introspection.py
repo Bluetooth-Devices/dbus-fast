@@ -72,6 +72,7 @@ class Arg:
         self.direction = direction
         self.annotations = annotations or {}
 
+    @staticmethod
     def from_xml(element: ET.Element, direction: ArgDirection) -> "Arg":
         """Convert a :class:`xml.etree.ElementTree.Element` into a
         :class:`Arg`.
@@ -143,7 +144,8 @@ class Signal:
         self.signature = "".join(arg.signature for arg in self.args)
         self.annotations = annotations or {}
 
-    def from_xml(element):
+    @staticmethod
+    def from_xml(element: ET.Element) -> "Signal":
         """Convert an :class:`xml.etree.ElementTree.Element` to a :class:`Signal`.
 
         The element must be valid DBus introspection XML for a ``signal``.
@@ -160,7 +162,7 @@ class Signal:
         if not name:
             raise InvalidIntrospectionError('signals must have a "name" attribute')
 
-        args = []
+        args: list[Arg] = []
         for child in element:
             if child.tag == "arg":
                 args.append(Arg.from_xml(child, ArgDirection.OUT))
@@ -220,6 +222,7 @@ class Method:
         self.out_signature = "".join(arg.signature for arg in out_args)
         self.annotations = annotations or {}
 
+    @staticmethod
     def from_xml(element: ET.Element) -> "Method":
         """Convert an :class:`xml.etree.ElementTree.Element` to a :class:`Method`.
 
@@ -237,8 +240,8 @@ class Method:
         if not name:
             raise InvalidIntrospectionError('interfaces must have a "name" attribute')
 
-        in_args = []
-        out_args = []
+        in_args: list[Arg] = []
+        out_args: list[Arg] = []
 
         for child in element:
             if child.tag == "arg":
@@ -312,7 +315,8 @@ class Property:
         self.type = tree.types[0]
         self.annotations = annotations or {}
 
-    def from_xml(element, validate: bool = True):
+    @staticmethod
+    def from_xml(element: ET.Element, validate: bool = True) -> "Property":
         """Convert an :class:`xml.etree.ElementTree.Element` to a :class:`Property`.
 
         The element must be valid DBus introspection XML for a ``property``.
