@@ -27,7 +27,7 @@ class ExampleInterface(ServiceInterface):
     @dbus_method()
     def echo_multiple(self, what1: "s", what2: "s") -> "ss":
         assert type(self) is ExampleInterface
-        return [what1, what2]
+        return what1, what2
 
     @dbus_method()
     def echo_containers(
@@ -75,7 +75,7 @@ class AsyncInterface(ServiceInterface):
     @dbus_method()
     async def echo_multiple(self, what1: "s", what2: "s") -> "ss":
         assert type(self) is AsyncInterface
-        return [what1, what2]
+        return what1, what2
 
     @dbus_method()
     async def echo_containers(
