@@ -38,7 +38,7 @@ class ExampleInterface(ServiceInterface):
 
     @dbus_method()
     def EchoThree(self, what1: "s", what2: "s", what3: "s") -> "sss":
-        return [what1, what2, what3]
+        return what1, what2, what3
 
     @dbus_method()
     def GetComplex(self) -> "a{sv}":  # noqa: F722

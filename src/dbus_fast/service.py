@@ -88,7 +88,7 @@ def dbus_method(name: str | None = None, disabled: bool = False) -> Callable:
     client and will conform to the dbus-fast type system. The parameters
     returned will be returned to the calling client and must conform to the
     dbus-fast type system. If multiple parameters are returned, they must be
-    contained within a :class:`list`.
+    contained within a :class:`tuple`.
 
     The decorated method may raise a :class:`DBusError <dbus_fast.DBusError>`
     to return an error to the client.
@@ -108,7 +108,7 @@ def dbus_method(name: str | None = None, disabled: bool = False) -> Callable:
 
         @dbus_method()
         def echo_two(self, val1: 's', val2: 'u') -> 'su':
-            return [val1, val2]
+            return val1, val2
 
     .. versionadded:: v2.46.0
         In older versions, this was named ``@method``. The old name still exists.
@@ -170,7 +170,7 @@ def dbus_signal(name: str | None = None, disabled: bool = False) -> Callable:
     annotation with a signature string of a single complete DBus type and the
     return value of the class method must conform to the dbus-fast type system.
     If the signal has multiple out arguments, they must be returned within a
-    ``list``.
+    ``tuple``.
 
     :param name: The member name that will be used for this signal. Defaults to
         the name of the class method.
@@ -188,7 +188,7 @@ def dbus_signal(name: str | None = None, disabled: bool = False) -> Callable:
 
         @dbus_signal()
         def two_strings_signal(self, val1, val2) -> 'ss':
-            return [val1, val2]
+            return val1, val2
 
     .. versionadded:: v2.46.0
         In older versions, this was named ``@signal``. The old name still exists.
