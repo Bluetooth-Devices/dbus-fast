@@ -341,7 +341,7 @@ def _real_fn_result_to_body(
     result: Any | None,
     signature_tree: SignatureTree,
     replace_fds: bool,
-) -> tuple[list[Any], list[int]]:
+) -> tuple[list[Any] | tuple[Any, ...], list[int]]:
     out_len = len(signature_tree.types)
     if result is None:
         final_result = []
@@ -449,7 +449,7 @@ class ServiceInterface:
                     prop.signature, changed_properties[prop.name]
                 )
 
-        body = [self.name, variant_dict, invalidated_properties]
+        body: list[Any] = [self.name, variant_dict, invalidated_properties]
         for bus in ServiceInterface._get_buses(self):
             bus._interface_signal_notify(
                 self,
@@ -553,7 +553,7 @@ class ServiceInterface:
         return ServiceInterface._c_msg_body_to_args(msg)
 
     @staticmethod
-    def _c_msg_body_to_args(msg: Message) -> list[Any]:
+    def _c_msg_body_to_args(msg: Message) -> list[Any] | tuple[Any, ...]:
         # https://github.com/cython/cython/issues/3327
         if not signature_contains_type(msg.signature_tree, msg.body, "h"):
             return msg.body
@@ -570,7 +570,7 @@ class ServiceInterface:
         result: Any | None,
         signature_tree: SignatureTree,
         replace_fds: bool = True,
-    ) -> tuple[list[Any], list[int]]:
+    ) -> tuple[list[Any] | tuple[Any, ...], list[int]]:
         return _real_fn_result_to_body(result, signature_tree, replace_fds)
 
     @staticmethod
@@ -578,7 +578,7 @@ class ServiceInterface:
         result: Any | None,
         signature_tree: SignatureTree,
         replace_fds: bool,
-    ) -> tuple[list[Any], list[int]]:
+    ) -> tuple[list[Any] | tuple[Any, ...], list[int]]:
         """The high level interfaces may return single values which may be
         wrapped in a list to be a message body. Also they may return fds
         directly for type 'h' which need to be put into an external list."""

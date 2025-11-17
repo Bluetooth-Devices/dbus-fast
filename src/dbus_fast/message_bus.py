@@ -626,7 +626,7 @@ class BaseMessageBus:
         interface_name: str,
         member: str,
         signature: str,
-        body: list[Any],
+        body: list[Any] | tuple[Any, ...],
         unix_fds: list[int] = [],
     ) -> None:
         path: str | None = None

@@ -9,7 +9,7 @@ from ..signature import SignatureTree, SignatureType, Variant, get_signature_tre
 
 
 def signature_contains_type(
-    signature: str | SignatureTree, body: list[Any], token: str
+    signature: str | SignatureTree, body: list[Any] | tuple[Any, ...], token: str
 ) -> bool:
     """For a given signature and body, check to see if it contains any members
     with the given token"""
@@ -50,8 +50,8 @@ def signature_contains_type(
 
 
 def replace_fds_with_idx(
-    signature: str | SignatureTree, body: list[Any]
-) -> tuple[list[Any], list[int]]:
+    signature: str | SignatureTree, body: list[Any] | tuple[Any, ...]
+) -> tuple[list[Any] | tuple[Any, ...], list[int]]:
     """Take the high level body format and convert it into the low level body
     format. Type 'h' refers directly to the fd in the body. Replace that with
     an index and return the corresponding list of unix fds that can be set on
@@ -77,7 +77,7 @@ def replace_fds_with_idx(
 
 
 def replace_idx_with_fds(
-    signature: str | SignatureTree, body: list[Any], unix_fds: list[Any]
+    signature: str | SignatureTree, body: list[Any] | tuple[Any, ...], unix_fds: list[Any]
 ) -> list[Any]:
     """Take the low level body format and return the high level body format.
     Type 'h' refers to an index in the unix_fds array. Replace those with the
@@ -130,7 +130,7 @@ def parse_annotation(annotation: str) -> str:
 
 
 def _replace_fds(
-    body_obj: dict[Any, Any] | list[Any],
+    body_obj: dict[Any, Any] | list[Any] | tuple[Any, ...],
     children: list[SignatureType],
     replace_fn: Callable[[Any], Any],
 ) -> None:
