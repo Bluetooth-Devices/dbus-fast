@@ -43,6 +43,9 @@ class _MethodCallbackProtocol(Protocol):
     def __call__(self, interface: ServiceInterface, *args: Any) -> Any: ...
 
 
+_background_tasks: set[asyncio.Task[Any]] = set()
+
+
 class _Method:
     def __init__(
         self, fn: _MethodCallbackProtocol, name: str, disabled: bool = False
@@ -626,6 +629,7 @@ class ServiceInterface:
                 )
 
                 def get_property_callback(task_: asyncio.Task[Any]) -> None:
+                    _background_tasks.remove(task_)
                     try:
                         result = task_.result()
                     except Exception as e:
@@ -635,6 +639,7 @@ class ServiceInterface:
                     callback(interface, prop, result, None)
 
                 task.add_done_callback(get_property_callback)
+                _background_tasks.add(task)
                 return
 
             callback(
@@ -658,6 +663,7 @@ class ServiceInterface:
                 )
 
                 def set_property_callback(task_: asyncio.Task[Any]) -> None:
+                    _background_tasks.remove(task_)
                     try:
                         task_.result()
                     except Exception as e:
@@ -667,6 +673,7 @@ class ServiceInterface:
                     callback(interface, prop, None)
 
                 task.add_done_callback(set_property_callback)
+                _background_tasks.add(task)
                 return
 
             setattr(interface, prop.prop_setter.__name__, value)
