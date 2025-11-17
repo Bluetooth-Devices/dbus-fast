@@ -259,7 +259,7 @@ class Message:
         :param body: The body of this message. Must match the signature.
         :type body: list(Any)
         :param unix_fds: List integer file descriptors to send with this message.
-        :type body: list(int)
+        :type unix_fds: list(int)
 
         :returns: The method return message
         :rtype: :class:`Message`
@@ -298,7 +298,7 @@ class Message:
         :param body: The body of this signal message.
         :type body: list(Any)
         :param unix_fds: List integer file descriptors to send with this message.
-        :type body: list(int)
+        :type unix_fds: list(int)
 
         :returns: The signal message.
         :rtype: :class:`Message`
