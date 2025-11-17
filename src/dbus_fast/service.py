@@ -41,6 +41,7 @@ class _MethodCallbackProtocol(Protocol):
 
 _background_tasks: set[asyncio.Task[Any]] = set()
 
+
 class _Method:
     def __init__(
         self, fn: _MethodCallbackProtocol, name: str, disabled: bool = False
