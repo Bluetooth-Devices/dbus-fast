@@ -20,7 +20,7 @@ class ExampleInterface(ServiceInterface):
 
     @dbus_signal()
     def SignalMultiple(self) -> "ss":
-        return ["hello", "world"]
+        return "hello", "world"
 
     @dbus_signal()
     def SignalComplex(self) -> "a{sv}":  # noqa: F722

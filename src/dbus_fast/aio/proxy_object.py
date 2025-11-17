@@ -45,7 +45,7 @@ class ProxyInterface(BaseProxyInterface):
     DBus methods are exposed as coroutines that take arguments that correpond
     to the *in args* of the interface method definition and return a ``result``
     that corresponds to the *out arg*. If the method has more than one out arg,
-    they are returned within a :class:`list`.
+    they are returned within a :class:`tuple`.
 
     To *listen to a signal* use this form:
 
