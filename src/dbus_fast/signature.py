@@ -353,7 +353,7 @@ class SignatureTree:  # noqa: PLW1641
     :vartype ~.signature: str
 
     :ivar root_type: The root type of this signature tree.
-    :vartype root_type: :class:`SignatureType
+    :vartype root_type: :class:`SignatureType`
 
     :raises:
         :class:`InvalidSignatureError` if the given signature is not valid.
