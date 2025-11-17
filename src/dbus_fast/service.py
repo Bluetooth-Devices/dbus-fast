@@ -621,7 +621,9 @@ class ServiceInterface:
         # XXX MUST CHECK TYPE RETURNED BY GETTER
         try:
             if inspect.iscoroutinefunction(prop.prop_getter):
-                task: asyncio.Task[Any] = asyncio.ensure_future(prop.prop_getter(interface))
+                task: asyncio.Task[Any] = asyncio.ensure_future(
+                    prop.prop_getter(interface)
+                )
 
                 def get_property_callback(task_: asyncio.Task[Any]) -> None:
                     try:
