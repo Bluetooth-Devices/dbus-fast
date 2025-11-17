@@ -14,8 +14,8 @@ class SignatureType:  # noqa: PLW1641
     This class is not meant to be constructed directly. Use the :class:`SignatureTree`
     class to parse signatures.
 
-    :ivar ~.signature: The signature of this complete type.
-    :vartype ~.signature: str
+    :ivar signature: The signature of this complete type.
+    :vartype signature: str
 
     :ivar children: A list of child types if this is a container type. Arrays \
     have one child type, dict entries have two child types (key and value), and \
@@ -349,8 +349,8 @@ class SignatureTree:  # noqa: PLW1641
     :ivar types: A list of parsed complete types.
     :vartype types: list(:class:`SignatureType`)
 
-    :ivar ~.signature: The signature of this signature tree.
-    :vartype ~.signature: str
+    :ivar signature: The signature of this signature tree.
+    :vartype signature: str
 
     :ivar root_type: The root type of this signature tree.
     :vartype root_type: :class:`SignatureType
