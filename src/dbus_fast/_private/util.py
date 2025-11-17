@@ -77,7 +77,9 @@ def replace_fds_with_idx(
 
 
 def replace_idx_with_fds(
-    signature: str | SignatureTree, body: list[Any] | tuple[Any, ...], unix_fds: list[Any]
+    signature: str | SignatureTree,
+    body: list[Any] | tuple[Any, ...],
+    unix_fds: list[Any],
 ) -> list[Any]:
     """Take the low level body format and return the high level body format.
     Type 'h' refers to an index in the unix_fds array. Replace those with the
