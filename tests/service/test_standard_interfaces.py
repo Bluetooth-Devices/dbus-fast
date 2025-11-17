@@ -5,6 +5,7 @@ import pytest
 from dbus_fast import Message, MessageType
 from dbus_fast import introspection as intr
 from dbus_fast.aio import MessageBus
+from dbus_fast.annotations import DBusByte, DBusStr
 from dbus_fast.constants import ErrorType
 from dbus_fast.service import PropertyAccess, ServiceInterface, dbus_property
 from dbus_fast.signature import Variant
@@ -13,27 +14,27 @@ standard_interfaces_count = len(intr.Node.default().interfaces)
 
 
 class ExampleInterface(ServiceInterface):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name)
 
 
 class ExampleComplexInterface(ServiceInterface):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         self._foo = 42
         self._bar = "str"
         self._async_prop = "async"
         super().__init__(name)
 
     @dbus_property(access=PropertyAccess.READ)
-    def Foo(self) -> "y":
+    def Foo(self) -> DBusByte:
         return self._foo
 
     @dbus_property(access=PropertyAccess.READ)
-    def Bar(self) -> "s":
+    def Bar(self) -> DBusStr:
         return self._bar
 
     @dbus_property(access=PropertyAccess.READ)
-    async def AsyncProp(self) -> "s":
+    async def AsyncProp(self) -> DBusStr:
         return self._async_prop
 
 

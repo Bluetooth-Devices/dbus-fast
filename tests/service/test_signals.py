@@ -1,9 +1,11 @@
 import asyncio
+from typing import Annotated
 
 import pytest
 
 from dbus_fast import Message, MessageType
 from dbus_fast.aio import MessageBus
+from dbus_fast.annotations import DBusInt32, DBusStr
 from dbus_fast.constants import PropertyAccess
 from dbus_fast.service import (
     ServiceInterface,
@@ -15,7 +17,7 @@ from dbus_fast.signature import Variant
 
 
 class ExampleInterface(ServiceInterface):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name)
 
     @dbus_signal()
@@ -23,12 +25,12 @@ class ExampleInterface(ServiceInterface):
         assert type(self) is ExampleInterface
 
     @dbus_signal()
-    def signal_simple(self) -> "s":
+    def signal_simple(self) -> DBusStr:
         assert type(self) is ExampleInterface
         return "hello"
 
     @dbus_signal()
-    def signal_multiple(self) -> "ss":
+    def signal_multiple(self) -> Annotated[tuple[str, str], "ss"]:
         assert type(self) is ExampleInterface
         return "hello", "world"
 
@@ -41,20 +43,20 @@ class ExampleInterface(ServiceInterface):
         assert type(self) is ExampleInterface
 
     @dbus_property(access=PropertyAccess.READ)
-    def test_prop(self) -> "i":
+    def test_prop(self) -> DBusInt32:
         return 42
 
 
 class SecondExampleInterface(ServiceInterface):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name)
 
     @dbus_property(access=PropertyAccess.READ)
-    def str_prop(self) -> "s":
+    def str_prop(self) -> DBusStr:
         return "abc"
 
     @dbus_property(access=PropertyAccess.READ)
-    def list_prop(self) -> "ai":
+    def list_prop(self) -> Annotated[list[int], "ai"]:
         return [1, 2, 3]
 
 

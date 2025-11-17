@@ -119,6 +119,26 @@ def dbus_method(
         def echo_two(self, val1: 's', val2: 'u') -> 'su':
             return val1, val2
 
+    If you use Python annotations for type hints, you can use :class:`typing.Annotated`
+    to specify the Python type and the D-Bus signature at the same time like this::
+
+        from dbus_fast.annotations import DBusStr, DBusUInt32
+
+        @dbus_method()
+        def echo(self, val: DBusStr) -> DBusStr:
+            return val
+
+        @dbus_method()
+        def echo_two(
+            self, val1: DBusStr, val2: DBusUInt32
+        ) -> Annotated[tuple[str, int], "su"]:
+            return val1, val2
+
+    .. versionchanged:: v3.2.0
+        :class:`typing.Annotated` can now be used to provide type hints and the
+        D-Bus signature at the same time. Older versions require D-Bus signature
+        strings to be used.
+
     .. versionadded:: v2.46.0
         In older versions, this was named ``@method``. The old name still exists.
     """
@@ -207,6 +227,26 @@ def dbus_signal(
         @dbus_signal()
         def two_strings_signal(self, val1, val2) -> 'ss':
             return val1, val2
+
+    If you use Python annotations for type hints, you can use :class:`typing.Annotated`
+    to specify the Python type and the D-Bus signature at the same time like this::
+
+        from dbus_fast.annotations import DBusStr
+
+        @dbus_signal()
+        def string_signal(self, val: str) -> DBusStr:
+            return val
+
+        @dbus_signal()
+        def two_strings_signal(
+            self, val1: str, val2: str
+        ) -> Annotated[tuple[str, str], "ss"]:
+            return val1, val2
+
+    .. versionchanged:: v3.2.0
+        :class:`typing.Annotated` can now be used to provide type hints and the
+        D-Bus signature at the same time. Older versions require D-Bus signature
+        strings to be used.
 
     .. versionadded:: v2.46.0
         In older versions, this was named ``@signal``. The old name still exists.
@@ -342,6 +382,24 @@ def dbus_property(
         @string_prop.setter
         def string_prop(self, val: 's'):
             self._string_prop = val
+
+    If you use Python annotations for type hints, you can use :class:`typing.Annotated`
+    to specify the Python type and the D-Bus signature at the same time like this::
+
+        from dbus_fast.annotations import DBusStr
+
+        @dbus_property()
+        def string_prop(self) -> DBusStr:
+            return self._string_prop
+
+        @string_prop.setter
+        def string_prop(self, val: DBusStr):
+            self._string_prop = val
+
+    .. versionchanged:: v3.2.0
+        :class:`typing.Annotated` can now be used to provide type hints and the
+        D-Bus signature at the same time. Older versions require D-Bus signature
+        strings to be used.
     """
     if type(access) is not PropertyAccess:
         raise TypeError("access must be a PropertyAccess class")

@@ -3,11 +3,13 @@ import logging
 import sys
 from logging.handlers import QueueHandler
 from queue import SimpleQueue
+from typing import Annotated
 
 import pytest
 
 import dbus_fast.introspection as intr
 from dbus_fast import DBusError, aio, glib
+from dbus_fast.annotations import DBusDict, DBusInt64, DBusStr
 from dbus_fast.message import MessageFlag
 from dbus_fast.service import ServiceInterface, dbus_method
 from dbus_fast.signature import Variant
@@ -25,23 +27,25 @@ class ExampleInterface(ServiceInterface):
         pass
 
     @dbus_method()
-    def EchoInt64(self, what: "x") -> "x":
+    def EchoInt64(self, what: DBusInt64) -> DBusInt64:
         return what
 
     @dbus_method()
-    def EchoString(self, what: "s") -> "s":
+    def EchoString(self, what: DBusStr) -> DBusStr:
         return what
 
     @dbus_method()
-    def ConcatStrings(self, what1: "s", what2: "s") -> "s":
+    def ConcatStrings(self, what1: DBusStr, what2: DBusStr) -> DBusStr:
         return what1 + what2
 
     @dbus_method()
-    def EchoThree(self, what1: "s", what2: "s", what3: "s") -> "sss":
+    def EchoThree(
+        self, what1: DBusStr, what2: DBusStr, what3: DBusStr
+    ) -> Annotated[tuple[str, str, str], "sss"]:
         return what1, what2, what3
 
     @dbus_method()
-    def GetComplex(self) -> "a{sv}":  # noqa: F722
+    def GetComplex(self) -> DBusDict:
         """Return complex output."""
         return {"hello": Variant("s", "world")}
 
