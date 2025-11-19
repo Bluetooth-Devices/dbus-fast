@@ -207,6 +207,11 @@ class MessageBus(BaseMessageBus):
         negotiate_unix_fd: bool = False,
         loop: asyncio.AbstractEventLoop | None = None,
     ) -> None:
+        """
+        .. versionchanged:: 3.2.0
+            Added a new optional parameter "loop".
+            Use this only for special cases (e.g., multithreading, where each thread needs its own loop).
+        """
         super().__init__(bus_address, bus_type, ProxyObject, negotiate_unix_fd)
 
         if loop is None:
