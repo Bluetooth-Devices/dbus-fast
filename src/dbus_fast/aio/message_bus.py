@@ -205,9 +205,14 @@ class MessageBus(BaseMessageBus):
         bus_type: BusType = BusType.SESSION,
         auth: Authenticator | None = None,
         negotiate_unix_fd: bool = False,
+        loop: asyncio.AbstractEventLoop | None = None,
     ) -> None:
         super().__init__(bus_address, bus_type, ProxyObject, negotiate_unix_fd)
-        self._loop = asyncio.get_running_loop()
+
+        if loop is None:
+            self._loop = asyncio.get_running_loop()
+        else:
+            self._loop = loop
 
         self._writer = _MessageWriter(self)
 
