@@ -3,7 +3,7 @@ from __future__ import annotations
 import ast
 import inspect
 from collections.abc import Callable
-from typing import Any
+from typing import Any, Annotated, get_args, get_origin
 
 from ..signature import SignatureTree, SignatureType, Variant, get_signature_tree
 
@@ -110,11 +110,19 @@ def parse_annotation(annotation: str) -> str:
 
     def raise_value_error() -> None:
         raise ValueError(
-            f"service annotations must be a string constant (got {annotation})"
+            f"service annotations must be a string constant or typing.Annotated[..., '<dbus-annotation>'] "
+            f"with the second parameter as a string (got {annotation})"
         )
 
     if not annotation or annotation is inspect.Signature.empty:
         return ""
+
+    if get_origin(annotation) == Annotated:
+        try:
+            annotation = get_args(annotation)[1]
+        except IndexError:
+            raise_value_error()
+
     if type(annotation) is not str:
         raise_value_error()
     try:
