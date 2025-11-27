@@ -3,7 +3,7 @@ from __future__ import annotations
 import ast
 import inspect
 from collections.abc import Callable
-from typing import Any, Annotated, get_args, get_origin
+from typing import Annotated, Any, get_args, get_origin
 
 from ..signature import SignatureTree, SignatureType, Variant, get_signature_tree
 
