@@ -123,17 +123,21 @@ async def test_methods(interface_class):
     async def call(
         member, signature="", body=[], flags=MessageFlag.NONE, interface=interface.name
     ):
-        return await bus2.call(
-            Message(
-                destination=bus1.unique_name,
-                path=export_path,
-                interface=interface,
-                member=member,
-                signature=signature,
-                body=body,
-                flags=flags,
-            )
+        msg = Message(
+            destination=bus1.unique_name,
+            path=export_path,
+            interface=interface,
+            member=member,
+            signature=signature,
+            body=body,
+            flags=flags,
         )
+
+        if flags & MessageFlag.NO_REPLY_EXPECTED:
+            await bus2.send(msg)
+            return None
+
+        return await bus2.call(msg)
 
     bus1.export(export_path, interface)
 
