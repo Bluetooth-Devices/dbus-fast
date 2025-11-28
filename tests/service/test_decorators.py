@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from dbus_fast import PropertyAccess
 from dbus_fast import introspection as intr
 from dbus_fast.service import ServiceInterface, dbus_method, dbus_property, dbus_signal
@@ -17,6 +19,12 @@ class ExampleInterface(ServiceInterface):
     @dbus_method(name="renamed_method", disabled=True)
     def another_method(self, eight: "o", six: "t"):
         pass
+
+    @dbus_method()
+    def some_method_with_cool_annotations(
+        self, one: Annotated[str, "s"], two: Annotated[str, "s"]
+    ) -> Annotated[str, "s"]:
+        return "hello from annotated method"
 
     @dbus_signal()
     def some_signal(self) -> "as":  # noqa: F722
@@ -59,7 +67,7 @@ def test_method_decorator():
     methods = ServiceInterface._get_methods(interface)
     signals = ServiceInterface._get_signals(interface)
 
-    assert len(methods) == 2
+    assert len(methods) == 3
 
     method = methods[0]
     assert method.name == "renamed_method"
@@ -70,6 +78,13 @@ def test_method_decorator():
 
     method = methods[1]
     assert method.name == "some_method"
+    assert method.in_signature == "ss"
+    assert method.out_signature == "s"
+    assert not method.disabled
+    assert type(method.introspection) is intr.Method
+
+    method = methods[2]
+    assert method.name == "some_method_with_cool_annotations"
     assert method.in_signature == "ss"
     assert method.out_signature == "s"
     assert not method.disabled
@@ -145,7 +160,7 @@ def test_interface_introspection():
     signals = xml.findall("signal")
     properties = xml.findall("property")
 
-    assert len(xml) == 4
-    assert len(methods) == 1
+    assert len(xml) == 5
+    assert len(methods) == 2
     assert len(signals) == 1
     assert len(properties) == 2
