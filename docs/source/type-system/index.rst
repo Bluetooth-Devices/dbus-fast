@@ -11,20 +11,19 @@ The Type System
 Values that are sent or received over the message bus always have an
 associated signature that specifies the types of those values. For the
 high-level client and service, these signatures are specified in XML
-data which is advertised in a `standard DBus
-interface <https://dbus.freedesktop.org/doc/dbus-specification.html#introspection-format>`__.
+data which is advertised in a `standard DBus interface
+<https://dbus.freedesktop.org/doc/dbus-specification.html#introspection-format>`__.
 The high-level client dynamically creates classes based on this
 introspection data with methods and signals with arguments based on the
 type signature. The high-level service does the inverse by introspecting
 the class to create the introspection XML data which is advertised on
 the bus for clients.
 
-Each token in the signature is mapped to a Python type as shown in the table
-below.
+Each token in the signature is mapped to a Python type as shown in the
+table below.
 
 +-------------+-------+--------------------------------------+-------------------------------------------------------------------------+
-| Name        | Token | Python                               | Notes                                                                   |
-|             |       | Type                                 |                                                                         |
+| Name        | Token | Python Type                          | Notes                                                                   |
 +-------------+-------+--------------------------------------+-------------------------------------------------------------------------+
 | BYTE        | y     | int                                  | An integer 0-255. In an array, it has type ``bytes``.                   |
 +-------------+-------+--------------------------------------+-------------------------------------------------------------------------+
@@ -50,19 +49,18 @@ below.
 +-------------+-------+--------------------------------------+-------------------------------------------------------------------------+
 | SIGNATURE   | g     | str                                  | Must be a valid signature.                                              |
 +-------------+-------+--------------------------------------+-------------------------------------------------------------------------+
-| UNIX_FD     | h     | int                                  | In the low-level interface, an index pointing to a file descriptor      |
-|             |       |                                      | in the ``unix_fds`` member of the :class:`Message <dbus_fast.Message>`. |
-|             |       |                                      | In the high-level interface, it is the file descriptor itself.          |
+| UNIX_FD     | h     | int                                  | In the low-level interface, an index pointing to a file descriptor in   |
+|             |       |                                      | the ``unix_fds`` member of the :class:`Message <dbus_fast.Message>`. In |
+|             |       |                                      | the high-level interface, it is the file descriptor itself.             |
 +-------------+-------+--------------------------------------+-------------------------------------------------------------------------+
 | ARRAY       | a     | list                                 | Must be followed by a complete type which specifies the child type.     |
 +-------------+-------+--------------------------------------+-------------------------------------------------------------------------+
 | STRUCT      | (     | tuple                                | Types in the Python ``tuple`` must match the types between the parens.  |
 |             |       |                                      |                                                                         |
 |             |       |                                      | .. versionchanged:: 3.0.0                                               |
-|             |       |                                      |     Changed from ``list`` to ``tuple``                                  |
+|             |       |                                      |    Changed from ``list`` to ``tuple``                                   |
 +-------------+-------+--------------------------------------+-------------------------------------------------------------------------+
 | VARIANT     | v     | :class:`Variant <dbus_fast.Variant>` | This class is provided by the library.                                  |
-|             |       |                                      |                                                                         |
 +-------------+-------+--------------------------------------+-------------------------------------------------------------------------+
 | DICT_ENTRY  | {     | dict                                 | Must be included in an array to be a ``dict``.                          |
 +-------------+-------+--------------------------------------+-------------------------------------------------------------------------+
@@ -77,9 +75,9 @@ table below.
 | ``(su)``  | ``( 'foo', 5 )``                     | Each element in the tuple must match the              |
 |           |                                      | corresponding type of the struct member.              |
 +-----------+--------------------------------------+-------------------------------------------------------+
-| ``as``    | ``[ 'foo', 'bar' ]``                 | The child type comes immediately after the ``a``.     |
-|           |                                      | The array can have any number of elements, but        |
-|           |                                      | they all must match the child type.                   |
+| ``as``    | ``[ 'foo', 'bar' ]``                 | The child type comes immediately after the ``a``. The |
+|           |                                      | array can have any number of elements, but they all   |
+|           |                                      | must match the child type.                            |
 +-----------+--------------------------------------+-------------------------------------------------------+
 | ``a{su}`` | ``{ 'foo': 5 }``                     | An "array of dict entries" is represented by a        |
 |           |                                      | ``dict``. The type after ``{`` is the key type and    |
@@ -87,19 +85,12 @@ table below.
 +-----------+--------------------------------------+-------------------------------------------------------+
 | ``ay``    | ``b'\0x62\0x75\0x66'``               | Special case: an array of bytes is represented by     |
 |           |                                      | Python ``bytes``.                                     |
-|           |                                      |                                                       |
-|           |                                      |                                                       |
-|           |                                      |                                                       |
-|           |                                      |                                                       |
 +-----------+--------------------------------------+-------------------------------------------------------+
 | ``v``     | ``Variant('as', ['hello'])``         | Signature must be a single type. A variant may hold a |
 |           |                                      | container type.                                       |
-|           |                                      |                                                       |
-|           |                                      |                                                       |
-|           |                                      |                                                       |
 +-----------+--------------------------------------+-------------------------------------------------------+
 | ``(asv)`` | ``( ['foo'], Variant('s', 'bar') )`` | Containers may be nested.                             |
 +-----------+--------------------------------------+-------------------------------------------------------+
 
-For more information on the DBus type system, see `the
-specification <https://dbus.freedesktop.org/doc/dbus-specification.html#type-system>`__.
+For more information on the DBus type system, see `the specification
+<https://dbus.freedesktop.org/doc/dbus-specification.html#type-system>`__.
