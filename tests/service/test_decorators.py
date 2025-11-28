@@ -1,3 +1,7 @@
+from typing import Annotated
+
+import pytest
+
 from dbus_fast import PropertyAccess
 from dbus_fast import introspection as intr
 from dbus_fast.service import ServiceInterface, dbus_method, dbus_property, dbus_signal
@@ -17,6 +21,12 @@ class ExampleInterface(ServiceInterface):
     @dbus_method(name="renamed_method", disabled=True)
     def another_method(self, eight: "o", six: "t"):
         pass
+
+    @dbus_method()
+    def some_method_with_cool_annotations(
+        self, one: Annotated[str, "s"], two: Annotated[str, "s"]
+    ) -> Annotated[str, "s"]:
+        return "hello from annotated method"
 
     @dbus_signal()
     def some_signal(self) -> "as":  # noqa: F722
@@ -59,7 +69,7 @@ def test_method_decorator():
     methods = ServiceInterface._get_methods(interface)
     signals = ServiceInterface._get_signals(interface)
 
-    assert len(methods) == 2
+    assert len(methods) == 3
 
     method = methods[0]
     assert method.name == "renamed_method"
@@ -70,6 +80,13 @@ def test_method_decorator():
 
     method = methods[1]
     assert method.name == "some_method"
+    assert method.in_signature == "ss"
+    assert method.out_signature == "s"
+    assert not method.disabled
+    assert type(method.introspection) is intr.Method
+
+    method = methods[2]
+    assert method.name == "some_method_with_cool_annotations"
     assert method.in_signature == "ss"
     assert method.out_signature == "s"
     assert not method.disabled
@@ -145,7 +162,59 @@ def test_interface_introspection():
     signals = xml.findall("signal")
     properties = xml.findall("property")
 
-    assert len(xml) == 4
-    assert len(methods) == 1
+    assert len(xml) == 5
+    assert len(methods) == 2
     assert len(signals) == 1
     assert len(properties) == 2
+
+
+def test_method_decorator_rejects_annotated_non_string_metadata():
+    with pytest.raises(
+        ValueError, match="service annotations must be a string constant"
+    ):
+
+        class RandomInvalidClass:
+            pass
+
+        class Interface(ServiceInterface):
+            def __init__(self) -> None:
+                super().__init__("test.interface")
+
+            @dbus_method()
+            def bad_missing_metadata(
+                self, one: Annotated[str, RandomInvalidClass]
+            ):  # second parameter should be a string
+                return "x"
+
+
+def test_method_decorator_rejects_annotated_missing_metadata():
+    with pytest.raises(TypeError, match="should be used with at least two arguments"):
+
+        class Interface(ServiceInterface):
+            def __init__(self) -> None:
+                super().__init__("test.interface")
+
+            @dbus_method()
+            def bad_missing_metadata(
+                self, one: Annotated[str]
+            ):  # second parameter should always exists
+                return "x"
+
+
+def test_method_decorator_rejects_annotation_that_is_not_string_or_annotated():
+    with pytest.raises(
+        ValueError, match="service annotations must be a string constant"
+    ):
+
+        class RandomInvalidClass:
+            pass
+
+        class Interface(ServiceInterface):
+            def __init__(self) -> None:
+                super().__init__("test.interface")
+
+            @dbus_method()
+            def bad_missing_metadata(
+                self, one: RandomInvalidClass
+            ):  # annotation is not an string nor a Annotated with string metadata
+                return "x"
