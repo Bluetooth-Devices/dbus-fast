@@ -185,3 +185,15 @@ async def test_sending_signals_between_buses():
     bus2.disconnect()
     await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
     await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
+
+
+def test_specific_aoi_loop() -> None:
+    """Test that specific aio loop can be specified."""
+
+    loop = asyncio.new_event_loop()
+    bus = MessageBus(loop=loop)
+    assert bus._loop == loop
+    loop.run_until_complete(bus.connect())
+    bus.disconnect()
+    loop.run_until_complete(bus.wait_for_disconnect())
+    loop.close()
