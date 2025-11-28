@@ -38,7 +38,7 @@ method will be provided by the calling client and will conform to the
 parameter type annotations. The value returned by the class method will
 be returned to the client and must conform to the return type annotation
 specified by the user. If the return annotation specifies more than one
-type, the values must be returned in a ``list``. When
+type, the values must be returned in a ``tuple``. When
 :class:`aio.MessageBus` is used, methods can be coroutines.
 
 A class method decorated with ``@dbus_property()`` will be exposed as a
@@ -58,7 +58,7 @@ DBus signal. The value returned by the class method will be emitted as a
 signal and broadcast to clients who are listening to the signal. The
 returned value must conform to the return annotation of the class method
 as a DBus signature string. If the signal has more than one argument,
-they must be returned within a ``list``.
+they must be returned within a ``tuple``.
 
 A class method decorated with ``@dbus_method()`` or ``@dbus_property()``
 may throw a :class:`DBusError <dbus_fast.DBusError>` to return a
