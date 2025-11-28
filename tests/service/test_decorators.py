@@ -168,7 +168,7 @@ def test_interface_introspection():
     assert len(properties) == 2
 
 
-def test_method_decorator_rejects_invalid_annotated_signature():
+def test_method_decorator_rejects_annotated_non_string_metadata():
     with pytest.raises(
         ValueError, match="service annotations must be a string constant"
     ):
@@ -187,7 +187,21 @@ def test_method_decorator_rejects_invalid_annotated_signature():
                 return "x"
 
 
-def test_method_decorator_rejects_invalid_non_string_signature():
+def test_method_decorator_rejects_annotated_missing_metadata():
+    with pytest.raises(TypeError, match="should be used with at least two arguments"):
+
+        class Interface(ServiceInterface):
+            def __init__(self) -> None:
+                super().__init__("test.interface")
+
+            @dbus_method()
+            def bad_missing_metadata(
+                self, one: Annotated[str]
+            ):  # second parameter should always exists
+                return "x"
+
+
+def test_method_decorator_rejects_annotation_that_is_not_string_or_annotated():
     with pytest.raises(
         ValueError, match="service annotations must be a string constant"
     ):

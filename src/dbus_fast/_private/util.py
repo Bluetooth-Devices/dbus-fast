@@ -120,7 +120,8 @@ def parse_annotation(annotation: str) -> str:
     if get_origin(annotation) == Annotated:
         try:
             annotation = get_args(annotation)[1]
-        except IndexError:
+        except IndexError:  # pragma: no cover
+            # should not be possible due Annotated always having >=1 args
             raise_value_error()
 
     if type(annotation) is not str:
