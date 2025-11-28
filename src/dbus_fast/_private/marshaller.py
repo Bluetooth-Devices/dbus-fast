@@ -25,7 +25,7 @@ class Marshaller:
 
     __slots__ = ("_buf", "body", "signature_tree")
 
-    def __init__(self, signature: str, body: list[Any]) -> None:
+    def __init__(self, signature: str, body: list[Any] | tuple[Any, ...]) -> None:
         """Marshaller constructor."""
         self.signature_tree = get_signature_tree(signature)
         self._buf = bytearray()

@@ -56,8 +56,8 @@ class ProxyInterface(BaseProxyInterface):
 
     To *synchronously* call a method, use the ``call_[METHOD]_sync()`` form.
     The ``result`` corresponds to the *out arg* of the introspection method
-    definition. If the method has more than one otu arg, they are returned
-    within a :class:`list`.
+    definition. If the method has more than one out arg, they are returned
+    within a :class:`tuple`.
 
     To *listen to a signal* use this form:
 

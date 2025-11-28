@@ -22,7 +22,7 @@ class ExampleInterface(ServiceInterface):
 
     @dbus_method()
     def EchoMultiple(self, what1: "s", what2: "s") -> "ss":
-        return [what1, what2]
+        return what1, what2
 
     @dbus_method()
     def GetVariantDict(self) -> "a{sv}":  # noqa: F722
@@ -46,7 +46,7 @@ class ExampleInterface(ServiceInterface):
 
     @dbus_signal()
     def signal_multiple(self) -> "ss":
-        return ["hello", "world"]
+        return "hello", "world"
 
 
 async def main():
