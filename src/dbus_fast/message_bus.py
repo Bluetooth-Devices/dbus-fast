@@ -720,7 +720,7 @@ class BaseMessageBus:
                     stack.pop_all()  # responsibility to close sockets is deferred
                     return
 
-                elif transport == "tcp":
+                if transport == "tcp":
                     self._sock = stack.enter_context(
                         socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     )
@@ -738,10 +738,7 @@ class BaseMessageBus:
                     stack.pop_all()
                     return
 
-                else:
-                    raise InvalidAddressError(
-                        f"got unknown address transport: {transport}"
-                    )
+                raise InvalidAddressError(f"got unknown address transport: {transport}")
 
         # Should not normally happen, but just in case
         raise TypeError("empty list of bus addresses given")  # pragma: no cover

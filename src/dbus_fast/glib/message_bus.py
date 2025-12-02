@@ -299,11 +299,10 @@ class MessageBus(BaseMessageBus):
                 connect_source.add_unix_fd(self._fd, GLib.IO_OUT)
                 connect_source.attach(self._main_context)
                 self._connect_source = connect_source
+            elif connect_notify is not None:
+                connect_notify(None, e)
             else:
-                if connect_notify is not None:
-                    connect_notify(None, e)
-                else:
-                    raise
+                raise
 
     def connect_sync(self) -> "MessageBus":
         """Connect this message bus to the DBus daemon.
