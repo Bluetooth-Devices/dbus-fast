@@ -115,6 +115,13 @@ def parse_annotation(annotation: str) -> str:
 
     if not annotation or annotation is inspect.Signature.empty:
         return ""
+
+    # If there is __metadata__, it means this is typing.Annotated. In that case,
+    # the first item in __metadata__ should contain the D-Bus signature string.
+    metadata = getattr(annotation, "__metadata__", None)
+    if metadata is not None:
+        annotation = metadata[0]
+
     if type(annotation) is not str:
         raise_value_error()
     try:

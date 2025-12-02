@@ -1,9 +1,11 @@
 import asyncio
+from typing import Annotated
 
 import pytest
 
 from dbus_fast import Message
 from dbus_fast.aio import MessageBus
+from dbus_fast.annotations import DBusDict, DBusStr
 from dbus_fast.constants import RequestNameReply
 from dbus_fast.introspection import Node
 from dbus_fast.service import ServiceInterface, dbus_signal
@@ -15,15 +17,15 @@ class ExampleInterface(ServiceInterface):
         super().__init__("test.interface")
 
     @dbus_signal()
-    def SomeSignal(self) -> "s":
+    def SomeSignal(self) -> DBusStr:
         return "hello"
 
     @dbus_signal()
-    def SignalMultiple(self) -> "ss":
-        return ["hello", "world"]
+    def SignalMultiple(self) -> Annotated[tuple[str, str], "ss"]:
+        return "hello", "world"
 
     @dbus_signal()
-    def SignalComplex(self) -> "a{sv}":  # noqa: F722
+    def SignalComplex(self) -> DBusDict:
         """Broadcast a complex signal."""
         return {"hello": Variant("s", "world")}
 

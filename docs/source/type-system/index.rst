@@ -5,6 +5,7 @@ The Type System
    :maxdepth: 2
 
    variant
+   annotations
    signature-tree
    signature-type
 
