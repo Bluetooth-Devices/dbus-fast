@@ -173,8 +173,6 @@ class BaseMessageBus:
         self._fd: int | None = None
         self._stream: io.BufferedRWPair | None = None
 
-        self._setup_socket()
-
     @property
     def connected(self) -> bool:
         if self.unique_name is None or self._disconnected or self._user_disconnect:
@@ -680,65 +678,70 @@ class BaseMessageBus:
 
         return node
 
+    def _create_socket_for_transport(
+        self, transport: str, options: dict[str, str]
+    ) -> tuple[socket.socket, io.BufferedRWPair, bytes | str | tuple[str, int]]:
+        """Create an unconnected socket for the given transport.
+
+        Returns a ``(sock, stream, address)`` tuple where ``address`` is the
+        target for :func:`socket.socket.connect`.
+
+        :raises InvalidAddressError: if the transport is unknown or malformed.
+        """
+        if transport == "unix":
+            sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            try:
+                stream = sock.makefile("rwb")
+                if "path" in options:
+                    address: bytes | str | tuple[str, int] = options["path"]
+                elif "abstract" in options:
+                    address = b"\0" + options["abstract"].encode()
+                else:
+                    raise InvalidAddressError(
+                        "got unix transport with unknown path specifier"
+                    )
+            except BaseException:
+                sock.close()
+                raise
+            return sock, stream, address
+
+        if transport == "tcp":
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            try:
+                stream = sock.makefile("rwb")
+            except BaseException:
+                sock.close()
+                raise
+            ip_addr = options.get("host", "")
+            ip_port = int(options["port"]) if "port" in options else 0
+            return sock, stream, (ip_addr, ip_port)
+
+        raise InvalidAddressError(f"got unknown address transport: {transport}")
+
     def _setup_socket(self) -> None:
         last_err: Exception | None = None
 
         for transport, options in self._bus_address:
-            filename: bytes | str | None = None
-            ip_addr = ""
-            ip_port = 0
-
             with ExitStack() as stack:
-                if transport == "unix":
-                    self._sock = stack.enter_context(
-                        socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-                    )
-                    self._stream = stack.enter_context(self._sock.makefile("rwb"))
-                    self._fd = self._sock.fileno()
+                sock, stream, address = self._create_socket_for_transport(
+                    transport, options
+                )
+                stack.callback(stream.close)
+                stack.callback(sock.close)
 
-                    if "path" in options:
-                        filename = options["path"]
-                    elif "abstract" in options:
-                        filename = b"\0" + options["abstract"].encode()
-                    else:
-                        raise InvalidAddressError(
-                            "got unix transport with unknown path specifier"
-                        )
+                try:
+                    sock.connect(address)
+                    sock.setblocking(False)
+                except Exception as e:
+                    last_err = e
+                    continue
 
-                    try:
-                        self._sock.connect(filename)
-                        self._sock.setblocking(False)
-                    except Exception as e:
-                        last_err = e
-                    else:
-                        stack.pop_all()  # responsibility to close sockets is deferred
-                        return
-
-                elif transport == "tcp":
-                    self._sock = stack.enter_context(
-                        socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    )
-                    self._stream = stack.enter_context(self._sock.makefile("rwb"))
-                    self._fd = self._sock.fileno()
-
-                    if "host" in options:
-                        ip_addr = options["host"]
-                    if "port" in options:
-                        ip_port = int(options["port"])
-
-                    try:
-                        self._sock.connect((ip_addr, ip_port))
-                        self._sock.setblocking(False)
-                    except Exception as e:
-                        last_err = e
-                    else:
-                        stack.pop_all()
-                        return
-
-                else:
-                    raise InvalidAddressError(
-                        f"got unknown address transport: {transport}"
-                    )
+                # responsibility to close sockets is deferred to the bus
+                stack.pop_all()
+                self._sock = sock
+                self._stream = stream
+                self._fd = sock.fileno()
+                return
 
         if last_err is None:  # pragma: no branch
             # Should not normally happen, but just in case
