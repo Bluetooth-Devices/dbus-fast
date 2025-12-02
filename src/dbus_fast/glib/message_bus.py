@@ -1,5 +1,7 @@
+import errno
 import io
 import logging
+import socket
 import traceback
 from collections.abc import Callable
 
@@ -131,6 +133,34 @@ class _AuthLineSource(_GLibSource):
         return GLib.SOURCE_CONTINUE
 
 
+class _ConnectSource(_GLibSource):
+    """GLib source to wait for async socket connection to complete."""
+
+    def __init__(self, sock, address):
+        self.sock = sock
+        self.address = address
+        self._connected = False
+        self._error = None
+
+    def prepare(self):
+        return (False, -1)
+
+    def check(self):
+        return False
+
+    def dispatch(self, callback, user_data):
+        # Check if connection completed
+        err = self.sock.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
+        if err != 0:
+            self._error = OSError(err, errno.errorcode.get(err, "Unknown error"))
+            callback(self._error)
+            return GLib.SOURCE_REMOVE
+
+        self._connected = True
+        callback(None)
+        return GLib.SOURCE_REMOVE
+
+
 class MessageBus(BaseMessageBus):
     """The message bus implementation for use with the GLib main loop.
 
@@ -241,7 +271,39 @@ class MessageBus(BaseMessageBus):
             self._stream.write(hello_msg._marshall(False))
             self._stream.flush()
 
-        self._authenticate(authenticate_notify)
+        def on_socket_connect(err):
+            if err is not None:
+                if connect_notify is not None:
+                    connect_notify(None, err)
+                return
+            self._authenticate(authenticate_notify)
+
+        # Start async socket connection
+        try:
+            self._sock.connect(self._sock_connect_address)
+            # Connected immediately (e.g., local socket)
+            self._authenticate(authenticate_notify)
+        except BlockingIOError:
+            # Connection in progress, wait for it to complete
+            connect_source = _ConnectSource(self._sock, self._sock_connect_address)
+            connect_source.set_callback(on_socket_connect)
+            connect_source.add_unix_fd(self._fd, GLib.IO_OUT)
+            connect_source.attach(self._main_context)
+            # Keep a reference to prevent garbage collection
+            self._connect_source = connect_source
+        except OSError as e:
+            if e.errno == errno.EINPROGRESS:
+                # Connection in progress, wait for it to complete
+                connect_source = _ConnectSource(self._sock, self._sock_connect_address)
+                connect_source.set_callback(on_socket_connect)
+                connect_source.add_unix_fd(self._fd, GLib.IO_OUT)
+                connect_source.attach(self._main_context)
+                self._connect_source = connect_source
+            else:
+                if connect_notify is not None:
+                    connect_notify(None, e)
+                else:
+                    raise
 
     def connect_sync(self) -> "MessageBus":
         """Connect this message bus to the DBus daemon.
