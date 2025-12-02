@@ -427,11 +427,13 @@ def _real_fn_result_to_body(
         final_result = [result]
     else:
         result_type = type(result)
-        if result_type is not list and result_type is not tuple:
+        is_tuple = result_type is tuple
+        if not is_tuple and result_type is not list:
             raise SignatureBodyMismatchError(
                 "Expected signal to return a list or tuple of arguments"
             )
-        final_result = result
+        # Convert tuple to list for D-Bus Message compatibility (Cython requires list type)
+        final_result = list(result) if is_tuple else result
 
     if out_len != len(final_result):
         raise SignatureBodyMismatchError(
