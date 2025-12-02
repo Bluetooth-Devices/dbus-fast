@@ -97,7 +97,7 @@ def dbus_method(
     client and will conform to the dbus-fast type system. The parameters
     returned will be returned to the calling client and must conform to the
     dbus-fast type system. If multiple parameters are returned, they must be
-    contained within a :class:`list`.
+    contained within a :class:`tuple`.
 
     The decorated method may raise a :class:`DBusError <dbus_fast.DBusError>`
     to return an error to the client.
@@ -117,7 +117,7 @@ def dbus_method(
 
         @dbus_method()
         def echo_two(self, val1: 's', val2: 'u') -> 'su':
-            return [val1, val2]
+            return val1, val2
 
     .. versionadded:: v2.46.0
         In older versions, this was named ``@method``. The old name still exists.
@@ -188,7 +188,7 @@ def dbus_signal(
     annotation with a signature string of a single complete DBus type and the
     return value of the class method must conform to the dbus-fast type system.
     If the signal has multiple out arguments, they must be returned within a
-    ``list``.
+    ``tuple``.
 
     :param name: The member name that will be used for this signal. Defaults to
         the name of the class method.
@@ -206,7 +206,7 @@ def dbus_signal(
 
         @dbus_signal()
         def two_strings_signal(self, val1, val2) -> 'ss':
-            return [val1, val2]
+            return val1, val2
 
     .. versionadded:: v2.46.0
         In older versions, this was named ``@signal``. The old name still exists.
@@ -361,7 +361,7 @@ def _real_fn_result_to_body(
     result: Any | None,
     signature_tree: SignatureTree,
     replace_fds: bool,
-) -> tuple[list[Any], list[int]]:
+) -> tuple[list[Any] | tuple[Any, ...], list[int]]:
     out_len = len(signature_tree.types)
     if result is None:
         final_result = []
@@ -573,7 +573,7 @@ class ServiceInterface:
         return ServiceInterface._c_msg_body_to_args(msg)
 
     @staticmethod
-    def _c_msg_body_to_args(msg: Message) -> list[Any]:
+    def _c_msg_body_to_args(msg: Message) -> list[Any] | tuple[Any, ...]:
         # https://github.com/cython/cython/issues/3327
         if not signature_contains_type(msg.signature_tree, msg.body, "h"):
             return msg.body
@@ -590,7 +590,7 @@ class ServiceInterface:
         result: Any | None,
         signature_tree: SignatureTree,
         replace_fds: bool = True,
-    ) -> tuple[list[Any], list[int]]:
+    ) -> tuple[list[Any] | tuple[Any, ...], list[int]]:
         return _real_fn_result_to_body(result, signature_tree, replace_fds)
 
     @staticmethod
@@ -598,7 +598,7 @@ class ServiceInterface:
         result: Any | None,
         signature_tree: SignatureTree,
         replace_fds: bool,
-    ) -> tuple[list[Any], list[int]]:
+    ) -> tuple[list[Any] | tuple[Any, ...], list[int]]:
         """The high level interfaces may return single values which may be
         wrapped in a list to be a message body. Also they may return fds
         directly for type 'h' which need to be put into an external list."""
