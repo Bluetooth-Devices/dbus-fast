@@ -39,7 +39,7 @@ python = ">=3.10"
 # duplicated in docs/requirements.txt for readthedocs compatibility
 [tool.poetry.group.docs.dependencies]
 myst-parser = ">=0.18,<4.1"
-sphinx = ">=5.1.1,<8.0.0"
+sphinx = ">=5.1.1,<9.0.0"
 sphinx-rtd-theme = ">=1,<4"
 sphinxcontrib-asyncio = "^0.3.0"
 sphinxcontrib-fulltoc = "^1.2.0"
