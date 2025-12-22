@@ -33,7 +33,7 @@ class ExampleInterface(ServiceInterface):
     # This one intentionally keeps string-style annotations for coverage purposes.
     @no_type_check
     @dbus_method()
-    def echo_multiple(self, what1: "s", what2: "s") -> "ss":  # noqa: UP037
+    def echo_multiple(self, what1: s, what2: s) -> ss:
         assert type(self) is ExampleInterface
         return what1, what2
 
