@@ -138,7 +138,7 @@ def parse_annotation(annotation: Any, module: Any) -> str:
             pass
 
         # Deferred evaluation of annotations, so evaluate it now.
-        annotation = eval(annotation, module.__dict__, {})
+        annotation = eval(annotation, module.__dict__, {})  # noqa: S307
 
     if get_origin(annotation) is Annotated:
         try:
