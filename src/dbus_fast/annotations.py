@@ -1,5 +1,5 @@
 """
-The :mod:`dbus_fast.annotated` module contains type aliases that can be used in
+The :mod:`dbus_fast.annotations` module contains type aliases that can be used in
 place of D-Bus signature strings in order to get proper Python type hints. This
 applies to methods decorated with :meth:`dbus_property <dbus_fast.service.dbus_property>`,
 :meth:`dbus_method <dbus_fast.service.dbus_method>` or :meth:`dbus_signal
