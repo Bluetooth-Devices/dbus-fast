@@ -5,7 +5,7 @@ import pytest
 
 from dbus_fast import Message, MessageType
 from dbus_fast.aio import MessageBus
-from dbus_fast.annotations import DBusInt32, DBusStr
+from dbus_fast.annotations import DBusInt32, DBusSignature, DBusStr
 from dbus_fast.constants import PropertyAccess
 from dbus_fast.service import (
     ServiceInterface,
@@ -30,7 +30,7 @@ class ExampleInterface(ServiceInterface):
         return "hello"
 
     @dbus_signal()
-    def signal_multiple(self) -> Annotated[tuple[str, str], "ss"]:
+    def signal_multiple(self) -> Annotated[tuple[str, str], DBusSignature("ss")]:
         assert type(self) is ExampleInterface
         return "hello", "world"
 
@@ -56,7 +56,7 @@ class SecondExampleInterface(ServiceInterface):
         return "abc"
 
     @dbus_property(access=PropertyAccess.READ)
-    def list_prop(self) -> Annotated[list[int], "ai"]:
+    def list_prop(self) -> Annotated[list[int], DBusSignature("ai")]:
         return [1, 2, 3]
 
 

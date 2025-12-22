@@ -5,7 +5,7 @@ import pytest
 
 from dbus_fast import Message
 from dbus_fast.aio import MessageBus
-from dbus_fast.annotations import DBusDict, DBusStr
+from dbus_fast.annotations import DBusDict, DBusSignature, DBusStr
 from dbus_fast.constants import RequestNameReply
 from dbus_fast.introspection import Node
 from dbus_fast.service import ServiceInterface, dbus_signal
@@ -21,7 +21,7 @@ class ExampleInterface(ServiceInterface):
         return "hello"
 
     @dbus_signal()
-    def SignalMultiple(self) -> Annotated[tuple[str, str], "ss"]:
+    def SignalMultiple(self) -> Annotated[tuple[str, str],  DBusSignature("ss")]:
         return "hello", "world"
 
     @dbus_signal()

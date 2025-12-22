@@ -12,9 +12,11 @@ from dbus_fast import (
     Variant,
 )
 from dbus_fast.aio import MessageBus
-from dbus_fast.annotations import DBusStr, DBusUInt64
+from dbus_fast.annotations import DBusSignature, DBusStr, DBusUInt64
 from dbus_fast.service import ServiceInterface, dbus_method, dbus_property
 
+# Type alias since this is used multiple times in this file.
+TestDBusArrayOfStringTuple = Annotated[list[tuple[str, str]], DBusSignature("a(ss)")]
 
 class ExampleInterface(ServiceInterface):
     def __init__(self, name: str) -> None:
@@ -38,11 +40,11 @@ class ExampleInterface(ServiceInterface):
         return self._readonly_prop
 
     @dbus_property()
-    def container_prop(self) -> Annotated[list[tuple[str, str]], "a(ss)"]:
+    def container_prop(self) -> TestDBusArrayOfStringTuple:
         return self._container_prop
 
     @container_prop.setter
-    def container_prop(self, val: Annotated[list[tuple[str, str]], "a(ss)"]):
+    def container_prop(self, val: TestDBusArrayOfStringTuple):
         self._container_prop = val
 
     @dbus_property(name="renamed_prop")
@@ -102,11 +104,11 @@ class AsyncInterface(ServiceInterface):
         return self._readonly_prop
 
     @dbus_property()
-    async def container_prop(self) -> Annotated[list[tuple[str, str]], "a(ss)"]:
+    async def container_prop(self) -> TestDBusArrayOfStringTuple:
         return self._container_prop
 
     @container_prop.setter
-    async def container_prop(self, val: Annotated[list[tuple[str, str]], "a(ss)"]):
+    async def container_prop(self, val: TestDBusArrayOfStringTuple):
         self._container_prop = val
 
     @dbus_property(name="renamed_prop")

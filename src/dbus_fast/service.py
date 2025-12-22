@@ -54,13 +54,14 @@ class _Method:
         out_signature = ""
 
         inspection = inspect.signature(fn)
+        module = inspect.getmodule(fn)
 
         in_args: list[intr.Arg] = []
         for i, param in enumerate(inspection.parameters.values()):
             if i == 0:
                 # first is self
                 continue
-            annotation = parse_annotation(param.annotation)
+            annotation = parse_annotation(param.annotation, module)
             if not annotation:
                 raise ValueError(
                     "method parameters must specify the dbus type string as an annotation"
@@ -69,7 +70,7 @@ class _Method:
             in_signature += annotation
 
         out_args: list[intr.Arg] = []
-        out_signature = parse_annotation(inspection.return_annotation)
+        out_signature = parse_annotation(inspection.return_annotation, module)
         if out_signature:
             for type_ in get_signature_tree(out_signature).types:
                 out_args.append(intr.Arg(type_, intr.ArgDirection.OUT))
@@ -134,7 +135,7 @@ def dbus_method(
         ) -> Annotated[tuple[str, int], "su"]:
             return val1, val2
 
-    .. versionchanged:: v3.2.0
+    .. versionchanged:: v4.0.0
         :class:`typing.Annotated` can now be used to provide type hints and the
         D-Bus signature at the same time. Older versions require D-Bus signature
         strings to be used.
@@ -170,12 +171,13 @@ class _Signal:
         self, fn: Callable[..., Any], name: str, disabled: bool = False
     ) -> None:
         inspection = inspect.signature(fn)
+        module = inspect.getmodule(fn)
 
         args: list[intr.Arg] = []
         signature = ""
         signature_tree = None
 
-        return_annotation = parse_annotation(inspection.return_annotation)
+        return_annotation = parse_annotation(inspection.return_annotation, module)
 
         if return_annotation:
             signature = return_annotation
@@ -243,7 +245,7 @@ def dbus_signal(
         ) -> Annotated[tuple[str, str], "ss"]:
             return val1, val2
 
-    .. versionchanged:: v3.2.0
+    .. versionchanged:: v4.0.0
         :class:`typing.Annotated` can now be used to provide type hints and the
         D-Bus signature at the same time. Older versions require D-Bus signature
         strings to be used.
@@ -309,7 +311,9 @@ class _Property(property):
         if len(inspection.parameters) != 1:
             raise ValueError('the property must only have the "self" input parameter')
 
-        return_annotation = parse_annotation(inspection.return_annotation)
+        module = inspect.getmodule(fn)
+
+        return_annotation = parse_annotation(inspection.return_annotation, module)
 
         if not return_annotation:
             raise ValueError(
@@ -396,7 +400,7 @@ def dbus_property(
         def string_prop(self, val: DBusStr):
             self._string_prop = val
 
-    .. versionchanged:: v3.2.0
+    .. versionchanged:: v4.0.0
         :class:`typing.Annotated` can now be used to provide type hints and the
         D-Bus signature at the same time. Older versions require D-Bus signature
         strings to be used.

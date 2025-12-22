@@ -9,7 +9,7 @@ from typing import Annotated
 
 from dbus_fast import Variant
 from dbus_fast.aio.message_bus import MessageBus
-from dbus_fast.annotations import DBusDict, DBusStr
+from dbus_fast.annotations import DBusDict, DBusSignature, DBusStr
 from dbus_fast.service import ServiceInterface, dbus_method, dbus_property, dbus_signal
 
 
@@ -25,7 +25,7 @@ class ExampleInterface(ServiceInterface):
     @dbus_method()
     def EchoMultiple(
         self, what1: DBusStr, what2: DBusStr
-    ) -> Annotated[tuple[DBusStr, DBusStr], "ss"]:
+    ) -> Annotated[tuple[DBusStr, DBusStr], DBusSignature("ss")]:
         return what1, what2
 
     @dbus_method()
@@ -49,7 +49,7 @@ class ExampleInterface(ServiceInterface):
         return "hello"
 
     @dbus_signal()
-    def signal_multiple(self) -> Annotated[tuple[DBusStr, DBusStr], "ss"]:
+    def signal_multiple(self) -> Annotated[tuple[DBusStr, DBusStr], DBusSignature("ss")]:
         return "hello", "world"
 
 

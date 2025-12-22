@@ -2,7 +2,13 @@ from typing import Annotated
 
 from dbus_fast import PropertyAccess
 from dbus_fast import introspection as intr
-from dbus_fast.annotations import DBusObjectPath, DBusStr, DBusUInt32, DBusUInt64
+from dbus_fast.annotations import (
+    DBusObjectPath,
+    DBusSignature,
+    DBusStr,
+    DBusUInt32,
+    DBusUInt64,
+)
 from dbus_fast.service import ServiceInterface, dbus_method, dbus_property, dbus_signal
 
 
@@ -22,11 +28,11 @@ class ExampleInterface(ServiceInterface):
         pass
 
     @dbus_signal()
-    def some_signal(self) -> Annotated[list[str], "as"]:
+    def some_signal(self) -> Annotated[list[str], DBusSignature("as")]:
         return ["result"]
 
     @dbus_signal(name="renamed_signal", disabled=True)
-    def another_signal(self) -> Annotated[tuple[float, str, float, str], "(dodo)"]:
+    def another_signal(self) -> Annotated[tuple[float, str, float, str], DBusSignature("(dodo)")]:
         return (1, "/", 1, "/")
 
     @dbus_property(
