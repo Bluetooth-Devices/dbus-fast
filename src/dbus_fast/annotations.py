@@ -61,9 +61,6 @@ class DBusSignature:
 
     signature: str
 
-    def __str__(self) -> str:
-        return self.signature
-
 
 DBusBool = Annotated[bool, DBusSignature("b")]
 """
