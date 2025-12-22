@@ -17,7 +17,7 @@ cdef class Marshaller:
 
     cdef SignatureTree signature_tree
     cdef bytearray _buf
-    cdef cython.list body
+    cdef object body
 
     cdef _buffer(self)
 
