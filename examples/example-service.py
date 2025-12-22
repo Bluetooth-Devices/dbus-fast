@@ -25,7 +25,7 @@ class ExampleInterface(ServiceInterface):
     @dbus_method()
     def EchoMultiple(
         self, what1: DBusStr, what2: DBusStr
-    ) -> Annotated[tuple[DBusStr, DBusStr], DBusSignature("ss")]:
+    ) -> Annotated[tuple[str, str], DBusSignature("ss")]:
         return what1, what2
 
     @dbus_method()
@@ -51,7 +51,7 @@ class ExampleInterface(ServiceInterface):
     @dbus_signal()
     def signal_multiple(
         self,
-    ) -> Annotated[tuple[DBusStr, DBusStr], DBusSignature("ss")]:
+    ) -> Annotated[tuple[str, str], DBusSignature("ss")]:
         return "hello", "world"
 
 
