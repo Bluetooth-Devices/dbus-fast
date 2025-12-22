@@ -32,7 +32,9 @@ class ExampleInterface(ServiceInterface):
         return ["result"]
 
     @dbus_signal(name="renamed_signal", disabled=True)
-    def another_signal(self) -> Annotated[tuple[float, str, float, str], DBusSignature("(dodo)")]:
+    def another_signal(
+        self,
+    ) -> Annotated[tuple[float, str, float, str], DBusSignature("(dodo)")]:
         return (1, "/", 1, "/")
 
     @dbus_property(

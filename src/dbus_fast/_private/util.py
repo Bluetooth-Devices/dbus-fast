@@ -123,7 +123,7 @@ def parse_annotation(annotation: Any, module: Any) -> str:
         # If it looks like a dbus signature, return it directly. These are sorted
         # in the order of the "Summary of types" table in the D-Bus spec to make
         # verification easier.
-        if re.match(r'^[ybnqiuxtdsoga\(\)v\{\}h]+$', annotation):
+        if re.match(r"^[ybnqiuxtdsoga\(\)v\{\}h]+$", annotation):
             return annotation
 
         # Otherwise, assume deferred evaluation of annotations.
@@ -139,7 +139,6 @@ def parse_annotation(annotation: Any, module: Any) -> str:
 
         # Deferred evaluation of annotations, so evaluate it now.
         annotation = eval(annotation, module.__dict__, {})
-
 
     if get_origin(annotation) is Annotated:
         try:

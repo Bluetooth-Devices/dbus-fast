@@ -21,7 +21,7 @@ class ExampleInterface(ServiceInterface):
         return "hello"
 
     @dbus_signal()
-    def SignalMultiple(self) -> Annotated[tuple[str, str],  DBusSignature("ss")]:
+    def SignalMultiple(self) -> Annotated[tuple[str, str], DBusSignature("ss")]:
         return "hello", "world"
 
     @dbus_signal()

@@ -45,6 +45,7 @@ __all__ = [
     "DBusVariant",
 ]
 
+
 @dataclass(frozen=True, slots=True)
 class DBusSignature:
     """

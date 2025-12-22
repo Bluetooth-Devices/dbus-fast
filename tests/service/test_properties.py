@@ -18,6 +18,7 @@ from dbus_fast.service import ServiceInterface, dbus_method, dbus_property
 # Type alias since this is used multiple times in this file.
 TestDBusArrayOfStringTuple = Annotated[list[tuple[str, str]], DBusSignature("a(ss)")]
 
+
 class ExampleInterface(ServiceInterface):
     def __init__(self, name: str) -> None:
         super().__init__(name)

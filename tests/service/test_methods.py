@@ -33,9 +33,7 @@ class ExampleInterface(ServiceInterface):
     # This one intentionally keeps string-style annotations for coverage purposes.
     @no_type_check
     @dbus_method()
-    def echo_multiple(
-        self, what1: "s", what2: "s"  # noqa: UP037
-    ) -> "ss":  # noqa: UP037
+    def echo_multiple(self, what1: s, what2: s) -> ss:
         assert type(self) is ExampleInterface
         return what1, what2
 
@@ -45,7 +43,9 @@ class ExampleInterface(ServiceInterface):
         array: Annotated[list[str], DBusSignature("as")],
         variant: DBusVariant,
         dict_entries: DBusDict,
-        struct: Annotated[tuple[str, tuple[str, tuple[Variant]]], DBusSignature("(s(s(v)))")],
+        struct: Annotated[
+            tuple[str, tuple[str, tuple[Variant]]], DBusSignature("(s(s(v)))")
+        ],
     ) -> Annotated[
         tuple[
             list[str],
@@ -93,7 +93,7 @@ class AsyncInterface(ServiceInterface):
     @dbus_method()
     async def echo_multiple(
         self, what1: DBusStr, what2: DBusStr
-    ) -> Annotated[tuple[str, str],  DBusSignature("ss")]:
+    ) -> Annotated[tuple[str, str], DBusSignature("ss")]:
         assert type(self) is AsyncInterface
         return what1, what2
 
@@ -103,7 +103,9 @@ class AsyncInterface(ServiceInterface):
         array: Annotated[list[str], DBusSignature("as")],
         variant: DBusVariant,
         dict_entries: DBusDict,
-        struct: Annotated[tuple[str, tuple[str, tuple[Variant]]], DBusSignature("(s(s(v)))")],
+        struct: Annotated[
+            tuple[str, tuple[str, tuple[Variant]]], DBusSignature("(s(s(v)))")
+        ],
     ) -> Annotated[
         tuple[
             list[str],
