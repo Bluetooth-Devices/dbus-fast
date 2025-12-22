@@ -26,6 +26,7 @@ from dbus_fast.signature import Variant
 __all__ = [
     "DBusBool",
     "DBusByte",
+    "DBusBytes",
     "DBusDict",
     "DBusDouble",
     "DBusInt16",
@@ -37,6 +38,7 @@ __all__ = [
     "DBusUInt16",
     "DBusUInt32",
     "DBusUInt64",
+    "DBusUnixFd",
     "DBusVariant",
 ]
 
