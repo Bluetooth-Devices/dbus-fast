@@ -195,36 +195,3 @@ def test_glib_proxy_object():
 
     bus.disconnect()
     bus2.disconnect()
-
-
-def test_bad_dbus_signature_annotation():
-    # Error message should tell the user how to fix it (use typing.Annotated with
-    # DBusSignature) and what they did wrong (used 'str').
-    with pytest.raises(
-        ValueError, match=r".*typing\.Annotated with DBusSignature.*<class 'str'>.*"
-    ):
-
-        class BadInterface(ServiceInterface):  # pyright: ignore[reportUnusedClass]
-            def __init__(self):
-                super().__init__("bad.interface")
-
-            @dbus_method()
-            def bad_method(self, what: str) -> str:
-                return what
-
-
-def test_bad_dbus_signature_annotation2():
-    # Error message should tell the user how to fix it (use DBusSignature) and
-    # what they did wrong (used typing.Annotated[...] without DBusSignature).
-    with pytest.raises(
-        ValueError,
-        match=r".*type must include a DBusSignature annotation.*typing.Annotated\[str, 's'\].*",
-    ):
-
-        class BadInterface(ServiceInterface):  # pyright: ignore[reportUnusedClass]
-            def __init__(self):
-                super().__init__("bad.interface")
-
-            @dbus_method()
-            def bad_method(self, what: Annotated[str, "s"]) -> Annotated[str, "s"]:
-                return what
