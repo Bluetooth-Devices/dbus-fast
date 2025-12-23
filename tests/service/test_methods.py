@@ -256,4 +256,3 @@ async def test_methods(interface_class):
     bus2.disconnect()
     await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
     await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
-
