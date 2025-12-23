@@ -145,7 +145,7 @@ def parse_annotation(annotation: Any, module: Any) -> str:
             sig = next(s for s in get_args(annotation) if type(s) is DBusSignature)
         except StopIteration:
             raise ValueError(
-                f"Annotated D-Bus type must include a DBusSignature annotation (got {annotation:!r})"
+                f"Annotated D-Bus type must include a DBusSignature annotation (got {annotation!r})"
             )
         return sig.signature
 
