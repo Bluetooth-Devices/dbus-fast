@@ -7,6 +7,7 @@ import pytest
 
 from dbus_fast import Message, MessageType
 from dbus_fast.aio import MessageBus
+from dbus_fast.annotations import DBusUnixFd
 from dbus_fast.service import ServiceInterface, dbus_method, dbus_property, dbus_signal
 from dbus_fast.signature import SignatureTree, Variant
 
@@ -23,44 +24,44 @@ def open_file_2():
 
 
 class ExampleInterface(ServiceInterface):
-    def __init__(self, name):
+    def __init__(self, name: str):
         super().__init__(name)
-        self.fds = []
+        self.fds: list[int] = []
 
     @dbus_method()
-    def ReturnsFd(self) -> "h":
+    def ReturnsFd(self) -> DBusUnixFd:
         fd = open_file()
         self.fds.append(fd)
         return fd
 
     @dbus_method()
-    def AcceptsFd(self, fd: "h"):
+    def AcceptsFd(self, fd: DBusUnixFd) -> None:
         assert fd != 0
         self.fds.append(fd)
 
-    def get_last_fd(self):
+    def get_last_fd(self) -> int:
         return self.fds[-1]
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         for fd in self.fds:
             os.close(fd)
         self.fds.clear()
 
     @dbus_signal()
-    def SignalFd(self) -> "h":
+    def SignalFd(self) -> DBusUnixFd:
         fd = open_file()
         self.fds.append(fd)
         return fd
 
     @dbus_property()
-    def PropFd(self) -> "h":
+    def PropFd(self) -> DBusUnixFd:
         if not self.fds:
             fd = open_file()
             self.fds.append(fd)
         return self.fds[-1]
 
     @PropFd.setter
-    def PropFd(self, fd: "h"):
+    def PropFd(self, fd: DBusUnixFd):
         assert fd
         self.fds.append(fd)
 

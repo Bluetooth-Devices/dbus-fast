@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import ast
 import inspect
+import re
 from collections.abc import Callable
-from typing import Any
+from typing import Annotated, Any, get_args, get_origin
+
+from dbus_fast.annotations import DBusSignature
 
 from ..signature import SignatureTree, SignatureType, Variant, get_signature_tree
 
@@ -99,7 +102,7 @@ def replace_idx_with_fds(
     return body
 
 
-def parse_annotation(annotation: str) -> str:
+def parse_annotation(annotation: Any, module: Any) -> str:
     """
     Because of PEP 563, if `from __future__ import annotations` is used in code
     or on Python version >=3.10 where this is the default, return annotations
@@ -108,25 +111,47 @@ def parse_annotation(annotation: str) -> str:
     constant.
     """
 
-    def raise_value_error() -> None:
-        raise ValueError(
-            f"service annotations must be a string constant (got {annotation})"
-        )
-
     if not annotation or annotation is inspect.Signature.empty:
         return ""
-    if type(annotation) is not str:
-        raise_value_error()
-    try:
-        body = ast.parse(annotation).body
-        if len(body) == 1 and type(body[0].value) is ast.Constant:  # type: ignore[attr-defined]
-            if type(body[0].value.value) is not str:  # type: ignore[attr-defined]
-                raise_value_error()
-            return body[0].value.value  # type: ignore[attr-defined]
-    except SyntaxError:
-        pass
 
-    return annotation
+    if type(annotation) is str:
+        # This is a bit annoying because strings are special in annotations
+        # because they are assumed to be forward references. There isn't really
+        # a way to distinguish between a string constant and a forward reference
+        # other than by heuristics.
+
+        # If it looks like a dbus signature, return it directly. These are sorted
+        # in the order of the "Summary of types" table in the D-Bus spec to make
+        # verification easier.
+        if re.match(r"^[ybnqiuxtdsoga\(\)v\{\}h]+$", annotation):
+            return annotation
+
+        # Otherwise, assume deferred evaluation of annotations.
+
+        try:
+            # It could be a string literal, e.g "'s'", in which case this will
+            # effectively strip the quotes. Other literals would pass here, but
+            # they aren't expected, so we just let those fail later.
+            return ast.literal_eval(annotation)
+        except ValueError:
+            # Anything that isn't a Python literal will raise ValueError.
+            pass
+
+        # Deferred evaluation of annotations, so evaluate it now.
+        annotation = eval(annotation, module.__dict__, {})  # noqa: S307
+
+    if get_origin(annotation) is Annotated:
+        try:
+            sig = next(s for s in get_args(annotation) if type(s) is DBusSignature)
+        except StopIteration:
+            raise ValueError(
+                f"Annotated D-Bus type must include a DBusSignature annotation (got {annotation!r})"
+            )
+        return sig.signature
+
+    raise ValueError(
+        f"D-Bus signature annotations must be a string constant or typing.Annotated with DBusSignature (got {annotation!r})"
+    )
 
 
 def _replace_fds(

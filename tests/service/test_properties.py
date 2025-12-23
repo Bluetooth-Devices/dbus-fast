@@ -1,4 +1,5 @@
 import asyncio
+from typing import Annotated
 
 import pytest
 
@@ -11,11 +12,15 @@ from dbus_fast import (
     Variant,
 )
 from dbus_fast.aio import MessageBus
+from dbus_fast.annotations import DBusSignature, DBusStr, DBusUInt64
 from dbus_fast.service import ServiceInterface, dbus_method, dbus_property
+
+# Type alias since this is used multiple times in this file.
+TestDBusArrayOfStringTuple = Annotated[list[tuple[str, str]], DBusSignature("a(ss)")]
 
 
 class ExampleInterface(ServiceInterface):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name)
         self._string_prop = "hi"
         self._readonly_prop = 100
@@ -24,52 +29,52 @@ class ExampleInterface(ServiceInterface):
         self._renamed_prop = "65"
 
     @dbus_property()
-    def string_prop(self) -> "s":
+    def string_prop(self) -> DBusStr:
         return self._string_prop
 
     @string_prop.setter
-    def string_prop_setter(self, val: "s"):
+    def string_prop_setter(self, val: DBusStr) -> None:
         self._string_prop = val
 
     @dbus_property(PropertyAccess.READ)
-    def readonly_prop(self) -> "t":
+    def readonly_prop(self) -> DBusUInt64:
         return self._readonly_prop
 
     @dbus_property()
-    def container_prop(self) -> "a(ss)":
+    def container_prop(self) -> TestDBusArrayOfStringTuple:
         return self._container_prop
 
     @container_prop.setter
-    def container_prop(self, val: "a(ss)"):
+    def container_prop(self, val: TestDBusArrayOfStringTuple):
         self._container_prop = val
 
     @dbus_property(name="renamed_prop")
-    def original_name(self) -> "s":
+    def original_name(self) -> DBusStr:
         return self._renamed_prop
 
     @original_name.setter
-    def original_name_setter(self, val: "s"):
+    def original_name_setter(self, val: DBusStr) -> None:
         self._renamed_prop = val
 
     @dbus_property(disabled=True)
-    def disabled_prop(self) -> "s":
+    def disabled_prop(self) -> DBusStr:
         return self._disabled_prop
 
     @disabled_prop.setter
-    def disabled_prop(self, val: "s"):
+    def disabled_prop(self, val: DBusStr) -> None:
         self._disabled_prop = val
 
     @dbus_property(disabled=True)
-    def throws_error(self) -> "s":
+    def throws_error(self) -> DBusStr:
         raise DBusError("test.error", "told you so")
 
     @throws_error.setter
-    def throws_error(self, val: "s"):
+    def throws_error(self, val: DBusStr) -> None:
         raise DBusError("test.error", "told you so")
 
     @dbus_property(PropertyAccess.READ, disabled=True)
-    def returns_wrong_type(self) -> "s":
-        return 5
+    def returns_wrong_type(self) -> DBusStr:
+        return 5  # type: ignore[return-value]
 
     @dbus_method()
     def do_emit_properties_changed(self):
@@ -79,7 +84,7 @@ class ExampleInterface(ServiceInterface):
 
 
 class AsyncInterface(ServiceInterface):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name)
         self._string_prop = "hi"
         self._readonly_prop = 100
@@ -88,52 +93,52 @@ class AsyncInterface(ServiceInterface):
         self._renamed_prop = "65"
 
     @dbus_property()
-    async def string_prop(self) -> "s":
+    async def string_prop(self) -> DBusStr:
         return self._string_prop
 
     @string_prop.setter
-    async def string_prop_setter(self, val: "s"):
+    async def string_prop_setter(self, val: DBusStr) -> None:
         self._string_prop = val
 
     @dbus_property(PropertyAccess.READ)
-    async def readonly_prop(self) -> "t":
+    async def readonly_prop(self) -> DBusUInt64:
         return self._readonly_prop
 
     @dbus_property()
-    async def container_prop(self) -> "a(ss)":
+    async def container_prop(self) -> TestDBusArrayOfStringTuple:
         return self._container_prop
 
     @container_prop.setter
-    async def container_prop(self, val: "a(ss)"):
+    async def container_prop(self, val: TestDBusArrayOfStringTuple):
         self._container_prop = val
 
     @dbus_property(name="renamed_prop")
-    async def original_name(self) -> "s":
+    async def original_name(self) -> DBusStr:
         return self._renamed_prop
 
     @original_name.setter
-    async def original_name_setter(self, val: "s"):
+    async def original_name_setter(self, val: DBusStr) -> None:
         self._renamed_prop = val
 
     @dbus_property(disabled=True)
-    async def disabled_prop(self) -> "s":
+    async def disabled_prop(self) -> DBusStr:
         return self._disabled_prop
 
     @disabled_prop.setter
-    async def disabled_prop(self, val: "s"):
+    async def disabled_prop(self, val: DBusStr) -> None:
         self._disabled_prop = val
 
     @dbus_property(disabled=True)
-    async def throws_error(self) -> "s":
+    async def throws_error(self) -> DBusStr:
         raise DBusError("test.error", "told you so")
 
     @throws_error.setter
-    async def throws_error(self, val: "s"):
+    async def throws_error(self, val: DBusStr) -> None:
         raise DBusError("test.error", "told you so")
 
     @dbus_property(PropertyAccess.READ, disabled=True)
-    async def returns_wrong_type(self) -> "s":
-        return 5
+    async def returns_wrong_type(self) -> DBusStr:
+        return 5  # type: ignore[return-value]
 
     @dbus_method()
     def do_emit_properties_changed(self):

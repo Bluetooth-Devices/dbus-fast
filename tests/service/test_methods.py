@@ -1,4 +1,9 @@
+# NOTE: This is not strictly needed, but included to get code coverage for
+# deferred evaluation of annotations. Do not remove this line.
+from __future__ import annotations
+
 import asyncio
+from typing import Annotated, no_type_check
 
 import pytest
 
@@ -12,33 +17,46 @@ from dbus_fast import (
     Variant,
 )
 from dbus_fast.aio import MessageBus
+from dbus_fast.annotations import DBusDict, DBusSignature, DBusStr, DBusVariant
 from dbus_fast.service import ServiceInterface, dbus_method
 
 
 class ExampleInterface(ServiceInterface):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name)
 
     @dbus_method()
-    def echo(self, what: "s") -> "s":
+    def echo(self, what: DBusStr) -> DBusStr:
         assert type(self) is ExampleInterface
         return what
 
+    # This one intentionally keeps string-style annotations for coverage purposes.
+    @no_type_check
     @dbus_method()
-    def echo_multiple(self, what1: "s", what2: "s") -> "ss":
+    def echo_multiple(self, what1: "s", what2: "s") -> "ss":  # noqa: UP037
         assert type(self) is ExampleInterface
-        return [what1, what2]
+        return what1, what2
 
     @dbus_method()
     def echo_containers(
         self,
-        array: "as",  # noqa: F722
-        variant: "v",
-        dict_entries: "a{sv}",  # noqa: F722
-        struct: "(s(s(v)))",
-    ) -> "asva{sv}(s(s(v)))":  # noqa: F722
+        array: Annotated[list[str], DBusSignature("as")],
+        variant: DBusVariant,
+        dict_entries: DBusDict,
+        struct: Annotated[
+            tuple[str, tuple[str, tuple[Variant]]], DBusSignature("(s(s(v)))")
+        ],
+    ) -> Annotated[
+        tuple[
+            list[str],
+            Variant,
+            dict[str, Variant],
+            tuple[str, tuple[str, tuple[Variant]]],
+        ],
+        DBusSignature("asva{sv}(s(s(v)))"),
+    ]:
         assert type(self) is ExampleInterface
-        return [array, variant, dict_entries, struct]
+        return array, variant, dict_entries, struct
 
     @dbus_method()
     def ping(self):
@@ -64,29 +82,41 @@ class ExampleInterface(ServiceInterface):
 
 
 class AsyncInterface(ServiceInterface):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name)
 
     @dbus_method()
-    async def echo(self, what: "s") -> "s":
+    async def echo(self, what: DBusStr) -> DBusStr:
         assert type(self) is AsyncInterface
         return what
 
     @dbus_method()
-    async def echo_multiple(self, what1: "s", what2: "s") -> "ss":
+    async def echo_multiple(
+        self, what1: DBusStr, what2: DBusStr
+    ) -> Annotated[tuple[str, str], DBusSignature("ss")]:
         assert type(self) is AsyncInterface
-        return [what1, what2]
+        return what1, what2
 
     @dbus_method()
     async def echo_containers(
         self,
-        array: "as",  # noqa: F722
-        variant: "v",
-        dict_entries: "a{sv}",  # noqa: F722
-        struct: "(s(s(v)))",
-    ) -> "asva{sv}(s(s(v)))":  # noqa: F722
+        array: Annotated[list[str], DBusSignature("as")],
+        variant: DBusVariant,
+        dict_entries: DBusDict,
+        struct: Annotated[
+            tuple[str, tuple[str, tuple[Variant]]], DBusSignature("(s(s(v)))")
+        ],
+    ) -> Annotated[
+        tuple[
+            list[str],
+            Variant,
+            dict[str, Variant],
+            tuple[str, tuple[str, tuple[Variant]]],
+        ],
+        DBusSignature("asva{sv}(s(s(v)))"),
+    ]:
         assert type(self) is AsyncInterface
-        return [array, variant, dict_entries, struct]
+        return array, variant, dict_entries, struct
 
     @dbus_method()
     async def ping(self):

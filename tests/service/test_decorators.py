@@ -1,5 +1,16 @@
+from typing import Annotated
+
+import pytest
+
 from dbus_fast import PropertyAccess
 from dbus_fast import introspection as intr
+from dbus_fast.annotations import (
+    DBusObjectPath,
+    DBusSignature,
+    DBusStr,
+    DBusUInt32,
+    DBusUInt64,
+)
 from dbus_fast.service import ServiceInterface, dbus_method, dbus_property, dbus_signal
 
 
@@ -11,43 +22,45 @@ class ExampleInterface(ServiceInterface):
         self._weird_prop = 500
 
     @dbus_method()
-    def some_method(self, one: "s", two: "s") -> "s":
+    def some_method(self, one: DBusStr, two: DBusStr) -> DBusStr:
         return "hello"
 
     @dbus_method(name="renamed_method", disabled=True)
-    def another_method(self, eight: "o", six: "t"):
+    def another_method(self, eight: DBusObjectPath, six: DBusUInt64) -> None:
         pass
 
     @dbus_signal()
-    def some_signal(self) -> "as":  # noqa: F722
+    def some_signal(self) -> Annotated[list[str], DBusSignature("as")]:
         return ["result"]
 
     @dbus_signal(name="renamed_signal", disabled=True)
-    def another_signal(self) -> "(dodo)":
-        return [1, "/", 1, "/"]
+    def another_signal(
+        self,
+    ) -> Annotated[tuple[float, str, float, str], DBusSignature("(dodo)")]:
+        return (1, "/", 1, "/")
 
     @dbus_property(
         name="renamed_readonly_property", access=PropertyAccess.READ, disabled=True
     )
-    def another_prop(self) -> "t":
+    def another_prop(self) -> DBusUInt64:
         return self._another_prop
 
     @dbus_property()
-    def some_prop(self) -> "u":
+    def some_prop(self) -> DBusUInt32:
         return self._some_prop
 
     @some_prop.setter
-    def some_prop(self, val: "u"):
+    def some_prop(self, val: DBusUInt32):
         self._some_prop = val + 1
 
     # for this one, the setter has a different name than the getter which is a
     # special case in the code
     @dbus_property()
-    def weird_prop(self) -> "t":
+    def weird_prop(self) -> DBusUInt64:
         return self._weird_prop
 
     @weird_prop.setter
-    def setter_for_weird_prop(self, val: "t"):
+    def setter_for_weird_prop(self, val: DBusUInt64) -> None:
         self._weird_prop = val
 
 
@@ -149,3 +162,36 @@ def test_interface_introspection():
     assert len(methods) == 1
     assert len(signals) == 1
     assert len(properties) == 2
+
+
+def test_bad_dbus_signature_annotation():
+    # Error message should tell the user how to fix it (use typing.Annotated with
+    # DBusSignature) and what they did wrong (used 'str').
+    with pytest.raises(
+        ValueError, match=r".*typing\.Annotated with DBusSignature.*<class 'str'>.*"
+    ):
+
+        class BadInterface(ServiceInterface):  # pyright: ignore[reportUnusedClass]
+            def __init__(self):
+                super().__init__("bad.interface")
+
+            @dbus_method()
+            def bad_method(self, what: str) -> str:
+                return what
+
+
+def test_bad_dbus_signature_annotation2():
+    # Error message should tell the user how to fix it (use DBusSignature) and
+    # what they did wrong (used typing.Annotated[...] without DBusSignature).
+    with pytest.raises(
+        ValueError,
+        match=r".*type must include a DBusSignature annotation.*typing.Annotated\[str, 's'\].*",
+    ):
+
+        class BadInterface(ServiceInterface):  # pyright: ignore[reportUnusedClass]
+            def __init__(self):
+                super().__init__("bad.interface")
+
+            @dbus_method()
+            def bad_method(self, what: Annotated[str, "s"]) -> Annotated[str, "s"]:
+                return what

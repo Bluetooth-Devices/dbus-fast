@@ -118,6 +118,7 @@ To define a service on the bus, use the `ServiceInterface` class and decorate cl
 For more information, see the [overview for the high-level service](https://dbus-fast.readthedocs.io/en/latest/high-level-service/index.html).
 
 ```python
+from dbus_fast.annotations import DBusStr, DBusDict
 from dbus_fast.service import ServiceInterface, method, dbus_property, signal, Variant
 from dbus_fast.aio MessageBus
 
@@ -129,11 +130,11 @@ class ExampleInterface(ServiceInterface):
         self._string_prop = 'kevin'
 
     @dbus_method()
-    def Echo(self, what: 's') -> 's':
+    def Echo(self, what: DBusStr) -> DBusStr:
         return what
 
     @dbus_method()
-    def GetVariantDict() -> 'a{sv}':
+    def GetVariantDict() -> DBusDict:
         return {
             'foo': Variant('s', 'bar'),
             'bat': Variant('x', -55),
@@ -141,15 +142,15 @@ class ExampleInterface(ServiceInterface):
         }
 
     @dbus_property()
-    def string_prop(self) -> 's':
+    def string_prop(self) -> DBusStr:
         return self._string_prop
 
     @string_prop.setter
-    def string_prop_setter(self, val: 's'):
+    def string_prop_setter(self, val: DBusStr):
         self._string_prop = val
 
     @dbus_signal()
-    def signal_simple(self) -> 's':
+    def signal_simple(self) -> DBusStr:
         return 'hello'
 
 async def main():
