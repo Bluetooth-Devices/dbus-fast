@@ -380,12 +380,11 @@ class SignatureTree:  # noqa: PLW1641
             return self.signature == other.signature
         return super().__eq__(other)
 
-    def verify(self, body: list[Any]) -> bool:
+    def verify(self, body: list[Any] | tuple[Any, ...]) -> bool:
         """Verifies that the give body matches this signature tree
 
         :param body: the body to verify for this tree
-        :type body: list(Any)
-
+        :type body: list(Any) | tuple(Any, ...)
         :returns: True if the signature matches the body or an exception if not.
 
         :raises:

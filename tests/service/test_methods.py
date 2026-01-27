@@ -27,7 +27,7 @@ class ExampleInterface(ServiceInterface):
     @dbus_method()
     def echo_multiple(self, what1: "s", what2: "s") -> "ss":
         assert type(self) is ExampleInterface
-        return [what1, what2]
+        return what1, what2
 
     @dbus_method()
     def echo_containers(
@@ -38,7 +38,7 @@ class ExampleInterface(ServiceInterface):
         struct: "(s(s(v)))",
     ) -> "asva{sv}(s(s(v)))":  # noqa: F722
         assert type(self) is ExampleInterface
-        return [array, variant, dict_entries, struct]
+        return array, variant, dict_entries, struct
 
     @dbus_method()
     def ping(self):
@@ -75,7 +75,7 @@ class AsyncInterface(ServiceInterface):
     @dbus_method()
     async def echo_multiple(self, what1: "s", what2: "s") -> "ss":
         assert type(self) is AsyncInterface
-        return [what1, what2]
+        return what1, what2
 
     @dbus_method()
     async def echo_containers(
@@ -86,7 +86,7 @@ class AsyncInterface(ServiceInterface):
         struct: "(s(s(v)))",
     ) -> "asva{sv}(s(s(v)))":  # noqa: F722
         assert type(self) is AsyncInterface
-        return [array, variant, dict_entries, struct]
+        return array, variant, dict_entries, struct
 
     @dbus_method()
     async def ping(self):

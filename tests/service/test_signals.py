@@ -30,7 +30,7 @@ class ExampleInterface(ServiceInterface):
     @dbus_signal()
     def signal_multiple(self) -> "ss":
         assert type(self) is ExampleInterface
-        return ["hello", "world"]
+        return "hello", "world"
 
     @dbus_signal(name="renamed")
     def original_name(self):

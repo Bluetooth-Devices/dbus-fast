@@ -24,7 +24,7 @@ class ExampleInterface(ServiceInterface):
 
     @dbus_signal(name="renamed_signal", disabled=True)
     def another_signal(self) -> "(dodo)":
-        return [1, "/", 1, "/"]
+        return (1, "/", 1, "/")
 
     @dbus_property(
         name="renamed_readonly_property", access=PropertyAccess.READ, disabled=True

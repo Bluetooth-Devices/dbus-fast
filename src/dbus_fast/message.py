@@ -82,7 +82,7 @@ class Message:
     :ivar signature_tree: The signature parsed as a signature tree.
     :vartype signature_tree: :class:`SignatureTree`
     :ivar body: The body of this message. Must match the signature.
-    :vartype body: list(Any)
+    :vartype body: list(Any) | tuple(Any, ...)
     :ivar serial: The serial of the message. Will be automatically set during message sending if not present. Use the ``new_serial()`` method of the bus to generate a serial.
     :vartype serial: int
 
@@ -125,7 +125,7 @@ class Message:
         sender: str | None = None,
         unix_fds: list[int] = [],
         signature: SignatureTree | str | None = None,
-        body: list[Any] = [],
+        body: list[Any] | tuple[Any, ...] = [],
         serial: int | None = None,
         validate: bool = True,
     ) -> None:
@@ -161,7 +161,7 @@ class Message:
         sender: _str,
         unix_fds: _list[int],
         signature_tree: SignatureTree,
-        body: _list[Any],
+        body: _list[Any] | tuple[Any, ...],
         serial: _int,
         validate: _bool,
     ) -> None:
@@ -247,7 +247,7 @@ class Message:
     def new_method_return(
         msg: "Message",
         signature: str = "",
-        body: list[Any] = [],
+        body: list[Any] | tuple[Any, ...] = [],
         unix_fds: list[int] = [],
     ) -> "Message":
         """A convenience constructor to create a method return to the given method call message.
@@ -257,7 +257,7 @@ class Message:
         :param signature: The signature for the message body.
         :type signature: str
         :param body: The body of this message. Must match the signature.
-        :type body: list(Any)
+        :type body: list(Any) | tuple(Any, ...)
         :param unix_fds: List integer file descriptors to send with this message.
         :type unix_fds: list(int)
 
@@ -282,7 +282,7 @@ class Message:
         interface: str,
         member: str,
         signature: str = "",
-        body: list[Any] | None = None,
+        body: list[Any] | tuple[Any, ...] | None = None,
         unix_fds: list[int] | None = None,
     ) -> "Message":
         """A convenience constructor to create a new signal message.
@@ -296,7 +296,7 @@ class Message:
         :param signature: The signature of the signal body.
         :type signature: str
         :param body: The body of this signal message.
-        :type body: list(Any)
+        :type body: list(Any) | tuple[Any, ...]
         :param unix_fds: List integer file descriptors to send with this message.
         :type unix_fds: list(int)
 
