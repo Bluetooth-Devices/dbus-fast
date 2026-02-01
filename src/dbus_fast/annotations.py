@@ -111,7 +111,7 @@ DBusSignatureType = Annotated[str, DBusSignature("g")]
 D-Bus SIGNATURE type ("g").
 
 .. note:: This one doesn't follow the established naming convention since
-    "DBusSignature" is used for the annotation itself.)
+    "DBusSignature" is used for the annotation itself.
 """
 DBusVariant = Annotated[Variant, DBusSignature("v")]
 """

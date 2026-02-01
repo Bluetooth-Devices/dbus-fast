@@ -123,7 +123,7 @@ def dbus_method(
     If you use Python annotations for type hints, you can use :class:`typing.Annotated`
     to specify the Python type and the D-Bus signature at the same time like this::
 
-        from dbus_fast.annotations import DBusStr, DBusUInt32
+        from dbus_fast.annotations import DBusSignature, DBusStr, DBusUInt32
 
         @dbus_method()
         def echo(self, val: DBusStr) -> DBusStr:
@@ -132,7 +132,7 @@ def dbus_method(
         @dbus_method()
         def echo_two(
             self, val1: DBusStr, val2: DBusUInt32
-        ) -> Annotated[tuple[str, int], "su"]:
+        ) -> Annotated[tuple[str, int], DBusSignature("su")]:
             return val1, val2
 
     .. versionchanged:: v4.0.0
@@ -233,7 +233,7 @@ def dbus_signal(
     If you use Python annotations for type hints, you can use :class:`typing.Annotated`
     to specify the Python type and the D-Bus signature at the same time like this::
 
-        from dbus_fast.annotations import DBusStr
+        from dbus_fast.annotations import DBusSignature, DBusStr
 
         @dbus_signal()
         def string_signal(self, val: str) -> DBusStr:
@@ -242,7 +242,7 @@ def dbus_signal(
         @dbus_signal()
         def two_strings_signal(
             self, val1: str, val2: str
-        ) -> Annotated[tuple[str, str], "ss"]:
+        ) -> Annotated[tuple[str, str], DBusSignature("ss")]:
             return val1, val2
 
     .. versionchanged:: v4.0.0
@@ -434,7 +434,7 @@ def _real_fn_result_to_body(
         is_tuple = result_type is tuple
         if not is_tuple and result_type is not list:
             raise SignatureBodyMismatchError(
-                "Expected signal to return a list or tuple of arguments"
+                "Expected method or signal handler to return a list or tuple of arguments"
             )
         # Convert tuple to list for D-Bus Message compatibility (Cython requires list type)
         final_result = list(result) if is_tuple else result

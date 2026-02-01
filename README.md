@@ -134,7 +134,7 @@ class ExampleInterface(ServiceInterface):
         return what
 
     @dbus_method()
-    def GetVariantDict() -> DBusDict:
+    def GetVariantDict(self) -> DBusDict:
         return {
             'foo': Variant('s', 'bar'),
             'bat': Variant('x', -55),

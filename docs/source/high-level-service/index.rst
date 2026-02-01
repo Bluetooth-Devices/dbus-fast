@@ -78,7 +78,7 @@ constructor to use unix file descriptors.
 
 .. code-block:: python3
 
-    from dbus_fast.annotations import (DBusSignature, DBusBool, DBusByte, DBusInt,
+    from dbus_fast.annotations import (DBusSignature, DBusBool, DBusByte, DBusInt32,
                                        DBusStr)
     from dbus_fast.aio import MessageBus
     from dbus_fast.service import (ServiceInterface,
@@ -86,6 +86,7 @@ constructor to use unix file descriptors.
     from dbus_fast import Variant, DBusError
 
     import asyncio
+    from typing import Annotated
 
     FrobateReturnDBusType = Annotated[dict[int, str], DBusSignature("a{us}")]
     BazifyBarDBusType = Annotated[tuple[int, int, int], DBusSignature("(iiu)")]
@@ -98,7 +99,7 @@ constructor to use unix file descriptors.
             self._bar = 105
 
         @dbus_method()
-        def Frobate(self, foo: DBusInt, bar: DBusStr) -> FrobateReturnDBusType:
+        def Frobate(self, foo: DBusInt32, bar: DBusStr) -> FrobateReturnDBusType:
             print(f'called Frobate with foo={foo} and bar={bar}')
 
             return {
