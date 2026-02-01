@@ -21,6 +21,7 @@ from tests.util import check_gi_repository, skip_reason_no_gi
 
 has_gi = check_gi_repository()
 
+
 def deprecated_dbus_method():
     inner_wrapper = dbus_method()
 
@@ -30,6 +31,7 @@ def deprecated_dbus_method():
             match="String annotations are deprecated and support will be removed in the future. Use typing.Annotated with the appropriate annotation from dbus_fast.annotations instead.",
         ):
             return inner_wrapper(*args)
+
     return outer_wrapper
 
 

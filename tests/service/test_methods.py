@@ -30,7 +30,9 @@ def deprecated_dbus_method():
             match="String annotations are deprecated and support will be removed in the future. Use typing.Annotated with the appropriate annotation from dbus_fast.annotations instead.",
         ):
             return inner_wrapper(*args)
+
     return outer_wrapper
+
 
 class ExampleInterface(ServiceInterface):
     def __init__(self, name: str) -> None:

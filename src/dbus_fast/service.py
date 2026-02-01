@@ -357,63 +357,63 @@ def dbus_property(
 ) -> Callable[[Callable[..., Any]], _Property]:
     """A decorator to mark a class method of a :class:`ServiceInterface` to be a DBus property.
 
-    The class method must be a Python getter method with a return annotation
-    that is a signature string of a single complete DBus type. When a client
-    gets the property through the ``org.freedesktop.DBus.Properties``
-    interface, the getter will be called and the resulting value will be
-    returned to the client.
+     The class method must be a Python getter method with a return annotation
+     that is a signature string of a single complete DBus type. When a client
+     gets the property through the ``org.freedesktop.DBus.Properties``
+     interface, the getter will be called and the resulting value will be
+     returned to the client.
 
-    If the property is writable, it must have a setter method that takes a
-    single parameter that is annotated with the same signature. When a client
-    sets the property through the ``org.freedesktop.DBus.Properties``
-    interface, the setter will be called with the value from the calling
-    client.
+     If the property is writable, it must have a setter method that takes a
+     single parameter that is annotated with the same signature. When a client
+     sets the property through the ``org.freedesktop.DBus.Properties``
+     interface, the setter will be called with the value from the calling
+     client.
 
-    The parameters of the getter and the setter must conform to the dbus-fast
-    type system. The getter or the setter may raise a :class:`DBusError
-    <dbus_fast.DBusError>` to return an error to the client.
+     The parameters of the getter and the setter must conform to the dbus-fast
+     type system. The getter or the setter may raise a :class:`DBusError
+     <dbus_fast.DBusError>` to return an error to the client.
 
-    :param name: The name that DBus clients will use to interact with this
-        property on the bus.
-    :type name: str
-    :param disabled: If set to true, the property will not be visible to
-        clients.
-    :type disabled: bool
+     :param name: The name that DBus clients will use to interact with this
+         property on the bus.
+     :type name: str
+     :param disabled: If set to true, the property will not be visible to
+         clients.
+     :type disabled: bool
 
-   :class:`typing.Annotated` is used to specify the Python type and the D-Bus
-    signature at the same time like this::
+    :class:`typing.Annotated` is used to specify the Python type and the D-Bus
+     signature at the same time like this::
 
-        from dbus_fast.annotations import DBusStr
+         from dbus_fast.annotations import DBusStr
 
-        @dbus_property()
-        def string_prop(self) -> DBusStr:
-            return self._string_prop
+         @dbus_property()
+         def string_prop(self) -> DBusStr:
+             return self._string_prop
 
-        @string_prop.setter
-        def string_prop(self, val: DBusStr):
-            self._string_prop = val
+         @string_prop.setter
+         def string_prop(self, val: DBusStr):
+             self._string_prop = val
 
-    Originally, D-Bus signature strings were used directly in the annotations::
+     Originally, D-Bus signature strings were used directly in the annotations::
 
-        @dbus_property()
-        def string_prop(self) -> 's':
-            return self._string_prop
+         @dbus_property()
+         def string_prop(self) -> 's':
+             return self._string_prop
 
-        @string_prop.setter
-        def string_prop(self, val: 's'):
-            self._string_prop = val
+         @string_prop.setter
+         def string_prop(self, val: 's'):
+             self._string_prop = val
 
-    Such usage is now deprecated and support will be removed in the future.
+     Such usage is now deprecated and support will be removed in the future.
 
-    .. versionchanged:: v4.1.0
-        String annotations are deprecated and will raise a warning. Use
-        :class:`typing.Annotated` with the appropriate annotation from
-        :mod:`dbus_fast.annotations` instead.
+     .. versionchanged:: v4.1.0
+         String annotations are deprecated and will raise a warning. Use
+         :class:`typing.Annotated` with the appropriate annotation from
+         :mod:`dbus_fast.annotations` instead.
 
-    .. versionchanged:: v4.0.0
-        :class:`typing.Annotated` can now be used to provide type hints and the
-        D-Bus signature at the same time. Older versions require D-Bus signature
-        strings to be used.
+     .. versionchanged:: v4.0.0
+         :class:`typing.Annotated` can now be used to provide type hints and the
+         D-Bus signature at the same time. Older versions require D-Bus signature
+         strings to be used.
     """
     if type(access) is not PropertyAccess:
         raise TypeError("access must be a PropertyAccess class")
