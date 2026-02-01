@@ -263,26 +263,34 @@ class BaseProxyObject:
         if not issubclass(ProxyInterface, BaseProxyInterface):
             raise TypeError("ProxyInterface must be an instance of BaseProxyInterface")
 
+        self.bus_name = bus_name
+        self.path = path
+        self.introspection = introspection
+        self.bus = bus
+        self.ProxyInterface = ProxyInterface
+
+    @property
+    def introspection(self) -> intr.Node:
+        return self._introspection
+
+    @introspection.setter
+    def introspection(self, introspection: intr.Node | str | ET.Element) -> None:
         if type(introspection) is intr.Node:
-            self.introspection = introspection
+            self._introspection = introspection
         elif type(introspection) is str:
-            self.introspection = intr.Node.parse(introspection)
+            self._introspection = intr.Node.parse(introspection)
         elif type(introspection) is ET.Element:
-            self.introspection = intr.Node.from_xml(introspection)
+            self._introspection = intr.Node.from_xml(introspection)
         else:
             raise TypeError(
                 "introspection must be xml node introspection or introspection.Node class"
             )
+        self.child_paths = [f"{self.path}/{n.name}" for n in self._introspection.nodes]
 
-        self.bus_name = bus_name
-        self.path = path
-        self.bus = bus
-        self.ProxyInterface = ProxyInterface
-        self.child_paths = [f"{path}/{n.name}" for n in self.introspection.nodes]
-
+        # lazily populated by get_interface
         self._interfaces = {}
 
-        # lazy loaded by get_children()
+        # lazily initialized by get_children
         self._children = None
 
     def get_interface(self, name: str) -> BaseProxyInterface:
@@ -347,10 +355,25 @@ class BaseProxyObject:
         return interface
 
     def get_children(self) -> list[BaseProxyObject]:
-        """Get the child nodes of this proxy object according to the introspection data."""
+        """Get the child nodes of this proxy object according to the introspection data.
+
+        This method does not introspect the children, so if the parent object's
+        introspection did not include introspections of the children, then the
+        children returned by this method will appear to have no interfaces and
+        no children of their own. In that case, you should overwrite each
+        returned child proxy object's :ivar introspection: with the actual
+        introspection of that child object, either from static XML data
+        included in your project (recommended) or retrieved from the
+        ``org.freedesktop.DBus.Introspectable`` interface at runtime.
+        """
         if self._children is None:
             self._children = [
-                self.__class__(self.bus_name, self.path, child, self.bus)
+                self.__class__(
+                    self.bus_name,
+                    f"{self.path}/{child.name}",
+                    child,
+                    self.bus,
+                )
                 for child in self.introspection.nodes
             ]
 
