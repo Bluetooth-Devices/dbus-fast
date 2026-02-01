@@ -3,7 +3,7 @@ __description__ = (
     "A performant zero-dependency DBus library for Python with asyncio support"
 )
 __url__ = "https://github.com/bluetooth-devices/dbus-fast"
-__version__ = "3.1.2"
+__version__ = "4.0.0"
 __author__ = "Bluetooth Devices authors, Tony Crisci"
 __author_email__ = "bluetooth@koston.org"
 __license__ = "MIT"
