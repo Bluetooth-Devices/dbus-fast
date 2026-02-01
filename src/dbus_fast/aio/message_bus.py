@@ -232,6 +232,12 @@ class MessageBus(BaseMessageBus):
               the DBus daemon failed.
             - :class:`Exception` - If there was a connection error.
         """
+        try:
+            await self._loop.sock_connect(self._sock, self._sock_connect_address)
+        except Exception:
+            self._stream.close()
+            self._sock.close()
+            raise
         await self._authenticate()
 
         future = self._loop.create_future()
