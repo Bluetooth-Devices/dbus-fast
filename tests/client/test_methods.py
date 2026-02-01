@@ -28,7 +28,7 @@ def deprecated_dbus_method():
     def outer_wrapper(*args: Any) -> Any:
         with pytest.warns(
             DeprecationWarning,
-            match="String annotations are deprecated and support will be removed in the future. Use typing.Annotated with the appropriate annotation from dbus_fast.annotations instead.",
+            match=r"String annotations are deprecated.*Use typing\.Annotated.*instead.",
         ):
             return inner_wrapper(*args)
 

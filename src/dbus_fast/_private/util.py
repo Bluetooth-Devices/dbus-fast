@@ -122,7 +122,7 @@ def parse_annotation(annotation: Any, module: Any) -> str:
         # other than by heuristics.
 
         # TODO: Change this to FutureWarning in 2027 and remove support for
-        # string annotations in 2029 (when # Python 3.13 reaches end-of-life).
+        # string annotations in 2028.
 
         # If it looks like a dbus signature, return it directly. These are sorted
         # in the order of the "Summary of types" table in the D-Bus spec to make

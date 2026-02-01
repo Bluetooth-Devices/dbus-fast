@@ -24,7 +24,8 @@ on the class with the decorator methods :func:`@dbus_method()
 <dbus_fast.service.dbus_method>`, :func:`@dbus_property()
 <dbus_fast.service.dbus_property>`, and :func:`@dbus_signal()
 <dbus_fast.service.dbus_signal>`. The parameters of the decorated class
-methods must be annotated with :class:`DBusSignature` to indicate the types
+methods must be annotated using :class:`typing.Annotated` with a
+:class:`DBusSignature <dbus_fast.annotations.DBusSignature>` to indicate the types
 of values they expect. See the documentation on `the type system
 </type-system/index.html>`_ for more information on how DBus types are
 mapped to Python values with signature strings. The decorator methods
@@ -56,9 +57,10 @@ lost.
 A class method decorated with ``@dbus_signal()`` will be exposed as a
 DBus signal. The value returned by the class method will be emitted as a
 signal and broadcast to clients who are listening to the signal. The
-returned value must conform to the return annotation of the class method
-as a :class:`DBusSignature`. If the signal has more than one argument,
-they must be returned within a ``tuple``.
+returned value must conform to the return annotation of the class method.
+The annotation must be as a :class:`typing.Annotated` with a
+:class:`DBusSignature <dbus_fast.annotations.DBusSignature>`.
+If the signal has more than one argument, they must be returned within a ``tuple``.
 
 A class method decorated with ``@dbus_method()`` or ``@dbus_property()``
 may throw a :class:`DBusError <dbus_fast.DBusError>` to return a
