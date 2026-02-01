@@ -111,8 +111,6 @@ def dbus_method(
     :class:`typing.Annotated` is used to specify the D-Bus signature along with
     the Python type::
 
-        from dbus_fast.annotations import DBusSignature, DBusStr, DBusUInt32
-
         @dbus_method()
         def echo(self, val: DBusStr) -> DBusStr:
             return val
@@ -382,8 +380,6 @@ def dbus_property(
 
     :class:`typing.Annotated` is used to specify the Python type and the D-Bus
     signature at the same time like this::
-
-        from dbus_fast.annotations import DBusStr
 
         @dbus_property()
         def string_prop(self) -> DBusStr:
