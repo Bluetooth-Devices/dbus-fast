@@ -119,8 +119,9 @@ For more information, see the [overview for the high-level service](https://dbus
 
 ```python
 from dbus_fast.annotations import DBusStr, DBusDict
-from dbus_fast.service import ServiceInterface, method, dbus_property, signal, Variant
-from dbus_fast.aio MessageBus
+from dbus_fast.service import ServiceInterface, dbus_method, dbus_property, dbus_signal
+from dbus_fast import Variant
+from dbus_fast.aio import MessageBus
 
 import asyncio
 
