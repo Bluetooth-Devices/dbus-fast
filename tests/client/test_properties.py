@@ -4,6 +4,7 @@ import sys
 import pytest
 
 from dbus_fast import DBusError, Message, aio, glib
+from dbus_fast.annotations import DBusDict, DBusInt64, DBusStr
 from dbus_fast.service import PropertyAccess, ServiceInterface, dbus_property
 from dbus_fast.signature import Variant
 from tests.util import check_gi_repository, skip_reason_no_gi
@@ -20,28 +21,28 @@ class ExampleInterface(ServiceInterface):
         self._int64_property = -10000
 
     @dbus_property()
-    def SomeProperty(self) -> "s":
+    def SomeProperty(self) -> DBusStr:
         return self._some_property
 
     @SomeProperty.setter
-    def SomeProperty(self, val: "s"):
+    def SomeProperty(self, val: DBusStr) -> None:
         self._some_property = val
 
     @dbus_property(access=PropertyAccess.READ)
-    def Int64Property(self) -> "x":
+    def Int64Property(self) -> DBusInt64:
         return self._int64_property
 
     @dbus_property(access=PropertyAccess.READ)
-    def ComplexProperty(self) -> "a{sv}":  # noqa: F722
+    def ComplexProperty(self) -> DBusDict:
         """Return complex output."""
         return {"hello": Variant("s", "world")}
 
     @dbus_property()
-    def ErrorThrowingProperty(self) -> "s":
+    def ErrorThrowingProperty(self) -> DBusStr:
         raise DBusError(self.error_name, self.error_text)
 
     @ErrorThrowingProperty.setter
-    def ErrorThrowingProperty(self, val: "s"):
+    def ErrorThrowingProperty(self, val: DBusStr) -> None:
         raise DBusError(self.error_name, self.error_text)
 
 

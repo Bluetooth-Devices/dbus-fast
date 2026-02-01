@@ -3,17 +3,18 @@ import asyncio
 import pytest
 
 from dbus_fast.aio import MessageBus
+from dbus_fast.annotations import DBusStr
 from dbus_fast.service import ServiceInterface, dbus_method
 
 
 @pytest.mark.asyncio
 async def test_multiple_flags_in_message():
     class ExampleInterface(ServiceInterface):
-        def __init__(self, name):
+        def __init__(self, name: str) -> None:
             super().__init__(name)
 
         @dbus_method()
-        def Echo(self, what: "s") -> "s":
+        def Echo(self, what: DBusStr) -> DBusStr:
             return what
 
     bus = await MessageBus().connect()

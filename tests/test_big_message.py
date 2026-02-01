@@ -4,6 +4,7 @@ import sys
 import pytest
 
 from dbus_fast import Message, MessageType, aio, glib
+from dbus_fast.annotations import DBusBytes
 from dbus_fast.service import ServiceInterface, dbus_method
 from tests.util import check_gi_repository, skip_reason_no_gi
 
@@ -15,7 +16,7 @@ class ExampleInterface(ServiceInterface):
         super().__init__("example.interface")
 
     @dbus_method()
-    def echo_bytes(self, what: "ay") -> "ay":
+    def echo_bytes(self, what: DBusBytes) -> DBusBytes:
         return what
 
 

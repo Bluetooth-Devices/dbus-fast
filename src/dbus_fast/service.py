@@ -54,13 +54,14 @@ class _Method:
         out_signature = ""
 
         inspection = inspect.signature(fn)
+        module = inspect.getmodule(fn)
 
         in_args: list[intr.Arg] = []
         for i, param in enumerate(inspection.parameters.values()):
             if i == 0:
                 # first is self
                 continue
-            annotation = parse_annotation(param.annotation)
+            annotation = parse_annotation(param.annotation, module)
             if not annotation:
                 raise ValueError(
                     "method parameters must specify the dbus type string as an annotation"
@@ -69,7 +70,7 @@ class _Method:
             in_signature += annotation
 
         out_args: list[intr.Arg] = []
-        out_signature = parse_annotation(inspection.return_annotation)
+        out_signature = parse_annotation(inspection.return_annotation, module)
         if out_signature:
             for type_ in get_signature_tree(out_signature).types:
                 out_args.append(intr.Arg(type_, intr.ArgDirection.OUT))
@@ -97,7 +98,7 @@ def dbus_method(
     client and will conform to the dbus-fast type system. The parameters
     returned will be returned to the calling client and must conform to the
     dbus-fast type system. If multiple parameters are returned, they must be
-    contained within a :class:`list`.
+    contained within a :class:`tuple`.
 
     The decorated method may raise a :class:`DBusError <dbus_fast.DBusError>`
     to return an error to the client.
@@ -117,7 +118,27 @@ def dbus_method(
 
         @dbus_method()
         def echo_two(self, val1: 's', val2: 'u') -> 'su':
-            return [val1, val2]
+            return val1, val2
+
+    If you use Python annotations for type hints, you can use :class:`typing.Annotated`
+    to specify the Python type and the D-Bus signature at the same time like this::
+
+        from dbus_fast.annotations import DBusSignature, DBusStr, DBusUInt32
+
+        @dbus_method()
+        def echo(self, val: DBusStr) -> DBusStr:
+            return val
+
+        @dbus_method()
+        def echo_two(
+            self, val1: DBusStr, val2: DBusUInt32
+        ) -> Annotated[tuple[str, int], DBusSignature("su")]:
+            return val1, val2
+
+    .. versionchanged:: v4.0.0
+        :class:`typing.Annotated` can now be used to provide type hints and the
+        D-Bus signature at the same time. Older versions require D-Bus signature
+        strings to be used.
 
     .. versionadded:: v2.46.0
         In older versions, this was named ``@method``. The old name still exists.
@@ -150,12 +171,13 @@ class _Signal:
         self, fn: Callable[..., Any], name: str, disabled: bool = False
     ) -> None:
         inspection = inspect.signature(fn)
+        module = inspect.getmodule(fn)
 
         args: list[intr.Arg] = []
         signature = ""
         signature_tree = None
 
-        return_annotation = parse_annotation(inspection.return_annotation)
+        return_annotation = parse_annotation(inspection.return_annotation, module)
 
         if return_annotation:
             signature = return_annotation
@@ -188,7 +210,7 @@ def dbus_signal(
     annotation with a signature string of a single complete DBus type and the
     return value of the class method must conform to the dbus-fast type system.
     If the signal has multiple out arguments, they must be returned within a
-    ``list``.
+    ``tuple``.
 
     :param name: The member name that will be used for this signal. Defaults to
         the name of the class method.
@@ -206,7 +228,27 @@ def dbus_signal(
 
         @dbus_signal()
         def two_strings_signal(self, val1, val2) -> 'ss':
-            return [val1, val2]
+            return val1, val2
+
+    If you use Python annotations for type hints, you can use :class:`typing.Annotated`
+    to specify the Python type and the D-Bus signature at the same time like this::
+
+        from dbus_fast.annotations import DBusSignature, DBusStr
+
+        @dbus_signal()
+        def string_signal(self, val: str) -> DBusStr:
+            return val
+
+        @dbus_signal()
+        def two_strings_signal(
+            self, val1: str, val2: str
+        ) -> Annotated[tuple[str, str], DBusSignature("ss")]:
+            return val1, val2
+
+    .. versionchanged:: v4.0.0
+        :class:`typing.Annotated` can now be used to provide type hints and the
+        D-Bus signature at the same time. Older versions require D-Bus signature
+        strings to be used.
 
     .. versionadded:: v2.46.0
         In older versions, this was named ``@signal``. The old name still exists.
@@ -269,7 +311,9 @@ class _Property(property):
         if len(inspection.parameters) != 1:
             raise ValueError('the property must only have the "self" input parameter')
 
-        return_annotation = parse_annotation(inspection.return_annotation)
+        module = inspect.getmodule(fn)
+
+        return_annotation = parse_annotation(inspection.return_annotation, module)
 
         if not return_annotation:
             raise ValueError(
@@ -342,6 +386,24 @@ def dbus_property(
         @string_prop.setter
         def string_prop(self, val: 's'):
             self._string_prop = val
+
+    If you use Python annotations for type hints, you can use :class:`typing.Annotated`
+    to specify the Python type and the D-Bus signature at the same time like this::
+
+        from dbus_fast.annotations import DBusStr
+
+        @dbus_property()
+        def string_prop(self) -> DBusStr:
+            return self._string_prop
+
+        @string_prop.setter
+        def string_prop(self, val: DBusStr):
+            self._string_prop = val
+
+    .. versionchanged:: v4.0.0
+        :class:`typing.Annotated` can now be used to provide type hints and the
+        D-Bus signature at the same time. Older versions require D-Bus signature
+        strings to be used.
     """
     if type(access) is not PropertyAccess:
         raise TypeError("access must be a PropertyAccess class")
@@ -369,11 +431,13 @@ def _real_fn_result_to_body(
         final_result = [result]
     else:
         result_type = type(result)
-        if result_type is not list and result_type is not tuple:
+        is_tuple = result_type is tuple
+        if not is_tuple and result_type is not list:
             raise SignatureBodyMismatchError(
-                "Expected signal to return a list or tuple of arguments"
+                "Expected method or signal handler to return a list or tuple of arguments"
             )
-        final_result = result
+        # Convert tuple to list for D-Bus Message compatibility (Cython requires list type)
+        final_result = list(result) if is_tuple else result
 
     if out_len != len(final_result):
         raise SignatureBodyMismatchError(

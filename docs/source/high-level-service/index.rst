@@ -38,7 +38,7 @@ method will be provided by the calling client and will conform to the
 parameter type annotations. The value returned by the class method will
 be returned to the client and must conform to the return type annotation
 specified by the user. If the return annotation specifies more than one
-type, the values must be returned in a ``list``. When
+type, the values must be returned in a ``tuple``. When
 :class:`aio.MessageBus` is used, methods can be coroutines.
 
 A class method decorated with ``@dbus_property()`` will be exposed as a
@@ -58,7 +58,7 @@ DBus signal. The value returned by the class method will be emitted as a
 signal and broadcast to clients who are listening to the signal. The
 returned value must conform to the return annotation of the class method
 as a DBus signature string. If the signal has more than one argument,
-they must be returned within a ``list``.
+they must be returned within a ``tuple``.
 
 A class method decorated with ``@dbus_method()`` or ``@dbus_property()``
 may throw a :class:`DBusError <dbus_fast.DBusError>` to return a
@@ -78,12 +78,20 @@ constructor to use unix file descriptors.
 
 .. code-block:: python3
 
+    from dbus_fast.annotations import (DBusSignature, DBusBool, DBusByte, DBusInt32,
+                                       DBusStr)
     from dbus_fast.aio import MessageBus
     from dbus_fast.service import (ServiceInterface,
                                    dbus_method, dbus_property, dbus_signal)
     from dbus_fast import Variant, DBusError
 
     import asyncio
+    from typing import Annotated
+
+    FrobateReturnDBusType = Annotated[dict[int, str], DBusSignature("a{us}")]
+    BazifyBarDBusType = Annotated[tuple[int, int, int], DBusSignature("(iiu)")]
+    BazifyReturnDBusType = Annotated[tuple[Variant, Variant], DBusSignature("vv")]
+    MorgifyBarDBusType = Annotated[tuple[int, int, list[Variant]], DBusSignature("(iiav)")]
 
     class ExampleInterface(ServiceInterface):
         def __init__(self):
@@ -91,7 +99,7 @@ constructor to use unix file descriptors.
             self._bar = 105
 
         @dbus_method()
-        def Frobate(self, foo: 'i', bar: 's') -> 'a{us}':
+        def Frobate(self, foo: DBusInt32, bar: DBusStr) -> FrobateReturnDBusType:
             print(f'called Frobate with foo={foo} and bar={bar}')
 
             return {
@@ -100,26 +108,26 @@ constructor to use unix file descriptors.
             }
 
         @dbus_method()
-        async def Bazify(self, bar: '(iiu)') -> 'vv':
+        async def Bazify(self, bar: BazifyBarDBusType) -> BazifyReturnDBusType:
             print(f'called Bazify with bar={bar}')
 
-            return [Variant('s', 'example'), Variant('s', 'bazify')]
+            return Variant('s', 'example'), Variant('s', 'bazify')
 
         @dbus_method()
-        def Mogrify(self, bar: '(iiav)'):
+        def Mogrify(self, bar: MorgifyBarDBusType):
             raise DBusError('com.example.error.CannotMogrify',
                             'it is not possible to mogrify')
 
         @dbus_signal()
-        def Changed(self) -> 'b':
+        def Changed(self) -> DBusBool:
             return True
 
         @dbus_property()
-        def Bar(self) -> 'y':
+        def Bar(self) -> DBusByte:
             return self._bar
 
         @Bar.setter
-        def Bar(self, val: 'y'):
+        def Bar(self, val: DBusByte):
             if self._bar == val:
                 return
 
