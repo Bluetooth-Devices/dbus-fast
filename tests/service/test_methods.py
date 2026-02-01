@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Annotated, no_type_check
+from typing import Annotated, Any, no_type_check
 
 import pytest
 
@@ -21,6 +21,19 @@ from dbus_fast.annotations import DBusDict, DBusSignature, DBusStr, DBusVariant
 from dbus_fast.service import ServiceInterface, dbus_method
 
 
+def deprecated_dbus_method():
+    inner_wrapper = dbus_method()
+
+    def outer_wrapper(*args: Any) -> Any:
+        with pytest.warns(
+            DeprecationWarning,
+            match=r"String annotations are deprecated.*Use typing\.Annotated.*instead.",
+        ):
+            return inner_wrapper(*args)
+
+    return outer_wrapper
+
+
 class ExampleInterface(ServiceInterface):
     def __init__(self, name: str) -> None:
         super().__init__(name)
@@ -32,7 +45,7 @@ class ExampleInterface(ServiceInterface):
 
     # This one intentionally keeps string-style annotations for coverage purposes.
     @no_type_check
-    @dbus_method()
+    @deprecated_dbus_method()
     def echo_multiple(self, what1: "s", what2: "s") -> "ss":  # noqa: UP037
         assert type(self) is ExampleInterface
         return what1, what2
