@@ -5,6 +5,7 @@ import inspect
 import re
 from collections.abc import Callable
 from typing import Annotated, Any, get_args, get_origin
+from warnings import warn
 
 from dbus_fast.annotations import DBusSignature
 
@@ -120,10 +121,18 @@ def parse_annotation(annotation: Any, module: Any) -> str:
         # a way to distinguish between a string constant and a forward reference
         # other than by heuristics.
 
+        # TODO: Change this to FutureWarning in 2027 and remove support for
+        # string annotations in 2029 (when # Python 3.13 reaches end-of-life).
+
         # If it looks like a dbus signature, return it directly. These are sorted
         # in the order of the "Summary of types" table in the D-Bus spec to make
         # verification easier.
         if re.match(r"^[ybnqiuxtdsoga\(\)v\{\}h]+$", annotation):
+            warn(
+                "String annotations are deprecated and support will be removed in the future. Use typing.Annotated with the appropriate annotation from dbus_fast.annotations instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
             return annotation
 
         # Otherwise, assume deferred evaluation of annotations.
@@ -132,7 +141,13 @@ def parse_annotation(annotation: Any, module: Any) -> str:
             # It could be a string literal, e.g "'s'", in which case this will
             # effectively strip the quotes. Other literals would pass here, but
             # they aren't expected, so we just let those fail later.
-            return ast.literal_eval(annotation)
+            literal = ast.literal_eval(annotation)
+            warn(
+                "String annotations are deprecated and support will be removed in the future. Use typing.Annotated with the appropriate annotation from dbus_fast.annotations instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return literal
         except ValueError:
             # Anything that isn't a Python literal will raise ValueError.
             pass

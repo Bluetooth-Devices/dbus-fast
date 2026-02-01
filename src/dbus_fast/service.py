@@ -108,20 +108,8 @@ def dbus_method(
     :param disabled: If set to true, the method will not be visible to clients.
     :type disabled: bool
 
-    :example:
-
-    ::
-
-        @dbus_method()
-        def echo(self, val: 's') -> 's':
-            return val
-
-        @dbus_method()
-        def echo_two(self, val1: 's', val2: 'u') -> 'su':
-            return val1, val2
-
-    If you use Python annotations for type hints, you can use :class:`typing.Annotated`
-    to specify the Python type and the D-Bus signature at the same time like this::
+    :class:`typing.Annotated` is used to specify the D-Bus signature along with
+    the Python type::
 
         from dbus_fast.annotations import DBusSignature, DBusStr, DBusUInt32
 
@@ -134,6 +122,23 @@ def dbus_method(
             self, val1: DBusStr, val2: DBusUInt32
         ) -> Annotated[tuple[str, int], DBusSignature("su")]:
             return val1, val2
+
+    Originally, D-Bus signature strings were used directly in the annotations::
+
+        @dbus_method()
+        def echo(self, val: 's') -> 's':
+            return val
+
+        @dbus_method()
+        def echo_two(self, val1: 's', val2: 'u') -> 'su':
+            return val1, val2
+
+    Such usage is now deprecated and support will be removed in the future.
+
+    .. versionchanged:: v4.1.0
+        String annotations are deprecated and will raise a warning. Use
+        :class:`typing.Annotated` with the appropriate annotation from
+        :mod:`dbus_fast.annotations` instead.
 
     .. versionchanged:: v4.0.0
         :class:`typing.Annotated` can now be used to provide type hints and the
@@ -375,20 +380,8 @@ def dbus_property(
         clients.
     :type disabled: bool
 
-    :example:
-
-    ::
-
-        @dbus_property()
-        def string_prop(self) -> 's':
-            return self._string_prop
-
-        @string_prop.setter
-        def string_prop(self, val: 's'):
-            self._string_prop = val
-
-    If you use Python annotations for type hints, you can use :class:`typing.Annotated`
-    to specify the Python type and the D-Bus signature at the same time like this::
+   :class:`typing.Annotated` is used to specify the Python type and the D-Bus
+    signature at the same time like this::
 
         from dbus_fast.annotations import DBusStr
 
@@ -399,6 +392,23 @@ def dbus_property(
         @string_prop.setter
         def string_prop(self, val: DBusStr):
             self._string_prop = val
+
+    Originally, D-Bus signature strings were used directly in the annotations::
+
+        @dbus_property()
+        def string_prop(self) -> 's':
+            return self._string_prop
+
+        @string_prop.setter
+        def string_prop(self, val: 's'):
+            self._string_prop = val
+
+    Such usage is now deprecated and support will be removed in the future.
+
+    .. versionchanged:: v4.1.0
+        String annotations are deprecated and will raise a warning. Use
+        :class:`typing.Annotated` with the appropriate annotation from
+        :mod:`dbus_fast.annotations` instead.
 
     .. versionchanged:: v4.0.0
         :class:`typing.Annotated` can now be used to provide type hints and the
