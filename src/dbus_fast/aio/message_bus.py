@@ -219,6 +219,18 @@ class MessageBus(BaseMessageBus):
         self._disconnect_future = self._loop.create_future()
         self._pending_futures: set[asyncio.Future] = set()
 
+    async def __aenter__(self) -> MessageBus:
+        try:
+            return await self.connect()
+        except BaseException:
+            self.disconnect()
+            await self.wait_for_disconnect()
+            raise
+
+    async def __aexit__(self, *args, **kwargs) -> None:
+        self.disconnect()
+        await self.wait_for_disconnect()
+
     async def connect(self) -> MessageBus:
         """Connect this message bus to the DBus daemon.
 
