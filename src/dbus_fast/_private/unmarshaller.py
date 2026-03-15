@@ -691,7 +691,7 @@ class Unmarshaller:
     def _header_fields(self, header_length: _int) -> list[Any]:
         """Header fields are always a(yv)."""
         beginning_pos = self._pos
-        headers = _EMPTY_HEADERS.copy()
+        headers = [None, None, None, None, None, None, None, None, None, None]
         if cython.compiled:
             if self._buf_len < self._pos + header_length:
                 raise IndexError("Not enough data to read header")
