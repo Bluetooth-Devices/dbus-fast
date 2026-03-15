@@ -18,6 +18,7 @@ from ..signature import SignatureType, Variant, get_signature_tree
 from .constants import BIG_ENDIAN, LITTLE_ENDIAN, PROTOCOL_VERSION
 
 MESSAGE_FLAG_INTENUM = MessageFlag
+_MESSAGE_TYPE_MAP_GET = MESSAGE_TYPE_MAP.__getitem__
 
 MAX_UNIX_FDS = 16
 MAX_UNIX_FDS_SIZE = array.array("i").itemsize
@@ -831,7 +832,7 @@ class Unmarshaller:
             header_fields[HEADER_PATH_IDX],
             header_fields[HEADER_INTERFACE_IDX],
             header_fields[HEADER_MEMBER_IDX],
-            MESSAGE_TYPE_MAP[self._message_type],
+            _MESSAGE_TYPE_MAP_GET(self._message_type),
             flags,
             header_fields[HEADER_ERROR_NAME_IDX],
             header_fields[HEADER_REPLY_SERIAL_IDX] or 0,
