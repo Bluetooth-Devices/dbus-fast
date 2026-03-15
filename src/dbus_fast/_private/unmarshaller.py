@@ -18,6 +18,7 @@ from ..signature import SignatureType, Variant, get_signature_tree
 from .constants import BIG_ENDIAN, LITTLE_ENDIAN, PROTOCOL_VERSION
 
 MESSAGE_FLAG_INTENUM = MessageFlag
+_MESSAGE_FLAG_MAP_GET = MESSAGE_FLAG_MAP.get
 
 MAX_UNIX_FDS = 16
 MAX_UNIX_FDS_SIZE = array.array("i").itemsize
@@ -822,7 +823,7 @@ class Unmarshaller:
                 tree = get_signature_tree(signature)
                 body = [self._readers[t.token](self, t) for t in tree.types]
 
-        flags = MESSAGE_FLAG_MAP.get(self._flag)
+        flags = _MESSAGE_FLAG_MAP_GET(self._flag)
         if flags is None:
             flags = MESSAGE_FLAG_INTENUM(self._flag)
         message = Message.__new__(Message)
