@@ -19,6 +19,8 @@ from .constants import BIG_ENDIAN, LITTLE_ENDIAN, PROTOCOL_VERSION
 
 MESSAGE_FLAG_INTENUM = MessageFlag
 
+_MESSAGE_TYPE_MAP_GET = MESSAGE_TYPE_MAP.__getitem__
+
 MAX_UNIX_FDS = 16
 MAX_UNIX_FDS_SIZE = array.array("i").itemsize
 UNIX_FDS_CMSG_LENGTH = socket.CMSG_LEN(MAX_UNIX_FDS_SIZE * MAX_UNIX_FDS)
@@ -267,6 +269,7 @@ class Unmarshaller:
 
     __slots__ = (
         "_body_len",
+        "_body_signature_first_byte_as_int",
         "_buf",
         "_buf_len",
         "_buf_ustr",
@@ -310,6 +313,7 @@ class Unmarshaller:
         self._readers: dict[str, READER_TYPE] = {}
         self._pos = 0
         self._body_len = 0
+        self._body_signature_first_byte_as_int = 0
         self._serial = 0
         self._header_len = 0
         self._message_type = 0
@@ -717,6 +721,12 @@ class Unmarshaller:
             if token_as_int == TOKEN_O_AS_INT or token_as_int == TOKEN_S_AS_INT:
                 headers[field_0] = self._read_string_unpack()
             elif token_as_int == TOKEN_G_AS_INT:
+                if field_0 == HEADER_SIGNATURE_IDX:
+                    self._body_signature_first_byte_as_int = (
+                        self._buf_ustr[self._pos + 1]
+                        if self._buf_ustr[self._pos] > 0
+                        else 0
+                    )
                 headers[field_0] = self._read_signature()
             else:
                 token = self._buf_ustr[o : o + signature_len].decode()
@@ -785,7 +795,7 @@ class Unmarshaller:
             tree = SIGNATURE_TREE_EMPTY
             body: list[Any] = []
         else:
-            token_as_int = ord(signature[0])
+            token_as_int = self._body_signature_first_byte_as_int
             if len(signature) == 1:
                 if token_as_int == TOKEN_O_AS_INT:
                     tree = SIGNATURE_TREE_O
@@ -831,7 +841,7 @@ class Unmarshaller:
             header_fields[HEADER_PATH_IDX],
             header_fields[HEADER_INTERFACE_IDX],
             header_fields[HEADER_MEMBER_IDX],
-            MESSAGE_TYPE_MAP[self._message_type],
+            _MESSAGE_TYPE_MAP_GET(self._message_type),
             flags,
             header_fields[HEADER_ERROR_NAME_IDX],
             header_fields[HEADER_REPLY_SERIAL_IDX] or 0,
