@@ -9,7 +9,7 @@ ci:
 
 repos:
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.12.1
+    rev: v4.13.9
     hooks:
       - id: commitizen
         stages: [commit-msg]
@@ -39,7 +39,7 @@ repos:
         args: [--py310-plus]
         exclude: tests/service/test_methods.py
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.14
+    rev: v0.15.8
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
