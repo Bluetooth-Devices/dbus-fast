@@ -540,15 +540,15 @@ class Unmarshaller:
         # .decode(), and ord() for the common single-byte case.
         # verify in Variant is only useful on construction not unmarshalling
         if cython.compiled:
-            if self._buf_len < self._pos:
+            if self._buf_len <= self._pos:
                 raise IndexError("Not enough data to read signature")
         signature_len = self._buf_ustr[self._pos]
         if signature_len == 1:
-            token_as_int = self._buf_ustr[self._pos + 1]
             self._pos += 3  # 1 len byte + 1 signature char + 1 null terminator
             if cython.compiled:
                 if self._buf_len < self._pos:
                     raise IndexError("Not enough data to read signature")
+            token_as_int = self._buf_ustr[self._pos - 2]
             if token_as_int == TOKEN_N_AS_INT:
                 return Variant._factory(SIGNATURE_TREE_N, self._read_int16_unpack())
             if token_as_int == TOKEN_S_AS_INT:
