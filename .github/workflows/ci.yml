@@ -103,10 +103,10 @@ jobs:
       - name: Install libs
         run: sudo apt-get update && sudo apt-get install -y dbus-daemon python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
       - uses: snok/install-poetry@76e04a911780d5b312d89783f7b1cd627778900a # v1.4.1
-      - name: Setup Python 3.13
+      - name: Setup Python 3.14
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v5
         with:
-          python-version: 3.13
+          python-version: 3.14
           cache: "poetry"
       - name: Install Dependencies
         run: |
