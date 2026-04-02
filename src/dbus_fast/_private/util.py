@@ -177,9 +177,9 @@ def _replace_fds(
                         body_obj[index][i] = replace_fn(child)
                     else:
                         _replace_fds([child], st.children, replace_fn)
-        elif st.token in "(":
+        elif st.token == "(":
             _replace_fds(body_obj[index], st.children, replace_fn)
-        elif st.token in "{":
+        elif st.token == "{":
             for key, value in list(body_obj.items()):  # type: ignore[union-attr]
                 body_obj.pop(key)
                 if st.children[0].signature == "h":

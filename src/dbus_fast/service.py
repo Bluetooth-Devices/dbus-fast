@@ -153,7 +153,7 @@ def dbus_method(
         def wrapped(*args: _P.args, **kwargs: _P.kwargs) -> None:
             fn(*args, **kwargs)
 
-        fn_name = name if name else fn.__name__
+        fn_name = name or fn.__name__
         wrapped.__dict__["__DBUS_METHOD"] = _Method(
             cast(_MethodCallbackProtocol, fn), fn_name, disabled=disabled
         )
@@ -261,7 +261,7 @@ def dbus_signal(
     def decorator(
         fn: Callable[Concatenate[_TInterface, _P], Any],
     ) -> Callable[Concatenate[_TInterface, _P], Any]:
-        fn_name = name if name else fn.__name__
+        fn_name = name or fn.__name__
         signal = _Signal(fn, fn_name, disabled)
 
         @wraps(fn)

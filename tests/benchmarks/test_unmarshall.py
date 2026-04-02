@@ -19,11 +19,13 @@ def test_unmarshall_bluez_rssi_message(benchmark: BenchmarkFixture) -> None:
     stream = io.BytesIO(bytes.fromhex(bluez_rssi_message))
 
     unmarshaller = Unmarshaller(stream)
+    unmarshall = unmarshaller.unmarshall
+    seek = stream.seek
 
     @benchmark
     def unmarhsall_bluez_rssi_message():
-        stream.seek(0)
-        unmarshaller.unmarshall()
+        seek(0)
+        unmarshall()
 
 
 bluez_properties_message = (
@@ -62,11 +64,13 @@ def test_unmarshall_bluez_properties_message(benchmark: BenchmarkFixture) -> Non
     stream = io.BytesIO(bluez_properties_message)
 
     unmarshaller = Unmarshaller(stream)
+    unmarshall = unmarshaller.unmarshall
+    seek = stream.seek
 
     @benchmark
     def unmarshall_bluez_properties_message():
-        stream.seek(0)
-        unmarshaller.unmarshall()
+        seek(0)
+        unmarshall()
 
 
 def test_unmarshall_multiple_bluez_properties_message(
@@ -75,12 +79,14 @@ def test_unmarshall_multiple_bluez_properties_message(
     stream = io.BytesIO(bluez_properties_message)
 
     unmarshaller = Unmarshaller(stream)
+    unmarshall = unmarshaller.unmarshall
+    seek = stream.seek
 
     @benchmark
     def unmarshall_bluez_properties_message():
-        stream.seek(0)
+        seek(0)
         for _ in range(9):
-            unmarshaller.unmarshall()
+            unmarshall()
 
 
 def test_unmarshall_multiple_bluez_properties_message_socket(
@@ -90,12 +96,14 @@ def test_unmarshall_multiple_bluez_properties_message_socket(
     sock1.setblocking(False)
     sock2.setblocking(False)
     unmarshaller = Unmarshaller(None, sock1, False)
+    unmarshall = unmarshaller.unmarshall
+    send = sock2.send
 
     @benchmark
     def unmarshall_bluez_properties_message():
-        sock2.send(bluez_properties_message)
+        send(bluez_properties_message)
         for _ in range(9):
-            unmarshaller.unmarshall()
+            unmarshall()
 
     sock1.close()
     sock2.close()
@@ -122,8 +130,10 @@ def test_unmarshall_bluez_interfaces_added_message(benchmark: BenchmarkFixture) 
     stream = io.BytesIO(bluez_interfaces_added_message)
 
     unmarshaller = Unmarshaller(stream)
+    unmarshall = unmarshaller.unmarshall
+    seek = stream.seek
 
     @benchmark
-    def unmarshall():
-        stream.seek(0)
-        unmarshaller.unmarshall()
+    def _unmarshall():
+        seek(0)
+        unmarshall()
