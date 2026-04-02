@@ -108,9 +108,10 @@ def test_unmarshall_multiple_bluez_properties_message_socket(
 
     @benchmark
     def _():
-        send(bluez_properties_message)
-        for _ in range(MESSAGES_PER_CHUNK):
-            unmarshall()
+        for _ in range(ITERATIONS):
+            send(bluez_properties_message)
+            for _ in range(MESSAGES_PER_CHUNK):
+                unmarshall()
 
     sock1.close()
     sock2.close()
