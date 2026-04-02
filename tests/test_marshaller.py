@@ -1,6 +1,7 @@
 import io
 import json
 import os
+import struct
 from enum import Enum
 from typing import Any
 
@@ -916,3 +917,60 @@ def test_marshalling_struct_accepts_lists():
     marshalled = msg._marshall(False)
     unmarshalled_msg = Unmarshaller(io.BytesIO(marshalled)).unmarshall()
     assert unpack_variants(unmarshalled_msg.body)[0] == (RaucState.GOOD.value,)
+
+
+def _build_variant_message(variant: Variant) -> bytearray:
+    """Build a minimal METHOD_RETURN message with a single variant body."""
+    msg = Message(
+        message_type=MessageType.METHOD_RETURN,
+        reply_serial=1,
+        signature="v",
+        body=[variant],
+    )
+    return bytearray(msg._marshall(False))
+
+
+def _truncate_body(data: bytearray, body_bytes: int) -> bytearray:
+    """Truncate a message to keep only the first body_bytes of body data.
+
+    Adjusts the body_len header field to match.
+    """
+    header_len = struct.unpack_from("<I", data, 12)[0]
+    pad = (-header_len) & 7
+    body_start = 16 + header_len + pad
+    trunc = bytearray(data[: body_start + body_bytes])
+    struct.pack_into("<I", trunc, 4, body_bytes)
+    return trunc
+
+
+@pytest.mark.skipif(not is_compiled(), reason="requires cython for bounds checks")
+def test_read_variant_truncated_signature() -> None:
+    """Truncating after the signature length byte should raise IndexError."""
+    full = _build_variant_message(Variant("n", -89))
+    # Body is: 01 6e 00 <padding> <int16>
+    # Keep only 1 byte of body (just the signature_len byte)
+    trunc = _truncate_body(full, 1)
+    with pytest.raises(IndexError):
+        Unmarshaller(io.BytesIO(bytes(trunc))).unmarshall()
+
+
+@pytest.mark.skipif(not is_compiled(), reason="requires cython for bounds checks")
+def test_read_variant_truncated_signature_no_null() -> None:
+    """Truncating after the signature char but before null should raise."""
+    full = _build_variant_message(Variant("n", -89))
+    # Body is: 01 6e 00 <padding> <int16>
+    # Keep only 2 bytes (signature_len + signature char, no null terminator)
+    trunc = _truncate_body(full, 2)
+    with pytest.raises(IndexError):
+        Unmarshaller(io.BytesIO(bytes(trunc))).unmarshall()
+
+
+@pytest.mark.skipif(not is_compiled(), reason="requires cython for bounds checks")
+def test_read_variant_truncated_byte_value() -> None:
+    """A byte variant truncated before its value should raise IndexError."""
+    full = _build_variant_message(Variant("y", 42))
+    # Body is: 01 79 00 2a (sig_len, 'y', null, value)
+    # Keep only 3 bytes (signature complete, but no value byte)
+    trunc = _truncate_body(full, 3)
+    with pytest.raises(IndexError):
+        Unmarshaller(io.BytesIO(bytes(trunc))).unmarshall()
