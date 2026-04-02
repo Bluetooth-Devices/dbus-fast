@@ -825,6 +825,7 @@ class Unmarshaller:
         flags = MESSAGE_FLAG_MAP.get(self._flag)
         if flags is None:
             flags = MESSAGE_FLAG_INTENUM(self._flag)
+        reply_serial = header_fields[HEADER_REPLY_SERIAL_IDX]
         message = Message.__new__(Message)
         message._fast_init(
             header_fields[HEADER_DESTINATION_IDX],
@@ -834,7 +835,7 @@ class Unmarshaller:
             MESSAGE_TYPE_MAP[self._message_type],
             flags,
             header_fields[HEADER_ERROR_NAME_IDX],
-            header_fields[HEADER_REPLY_SERIAL_IDX] or 0,
+            reply_serial if reply_serial is not None else 0,
             header_fields[HEADER_SENDER_IDX],
             self._unix_fds,
             tree,

@@ -243,7 +243,8 @@ cdef class Unmarshaller:
         token_as_int="unsigned int",
         signature=str,
         tree=SignatureTree,
-        message=Message
+        message=Message,
+        reply_serial=object,
     )
     cdef void _read_body(self) except *
 
