@@ -739,7 +739,7 @@ class Unmarshaller:
                 headers[field_0] = self._read_signature()
             elif token_as_int == TOKEN_U_AS_INT:
                 headers[field_0] = self._read_uint32_unpack()
-            else:
+            else:  # pragma: no cover
                 token = self._buf_ustr[o : o + signature_len].decode()
                 # There shouldn't be any other types in the header
                 # but just in case, we'll read it using the slow path
