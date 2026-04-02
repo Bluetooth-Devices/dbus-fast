@@ -560,10 +560,10 @@ class Unmarshaller:
             if token_as_int == TOKEN_U_AS_INT:
                 return Variant._factory(SIGNATURE_TREE_U, self._read_uint32_unpack())
             if token_as_int == TOKEN_Y_AS_INT:
+                self._pos += 1
                 if cython.compiled:
                     if self._buf_len < self._pos:
                         raise IndexError("Not enough data to read byte")
-                self._pos += 1
                 return Variant._factory(SIGNATURE_TREE_Y, self._buf_ustr[self._pos - 1])
             # Uncommon single-byte type, decode for fallback
             signature = chr(token_as_int)
