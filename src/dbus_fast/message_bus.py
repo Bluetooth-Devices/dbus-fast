@@ -118,6 +118,7 @@ class BaseMessageBus:
         "_path_exports",
         "_serial",
         "_sock",
+        "_sock_connect_address",
         "_stream",
         "_user_disconnect",
         "_user_message_handlers",
@@ -172,6 +173,7 @@ class BaseMessageBus:
         self._sock: socket.socket | None = None
         self._fd: int | None = None
         self._stream: io.BufferedRWPair | None = None
+        self._sock_connect_address: bytes | str | tuple[str, int] | None = None
 
         self._setup_socket()
 
@@ -681,8 +683,15 @@ class BaseMessageBus:
         return node
 
     def _setup_socket(self) -> None:
-        last_err: Exception | None = None
+        """Create and configure the socket without connecting.
 
+        This method creates the socket and prepares the connection address,
+        but does not perform the actual connection. Call _connect_socket()
+        to complete the connection synchronously, or use async socket connect
+        in async implementations.
+
+        Sets self._sock, self._stream, self._fd, and self._sock_connect_address.
+        """
         for transport, options in self._bus_address:
             filename: bytes | str | None = None
             ip_addr = ""
@@ -705,16 +714,13 @@ class BaseMessageBus:
                             "got unix transport with unknown path specifier"
                         )
 
-                    try:
-                        self._sock.connect(filename)
-                        self._sock.setblocking(False)
-                    except Exception as e:
-                        last_err = e
-                    else:
-                        stack.pop_all()  # responsibility to close sockets is deferred
-                        return
+                    # Store connect address for later; don't connect yet
+                    self._sock_connect_address: bytes | str | tuple[str, int] = filename
+                    self._sock.setblocking(False)
+                    stack.pop_all()  # responsibility to close sockets is deferred
+                    return
 
-                elif transport == "tcp":
+                if transport == "tcp":
                     self._sock = stack.enter_context(
                         socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     )
@@ -726,25 +732,31 @@ class BaseMessageBus:
                     if "port" in options:
                         ip_port = int(options["port"])
 
-                    try:
-                        self._sock.connect((ip_addr, ip_port))
-                        self._sock.setblocking(False)
-                    except Exception as e:
-                        last_err = e
-                    else:
-                        stack.pop_all()
-                        return
+                    # Store connect address for later; don't connect yet
+                    self._sock_connect_address = (ip_addr, ip_port)
+                    self._sock.setblocking(False)
+                    stack.pop_all()
+                    return
 
-                else:
-                    raise InvalidAddressError(
-                        f"got unknown address transport: {transport}"
-                    )
+                raise InvalidAddressError(f"got unknown address transport: {transport}")
 
-        if last_err is None:  # pragma: no branch
-            # Should not normally happen, but just in case
-            raise TypeError("empty list of bus addresses given")  # pragma: no cover
+        # Should not normally happen, but just in case
+        raise TypeError("empty list of bus addresses given")  # pragma: no cover
 
-        raise last_err
+    def _connect_socket(self) -> None:
+        """Perform the blocking socket connection.
+
+        This is used by synchronous implementations (like glib's connect_sync).
+        Async implementations should use their event loop's async socket connect
+        (e.g., loop.sock_connect) instead.
+
+        :raises: Connection errors from socket.connect()
+        """
+        self._sock.setblocking(True)
+        try:
+            self._sock.connect(self._sock_connect_address)
+        finally:
+            self._sock.setblocking(False)
 
     def _reply_notify(
         self,

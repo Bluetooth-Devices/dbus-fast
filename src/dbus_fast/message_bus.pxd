@@ -42,6 +42,7 @@ cdef class BaseMessageBus:
     cdef public object _machine_id
     cdef public bint _negotiate_unix_fd
     cdef public object _sock
+    cdef public object _sock_connect_address
     cdef public object _stream
     cdef public object _fd
 
@@ -61,6 +62,8 @@ cdef class BaseMessageBus:
     cdef _find_any_message_handler_matching_signature(self, dict interfaces, Message msg)
 
     cdef _setup_socket(self)
+
+    cdef _connect_socket(self)
 
     cpdef _call(self, Message msg, object callback)
 
