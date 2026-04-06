@@ -74,3 +74,14 @@ async def test_unexpected_disconnect():
     bus.disconnect()
     with pytest.raises(OSError):
         await asyncio.wait_for(bus.wait_for_disconnect(), timeout=1)
+
+
+@pytest.mark.asyncio
+async def test_context_manager():
+    bus = MessageBus()
+
+    assert not bus.connected
+    async with bus:
+        assert bus.connected
+
+    assert not bus.connected
