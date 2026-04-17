@@ -178,3 +178,14 @@ def test_sending_signals_between_buses():
 
     bus1.disconnect()
     bus2.disconnect()
+
+
+@pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
+def test_context_manager():
+    bus = MessageBus()
+
+    assert not bus.connected
+    with bus:
+        assert bus.connected
+
+    assert not bus.connected
