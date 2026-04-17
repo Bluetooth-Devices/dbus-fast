@@ -195,6 +195,11 @@ class MessageBus(BaseMessageBus):
     :ivar connected: True if this message bus is expected to be able to send
         and receive messages.
     :vartype connected: bool
+
+    .. versionchanged:: 5.0.0
+        The socket is no longer connected in the constructor. Connection
+        errors that were previously raised from ``MessageBus()`` are now
+        raised from :func:`connect() <dbus_fast.aio.MessageBus.connect>`.
     """
 
     __slots__ = ("_auth", "_disconnect_future", "_loop", "_pending_futures", "_writer")
@@ -230,8 +235,50 @@ class MessageBus(BaseMessageBus):
         :raises:
             - :class:`AuthError <dbus_fast.AuthError>` - If authorization to \
               the DBus daemon failed.
-            - :class:`Exception` - If there was a connection error.
+            - :class:`OSError` - If the socket could not be connected (e.g. \
+              :class:`ConnectionRefusedError`, :class:`FileNotFoundError`). \
+              When multiple transports are given, the error from the last \
+              attempted transport is raised.
+            - :class:`InvalidAddressError \
+              <dbus_fast.InvalidAddressError>` - If the bus address contains \
+              an unknown transport.
+            - :class:`Exception` - If there was any other connection error.
+
+        .. versionchanged:: 5.0.0
+            Socket creation and connection are now performed here rather than
+            in the constructor. Connection errors that were previously raised
+            from ``MessageBus()`` are now raised from this method. This avoids
+            performing blocking I/O on the event loop during ``__init__``.
         """
+        last_err: Exception | None = None
+
+        for transport, options in self._bus_address:
+            sock, stream, address = self._create_socket_for_transport(
+                transport, options
+            )
+            sock.setblocking(False)
+            try:
+                await self._loop.sock_connect(sock, address)
+            except Exception as e:
+                stream.close()
+                sock.close()
+                last_err = e
+                continue
+
+            self._sock = sock
+            self._stream = stream
+            self._fd = sock.fileno()
+            self._writer.sock = sock
+            self._writer.fd = self._fd
+            break
+        else:
+            if last_err is None:  # pragma: no branch
+                # Should not normally happen, but just in case
+                raise TypeError(  # pragma: no cover
+                    "empty list of bus addresses given"
+                )
+            raise last_err
+
         await self._authenticate()
 
         future = self._loop.create_future()

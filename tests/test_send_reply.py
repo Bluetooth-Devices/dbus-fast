@@ -1,6 +1,5 @@
 import os
 from collections.abc import Generator
-from unittest.mock import patch
 
 import pytest
 
@@ -32,18 +31,18 @@ def test_send_reply_exception() -> None:
             pass
 
     class MockBus(BaseMessageBus):
+        def __init__(self) -> None:
+            super().__init__()
+            self._sock = MockClosable()  # type: ignore
+            self._stream = MockClosable()  # type: ignore
+
         def send(self, msg: Message) -> None:
             messages.append(msg)
 
         def send_message(self, msg: Message) -> None:
             messages.append(msg)
 
-        def _setup_socket(self) -> None:
-            self._sock = MockClosable()  # type: ignore
-            self._stream = MockClosable()  # type: ignore
-
-    with patch("socket.socket.connect"):
-        mock_message_bus = MockBus()
+    mock_message_bus = MockBus()
     mock_message = Message(
         path="/test/path", interface="test.interface", member="test_member", serial=1
     )
@@ -71,18 +70,18 @@ def test_send_reply_happy_path() -> None:
             pass
 
     class MockBus(BaseMessageBus):
+        def __init__(self) -> None:
+            super().__init__()
+            self._sock = MockClosable()  # type: ignore
+            self._stream = MockClosable()  # type: ignore
+
         def send(self, msg: Message) -> None:
             messages.append(msg)
 
         def send_message(self, msg: Message) -> None:
             messages.append(msg)
 
-        def _setup_socket(self) -> None:
-            self._sock = MockClosable()  # type: ignore
-            self._stream = MockClosable()  # type: ignore
-
-    with patch("socket.socket.connect"):
-        mock_message_bus = MockBus()
+    mock_message_bus = MockBus()
     mock_message = Message(
         path="/test/path", interface="test.interface", member="test_member", serial=1
     )

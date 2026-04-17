@@ -169,6 +169,7 @@ class MessageBus(BaseMessageBus):
             raise _import_error
 
         super().__init__(bus_address, bus_type, ProxyObject)
+        self._setup_socket()
         self._main_context = GLib.main_context_default()
         # buffer messages until connect
         self._buffered_messages = []
