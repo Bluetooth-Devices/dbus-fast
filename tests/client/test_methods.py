@@ -7,7 +7,7 @@ import logging
 import sys
 from logging.handlers import QueueHandler
 from queue import SimpleQueue
-from typing import Annotated, no_type_check
+from typing import Annotated, Any, no_type_check
 
 import pytest
 
@@ -20,6 +20,19 @@ from dbus_fast.signature import Variant
 from tests.util import check_gi_repository, skip_reason_no_gi
 
 has_gi = check_gi_repository()
+
+
+def deprecated_dbus_method():
+    inner_wrapper = dbus_method()
+
+    def outer_wrapper(*args: Any) -> Any:
+        with pytest.warns(
+            DeprecationWarning,
+            match=r"String annotations are deprecated.*Use typing\.Annotated.*instead.",
+        ):
+            return inner_wrapper(*args)
+
+    return outer_wrapper
 
 
 class ExampleInterface(ServiceInterface):
@@ -36,7 +49,7 @@ class ExampleInterface(ServiceInterface):
 
     # This one intentionally keeps string-style annotations for coverage purposes.
     @no_type_check
-    @dbus_method()
+    @deprecated_dbus_method()
     def EchoString(self, what: "s") -> "s":
         return what
 
