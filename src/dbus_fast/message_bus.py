@@ -689,31 +689,31 @@ class BaseMessageBus:
         :raises InvalidAddressError: if the transport is unknown or malformed.
         """
         if transport == "unix":
+            if "path" in options:
+                address: bytes | str | tuple[str, int] = options["path"]
+            elif "abstract" in options:
+                address = b"\0" + options["abstract"].encode()
+            else:
+                raise InvalidAddressError(
+                    "got unix transport with unknown path specifier"
+                )
             sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             try:
                 stream = sock.makefile("rwb")
-                if "path" in options:
-                    address: bytes | str | tuple[str, int] = options["path"]
-                elif "abstract" in options:
-                    address = b"\0" + options["abstract"].encode()
-                else:
-                    raise InvalidAddressError(
-                        "got unix transport with unknown path specifier"
-                    )
             except BaseException:
                 sock.close()
                 raise
             return sock, stream, address
 
         if transport == "tcp":
+            ip_addr = options.get("host", "")
+            ip_port = int(options["port"]) if "port" in options else 0
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
                 stream = sock.makefile("rwb")
             except BaseException:
                 sock.close()
                 raise
-            ip_addr = options.get("host", "")
-            ip_port = int(options["port"]) if "port" in options else 0
             return sock, stream, (ip_addr, ip_port)
 
         raise InvalidAddressError(f"got unknown address transport: {transport}")
