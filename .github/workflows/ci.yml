@@ -197,7 +197,7 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@8d2b08b68458a16aeb24b64e68a09ab1c8e82084 # v3.4.1
         env:
-          CIBW_SKIP: "*p36-* *p37-* *p38-* ${{ matrix.musl == 'musllinux' && '*manylinux*' || '*musllinux*' }}"
+          CIBW_SKIP: "*p38-* ${{ matrix.musl == 'musllinux' && '*manylinux*' || '*musllinux*' }}"
           CIBW_BEFORE_ALL_LINUX: apt-get install -y gcc || yum install -y gcc || apk add gcc
           CIBW_BUILD_VERBOSITY: 3
           REQUIRE_CYTHON: 1
