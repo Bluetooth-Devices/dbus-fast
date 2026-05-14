@@ -8,15 +8,15 @@ class DBusFastError(Exception):
     """
 
 
-class SignatureBodyMismatchError(DBusFastError, ValueError):
+class SignatureBodyMismatchError(ValueError, DBusFastError):
     pass
 
 
-class InvalidSignatureError(DBusFastError, ValueError):
+class InvalidSignatureError(ValueError, DBusFastError):
     pass
 
 
-class InvalidAddressError(DBusFastError, ValueError):
+class InvalidAddressError(ValueError, DBusFastError):
     pass
 
 
@@ -24,11 +24,11 @@ class AuthError(DBusFastError):
     pass
 
 
-class InvalidMessageError(DBusFastError, ValueError):
+class InvalidMessageError(ValueError, DBusFastError):
     pass
 
 
-class InvalidIntrospectionError(DBusFastError, ValueError):
+class InvalidIntrospectionError(ValueError, DBusFastError):
     pass
 
 
@@ -40,22 +40,22 @@ class SignalDisabledError(DBusFastError):
     pass
 
 
-class InvalidBusNameError(DBusFastError, TypeError):
+class InvalidBusNameError(TypeError, DBusFastError):
     def __init__(self, name: str) -> None:
         super().__init__(f"invalid bus name: {name}")
 
 
-class InvalidObjectPathError(DBusFastError, TypeError):
+class InvalidObjectPathError(TypeError, DBusFastError):
     def __init__(self, path: str) -> None:
         super().__init__(f"invalid object path: {path}")
 
 
-class InvalidInterfaceNameError(DBusFastError, TypeError):
+class InvalidInterfaceNameError(TypeError, DBusFastError):
     def __init__(self, name: str) -> None:
         super().__init__(f"invalid interface name: {name}")
 
 
-class InvalidMemberNameError(DBusFastError, TypeError):
+class InvalidMemberNameError(TypeError, DBusFastError):
     def __init__(self, member: str) -> None:
         super().__init__(f"invalid member name: {member}")
 

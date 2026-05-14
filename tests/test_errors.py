@@ -77,6 +77,29 @@ def test_type_error_subclasses_preserved(err_cls: type[BaseException]) -> None:
     assert issubclass(err_cls, TypeError)
 
 
+def test_value_error_subclass_mro_order() -> None:
+    """Built-in ``ValueError`` must precede ``DBusFastError`` in the MRO.
+
+    This ordering ensures ``super().__init__`` routes through
+    ``ValueError.__init__`` rather than skipping straight to
+    ``Exception.__init__``, preserving the behavior of the historical
+    single-inheritance ``ValueError`` subclasses.
+    """
+    mro = InvalidSignatureError.__mro__
+    assert mro.index(ValueError) < mro.index(DBusFastError)
+
+
+def test_type_error_subclass_mro_order() -> None:
+    """Built-in ``TypeError`` must precede ``DBusFastError`` in the MRO.
+
+    Same rationale as the ``ValueError`` MRO test: keeps ``super().__init__``
+    routing through ``TypeError.__init__`` to match the original
+    single-inheritance ``TypeError`` subclasses.
+    """
+    mro = InvalidBusNameError.__mro__
+    assert mro.index(TypeError) < mro.index(DBusFastError)
+
+
 def test_dbus_fast_error_catches_value_error_subclass() -> None:
     with pytest.raises(DBusFastError):
         raise SignatureBodyMismatchError("body mismatch")
