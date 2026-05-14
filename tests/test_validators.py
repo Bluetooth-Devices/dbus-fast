@@ -101,18 +101,18 @@ def test_member_name_validator():
         )
 
 
-def test_bus_name_requires_dot():
+def test_bus_name_requires_dot() -> None:
     """A single-element well-known bus name (no '.') is invalid."""
     assert not is_bus_name_valid("foo")
 
 
-def test_unique_bus_name_is_valid():
+def test_unique_bus_name_is_valid() -> None:
     """Unique bus names start with ':' and bypass element validation."""
     assert is_bus_name_valid(":1.42")
     assert is_bus_name_valid(":1.0")
 
 
-def test_bus_name_max_length():
+def test_bus_name_max_length() -> None:
     """Bus names must not exceed 255 characters."""
     name_255 = "a." + "b" * 253
     name_256 = "a." + "b" * 254
@@ -122,7 +122,7 @@ def test_bus_name_max_length():
     assert not is_bus_name_valid(name_256)
 
 
-def test_interface_name_max_length():
+def test_interface_name_max_length() -> None:
     """Interface names must not exceed 255 characters."""
     name_255 = "a." + "b" * 253
     name_256 = "a." + "b" * 254
@@ -130,12 +130,12 @@ def test_interface_name_max_length():
     assert not is_interface_name_valid(name_256)
 
 
-def test_interface_name_requires_dot():
+def test_interface_name_requires_dot() -> None:
     """A single-element name without '.' is not a valid interface name."""
     assert not is_interface_name_valid("foo")
 
 
-def test_member_name_max_length():
+def test_member_name_max_length() -> None:
     """Member names must not exceed 255 characters."""
     member_255 = "a" * 255
     member_256 = "a" * 256
@@ -143,7 +143,7 @@ def test_member_name_max_length():
     assert not is_member_name_valid(member_256)
 
 
-def test_assert_bus_name_valid():
+def test_assert_bus_name_valid() -> None:
     """assert_bus_name_valid returns None for valid names, raises for invalid."""
     assert assert_bus_name_valid("foo.bar") is None
     assert assert_bus_name_valid(":1.42") is None
@@ -153,7 +153,7 @@ def test_assert_bus_name_valid():
         assert_bus_name_valid(".foo")
 
 
-def test_assert_object_path_valid():
+def test_assert_object_path_valid() -> None:
     """assert_object_path_valid returns None for valid paths, raises for invalid."""
     assert assert_object_path_valid("/") is None
     assert assert_object_path_valid("/foo/bar") is None
@@ -163,7 +163,7 @@ def test_assert_object_path_valid():
         assert_object_path_valid("/foo/bar/")
 
 
-def test_assert_interface_name_valid():
+def test_assert_interface_name_valid() -> None:
     """assert_interface_name_valid returns None for valid names, raises for invalid."""
     assert assert_interface_name_valid("foo.bar") is None
     with pytest.raises(InvalidInterfaceNameError):
@@ -172,7 +172,7 @@ def test_assert_interface_name_valid():
         assert_interface_name_valid("5foo.bar")
 
 
-def test_assert_member_name_valid():
+def test_assert_member_name_valid() -> None:
     """assert_member_name_valid returns None for valid names, raises for invalid."""
     assert assert_member_name_valid("Foo") is None
     assert assert_member_name_valid("foo-bar") is None
