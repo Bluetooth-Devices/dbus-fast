@@ -25,7 +25,7 @@ from .constants import (
     ReleaseNameReply,
     RequestNameReply,
 )
-from .errors import DBusError, InvalidAddressError
+from .errors import DBusError, InternalError, InvalidAddressError
 from .message import Message
 from .proxy_object import BaseProxyObject
 from .send_reply import SendReply
@@ -513,7 +513,7 @@ class BaseMessageBus:
             - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the introspection data for the node is not valid.
         """
         if self._ProxyObject is None:
-            raise Exception(
+            raise InternalError(
                 "the message bus implementation did not provide a proxy object class"
             )
 
@@ -636,7 +636,7 @@ class BaseMessageBus:
                     path = p
 
         if path is None:
-            raise Exception(
+            raise InternalError(
                 "Could not find interface on bus (this is a bug in dbus-fast)"
             )
 

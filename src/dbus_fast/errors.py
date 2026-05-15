@@ -24,6 +24,17 @@ class AuthError(DBusFastError):
     pass
 
 
+class InternalError(RuntimeError, DBusFastError):
+    """Indicates a bug inside dbus-fast itself.
+
+    Raised when the library reaches a state it considers unreachable
+    (e.g. an unknown enum branch or a missing internal handler). Inherits
+    from :class:`RuntimeError` so existing ``except RuntimeError`` /
+    ``except Exception`` handlers keep working, and from
+    :class:`DBusFastError` so it is catchable through the common base.
+    """
+
+
 class InvalidMessageError(ValueError, DBusFastError):
     pass
 
