@@ -13,6 +13,7 @@ from .constants import (
 from .errors import (
     AuthError,
     DBusError,
+    DBusFastError,
     InterfaceNotFoundError,
     InvalidAddressError,
     InvalidBusNameError,
@@ -44,6 +45,7 @@ __all__ = [
     "AuthError",
     "BusType",
     "DBusError",
+    "DBusFastError",
     "ErrorType",
     "InterfaceNotFoundError",
     "InvalidAddressError",

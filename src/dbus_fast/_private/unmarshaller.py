@@ -301,7 +301,7 @@ class Unmarshaller:
         negotiate_unix_fd: bool = True,
     ) -> None:
         self._unix_fds: list[int] = []
-        self._buf: bytearray = bytearray.__new__(bytearray)  # Actual buffer
+        self._buf: bytearray = bytearray()  # Actual buffer
         self._buf_ustr = self._buf  # Used to avoid type checks
         self._buf_len = 0
         self._stream = stream
