@@ -32,6 +32,7 @@ if TYPE_CHECKING:
     from .message_bus import BaseMessageBus
 
 str_ = str
+bool_ = bool
 
 HandlerType = Callable[[Message, SendReply], None]
 
@@ -543,12 +544,12 @@ class ServiceInterface:
 
     def add_property(
         self,
-        name: str,
-        signature: str,
+        name: str_,
+        signature: str_,
         getter: Callable[[Any], Any] | None = None,
         setter: Callable[[Any, Any], None] | None = None,
         access: PropertyAccess | None = None,
-        disabled: bool = False,
+        disabled: bool_ = False,
     ) -> None:
         """Add a D-Bus property to this interface at runtime.
 
