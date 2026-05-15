@@ -9,17 +9,25 @@ from .validators import assert_interface_name_valid, assert_member_name_valid
 # https://dbus.freedesktop.org/doc/dbus-specification.html#introspection-format
 
 
-def _reject_entity_decl(*_args: object) -> None:
-    # The standard D-Bus introspection DOCTYPE has no internal subset, so any
-    # entity declaration in an Introspect reply is either the billion-laughs /
-    # quadratic-blowup DoS vector or an XXE attempt from a hostile peer.
-    raise InvalidIntrospectionError(
-        "entity declarations are not allowed in introspection XML"
-    )
+def _reject_internal_subset(
+    _name: str,
+    _sysid: str | None,
+    _pubid: str | None,
+    has_internal_subset: bool,
+) -> None:
+    # The standard D-Bus introspection DOCTYPE is PUBLIC-only with no
+    # internal subset. Any `[ ... ]` block in the DOCTYPE is therefore
+    # either the billion-laughs / quadratic-blowup ENTITY vector, an
+    # ATTLIST default-value amplification, or an XXE attempt from a
+    # hostile peer — reject the whole subset as a single boundary.
+    if has_internal_subset:
+        raise InvalidIntrospectionError(
+            "internal DTD subsets are not allowed in introspection XML"
+        )
 
 
 def _parse_introspection_xml(data: str) -> ET.Element:
-    """Parse introspection XML with the billion-laughs entity vector closed."""
+    """Parse introspection XML with the DTD-based amplification vectors closed."""
     # namespace_separator="}" mirrors ElementTree's expat config so a
     # namespaced root (`<node xmlns="urn:x">`) still surfaces with a
     # non-"node" tag and gets rejected by the root-element check below
@@ -29,7 +37,7 @@ def _parse_introspection_xml(data: str) -> ET.Element:
     parser.StartElementHandler = builder.start
     parser.EndElementHandler = builder.end
     parser.CharacterDataHandler = builder.data
-    parser.EntityDeclHandler = _reject_entity_decl
+    parser.StartDoctypeDeclHandler = _reject_internal_subset
     # Defense-in-depth: refuse to expand parameter entities, which is the
     # path expat would otherwise take to fetch external DTDs.
     parser.SetParamEntityParsing(_expat.XML_PARAM_ENTITY_PARSING_NEVER)

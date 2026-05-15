@@ -162,7 +162,7 @@ def test_introspection_rejects_billion_laughs() -> None:
         "]>"
         "<node>&c;</node>"
     )
-    with pytest.raises(InvalidIntrospectionError, match="entity"):
+    with pytest.raises(InvalidIntrospectionError, match="internal DTD"):
         intr.Node.parse(payload)
 
 
@@ -175,7 +175,7 @@ def test_introspection_rejects_quadratic_blowup() -> None:
         "]>"
         "<node>" + ("&pad;" * 64) + "</node>"
     )
-    with pytest.raises(InvalidIntrospectionError, match="entity"):
+    with pytest.raises(InvalidIntrospectionError, match="internal DTD"):
         intr.Node.parse(payload)
 
 
@@ -188,7 +188,20 @@ def test_introspection_rejects_xxe_external_entity() -> None:
         "]>"
         "<node>&xxe;</node>"
     )
-    with pytest.raises(InvalidIntrospectionError, match="entity"):
+    with pytest.raises(InvalidIntrospectionError, match="internal DTD"):
+        intr.Node.parse(payload)
+
+
+def test_introspection_rejects_attlist_amplification() -> None:
+    """ATTLIST default-value declarations are rejected (amplification vector)."""
+    payload = (
+        '<?xml version="1.0"?>'
+        "<!DOCTYPE node ["
+        '<!ATTLIST node bogus CDATA "' + ("A" * 1024) + '">'
+        "]>"
+        "<node/>"
+    )
+    with pytest.raises(InvalidIntrospectionError, match="internal DTD"):
         intr.Node.parse(payload)
 
 
