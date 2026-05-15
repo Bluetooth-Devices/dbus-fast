@@ -85,7 +85,14 @@ def test_send_reply_generic_exception(
     assert messages[0].message_type == MessageType.ERROR
     assert messages[0].error_name == ErrorType.SERVICE_ERROR.value
     assert messages[0].reply_serial == 1
-    assert "boom" in messages[0].body[0]
+    # The wire body must disclose only the exception class name — never the
+    # str() of the exception (might contain caller data) and never a Python
+    # traceback (paths, line numbers, locals).
+    body = messages[0].body[0]
+    assert "boom" not in body, body
+    assert "Traceback" not in body, body
+    assert 'File "' not in body, body
+    assert "RuntimeError" in body, body
 
 
 def test_send_reply_send_error(
