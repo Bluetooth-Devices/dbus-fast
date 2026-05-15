@@ -71,6 +71,16 @@ HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION = 12
 # attacker-controlled header_len / body_len fields before any allocation or
 # socket read sized by them, so a forged header can't push the process into
 # an OOM. https://dbus.freedesktop.org/doc/dbus-specification.html
+#
+# The check in _read_header bounds header_len and body_len independently
+# (each <= 128 MiB, sum <= 128 MiB). The actual on-wire read in _read_body
+# is HEADER_SIGNATURE_SIZE + _msg_len, where _msg_len adds up to 7 bytes of
+# header-to-body alignment padding — so the worst-case read is the cap plus
+# HEADER_SIGNATURE_SIZE (16) + 7 = 23 bytes of slack. That's deliberate: the
+# DoS vector is "buffer gigabytes from a forged header", and 23 bytes over
+# the spec ceiling doesn't change that. Keeping the check on the raw fields
+# is simpler than computing the padded total here.
+#
 # MAX_MESSAGE_SIZE is the Python-importable form (used by tests);
 # _MAX_MESSAGE_SIZE is the cdef unsigned int form used internally per .pxd.
 MAX_MESSAGE_SIZE = 134_217_728
