@@ -68,6 +68,14 @@ After the service interface is defined, call :func:`MessageBus.export()
 <dbus_fast.message_bus.BaseMessageBus.export>` on a connected message
 bus and the service will be made available on the given object path.
 
+If the set of properties is not known at class definition time, call
+:func:`ServiceInterface.add_property()
+<dbus_fast.service.ServiceInterface.add_property>` to register a property
+at runtime by passing plain getter and setter callables. Dynamic
+properties appear in introspection results and respond to
+``org.freedesktop.DBus.Properties`` requests just like decorator-based
+properties.
+
 If any file descriptors are sent or received (DBus type ``h``), the
 variable refers to the file descriptor itself. You are responsible for
 closing any file descriptors sent or received by the bus. You must set

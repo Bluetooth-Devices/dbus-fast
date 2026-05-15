@@ -26,6 +26,7 @@ from .signature import (
     Variant,
     get_signature_tree,
 )
+from .validators import assert_member_name_valid
 
 if TYPE_CHECKING:
     from .message_bus import BaseMessageBus
@@ -344,6 +345,35 @@ class _Property(property):
         result.set_options(self.options)
         return result
 
+    @classmethod
+    def _make_dynamic(
+        cls,
+        name: str,
+        signature: str,
+        tree: SignatureTree,
+        getter: Callable[..., Any] | None,
+        setter: Callable[..., Any] | None,
+        access: PropertyAccess,
+        disabled: bool,
+    ) -> _Property:
+        prop = cls.__new__(cls)
+        # Initialize the underlying ``property`` descriptor with the raw
+        # callables so async-getter detection and Python's descriptor
+        # protocol both keep working.
+        property.__init__(prop, getter, setter)
+        prop.prop_getter = getter  # type: ignore[assignment]
+        prop.prop_setter = setter
+        prop.signature = signature
+        prop.type = tree.types[0]
+        prop.name = name
+        prop.access = access
+        prop.disabled = disabled
+        prop.options = {"name": name, "access": access, "disabled": disabled}
+        prop.introspection = intr.Property(name, signature, access)
+        prop.__dict__["__DBUS_PROPERTY"] = True
+        prop.__dict__["_dynamic"] = True
+        return prop
+
 
 def dbus_property(
     access: PropertyAccess = PropertyAccess.READWRITE,
@@ -510,6 +540,101 @@ class ServiceInterface:
                 raise ValueError(
                     f'property "{prop.name}" is writable but does not have a setter'
                 )
+
+    def add_property(
+        self,
+        name: str,
+        signature: str,
+        getter: Callable[[Any], Any] | None = None,
+        setter: Callable[[Any, Any], None] | None = None,
+        access: PropertyAccess | None = None,
+        disabled: bool = False,
+    ) -> None:
+        """Add a D-Bus property to this interface at runtime.
+
+        Use this when the set of properties is not known at class definition
+        time and cannot be expressed with the :func:`@dbus_property
+        <dbus_fast.service.dbus_property>` decorator. The property is exposed
+        on subsequent introspection results and via the standard
+        ``org.freedesktop.DBus.Properties`` interface for any bus the
+        interface is (or later becomes) exported on.
+
+        :param name: The D-Bus property name. Must be a valid member name.
+        :param signature: A D-Bus signature string for a single complete type.
+        :param getter: Callable ``(interface) -> value``. Required when the
+            property is readable. May be an ``async def``.
+        :param setter: Callable ``(interface, value) -> None``. Required when
+            the property is writable. May be an ``async def``.
+        :param access: Access mode. When omitted, it is inferred from the
+            getter/setter presence: ``READWRITE`` if both are given, ``READ``
+            if only ``getter`` is given, ``WRITE`` if only ``setter`` is given.
+        :param disabled: If ``True``, the property is hidden from
+            introspection and from ``Properties.GetAll``.
+
+        :raises TypeError: if the argument types are wrong.
+        :raises ValueError: if the property name is already in use, the
+            signature is not a single complete type, or the access mode is
+            inconsistent with the supplied callables.
+
+        :example:
+
+        ::
+
+            iface = ServiceInterface("com.example.Dyn")
+            store = {"flag": True}
+
+            iface.add_property(
+                "Flag", "b",
+                getter=lambda self: store["flag"],
+                setter=lambda self, value: store.__setitem__("flag", value),
+            )
+
+        .. versionadded:: v4.2.0
+        """
+        if type(name) is not str_:
+            raise TypeError("name must be a string")
+        if type(signature) is not str_:
+            raise TypeError("signature must be a string")
+        if type(disabled) is not bool:
+            raise TypeError("disabled must be a bool")
+        if access is not None and type(access) is not PropertyAccess:
+            raise TypeError("access must be a PropertyAccess class")
+        if getter is None and setter is None:
+            raise ValueError("at least one of getter or setter must be provided")
+        if getter is not None and not callable(getter):
+            raise TypeError("getter must be callable")
+        if setter is not None and not callable(setter):
+            raise TypeError("setter must be callable")
+
+        assert_member_name_valid(name)
+
+        tree = get_signature_tree(signature)
+        if len(tree.types) != 1:
+            raise ValueError("the property signature must be a single complete type")
+
+        if access is None:
+            if getter is not None and setter is not None:
+                access = PropertyAccess.READWRITE
+            elif getter is not None:
+                access = PropertyAccess.READ
+            else:
+                access = PropertyAccess.WRITE
+
+        if access.readable() and getter is None:
+            raise ValueError("a readable property requires a getter")
+        if access.writable() and setter is None:
+            raise ValueError("a writable property requires a setter")
+
+        for existing in self.__properties:
+            if existing.name == name:
+                raise ValueError(
+                    f'property "{name}" is already defined on this interface'
+                )
+
+        prop = _Property._make_dynamic(
+            name, signature, tree, getter, setter, access, disabled
+        )
+        self.__properties.append(prop)
 
     def emit_properties_changed(
         self, changed_properties: dict[str, Any], invalidated_properties: list[str] = []
@@ -706,9 +831,11 @@ class ServiceInterface:
                 _background_tasks.add(task)
                 return
 
-            callback(
-                interface, prop, getattr(interface, prop.prop_getter.__name__), None
-            )
+            if prop.__dict__.get("_dynamic"):
+                value = prop.prop_getter(interface)
+            else:
+                value = getattr(interface, prop.prop_getter.__name__)
+            callback(interface, prop, value, None)
         except Exception as e:
             callback(interface, prop, None, e)
 
@@ -740,7 +867,10 @@ class ServiceInterface:
                 _background_tasks.add(task)
                 return
 
-            setattr(interface, prop.prop_setter.__name__, value)
+            if prop.__dict__.get("_dynamic"):
+                prop.prop_setter(interface, value)
+            else:
+                setattr(interface, prop.prop_setter.__name__, value)
             callback(interface, prop, None)
         except Exception as e:
             callback(interface, prop, e)
