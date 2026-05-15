@@ -2,6 +2,8 @@ import pytest
 
 from dbus_fast import SignatureBodyMismatchError, SignatureTree, Variant
 from dbus_fast._private.util import signature_contains_type
+from dbus_fast.errors import InvalidSignatureError
+from dbus_fast.signature import SignatureType
 
 
 def assert_simple_type(signature, type_):
@@ -253,3 +255,309 @@ def test_struct_accepts_tuples_or_lists():
     tree = SignatureTree("(s)")
     tree.verify([("ok",)])
     tree.verify([["ok"]])
+
+
+# --- Parse-error paths in SignatureType._parse_next / SignatureTree ---
+
+
+def test_parse_empty_signature_inside_container_raises():
+    with pytest.raises(InvalidSignatureError, match="empty signature"):
+        SignatureTree("a")
+
+
+def test_parse_unknown_token_raises():
+    with pytest.raises(InvalidSignatureError, match="unexpected token"):
+        SignatureTree("z")
+
+
+def test_parse_array_missing_child_raises():
+    # SignatureType._parse_next is called recursively; a lone "a" hits the
+    # "empty signature" branch first. Force the "missing type for array"
+    # branch by feeding an unterminated struct after the array.
+    with pytest.raises(InvalidSignatureError):
+        SignatureTree("a(")
+
+
+def test_parse_struct_missing_close_raises():
+    with pytest.raises(InvalidSignatureError, match='missing closing "\\)"'):
+        SignatureTree("(ss")
+
+
+def test_parse_dict_entry_key_not_simple_raises():
+    # Key must be a basic type, not a container
+    with pytest.raises(InvalidSignatureError, match="simple type for dict entry key"):
+        SignatureTree("a{(s)s}")
+
+
+def test_parse_dict_entry_missing_close_raises():
+    with pytest.raises(InvalidSignatureError, match='missing closing "}"'):
+        SignatureTree("a{ss")
+
+
+def test_signature_too_long_raises():
+    long_sig = "s" * 256
+    with pytest.raises(InvalidSignatureError, match="less than 256 characters"):
+        SignatureTree(long_sig)
+
+
+# --- SignatureType.__eq__ ---
+
+
+def test_signature_type_eq_with_string_falls_back_to_super():
+    t = SignatureTree("s").types[0]
+    # Comparison against a non-SignatureType returns NotImplemented from the
+    # default object __eq__, which Python interprets as False.
+    assert (t == "s") is False
+    assert t != 42
+
+
+def test_signature_type_eq_with_other_signature_type():
+    a = SignatureTree("as").types[0]
+    b = SignatureTree("as").types[0]
+    c = SignatureTree("ai").types[0]
+    assert a == b
+    assert a != c
+
+
+# --- _verify_* error paths ---
+
+
+def _expect_mismatch(signature, value, match=None):
+    tree = SignatureTree(signature)
+    with pytest.raises(SignatureBodyMismatchError, match=match):
+        tree.verify([value])
+
+
+def test_verify_byte_wrong_type():
+    _expect_mismatch("y", "not an int", match="BYTE")
+
+
+def test_verify_byte_out_of_range_low():
+    _expect_mismatch("y", -1, match="between")
+
+
+def test_verify_byte_out_of_range_high():
+    _expect_mismatch("y", 0x100, match="between")
+
+
+def test_verify_boolean_wrong_type():
+    _expect_mismatch("b", 1, match="BOOLEAN")
+
+
+def test_verify_int16_wrong_type():
+    _expect_mismatch("n", "x", match="INT16")
+
+
+def test_verify_int16_out_of_range():
+    _expect_mismatch("n", 0x8000, match="between")
+    _expect_mismatch("n", -0x8001, match="between")
+
+
+def test_verify_uint16_wrong_type():
+    _expect_mismatch("q", "x", match="UINT16")
+
+
+def test_verify_uint16_out_of_range():
+    _expect_mismatch("q", -1, match="between")
+    _expect_mismatch("q", 0x10000, match="between")
+
+
+def test_verify_int32_wrong_type():
+    _expect_mismatch("i", "x", match="INT32")
+
+
+def test_verify_int32_out_of_range():
+    _expect_mismatch("i", 0x80000000, match="between")
+    _expect_mismatch("i", -0x80000001, match="between")
+
+
+def test_verify_uint32_wrong_type():
+    _expect_mismatch("u", "x", match="UINT32")
+
+
+def test_verify_uint32_out_of_range():
+    _expect_mismatch("u", -1, match="between")
+    _expect_mismatch("u", 0x100000000, match="between")
+
+
+def test_verify_int64_wrong_type():
+    _expect_mismatch("x", "x", match="INT64")
+
+
+def test_verify_int64_out_of_range():
+    _expect_mismatch("x", 1 << 63, match="between")
+    _expect_mismatch("x", -(1 << 63) - 1, match="between")
+
+
+def test_verify_uint64_wrong_type():
+    _expect_mismatch("t", "x", match="UINT64")
+
+
+def test_verify_uint64_out_of_range():
+    _expect_mismatch("t", -1, match="between")
+    _expect_mismatch("t", 1 << 64, match="between")
+
+
+def test_verify_double_wrong_type():
+    _expect_mismatch("d", "x", match="DOUBLE")
+
+
+def test_verify_double_accepts_int_and_float():
+    SignatureTree("d").verify([1])
+    SignatureTree("d").verify([1.5])
+
+
+def test_verify_unix_fd_wraps_uint32_error():
+    # _verify_unix_fd is defined but not in the validators dispatch dict;
+    # the "h" token maps directly to _verify_uint32. Call it directly so the
+    # UNIX_FD-specific wrapping branch is still exercised.
+    t = SignatureType("h")
+    with pytest.raises(SignatureBodyMismatchError, match="UNIX_FD"):
+        t._verify_unix_fd(-1)
+
+
+def test_verify_object_path_invalid():
+    # Same situation as _verify_unix_fd: "o" dispatches to _verify_string,
+    # so _verify_object_path is only reachable via direct call.
+    t = SignatureType("o")
+    with pytest.raises(SignatureBodyMismatchError, match="OBJECT_PATH"):
+        t._verify_object_path("not a path")
+    t._verify_object_path("/valid/path")
+
+
+def test_verify_string_wrong_type():
+    _expect_mismatch("s", 5, match="STRING")
+
+
+def test_verify_signature_wrong_type():
+    _expect_mismatch("g", 5, match="SIGNATURE")
+
+
+def test_verify_signature_too_long():
+    _expect_mismatch("g", "s" * 256, match="less than 256 bytes")
+
+
+def test_verify_array_dict_wrong_container():
+    _expect_mismatch("a{ss}", ["not a dict"], match="DICT_ENTRY")
+
+
+def test_verify_array_bytes_wrong_type():
+    _expect_mismatch("ay", [1, 2, 3], match="BYTE")
+
+
+def test_verify_array_bytes_accepts_bytes_and_bytearray():
+    SignatureTree("ay").verify([b"hello"])
+    SignatureTree("ay").verify([bytearray(b"hello")])
+
+
+def test_verify_array_wrong_container():
+    _expect_mismatch("as", "not a list", match='must be Python type "list"')
+
+
+def test_verify_struct_wrong_type():
+    _expect_mismatch("(ss)", "not a tuple", match="STRUCT")
+
+
+def test_verify_struct_wrong_length():
+    _expect_mismatch(
+        "(ss)", ["only one"], match="members equal to the number of struct"
+    )
+
+
+def test_verify_variant_wrong_type():
+    _expect_mismatch("v", "not a variant", match="VARIANT")
+
+
+def test_verify_none_raises():
+    with pytest.raises(SignatureBodyMismatchError, match='Python type "None"'):
+        SignatureType("s").verify(None)
+
+
+def test_verify_token_with_no_validator_raises():
+    # SignatureType built directly with a token outside the validators dict
+    # (e.g. the closing-paren marker used during parsing) hits the fallback.
+    t = SignatureType(")")
+    with pytest.raises(Exception, match="cannot verify type with token"):
+        t.verify("anything")
+
+
+# --- SignatureTree.verify error paths ---
+
+
+def test_tree_verify_body_not_list():
+    tree = SignatureTree("s")
+    with pytest.raises(SignatureBodyMismatchError, match="must be a list"):
+        tree.verify("not a list")
+
+
+def test_tree_verify_wrong_body_length():
+    tree = SignatureTree("ss")
+    with pytest.raises(SignatureBodyMismatchError, match="wrong number of types"):
+        tree.verify(["only one"])
+
+
+def test_tree_eq():
+    assert SignatureTree("as") == SignatureTree("as")
+    assert SignatureTree("as") != SignatureTree("ai")
+    assert (SignatureTree("s") == "s") is False
+
+
+# --- Variant constructor paths ---
+
+
+def test_variant_from_signature_tree():
+    tree = SignatureTree("s")
+    v = Variant(tree, "hi")
+    assert v.signature == "s"
+    assert v.type is tree.types[0]
+    assert v.value == "hi"
+
+
+def test_variant_from_signature_string():
+    v = Variant("s", "hi")
+    assert v.signature == "s"
+    assert v.value == "hi"
+
+
+def test_variant_invalid_signature_type_raises_typeerror():
+    with pytest.raises(TypeError, match="signature must be"):
+        Variant(123, "hi")
+
+
+def test_variant_signature_tree_with_multiple_types_raises():
+    tree = SignatureTree("ss")
+    with pytest.raises(ValueError, match="single complete type"):
+        Variant(tree, "hi")
+
+
+def test_variant_factory_skips_verification():
+    tree = SignatureTree("s")
+    # _factory is the internal fast path used by the unmarshaller; it bypasses
+    # verification and is the only way to build a Variant with a mismatched
+    # value, so we exercise that explicitly.
+    v = Variant._factory(tree, "hi")
+    assert v.signature == "s"
+    assert v.type is tree.root_type
+    assert v.value == "hi"
+
+
+def test_variant_eq():
+    assert Variant("s", "hi") == Variant("s", "hi")
+    assert Variant("s", "hi") != Variant("s", "bye")
+    assert Variant("s", "hi") != Variant("o", "/hi")
+    assert (Variant("s", "hi") == "hi") is False
+
+
+def test_variant_repr():
+    v = Variant("s", "hi")
+    text = repr(v)
+    assert "Variant" in text
+    assert "'s'" in text
+    assert "hi" in text
+
+
+def test_variant_skip_verify_flag():
+    # verify=False lets the caller construct an invalid Variant without raising;
+    # used as a perf escape hatch by trusted producers.
+    v = Variant("s", 123, verify=False)
+    assert v.value == 123
