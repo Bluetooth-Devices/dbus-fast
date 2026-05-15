@@ -67,6 +67,15 @@ UINT16_UNPACK_BIG_ENDIAN = Struct(f">{UINT16_CAST}").unpack_from
 HEADER_SIGNATURE_SIZE = 16
 HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION = 12
 
+# D-Bus spec: total message length must not exceed 128 MiB. Enforced on the
+# attacker-controlled header_len / body_len fields before any allocation or
+# socket read sized by them, so a forged header can't push the process into
+# an OOM. https://dbus.freedesktop.org/doc/dbus-specification.html
+# MAX_MESSAGE_SIZE is the Python-importable form (used by tests);
+# _MAX_MESSAGE_SIZE is the cdef unsigned int form used internally per .pxd.
+MAX_MESSAGE_SIZE = 134_217_728
+_MAX_MESSAGE_SIZE = MAX_MESSAGE_SIZE
+
 
 # Most common signatures
 
@@ -788,6 +797,16 @@ class Unmarshaller:
             self._uint32_unpack = UINT32_UNPACK_BIG_ENDIAN
             self._int16_unpack = INT16_UNPACK_BIG_ENDIAN
             self._uint16_unpack = UINT16_UNPACK_BIG_ENDIAN
+
+        if (
+            self._body_len > _MAX_MESSAGE_SIZE
+            or self._header_len > _MAX_MESSAGE_SIZE
+            or self._body_len + self._header_len > _MAX_MESSAGE_SIZE
+        ):
+            raise InvalidMessageError(
+                f"message size exceeds maximum {_MAX_MESSAGE_SIZE}: "
+                f"header={self._header_len}, body={self._body_len}"
+            )
 
         # align 8
         self._msg_len = self._header_len + (-self._header_len & 7) + self._body_len
