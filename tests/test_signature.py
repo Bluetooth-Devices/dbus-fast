@@ -4,7 +4,7 @@ from dbus_fast import SignatureBodyMismatchError, SignatureTree, Variant
 from dbus_fast._private.unmarshaller import is_compiled
 from dbus_fast._private.util import signature_contains_type
 from dbus_fast.errors import InternalError, InvalidSignatureError
-from dbus_fast.signature import SignatureType
+from dbus_fast.signature import SignatureType, get_signature_tree
 
 
 def assert_simple_type(signature, type_):
@@ -580,3 +580,28 @@ def test_verify_raises_internal_error_when_validator_missing(monkeypatch):
     monkeypatch.delitem(SignatureType.validators, "i")
     with pytest.raises(InternalError):
         sig_type.verify(123)
+
+
+def test_get_signature_tree_cache_is_bounded() -> None:
+    """The lru_cache on get_signature_tree must declare a finite maxsize."""
+    info = get_signature_tree.cache_info()
+    assert info.maxsize is not None
+    assert info.maxsize <= 8192
+
+
+def test_get_signature_tree_cache_evicts_under_unique_stream() -> None:
+    """Streaming more unique signatures than maxsize must not grow the cache."""
+    info = get_signature_tree.cache_info()
+    maxsize = info.maxsize
+    assert maxsize is not None
+
+    # Encode the index in 14 bits across two DBus type chars (y, i) so each
+    # signature is unique, short, and well under the 255-char signature
+    # length cap.
+    overflow = maxsize * 2
+    width = overflow.bit_length()
+    for n in range(overflow):
+        sig = f"{n:b}".zfill(width).translate(str.maketrans("01", "yi"))
+        get_signature_tree(sig)
+
+    assert get_signature_tree.cache_info().currsize <= maxsize
