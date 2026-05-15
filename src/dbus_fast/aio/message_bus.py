@@ -504,11 +504,18 @@ class MessageBus(BaseMessageBus):
         return _coroutine_method_handler
 
     async def _auth_readline(self) -> str:
+        # SASL auth lines are tiny in practice; cap the buffer so a hostile
+        # peer cannot exhaust memory by streaming bytes without CRLF, and
+        # treat empty recv (EOF) as an auth failure to avoid spinning.
+        max_auth_line = 16 * 1024
         buf = b""
         while buf[-2:] != b"\r\n":
-            # The auth protocol is line based, so we can read until we get a
-            # newline.
-            buf += await self._loop.sock_recv(self._sock, 1024)
+            chunk = await self._loop.sock_recv(self._sock, 1024)
+            if not chunk:
+                raise AuthError("connection closed during authentication")
+            buf += chunk
+            if len(buf) > max_auth_line:
+                raise AuthError("auth line exceeded maximum size")
         return buf[:-2].decode()
 
     async def _authenticate(self) -> None:

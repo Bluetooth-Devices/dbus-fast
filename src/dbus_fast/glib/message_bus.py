@@ -110,6 +110,9 @@ class _MessageWritableSource(_GLibSource):
             return GLib.SOURCE_REMOVE
 
 
+_MAX_AUTH_LINE = 16 * 1024
+
+
 class _AuthLineSource(_GLibSource):
     def __init__(self, stream):
         self.stream = stream
@@ -122,7 +125,16 @@ class _AuthLineSource(_GLibSource):
         return False
 
     def dispatch(self, callback, user_data):
-        self.buf += self.stream.read()
+        chunk = self.stream.read()
+        if chunk == b"":
+            # EOF before CRLF — peer hung up mid-handshake.
+            callback(AuthError("connection closed during authentication"))
+            return GLib.SOURCE_REMOVE
+        if chunk:
+            self.buf += chunk
+            if len(self.buf) > _MAX_AUTH_LINE:
+                callback(AuthError("auth line exceeded maximum size"))
+                return GLib.SOURCE_REMOVE
         if self.buf[-2:] == b"\r\n":
             resp = callback(self.buf.decode()[:-2])
             if resp:
@@ -494,6 +506,8 @@ class MessageBus(BaseMessageBus):
 
         def line_notify(line):
             try:
+                if isinstance(line, Exception):
+                    raise line
                 resp = self._auth._receive_line(line)
                 self._stream.write(Authenticator._format_line(resp))
                 self._stream.flush()
