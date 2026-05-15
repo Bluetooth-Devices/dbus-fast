@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as ET
+import xml.parsers.expat as _expat
 
 from .constants import ArgDirection, PropertyAccess
 from .errors import InvalidIntrospectionError
@@ -6,6 +7,33 @@ from .signature import SignatureType, get_signature_tree
 from .validators import assert_interface_name_valid, assert_member_name_valid
 
 # https://dbus.freedesktop.org/doc/dbus-specification.html#introspection-format
+
+
+def _reject_entity_decl(*_args: object) -> None:
+    # The standard D-Bus introspection DOCTYPE has no internal subset, so any
+    # entity declaration in an Introspect reply is either the billion-laughs /
+    # quadratic-blowup DoS vector or an XXE attempt from a hostile peer.
+    raise InvalidIntrospectionError(
+        "entity declarations are not allowed in introspection XML"
+    )
+
+
+def _parse_introspection_xml(data: str) -> ET.Element:
+    """Parse introspection XML with the billion-laughs entity vector closed."""
+    parser = _expat.ParserCreate()
+    builder = ET.TreeBuilder()
+    parser.StartElementHandler = builder.start
+    parser.EndElementHandler = builder.end
+    parser.CharacterDataHandler = builder.data
+    parser.EntityDeclHandler = _reject_entity_decl
+    # Defense-in-depth: refuse to expand parameter entities, which is the
+    # path expat would otherwise take to fetch external DTDs.
+    parser.SetParamEntityParsing(_expat.XML_PARAM_ENTITY_PARSING_NEVER)
+    try:
+        parser.Parse(data.encode("utf-8") if isinstance(data, str) else data, True)
+    except _expat.ExpatError as e:
+        raise ET.ParseError(str(e)) from e
+    return builder.close()
 
 
 def _fetch_annotations(element: ET.Element) -> dict[str, str]:
@@ -532,7 +560,7 @@ class Node:
         :raises:
             - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the string is not valid introspection data.
         """
-        element = ET.fromstring(data)
+        element = _parse_introspection_xml(data)
         if element.tag != "node":
             raise InvalidIntrospectionError(
                 'introspection data must have a "node" for the root element'
