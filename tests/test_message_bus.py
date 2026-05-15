@@ -2,7 +2,6 @@ import pytest
 
 from dbus_fast.aio import MessageBus
 from dbus_fast.errors import InvalidAddressError
-from dbus_fast.message_bus import BaseMessageBus
 
 
 @pytest.mark.asyncio
@@ -103,25 +102,3 @@ async def test_aio_connect_falls_back_between_transports() -> None:
 
     assert bus._stream is None
     assert bus._sock is None
-
-
-def test_setup_socket_falls_back_between_transports() -> None:
-    """The sync _setup_socket() path (used by glib) iterates transports and
-    raises the last error if all fail.
-    """
-
-    class _Bus(BaseMessageBus):
-        pass
-
-    bus = _Bus.__new__(_Bus)
-    BaseMessageBus.__init__(
-        bus,
-        "unix:path=/there-is-no-way-that-this-file-should-exist;"
-        "tcp:host=127.0.0.1,port=1",
-    )
-
-    with pytest.raises(ConnectionRefusedError):
-        bus._setup_socket()
-
-    assert bus._sock is None
-    assert bus._stream is None

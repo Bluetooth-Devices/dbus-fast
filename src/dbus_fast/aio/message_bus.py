@@ -279,41 +279,52 @@ class MessageBus(BaseMessageBus):
                 )
             raise last_err
 
-        await self._authenticate()
+        try:
+            await self._authenticate()
 
-        future = self._loop.create_future()
+            future = self._loop.create_future()
 
-        self._loop.add_reader(
-            self._fd,
-            build_message_reader(
-                self._sock,
-                self._process_message,
-                self._finalize,
-                self._negotiate_unix_fd,
-            ),
-        )
+            self._loop.add_reader(
+                self._fd,
+                build_message_reader(
+                    self._sock,
+                    self._process_message,
+                    self._finalize,
+                    self._negotiate_unix_fd,
+                ),
+            )
 
-        def on_hello(reply, err):
-            try:
-                if err:
-                    raise err
-                self.unique_name = reply.body[0]
-                self._writer.schedule_write()
-                _future_set_result(future, self)
-            except Exception as e:
-                _future_set_exception(future, e)
-                self.disconnect()
-                self._finalize(err)
+            def on_hello(reply, err):
+                try:
+                    if err:
+                        raise err
+                    self.unique_name = reply.body[0]
+                    self._writer.schedule_write()
+                    _future_set_result(future, self)
+                except Exception as e:
+                    _future_set_exception(future, e)
+                    self.disconnect()
+                    self._finalize(err)
 
-        next_serial = self.next_serial()
-        self._method_return_handlers[next_serial] = on_hello
-        if next_serial == 1:
-            serialized = HELLO_1_SERIALIZED
-        else:
-            serialized = _generate_hello_serialized(next_serial)
-        self._stream.write(serialized)
-        self._stream.flush()
-        return await future
+            next_serial = self.next_serial()
+            self._method_return_handlers[next_serial] = on_hello
+            if next_serial == 1:
+                serialized = HELLO_1_SERIALIZED
+            else:
+                serialized = _generate_hello_serialized(next_serial)
+            self._stream.write(serialized)
+            self._stream.flush()
+            return await future
+        except Exception:
+            self._loop.remove_reader(self._fd)
+            self._stream.close()
+            self._sock.close()
+            self._sock = None
+            self._stream = None
+            self._fd = None
+            self._writer.sock = None
+            self._writer.fd = None
+            raise
 
     async def introspect(
         self,
