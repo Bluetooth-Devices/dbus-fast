@@ -20,7 +20,11 @@ def _reject_entity_decl(*_args: object) -> None:
 
 def _parse_introspection_xml(data: str) -> ET.Element:
     """Parse introspection XML with the billion-laughs entity vector closed."""
-    parser = _expat.ParserCreate()
+    # namespace_separator="}" mirrors ElementTree's expat config so a
+    # namespaced root (`<node xmlns="urn:x">`) still surfaces with a
+    # non-"node" tag and gets rejected by the root-element check below
+    # rather than slipping through this stricter parser.
+    parser = _expat.ParserCreate(namespace_separator="}")
     builder = ET.TreeBuilder()
     parser.StartElementHandler = builder.start
     parser.EndElementHandler = builder.end
@@ -32,7 +36,13 @@ def _parse_introspection_xml(data: str) -> ET.Element:
     try:
         parser.Parse(data.encode("utf-8") if isinstance(data, str) else data, True)
     except _expat.ExpatError as e:
-        raise ET.ParseError(str(e)) from e
+        # Preserve the code / position metadata ElementTree attaches to
+        # ParseError so callers that inspect them (e.position, e.code) keep
+        # working as they did with ET.fromstring.
+        err = ET.ParseError(e)
+        err.code = e.code
+        err.position = (e.lineno, e.offset)
+        raise err from e
     return builder.close()
 
 

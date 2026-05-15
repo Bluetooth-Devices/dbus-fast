@@ -209,3 +209,19 @@ def test_introspection_malformed_xml_raises_parse_error() -> None:
     """Malformed XML still raises ET.ParseError, not a silent failure."""
     with pytest.raises(ET.ParseError):
         intr.Node.parse("<node><unclosed")
+
+
+def test_introspection_parse_error_preserves_code_and_position() -> None:
+    """ET.ParseError still carries the expat code and position metadata."""
+    with pytest.raises(ET.ParseError) as excinfo:
+        intr.Node.parse("<bad")
+    assert excinfo.value.code  # non-zero expat error code
+    assert isinstance(excinfo.value.position, tuple)
+    assert len(excinfo.value.position) == 2
+
+
+def test_introspection_rejects_default_namespaced_root() -> None:
+    """A namespaced <node> root is still rejected by the root-tag check."""
+    payload = '<node xmlns="urn:example"><interface name="a"/></node>'
+    with pytest.raises(InvalidIntrospectionError, match="node"):
+        intr.Node.parse(payload)
