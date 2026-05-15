@@ -313,7 +313,10 @@ def test_add_property_setter_exception_routed_to_callback() -> None:
         raise RuntimeError("setter-boom")
 
     iface.add_property(
-        "Boom", "s", getter=lambda _self: "", setter=boom,
+        "Boom",
+        "s",
+        getter=lambda _self: "",
+        setter=boom,
     )
     prop = _find(iface, "Boom")
     out = _call_set(iface, prop, "x")
