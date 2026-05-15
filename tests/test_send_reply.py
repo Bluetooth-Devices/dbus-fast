@@ -23,9 +23,9 @@ def mock_address() -> Generator[None, None, None]:
 
 
 @pytest.fixture
-def send_reply_setup() -> (
-    Generator[tuple[BaseMessageBus, Message, list[Message]], None, None]
-):
+def send_reply_setup() -> Generator[
+    tuple[BaseMessageBus, Message, list[Message]], None, None
+]:
     messages: list[Message] = []
 
     class MockClosable:
