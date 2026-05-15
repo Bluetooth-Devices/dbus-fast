@@ -61,6 +61,118 @@ def test_send_reply_exception() -> None:
     mock_message_bus._finalize(None)
 
 
+def test_send_reply_generic_exception() -> None:
+    """Non-DBusError exceptions become SERVICE_ERROR replies."""
+
+    messages: list[Message] = []
+
+    class MockClosable:
+        def close(self) -> None:
+            pass
+
+    class MockBus(BaseMessageBus):
+        def send(self, msg: Message) -> None:
+            messages.append(msg)
+
+        def send_message(self, msg: Message) -> None:
+            messages.append(msg)
+
+        def _setup_socket(self) -> None:
+            self._sock = MockClosable()  # type: ignore
+            self._stream = MockClosable()  # type: ignore
+
+    with patch("socket.socket.connect"):
+        mock_message_bus = MockBus()
+    mock_message = Message(
+        path="/test/path", interface="test.interface", member="test_member", serial=1
+    )
+    send_reply = SendReply(mock_message_bus, mock_message)
+
+    with send_reply:
+        raise RuntimeError("boom")
+
+    assert len(messages) == 1
+    assert messages[0].message_type == MessageType.ERROR
+    assert messages[0].error_name == ErrorType.SERVICE_ERROR.value
+    assert messages[0].reply_serial == 1
+    assert "boom" in messages[0].body[0]
+
+    mock_message_bus.disconnect()
+    mock_message_bus._finalize(None)
+
+
+def test_send_reply_send_error() -> None:
+    """send_error() routes an exception through the same error reply path."""
+
+    messages: list[Message] = []
+
+    class MockClosable:
+        def close(self) -> None:
+            pass
+
+    class MockBus(BaseMessageBus):
+        def send(self, msg: Message) -> None:
+            messages.append(msg)
+
+        def send_message(self, msg: Message) -> None:
+            messages.append(msg)
+
+        def _setup_socket(self) -> None:
+            self._sock = MockClosable()  # type: ignore
+            self._stream = MockClosable()  # type: ignore
+
+    with patch("socket.socket.connect"):
+        mock_message_bus = MockBus()
+    mock_message = Message(
+        path="/test/path", interface="test.interface", member="test_member", serial=1
+    )
+    send_reply = SendReply(mock_message_bus, mock_message)
+
+    send_reply.send_error(DBusError(ErrorType.FAILED, "explicit failure", None))
+
+    assert len(messages) == 1
+    assert messages[0].message_type == MessageType.ERROR
+    assert messages[0].error_name == "org.freedesktop.DBus.Error.Failed"
+    assert messages[0].reply_serial == 1
+
+    mock_message_bus.disconnect()
+    mock_message_bus._finalize(None)
+
+
+def test_send_reply_no_exception_returns_false() -> None:
+    """Exiting with no exception must not suppress and must not send a reply."""
+
+    messages: list[Message] = []
+
+    class MockClosable:
+        def close(self) -> None:
+            pass
+
+    class MockBus(BaseMessageBus):
+        def send(self, msg: Message) -> None:
+            messages.append(msg)
+
+        def send_message(self, msg: Message) -> None:
+            messages.append(msg)
+
+        def _setup_socket(self) -> None:
+            self._sock = MockClosable()  # type: ignore
+            self._stream = MockClosable()  # type: ignore
+
+    with patch("socket.socket.connect"):
+        mock_message_bus = MockBus()
+    mock_message = Message(
+        path="/test/path", interface="test.interface", member="test_member", serial=1
+    )
+    send_reply = SendReply(mock_message_bus, mock_message)
+
+    assert send_reply._exit(None, None, None) is False
+    assert messages == []
+
+    mock_message_bus.disconnect()
+    mock_message_bus._finalize(None)
+
+
 def test_send_reply_happy_path() -> None:
     """Test that SendReply sends a message."""
 
