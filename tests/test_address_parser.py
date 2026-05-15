@@ -1,5 +1,5 @@
 import os
-from unittest.mock import patch
+from unittest.mock import mock_open, patch
 
 import pytest
 
@@ -73,3 +73,142 @@ def test_get_session_bus_address():
 def test_invalid_bus_address():
     with pytest.raises(Exception):
         assert get_bus_address(-1)
+
+
+def test_session_bus_address_missing_display_raises():
+    """Without DBUS_SESSION_BUS_ADDRESS and without DISPLAY, raise."""
+    env = {k: v for k, v in os.environ.items() if k not in ("DBUS_SESSION_BUS_ADDRESS", "DISPLAY")}
+    with patch.dict(os.environ, env, clear=True), pytest.raises(InvalidAddressError) as exc:
+        get_session_bus_address()
+    assert "DISPLAY" in str(exc.value)
+
+
+def test_session_bus_address_unparseable_display_raises():
+    """A DISPLAY value that doesn't match the regex must raise InvalidAddressError."""
+    with (
+        patch.dict(os.environ, DBUS_SESSION_BUS_ADDRESS="", DISPLAY="not-a-display"),
+        pytest.raises(InvalidAddressError) as exc,
+    ):
+        get_session_bus_address()
+    assert "DISPLAY" in str(exc.value)
+
+
+def _fake_open_factory(file_contents: dict[str, str]):
+    """Build a fake ``open`` that returns content based on path lookup."""
+    real_open = open
+
+    def fake_open(path, *args, **kwargs):
+        if path in file_contents:
+            return mock_open(read_data=file_contents[path]).return_value
+        return real_open(path, *args, **kwargs)
+
+    return fake_open
+
+
+def test_session_bus_address_from_dbus_info_file(tmp_path):
+    """Happy path: DISPLAY set, machine-id + dbus info file readable."""
+    machine_id = "abc123"
+    display = ":0"
+    home = str(tmp_path)
+    expected_addr = "unix:abstract=/tmp/dbus-XYZ"
+    info_path = f"{home}/.dbus/session-bus/{machine_id}-0"
+    files = {
+        "/var/lib/dbus/machine-id": machine_id + "\n",
+        info_path: f"# comment\nDBUS_SESSION_BUS_ADDRESS={expected_addr}\nOTHER=foo\n",
+    }
+    with (
+        patch.dict(
+            os.environ,
+            DBUS_SESSION_BUS_ADDRESS="",
+            DISPLAY=display,
+            HOME=home,
+        ),
+        patch("builtins.open", _fake_open_factory(files)),
+    ):
+        assert get_session_bus_address() == expected_addr
+
+
+def test_session_bus_address_strips_quotes_around_address(tmp_path):
+    """Quoted DBUS_SESSION_BUS_ADDRESS values are unquoted."""
+    machine_id = "abc123"
+    home = str(tmp_path)
+    info_path = f"{home}/.dbus/session-bus/{machine_id}-0"
+    files = {
+        "/var/lib/dbus/machine-id": machine_id,
+        info_path: 'DBUS_SESSION_BUS_ADDRESS="unix:path=/tmp/socket"\n',
+    }
+    with (
+        patch.dict(
+            os.environ,
+            DBUS_SESSION_BUS_ADDRESS="",
+            DISPLAY="hostname:0.0",
+            HOME=home,
+        ),
+        patch("builtins.open", _fake_open_factory(files)),
+    ):
+        assert get_session_bus_address() == "unix:path=/tmp/socket"
+
+
+def test_session_bus_address_info_file_missing_raises(tmp_path):
+    """If the dbus info file does not exist, raise InvalidAddressError."""
+    machine_id = "abc123"
+    home = str(tmp_path)
+    files = {"/var/lib/dbus/machine-id": machine_id}
+    with (
+        patch.dict(
+            os.environ,
+            DBUS_SESSION_BUS_ADDRESS="",
+            DISPLAY=":0",
+            HOME=home,
+        ),
+        patch("builtins.open", _fake_open_factory(files)),
+        pytest.raises(InvalidAddressError) as exc,
+    ):
+        get_session_bus_address()
+    assert "dbus info file" in str(exc.value)
+
+
+def test_session_bus_address_info_file_empty_value_raises(tmp_path):
+    """An empty DBUS_SESSION_BUS_ADDRESS= line in the info file must raise."""
+    machine_id = "abc123"
+    home = str(tmp_path)
+    info_path = f"{home}/.dbus/session-bus/{machine_id}-0"
+    files = {
+        "/var/lib/dbus/machine-id": machine_id,
+        info_path: "DBUS_SESSION_BUS_ADDRESS=\n",
+    }
+    with (
+        patch.dict(
+            os.environ,
+            DBUS_SESSION_BUS_ADDRESS="",
+            DISPLAY=":0",
+            HOME=home,
+        ),
+        patch("builtins.open", _fake_open_factory(files)),
+        pytest.raises(InvalidAddressError) as exc,
+    ):
+        get_session_bus_address()
+    assert "not set correctly" in str(exc.value)
+
+
+def test_session_bus_address_info_file_missing_address_line_raises(tmp_path):
+    """An info file without a DBUS_SESSION_BUS_ADDRESS line must raise."""
+    machine_id = "abc123"
+    home = str(tmp_path)
+    info_path = f"{home}/.dbus/session-bus/{machine_id}-0"
+    files = {
+        "/var/lib/dbus/machine-id": machine_id,
+        info_path: "OTHER=value\n# nothing useful\n",
+    }
+    with (
+        patch.dict(
+            os.environ,
+            DBUS_SESSION_BUS_ADDRESS="",
+            DISPLAY=":0",
+            HOME=home,
+        ),
+        patch("builtins.open", _fake_open_factory(files)),
+        pytest.raises(InvalidAddressError) as exc,
+    ):
+        get_session_bus_address()
+    assert "could not find" in str(exc.value)
