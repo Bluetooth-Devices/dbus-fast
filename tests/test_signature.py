@@ -1,6 +1,7 @@
 import pytest
 
 from dbus_fast import SignatureBodyMismatchError, SignatureTree, Variant
+from dbus_fast._private.unmarshaller import is_compiled
 from dbus_fast._private.util import signature_contains_type
 from dbus_fast.errors import InvalidSignatureError
 from dbus_fast.signature import SignatureType
@@ -530,6 +531,9 @@ def test_variant_signature_tree_with_multiple_types_raises():
         Variant(tree, "hi")
 
 
+@pytest.mark.skipif(
+    is_compiled(), reason="Variant._factory is a cdef staticmethod when Cython-compiled"
+)
 def test_variant_factory_skips_verification():
     tree = SignatureTree("s")
     # _factory is the internal fast path used by the unmarshaller; it bypasses
