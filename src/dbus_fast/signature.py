@@ -473,7 +473,12 @@ class Variant:  # noqa: PLW1641
         return f"<dbus_fast.signature.Variant ('{self.type.signature}', {self.value})>"
 
 
-get_signature_tree = lru_cache(maxsize=None)(SignatureTree)
+# Bound the cache so a peer streaming messages with unique attacker-chosen
+# signatures (signatures up to 255 bytes, body-side signatures pass through
+# get_signature_tree in the unmarshaller) cannot grow this dict without
+# limit and OOM the process. 4096 entries covers every signature emitted
+# by real-world D-Bus services many times over.
+get_signature_tree = lru_cache(maxsize=4096)(SignatureTree)
 """Get a signature tree for the given signature.
 
 :param signature: The signature to get a tree for.
