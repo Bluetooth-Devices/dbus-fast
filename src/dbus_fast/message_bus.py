@@ -635,7 +635,7 @@ class BaseMessageBus:
                 if i is interface:
                     path = p
 
-        if path is None:
+        if path is None:  # pragma: no cover
             raise InternalError(
                 "Could not find interface on bus (this is a bug in dbus-fast)"
             )

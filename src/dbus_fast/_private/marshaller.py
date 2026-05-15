@@ -195,7 +195,7 @@ class Marshaller:
             ) from ex
         except error:
             self.signature_tree.verify(self.body)
-        raise InternalError("should not reach here")
+        raise InternalError("should not reach here")  # pragma: no cover
 
     def _construct_buffer(self) -> bytearray:
         self._buf.clear()
