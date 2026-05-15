@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dbus-fast"
-version = "4.1.0"
+version = "4.1.1"
 description = "A faster version of dbus-next"
 authors = ["Bluetooth Devices Authors <bluetooth@koston.org>"]
 license = "MIT"
@@ -72,6 +72,10 @@ filterwarnings = [
     # (AbstractEventLoopPolicy, get_event_loop_policy, ...) which Python 3.14
     # deprecated in full (removal in 3.16).
     '''ignore:'asyncio\.[A-Za-z_]*[Pp]olicy[A-Za-z_]*' is deprecated.*:DeprecationWarning''',
+    # PyGObject 3.56 emits PyGIDeprecationWarning at import time on newer GLib
+    # builds (Ubuntu 25.10 / s390x leg) for symbols moved to the GLibUnix
+    # namespace. The override loader trips the warning before any test runs.
+    '''ignore:GLib\.unix_[a-z_]+ is deprecated.*:DeprecationWarning''',
 ]
 
 [tool.coverage.run]

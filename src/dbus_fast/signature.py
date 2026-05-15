@@ -4,7 +4,7 @@ from collections.abc import Callable
 from functools import lru_cache
 from typing import Any
 
-from .errors import InvalidSignatureError, SignatureBodyMismatchError
+from .errors import InternalError, InvalidSignatureError, SignatureBodyMismatchError
 from .validators import is_object_path_valid
 
 
@@ -316,7 +316,7 @@ class SignatureType:  # noqa: PLW1641
         if validator:
             validator(self, body)
         else:
-            raise Exception(f"cannot verify type with token {self.token}")
+            raise InternalError(f"cannot verify type with token {self.token}")
 
         return True
 
