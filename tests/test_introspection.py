@@ -151,7 +151,7 @@ def test_default_interfaces():
     assert type(default) is intr.Node
 
 
-def test_introspection_rejects_billion_laughs():
+def test_introspection_rejects_billion_laughs() -> None:
     """Nested-entity expansion in an Introspect reply is rejected."""
     payload = (
         '<?xml version="1.0"?>'
@@ -166,7 +166,7 @@ def test_introspection_rejects_billion_laughs():
         intr.Node.parse(payload)
 
 
-def test_introspection_rejects_quadratic_blowup():
+def test_introspection_rejects_quadratic_blowup() -> None:
     """A single large entity referenced many times is rejected."""
     payload = (
         '<?xml version="1.0"?>'
@@ -179,7 +179,7 @@ def test_introspection_rejects_quadratic_blowup():
         intr.Node.parse(payload)
 
 
-def test_introspection_rejects_xxe_external_entity():
+def test_introspection_rejects_xxe_external_entity() -> None:
     """External-entity declarations are rejected even without expansion."""
     payload = (
         '<?xml version="1.0"?>'
@@ -192,7 +192,7 @@ def test_introspection_rejects_xxe_external_entity():
         intr.Node.parse(payload)
 
 
-def test_introspection_accepts_standard_doctype():
+def test_introspection_accepts_standard_doctype() -> None:
     """The standard D-Bus introspection DOCTYPE (no internal subset) parses."""
     payload = (
         '<?xml version="1.0"?>\n'
@@ -205,7 +205,7 @@ def test_introspection_accepts_standard_doctype():
     assert node.interfaces[0].name == "org.example.Iface"
 
 
-def test_introspection_malformed_xml_raises_parse_error():
+def test_introspection_malformed_xml_raises_parse_error() -> None:
     """Malformed XML still raises ET.ParseError, not a silent failure."""
     with pytest.raises(ET.ParseError):
         intr.Node.parse("<node><unclosed")
