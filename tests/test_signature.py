@@ -363,6 +363,10 @@ def test_verify_uint16_out_of_range():
     _expect_mismatch("q", 0x10000, match="between")
 
 
+@pytest.mark.skipif(
+    is_compiled(),
+    reason="_verify_int32 has a strict int annotation; Cython enforces it before the isinstance check",
+)
 def test_verify_int32_wrong_type():
     _expect_mismatch("i", "x", match="INT32")
 
@@ -485,6 +489,10 @@ def test_verify_token_with_no_validator_raises():
 # --- SignatureTree.verify error paths ---
 
 
+@pytest.mark.skipif(
+    is_compiled(),
+    reason="SignatureTree.verify has a strict list[Any] annotation; Cython enforces it before the isinstance check",
+)
 def test_tree_verify_body_not_list():
     tree = SignatureTree("s")
     with pytest.raises(SignatureBodyMismatchError, match="must be a list"):
