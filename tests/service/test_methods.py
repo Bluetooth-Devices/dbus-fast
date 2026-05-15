@@ -230,6 +230,13 @@ async def test_methods(interface_class):
     reply = await call("throws_unexpected_error")
     assert reply.message_type == MessageType.ERROR, reply.body[0]
     assert reply.error_name == ErrorType.SERVICE_ERROR.value, reply.body[0]
+    # The body must not leak a traceback (paths, line numbers, locals) or
+    # the exception's str(); only the exception class name is disclosed.
+    body = reply.body[0]
+    assert "Traceback" not in body, body
+    assert 'File "' not in body, body
+    assert "oops" not in body, body
+    assert "Exception" in body, body
 
     reply = await call("throws_dbus_error")
     assert reply.message_type == MessageType.ERROR, reply.body[0]
