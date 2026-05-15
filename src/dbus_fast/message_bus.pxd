@@ -60,8 +60,6 @@ cdef class BaseMessageBus:
 
     cdef _find_any_message_handler_matching_signature(self, dict interfaces, Message msg)
 
-    cpdef _setup_socket(self)
-
     cpdef _call(self, Message msg, object callback)
 
     cpdef next_serial(self)

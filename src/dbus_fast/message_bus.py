@@ -9,7 +9,6 @@ import socket
 import traceback
 import xml.etree.ElementTree as ET
 from collections.abc import Callable
-from contextlib import ExitStack
 from functools import partial
 from typing import TYPE_CHECKING, Any
 
@@ -678,8 +677,9 @@ class BaseMessageBus:
 
         return node
 
+    @staticmethod
     def _create_socket_for_transport(
-        self, transport: str, options: dict[str, str]
+        transport: str, options: dict[str, str]
     ) -> tuple[socket.socket, io.BufferedRWPair, bytes | str | tuple[str, int]]:
         """Create an unconnected socket for the given transport.
 
@@ -717,37 +717,6 @@ class BaseMessageBus:
             return sock, stream, (ip_addr, ip_port)
 
         raise InvalidAddressError(f"got unknown address transport: {transport}")
-
-    def _setup_socket(self) -> None:
-        last_err: Exception | None = None
-
-        for transport, options in self._bus_address:
-            with ExitStack() as stack:
-                sock, stream, address = self._create_socket_for_transport(
-                    transport, options
-                )
-                stack.callback(stream.close)
-                stack.callback(sock.close)
-
-                try:
-                    sock.connect(address)
-                    sock.setblocking(False)
-                except Exception as e:
-                    last_err = e
-                    continue
-
-                # responsibility to close sockets is deferred to the bus
-                stack.pop_all()
-                self._sock = sock
-                self._stream = stream
-                self._fd = sock.fileno()
-                return
-
-        if last_err is None:  # pragma: no branch
-            # Should not normally happen, but just in case
-            raise TypeError("empty list of bus addresses given")  # pragma: no cover
-
-        raise last_err
 
     def _reply_notify(
         self,

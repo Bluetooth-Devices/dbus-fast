@@ -8,6 +8,7 @@ import logging
 import socket
 from collections import deque
 from collections.abc import Callable
+from contextlib import ExitStack
 from copy import copy
 from functools import partial
 from typing import Any
@@ -196,7 +197,7 @@ class MessageBus(BaseMessageBus):
         and receive messages.
     :vartype connected: bool
 
-    .. versionchanged:: 5.0.0
+    .. versionchanged:: v5.0.0
         The socket is no longer connected in the constructor. Connection
         errors that were previously raised from ``MessageBus()`` are now
         raised from :func:`connect() <dbus_fast.aio.MessageBus.connect>`.
@@ -214,7 +215,10 @@ class MessageBus(BaseMessageBus):
         super().__init__(bus_address, bus_type, ProxyObject, negotiate_unix_fd)
         self._loop = asyncio.get_running_loop()
 
-        self._writer = _MessageWriter(self)
+        # _writer is created in connect() once the socket is connected, so the
+        # writer is constructed exactly once with a valid socket/fd rather than
+        # being back-patched.
+        self._writer: _MessageWriter | None = None
 
         if auth is None:
             self._auth = AuthExternal()
@@ -244,7 +248,7 @@ class MessageBus(BaseMessageBus):
               an unknown transport.
             - :class:`Exception` - If there was any other connection error.
 
-        .. versionchanged:: 5.0.0
+        .. versionchanged:: v5.0.0
             Socket creation and connection are now performed here rather than
             in the constructor. Connection errors that were previously raised
             from ``MessageBus()`` are now raised from this method. This avoids
@@ -253,25 +257,29 @@ class MessageBus(BaseMessageBus):
         last_err: Exception | None = None
 
         for transport, options in self._bus_address:
-            sock, stream, address = self._create_socket_for_transport(
-                transport, options
-            )
-            sock.setblocking(False)
-            try:
-                await self._loop.sock_connect(sock, address)
-            except Exception as e:
-                stream.close()
-                sock.close()
-                last_err = e
-                continue
+            with ExitStack() as stack:
+                sock, stream, address = self._create_socket_for_transport(
+                    transport, options
+                )
+                stack.callback(stream.close)
+                stack.callback(sock.close)
+                sock.setblocking(False)
+                try:
+                    await self._loop.sock_connect(sock, address)
+                except Exception as e:
+                    last_err = e
+                    continue
 
-            self._sock = sock
-            self._stream = stream
-            self._fd = sock.fileno()
-            self._writer.sock = sock
-            self._writer.fd = self._fd
-            break
+                # responsibility to close sockets is deferred to the bus
+                stack.pop_all()
+                self._sock = sock
+                self._stream = stream
+                self._fd = sock.fileno()
+                self._writer = _MessageWriter(self)
+                break
         else:
+            # REVISIT: when Python 3.10 support is dropped, surface all
+            # transport failures via ExceptionGroup instead of only the last.
             if last_err is None:  # pragma: no branch
                 # Should not normally happen, but just in case
                 raise TypeError(  # pragma: no cover
@@ -315,15 +323,14 @@ class MessageBus(BaseMessageBus):
             self._stream.write(serialized)
             self._stream.flush()
             return await future
-        except Exception:
+        except BaseException:
             self._loop.remove_reader(self._fd)
             self._stream.close()
             self._sock.close()
             self._sock = None
             self._stream = None
             self._fd = None
-            self._writer.sock = None
-            self._writer.fd = None
+            self._writer = None
             raise
 
     async def introspect(
