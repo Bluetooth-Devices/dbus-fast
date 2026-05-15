@@ -68,6 +68,9 @@ pythonpath = ["src"]
 filterwarnings = [
     "error",
     '''ignore:The global interpreter lock \(GIL\) has been enabled to load module 'gi\._gi'.*:RuntimeWarning''',
+    # PyGObject 3.56's gi.events module references asyncio.AbstractEventLoopPolicy
+    # at import time; Python 3.14 deprecated it (removal in 3.16).
+    '''ignore:'asyncio\.AbstractEventLoopPolicy' is deprecated.*:DeprecationWarning''',
 ]
 
 [tool.coverage.run]
