@@ -108,7 +108,9 @@ def _read_real_machine_id() -> str:
         pytest.skip("/var/lib/dbus/machine-id is not available on this host")
 
 
-def _write_info_file(home: Path, machine_id: str, display_num: str, content: str) -> Path:
+def _write_info_file(
+    home: Path, machine_id: str, display_num: str, content: str
+) -> Path:
     info_path = home / ".dbus" / "session-bus" / f"{machine_id}-{display_num}"
     info_path.parent.mkdir(parents=True, exist_ok=True)
     info_path.write_text(content)
