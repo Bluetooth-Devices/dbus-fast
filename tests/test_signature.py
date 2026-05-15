@@ -3,7 +3,7 @@ import pytest
 from dbus_fast import SignatureBodyMismatchError, SignatureTree, Variant
 from dbus_fast._private.unmarshaller import is_compiled
 from dbus_fast._private.util import signature_contains_type
-from dbus_fast.errors import InvalidSignatureError
+from dbus_fast.errors import InternalError, InvalidSignatureError
 from dbus_fast.signature import SignatureType
 
 
@@ -573,3 +573,10 @@ def test_variant_skip_verify_flag():
     # used as a perf escape hatch by trusted producers.
     v = Variant("s", 123, verify=False)
     assert v.value == 123
+
+
+def test_verify_raises_internal_error_when_validator_missing(monkeypatch):
+    sig_type = SignatureType("i")
+    monkeypatch.delitem(SignatureType.validators, "i")
+    with pytest.raises(InternalError):
+        sig_type.verify(123)
