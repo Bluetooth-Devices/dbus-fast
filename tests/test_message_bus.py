@@ -1,7 +1,10 @@
+import socket
+
 import pytest
 
 from dbus_fast.aio import MessageBus
-from dbus_fast.errors import InvalidAddressError
+from dbus_fast.errors import AuthError, InvalidAddressError
+from dbus_fast.message_bus import BaseMessageBus
 
 
 @pytest.mark.asyncio
@@ -102,3 +105,75 @@ async def test_aio_connect_falls_back_between_transports() -> None:
 
     assert bus._stream is None
     assert bus._sock is None
+
+
+@pytest.mark.asyncio
+async def test_aio_connect_cleanup_after_socket_connected(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A failure after the socket is connected clears _sock/_stream/_fd/_writer."""
+    listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    listener.bind(("127.0.0.1", 0))
+    listener.listen(1)
+    host, port = listener.getsockname()
+    try:
+
+        async def _boom(self: MessageBus) -> None:
+            raise AuthError("simulated auth failure")
+
+        monkeypatch.setattr(MessageBus, "_authenticate", _boom)
+
+        bus = MessageBus(f"tcp:host={host},port={port}")
+
+        with pytest.raises(AuthError, match="simulated auth failure"):
+            await bus.connect()
+
+        assert bus._sock is None
+        assert bus._stream is None
+        assert bus._fd is None
+        assert bus._writer is None
+    finally:
+        listener.close()
+
+
+def _assert_makefile_failure_closes(
+    monkeypatch: pytest.MonkeyPatch,
+    transport: str,
+    options: dict[str, str],
+    family: int,
+) -> None:
+    closed: list[int] = []
+    real_close = socket.socket.close
+
+    def tracking_close(self: socket.socket) -> None:
+        closed.append(self.family)
+        real_close(self)
+
+    def boom(self: socket.socket, *args: object, **kwargs: object) -> None:
+        raise OSError("makefile failed")
+
+    monkeypatch.setattr(socket.socket, "close", tracking_close)
+    monkeypatch.setattr(socket.socket, "makefile", boom)
+
+    with pytest.raises(OSError, match="makefile failed"):
+        BaseMessageBus._create_socket_for_transport(transport, options)
+
+    assert family in closed
+
+
+def test_create_socket_for_transport_unix_makefile_failure_closes_socket(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A unix-transport makefile() failure closes the socket before re-raising."""
+    _assert_makefile_failure_closes(
+        monkeypatch, "unix", {"path": "/nope"}, socket.AF_UNIX
+    )
+
+
+def test_create_socket_for_transport_tcp_makefile_failure_closes_socket(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A tcp-transport makefile() failure closes the socket before re-raising."""
+    _assert_makefile_failure_closes(
+        monkeypatch, "tcp", {"host": "127.0.0.1", "port": "1"}, socket.AF_INET
+    )
