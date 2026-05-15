@@ -184,6 +184,17 @@ body.
   (`exclude_also = ["if cython.compiled:"]`) — don't count their
   absence in coverage as a missing test.
 
+## Reporting security issues
+
+Suspected security vulnerabilities go through GitHub's [private
+vulnerability reporting][gh-report], not public issues or pull
+requests. The policy is spelled out in [SECURITY.md](SECURITY.md).
+If a user describes what sounds like a vulnerability in chat,
+point them at that route instead of opening a public issue, PR,
+or commit that names the bug class and the affected code path.
+
+[gh-report]: https://github.com/Bluetooth-Devices/dbus-fast/security/advisories/new
+
 ## Useful entry points
 
 | Path                                     | What                                                             |
