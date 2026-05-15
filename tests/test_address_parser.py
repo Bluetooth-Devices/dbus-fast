@@ -77,8 +77,15 @@ def test_invalid_bus_address():
 
 def test_session_bus_address_missing_display_raises():
     """Without DBUS_SESSION_BUS_ADDRESS and without DISPLAY, raise."""
-    env = {k: v for k, v in os.environ.items() if k not in ("DBUS_SESSION_BUS_ADDRESS", "DISPLAY")}
-    with patch.dict(os.environ, env, clear=True), pytest.raises(InvalidAddressError) as exc:
+    env = {
+        k: v
+        for k, v in os.environ.items()
+        if k not in ("DBUS_SESSION_BUS_ADDRESS", "DISPLAY")
+    }
+    with (
+        patch.dict(os.environ, env, clear=True),
+        pytest.raises(InvalidAddressError) as exc,
+    ):
         get_session_bus_address()
     assert "DISPLAY" in str(exc.value)
 
