@@ -14,7 +14,7 @@ from dbus_fast.constants import BusType
 from dbus_fast.errors import InvalidAddressError
 
 
-def test_valid_addresses():
+def test_valid_addresses() -> None:
     valid_addresses = {
         "unix:path=/run/user/1000/bus": [("unix", {"path": "/run/user/1000/bus"})],
         "unix:abstract=/tmp/dbus-ft9sODWpZk,guid=a7b1d5912379c2d471165e9b5cb74a03": [
@@ -41,7 +41,7 @@ def test_valid_addresses():
         assert parse_address(address) == parsed
 
 
-def test_invalid_addresses():
+def test_invalid_addresses() -> None:
     with pytest.raises(InvalidAddressError):
         assert parse_address("")
     with pytest.raises(InvalidAddressError):
@@ -52,7 +52,7 @@ def test_invalid_addresses():
         assert parse_address("unix:tmpdir=😁")
 
 
-def test_get_system_bus_address():
+def test_get_system_bus_address() -> None:
     with patch.dict(os.environ, DBUS_SYSTEM_BUS_ADDRESS="unix:path=/dog"):
         assert get_system_bus_address() == "unix:path=/dog"
         assert get_bus_address(BusType.SYSTEM) == "unix:path=/dog"
@@ -60,7 +60,7 @@ def test_get_system_bus_address():
         assert get_system_bus_address() == "unix:path=/var/run/dbus/system_bus_socket"
 
 
-def test_get_session_bus_address():
+def test_get_session_bus_address() -> None:
     with patch.dict(os.environ, DBUS_SESSION_BUS_ADDRESS="unix:path=/dog"):
         assert get_session_bus_address() == "unix:path=/dog"
         assert get_bus_address(BusType.SESSION) == "unix:path=/dog"
@@ -71,12 +71,12 @@ def test_get_session_bus_address():
         assert get_session_bus_address()
 
 
-def test_invalid_bus_address():
+def test_invalid_bus_address() -> None:
     with pytest.raises(Exception):
         assert get_bus_address(-1)
 
 
-def test_session_bus_address_missing_display_raises():
+def test_session_bus_address_missing_display_raises() -> None:
     """Without DBUS_SESSION_BUS_ADDRESS and without DISPLAY, raise."""
     env = {
         k: v
@@ -90,7 +90,7 @@ def test_session_bus_address_missing_display_raises():
         get_session_bus_address()
 
 
-def test_session_bus_address_unparseable_display_raises():
+def test_session_bus_address_unparseable_display_raises() -> None:
     """A DISPLAY value that doesn't match the regex must raise InvalidAddressError."""
     with (
         patch.dict(os.environ, DBUS_SESSION_BUS_ADDRESS="", DISPLAY="not-a-display"),
@@ -117,7 +117,7 @@ def _write_info_file(
     return info_path
 
 
-def test_session_bus_address_from_dbus_info_file(tmp_path):
+def test_session_bus_address_from_dbus_info_file(tmp_path: Path) -> None:
     """Happy path: DISPLAY set, real machine-id, info file under HOME readable."""
     machine_id = _read_real_machine_id()
     expected_addr = "unix:abstract=/tmp/dbus-XYZ"
@@ -136,7 +136,7 @@ def test_session_bus_address_from_dbus_info_file(tmp_path):
         assert get_session_bus_address() == expected_addr
 
 
-def test_session_bus_address_strips_quotes_around_address(tmp_path):
+def test_session_bus_address_strips_quotes_around_address(tmp_path: Path) -> None:
     """Quoted DBUS_SESSION_BUS_ADDRESS values are unquoted."""
     machine_id = _read_real_machine_id()
     _write_info_file(
@@ -154,7 +154,7 @@ def test_session_bus_address_strips_quotes_around_address(tmp_path):
         assert get_session_bus_address() == "unix:path=/tmp/socket"
 
 
-def test_session_bus_address_info_file_missing_raises(tmp_path):
+def test_session_bus_address_info_file_missing_raises(tmp_path: Path) -> None:
     """If the dbus info file does not exist, raise InvalidAddressError."""
     _read_real_machine_id()
     with (
@@ -169,7 +169,7 @@ def test_session_bus_address_info_file_missing_raises(tmp_path):
         get_session_bus_address()
 
 
-def test_session_bus_address_info_file_empty_value_raises(tmp_path):
+def test_session_bus_address_info_file_empty_value_raises(tmp_path: Path) -> None:
     """An empty DBUS_SESSION_BUS_ADDRESS= line in the info file must raise."""
     machine_id = _read_real_machine_id()
     _write_info_file(tmp_path, machine_id, "0", "DBUS_SESSION_BUS_ADDRESS=\n")
@@ -185,7 +185,9 @@ def test_session_bus_address_info_file_empty_value_raises(tmp_path):
         get_session_bus_address()
 
 
-def test_session_bus_address_info_file_missing_address_line_raises(tmp_path):
+def test_session_bus_address_info_file_missing_address_line_raises(
+    tmp_path: Path,
+) -> None:
     """An info file without a DBUS_SESSION_BUS_ADDRESS line must raise."""
     machine_id = _read_real_machine_id()
     _write_info_file(tmp_path, machine_id, "0", "OTHER=value\n# nothing useful\n")
