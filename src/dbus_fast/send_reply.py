@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import traceback
+import logging
 from types import TracebackType
 from typing import TYPE_CHECKING
 
@@ -10,6 +10,8 @@ from .message import Message
 
 if TYPE_CHECKING:
     from .message_bus import BaseMessageBus
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class SendReply:
@@ -38,11 +40,19 @@ class SendReply:
             if isinstance(exc_value, DBusError):
                 self(exc_value._as_message(self._msg))
             else:
+                # Log the traceback for the operator; never send it back to
+                # the caller — it discloses install paths, line numbers,
+                # locals and version fingerprints to any peer that can
+                # invoke a method on this service.
+                _LOGGER.exception(
+                    "Service interface raised an exception",
+                    exc_info=(exc_type, exc_value, tb),
+                )
                 self(
                     Message.new_error(
                         self._msg,
                         ErrorType.SERVICE_ERROR,
-                        f"The service interface raised an error: {exc_value}.\n{traceback.format_tb(tb)}",
+                        f"The service interface raised an error: {type(exc_value).__name__}",
                     )
                 )
             return True

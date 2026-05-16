@@ -6,7 +6,6 @@ import inspect
 import io
 import logging
 import socket
-import traceback
 import xml.etree.ElementTree as ET
 from collections.abc import Callable
 from contextlib import ExitStack
@@ -828,13 +827,17 @@ class BaseMessageBus:
                     break
                 _LOGGER.exception("A message handler raised an exception: %s", e)
             except Exception as e:
+                # Log the full traceback for the operator, but never send it
+                # back to the caller — it discloses install paths, line
+                # numbers, locals and version fingerprints to any peer that
+                # can invoke a method on this bus.
                 _LOGGER.exception("A message handler raised an exception: %s", e)
                 if msg.message_type is MESSAGE_TYPE_CALL:
                     self.send(
                         Message.new_error(
                             msg,
                             ErrorType.INTERNAL_ERROR,
-                            f"An internal error occurred: {e}.\n{traceback.format_exc()}",
+                            f"An internal error occurred: {type(e).__name__}",
                         )
                     )
                     handled = True
