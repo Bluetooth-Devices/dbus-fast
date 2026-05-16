@@ -5,6 +5,15 @@ from .errors import AuthError
 
 UID_NOT_SPECIFIED = -1
 
+# SASL auth lines are tiny in practice; cap the buffer so a hostile peer
+# cannot exhaust memory by streaming bytes without CRLF. Dual-name pattern
+# (see CLAUDE.md) so a future cdef alias in a .pxd stays Python-importable.
+MAX_AUTH_LINE = 16 * 1024
+_MAX_AUTH_LINE = MAX_AUTH_LINE
+
+AUTH_READ_CHUNK = 1024
+_AUTH_READ_CHUNK = AUTH_READ_CHUNK
+
 # The auth interface here is unstable. I would like to eventually open this up
 # for people to define their own custom authentication protocols, but I'm not
 # familiar with what's needed for that exactly. To work with any message bus

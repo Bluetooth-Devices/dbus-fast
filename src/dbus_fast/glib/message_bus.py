@@ -5,7 +5,7 @@ from collections.abc import Callable
 
 from .. import introspection as intr
 from .._private.unmarshaller import Unmarshaller
-from ..auth import Authenticator, AuthExternal
+from ..auth import _MAX_AUTH_LINE, Authenticator, AuthExternal
 from ..constants import (
     BusType,
     MessageFlag,
@@ -108,9 +108,6 @@ class _MessageWritableSource(_GLibSource):
         except Exception as e:
             self.bus._finalize(e)
             return GLib.SOURCE_REMOVE
-
-
-_MAX_AUTH_LINE = 16 * 1024
 
 
 class _AuthLineSource(_GLibSource):

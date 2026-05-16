@@ -14,7 +14,12 @@ from typing import Any
 from warnings import warn
 
 from .. import introspection as intr
-from ..auth import Authenticator, AuthExternal
+from ..auth import (
+    _AUTH_READ_CHUNK,
+    _MAX_AUTH_LINE,
+    Authenticator,
+    AuthExternal,
+)
 from ..constants import (
     BusType,
     MessageFlag,
@@ -504,17 +509,13 @@ class MessageBus(BaseMessageBus):
         return _coroutine_method_handler
 
     async def _auth_readline(self) -> str:
-        # SASL auth lines are tiny in practice; cap the buffer so a hostile
-        # peer cannot exhaust memory by streaming bytes without CRLF, and
-        # treat empty recv (EOF) as an auth failure to avoid spinning.
-        max_auth_line = 16 * 1024
         buf = b""
         while buf[-2:] != b"\r\n":
-            chunk = await self._loop.sock_recv(self._sock, 1024)
+            chunk = await self._loop.sock_recv(self._sock, _AUTH_READ_CHUNK)
             if not chunk:
                 raise AuthError("connection closed during authentication")
             buf += chunk
-            if len(buf) > max_auth_line:
+            if len(buf) > _MAX_AUTH_LINE:
                 raise AuthError("auth line exceeded maximum size")
         return buf[:-2].decode()
 
