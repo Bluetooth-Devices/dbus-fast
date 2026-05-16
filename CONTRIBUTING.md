@@ -86,7 +86,7 @@ Ready to contribute? Here's how to set yourself up for local development.
    $ git push origin name-of-your-bugfix-or-feature
    ```
 
-   Note: the commit message should follow [the conventional commits](https://www.conventionalcommits.org). We run [`commitlint` on CI](https://github.com/marketplace/actions/commit-linter) to validate it, and if you've installed pre-commit hooks at the previous step, the message will be checked at commit time.
+   Note: the PR title — which GitHub uses as the squash-merge commit subject — must follow [the conventional commits](https://www.conventionalcommits.org). CI runs [`amannn/action-semantic-pull-request`](https://github.com/amannn/action-semantic-pull-request) on the title to enforce it. If you've installed pre-commit hooks at the previous step, the `commitizen` hook will also flag individual commit messages locally.
 
 8. Submit a pull request through the GitHub website or using the GitHub CLI (if you have it installed):
 

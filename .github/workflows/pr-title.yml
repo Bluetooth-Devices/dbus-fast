@@ -1,12 +1,14 @@
 name: Lint PR Title
 
 # GitHub uses the pull request title as the commit subject when "Squash and
-# merge" is used. The commitlint job in ci.yml only checks the individual
-# commit messages, so a mis-formatted PR title still produces an invalid
-# squash commit on main. This workflow validates the PR title against the
-# Conventional Commits spec so the merged subject stays valid.
+# merge" is used, and the repo is configured for squash-merge only with
+# squash_merge_commit_title = PR_TITLE. Individual commits on a PR branch
+# are discarded by the squash, so this workflow — which validates the PR
+# title against the Conventional Commits spec — is the sole enforcement
+# point for the format of the commit that lands on main.
 #
 # See: https://github.com/Bluetooth-Devices/dbus-fast/issues/531
+#      https://github.com/Bluetooth-Devices/dbus-fast/issues/660
 
 on:
   pull_request_target:

@@ -86,14 +86,18 @@ benchmarks track that path. See _Build conventions_ below.
 
 ## Commit / PR conventions
 
-- **Conventional Commits, lowercase subject.** The repo runs
-  `@commitlint/config-conventional` on every commit (via the
-  `commitlint` CI job and the `commitizen` pre-commit hook) and
-  `amannn/action-semantic-pull-request` on the PR title. Accepted
-  types: `build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`,
-  `refactor`, `revert`, `style`, `test`. Scopes are optional.
-  The subject (text after `type(scope):`) must start lowercase.
-  Examples that pass:
+- **Conventional Commits, lowercase subject.** Repo is squash-
+  merge only with `squash_merge_commit_title = PR_TITLE`, so the
+  PR title — not the individual branch commits — becomes the
+  subject of the commit that lands on `main`. The
+  `pr-title.yml` workflow runs
+  `amannn/action-semantic-pull-request` against the title; the
+  `commitizen` pre-commit hook gives local feedback on per-commit
+  subjects but CI no longer re-checks them, because the squash
+  discards them anyway. Accepted types: `build`, `chore`, `ci`,
+  `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`,
+  `test`. Scopes are optional. The subject (text after
+  `type(scope):`) must start lowercase. Examples that pass:
   - `feat: add async context manager to MessageBus`
   - `fix(unmarshaller): handle empty arrays at end of frame`
   - `perf!: drop python 3.9 support`
@@ -106,13 +110,11 @@ benchmarks track that path. See _Build conventions_ below.
   reflects the actual user-visible effect — the changelog reader
   is downstream.
 - **PR title becomes the squash subject.** GitHub uses the PR
-  title as the commit subject for "Squash and merge". The
-  `pr-title.yml` workflow enforces the same Conventional Commits
-  rules on the title, so a mis-formatted title can't sneak past
-  the per-commit linter. Title length isn't capped by commitlint
-  (`header-max-length` is disabled), but keep it readable —
-  under ~70 chars for the GitHub PR list, the body carries the
-  detail.
+  title as the commit subject for "Squash and merge", and the
+  `pr-title.yml` workflow is the gate on it. Title length isn't
+  capped by the workflow (`header-max-length` isn't enforced),
+  but keep it readable — under ~70 chars for the GitHub PR list,
+  the body carries the detail.
 - **No `Co-Authored-By` trailers for LLM authorship.** Project
   preference: commits attribute the human who reviewed the
   change, not the tool that produced the draft.
