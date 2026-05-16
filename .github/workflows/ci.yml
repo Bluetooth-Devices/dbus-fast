@@ -94,10 +94,11 @@ jobs:
             # source under QEMU s390x emulation (~5min), and skip pycairo
             # entirely since the tests don't import cairo.
             uv venv --system-site-packages .venv
-            REQUIRE_CYTHON=1 .venv/bin/uv pip install \
+            . .venv/bin/activate
+            REQUIRE_CYTHON=1 uv pip install \
               -e . \
               pytest pytest-asyncio pytest-cov pytest-timeout covdefaults
-            dbus-run-session -- .venv/bin/pytest --no-cov --timeout=100
+            dbus-run-session -- pytest --no-cov --timeout=100
 
   benchmark:
     runs-on: ubuntu-latest
