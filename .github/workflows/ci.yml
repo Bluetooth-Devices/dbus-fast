@@ -98,7 +98,8 @@ jobs:
             REQUIRE_CYTHON=1 uv pip install \
               -e . \
               pytest pytest-asyncio pytest-cov pytest-timeout covdefaults
-            dbus-run-session -- pytest --no-cov --timeout=100
+            dbus-run-session -- pytest --no-cov --timeout=100 \
+              --ignore=tests/benchmarks
 
   benchmark:
     runs-on: ubuntu-latest
