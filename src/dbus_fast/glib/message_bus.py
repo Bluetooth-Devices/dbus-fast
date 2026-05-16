@@ -5,7 +5,7 @@ from collections.abc import Callable
 
 from .. import introspection as intr
 from .._private.unmarshaller import Unmarshaller
-from ..auth import Authenticator, AuthExternal
+from ..auth import _MAX_AUTH_LINE, Authenticator, AuthExternal
 from ..constants import (
     BusType,
     MessageFlag,
@@ -122,7 +122,16 @@ class _AuthLineSource(_GLibSource):
         return False
 
     def dispatch(self, callback, user_data):
-        self.buf += self.stream.read()
+        chunk = self.stream.read()
+        if chunk == b"":
+            # EOF before CRLF — peer hung up mid-handshake.
+            callback(AuthError("connection closed during authentication"))
+            return GLib.SOURCE_REMOVE
+        if chunk:
+            self.buf += chunk
+            if len(self.buf) > _MAX_AUTH_LINE:
+                callback(AuthError("auth line exceeded maximum size"))
+                return GLib.SOURCE_REMOVE
         if self.buf[-2:] == b"\r\n":
             resp = callback(self.buf.decode()[:-2])
             if resp:
@@ -494,6 +503,8 @@ class MessageBus(BaseMessageBus):
 
         def line_notify(line):
             try:
+                if isinstance(line, Exception):
+                    raise line
                 resp = self._auth._receive_line(line)
                 self._stream.write(Authenticator._format_line(resp))
                 self._stream.flush()

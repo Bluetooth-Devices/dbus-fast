@@ -14,7 +14,12 @@ from typing import Any
 from warnings import warn
 
 from .. import introspection as intr
-from ..auth import Authenticator, AuthExternal
+from ..auth import (
+    _AUTH_READ_CHUNK,
+    _MAX_AUTH_LINE,
+    Authenticator,
+    AuthExternal,
+)
 from ..constants import (
     BusType,
     MessageFlag,
@@ -506,9 +511,12 @@ class MessageBus(BaseMessageBus):
     async def _auth_readline(self) -> str:
         buf = b""
         while buf[-2:] != b"\r\n":
-            # The auth protocol is line based, so we can read until we get a
-            # newline.
-            buf += await self._loop.sock_recv(self._sock, 1024)
+            chunk = await self._loop.sock_recv(self._sock, _AUTH_READ_CHUNK)
+            if not chunk:
+                raise AuthError("connection closed during authentication")
+            buf += chunk
+            if len(buf) > _MAX_AUTH_LINE:
+                raise AuthError("auth line exceeded maximum size")
         return buf[:-2].decode()
 
     async def _authenticate(self) -> None:
