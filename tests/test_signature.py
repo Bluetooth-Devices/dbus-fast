@@ -428,6 +428,12 @@ def test_verify_object_path_invalid():
     _expect_mismatch("o", "", match="OBJECT_PATH")
 
 
+def test_verify_object_path_wrong_type():
+    _expect_mismatch("o", 5, match="OBJECT_PATH")
+    _expect_mismatch("o", [], match="OBJECT_PATH")
+    _expect_mismatch("o", {}, match="OBJECT_PATH")
+
+
 def test_verify_object_path_accepts_valid():
     SignatureTree("o").verify(["/"])
     SignatureTree("o").verify(["/com/example/Object"])
