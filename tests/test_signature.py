@@ -413,21 +413,24 @@ def test_verify_double_accepts_int_and_float():
 
 
 def test_verify_unix_fd_wraps_uint32_error():
-    # _verify_unix_fd is defined but not in the validators dispatch dict;
-    # the "h" token maps directly to _verify_uint32. Call it directly so the
-    # UNIX_FD-specific wrapping branch is still exercised.
-    t = SignatureType("h")
-    with pytest.raises(SignatureBodyMismatchError, match="UNIX_FD"):
-        t._verify_unix_fd(-1)
+    _expect_mismatch("h", -1, match="UNIX_FD")
+    _expect_mismatch("h", "x", match="UNIX_FD")
+
+
+def test_verify_unix_fd_accepts_valid_uint32():
+    SignatureTree("h").verify([0])
+    SignatureTree("h").verify([0xFFFFFFFF])
 
 
 def test_verify_object_path_invalid():
-    # Same situation as _verify_unix_fd: "o" dispatches to _verify_string,
-    # so _verify_object_path is only reachable via direct call.
-    t = SignatureType("o")
-    with pytest.raises(SignatureBodyMismatchError, match="OBJECT_PATH"):
-        t._verify_object_path("not a path")
-    t._verify_object_path("/valid/path")
+    _expect_mismatch("o", "not a path", match="OBJECT_PATH")
+    _expect_mismatch("o", "missing/leading/slash", match="OBJECT_PATH")
+    _expect_mismatch("o", "", match="OBJECT_PATH")
+
+
+def test_verify_object_path_accepts_valid():
+    SignatureTree("o").verify(["/"])
+    SignatureTree("o").verify(["/com/example/Object"])
 
 
 def test_verify_string_wrong_type():
