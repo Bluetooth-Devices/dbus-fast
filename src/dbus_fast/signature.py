@@ -235,7 +235,7 @@ class SignatureType:  # noqa: PLW1641
             ) from ex
 
     def _verify_object_path(self, body: Any) -> None:
-        if not is_object_path_valid(body):
+        if not isinstance(body, str) or not is_object_path_valid(body):
             raise SignatureBodyMismatchError(
                 'DBus OBJECT_PATH type "o" must be a valid object path'
             )
@@ -330,8 +330,8 @@ class SignatureType:  # noqa: PLW1641
         "x": _verify_int64,
         "t": _verify_uint64,
         "d": _verify_double,
-        "h": _verify_uint32,
-        "o": _verify_string,
+        "h": _verify_unix_fd,
+        "o": _verify_object_path,
         "s": _verify_string,
         "g": _verify_signature,
         "a": _verify_array,
