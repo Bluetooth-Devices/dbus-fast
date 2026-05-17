@@ -252,7 +252,8 @@ def test_add_property_coexists_with_decorated_properties() -> None:
     assert _call_get(iface, dynamic)["value"] == 9
 
 
-def test_add_property_async_getter_setter() -> None:
+@pytest.mark.asyncio
+async def test_add_property_async_getter_setter() -> None:
     iface = ServiceInterface("test.dyn.async")
     state = {"v": "old"}
 
@@ -263,34 +264,30 @@ def test_add_property_async_getter_setter() -> None:
         state["v"] = value
 
     iface.add_property("Async", "s", getter=aget, setter=aset)
+    prop = _find(iface, "Async")
 
-    async def runner() -> None:
-        prop = _find(iface, "Async")
+    get_done = asyncio.get_running_loop().create_future()
 
-        get_done = asyncio.get_running_loop().create_future()
+    def gcb(_i: Any, _p: Any, value: Any, err: Exception | None) -> None:
+        if err is not None:
+            get_done.set_exception(err)
+        else:
+            get_done.set_result(value)
 
-        def gcb(_i: Any, _p: Any, value: Any, err: Exception | None) -> None:
-            if err is not None:
-                get_done.set_exception(err)
-            else:
-                get_done.set_result(value)
+    ServiceInterface._get_property_value(iface, prop, gcb)
+    assert await get_done == "old"
 
-        ServiceInterface._get_property_value(iface, prop, gcb)
-        assert await get_done == "old"
+    set_done = asyncio.get_running_loop().create_future()
 
-        set_done = asyncio.get_running_loop().create_future()
+    def scb(_i: Any, _p: Any, err: Exception | None) -> None:
+        if err is not None:
+            set_done.set_exception(err)
+        else:
+            set_done.set_result(None)
 
-        def scb(_i: Any, _p: Any, err: Exception | None) -> None:
-            if err is not None:
-                set_done.set_exception(err)
-            else:
-                set_done.set_result(None)
-
-        ServiceInterface._set_property_value(iface, prop, "new", scb)
-        await set_done
-        assert state["v"] == "new"
-
-    asyncio.run(runner())
+    ServiceInterface._set_property_value(iface, prop, "new", scb)
+    await set_done
+    assert state["v"] == "new"
 
 
 def test_add_property_getter_exception_routed_to_callback() -> None:
