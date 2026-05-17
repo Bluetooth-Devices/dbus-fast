@@ -153,7 +153,7 @@ jobs:
       - name: Create local branch name
         env:
           BRANCH: ${{ github.head_ref || github.ref_name }}
-        run: git switch -C -- "$BRANCH"
+        run: git switch -C "$BRANCH"
 
       # Do a dry run of PSR
       - name: Test release
