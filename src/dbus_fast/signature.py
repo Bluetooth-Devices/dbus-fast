@@ -98,8 +98,6 @@ class SignatureType:  # noqa: PLW1641
         if token == "a":
             self = SignatureType("a")
             (child, signature) = SignatureType._parse_next(signature[1:])
-            if not child:
-                raise InvalidSignatureError("missing type for array")
             self._add_child(child)
             return (self, signature)
         if token == "(":
@@ -116,12 +114,10 @@ class SignatureType:  # noqa: PLW1641
             self = SignatureType("{")
             signature = signature[1:]
             (key_child, signature) = SignatureType._parse_next(signature)
-            if not key_child or len(key_child.children):
+            if key_child.children:
                 raise InvalidSignatureError("expected a simple type for dict entry key")
             self._add_child(key_child)
             (value_child, signature) = SignatureType._parse_next(signature)
-            if not value_child:
-                raise InvalidSignatureError("expected a value for dict entry")
             if not signature or signature[0] != "}":
                 raise InvalidSignatureError('missing closing "}" for dict entry')
             self._add_child(value_child)

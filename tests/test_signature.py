@@ -271,10 +271,7 @@ def test_parse_unknown_token_raises():
         SignatureTree("z")
 
 
-def test_parse_array_missing_child_raises():
-    # SignatureType._parse_next is called recursively; a lone "a" hits the
-    # "empty signature" branch first. Force the "missing type for array"
-    # branch by feeding an unterminated struct after the array.
+def test_parse_array_with_unterminated_struct_child_raises():
     with pytest.raises(InvalidSignatureError):
         SignatureTree("a(")
 
