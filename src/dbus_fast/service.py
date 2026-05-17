@@ -45,10 +45,20 @@ class _MethodCallbackProtocol(Protocol):
 
 _background_tasks: set[asyncio.Task[Any]] = set()
 
+DisabledType = bool | Callable[["ServiceInterface"], bool]
+
+
+def _resolve_disabled(member: Any, interface: ServiceInterface) -> bool:
+    """Resolve a member's ``disabled`` flag, calling it if it's a callable."""
+    disabled = member.disabled
+    if disabled is False or disabled is True:
+        return disabled
+    return bool(disabled(interface))
+
 
 class _Method:
     def __init__(
-        self, fn: _MethodCallbackProtocol, name: str, disabled: bool = False
+        self, fn: _MethodCallbackProtocol, name: str, disabled: DisabledType = False
     ) -> None:
         in_signature = ""
         out_signature = ""
@@ -86,7 +96,7 @@ class _Method:
 
 
 def dbus_method(
-    name: str | None = None, disabled: bool = False
+    name: str | None = None, disabled: DisabledType = False
 ) -> Callable[[Callable[_P, Any]], Callable[_P, None]]:
     """A decorator to mark a class method of a :class:`ServiceInterface` to be a DBus service method.
 
@@ -106,7 +116,10 @@ def dbus_method(
     :param name: The member name that DBus clients will use to call this method. Defaults to the name of the class method.
     :type name: str
     :param disabled: If set to true, the method will not be visible to clients.
-    :type disabled: bool
+        May also be a callable taking the :class:`ServiceInterface` instance and
+        returning a bool, which is evaluated on each access for per-instance
+        visibility.
+    :type disabled: bool or Callable[[ServiceInterface], bool]
 
     :example:
 
@@ -145,8 +158,8 @@ def dbus_method(
     """
     if name is not None and type(name) is not str:
         raise TypeError("name must be a string")
-    if type(disabled) is not bool:
-        raise TypeError("disabled must be a bool")
+    if type(disabled) is not bool and not callable(disabled):
+        raise TypeError("disabled must be a bool or callable")
 
     def decorator(fn: Callable[_P, Any]) -> Callable[_P, None]:
         @wraps(fn)
@@ -168,7 +181,7 @@ method = dbus_method  # backward compatibility alias
 
 class _Signal:
     def __init__(
-        self, fn: Callable[..., Any], name: str, disabled: bool = False
+        self, fn: Callable[..., Any], name: str, disabled: DisabledType = False
     ) -> None:
         inspection = inspect.signature(fn)
         module = inspect.getmodule(fn)
@@ -196,7 +209,7 @@ class _Signal:
 
 
 def dbus_signal(
-    name: str | None = None, disabled: bool = False
+    name: str | None = None, disabled: DisabledType = False
 ) -> Callable[
     [Callable[Concatenate[_TInterface, _P], Any]],
     Callable[Concatenate[_TInterface, _P], Any],
@@ -216,7 +229,10 @@ def dbus_signal(
         the name of the class method.
     :type name: str
     :param disabled: If set to true, the signal will not be visible to clients.
-    :type disabled: bool
+        May also be a callable taking the :class:`ServiceInterface` instance and
+        returning a bool, which is evaluated on each access for per-instance
+        visibility.
+    :type disabled: bool or Callable[[ServiceInterface], bool]
 
     :example:
 
@@ -255,8 +271,8 @@ def dbus_signal(
     """
     if name is not None and type(name) is not str:
         raise TypeError("name must be a string")
-    if type(disabled) is not bool:
-        raise TypeError("disabled must be a bool")
+    if type(disabled) is not bool and not callable(disabled):
+        raise TypeError("disabled must be a bool or callable")
 
     def decorator(
         fn: Callable[Concatenate[_TInterface, _P], Any],
@@ -266,7 +282,7 @@ def dbus_signal(
 
         @wraps(fn)
         def wrapped(self: _TInterface, *args: _P.args, **kwargs: _P.kwargs) -> Any:
-            if signal.disabled:
+            if _resolve_disabled(signal, self):
                 raise SignalDisabledError("Tried to call a disabled signal")
             result = fn(self, *args, **kwargs)
             ServiceInterface._handle_signal(self, signal, result)
@@ -348,7 +364,7 @@ class _Property(property):
 def dbus_property(
     access: PropertyAccess = PropertyAccess.READWRITE,
     name: str | None = None,
-    disabled: bool = False,
+    disabled: DisabledType = False,
 ) -> Callable[[Callable[..., Any]], _Property]:
     """A decorator to mark a class method of a :class:`ServiceInterface` to be a DBus property.
 
@@ -372,8 +388,10 @@ def dbus_property(
         property on the bus.
     :type name: str
     :param disabled: If set to true, the property will not be visible to
-        clients.
-    :type disabled: bool
+        clients. May also be a callable taking the :class:`ServiceInterface`
+        instance and returning a bool, which is evaluated on each access for
+        per-instance visibility.
+    :type disabled: bool or Callable[[ServiceInterface], bool]
 
     :example:
 
@@ -409,8 +427,8 @@ def dbus_property(
         raise TypeError("access must be a PropertyAccess class")
     if name is not None and type(name) is not str:
         raise TypeError("name must be a string")
-    if type(disabled) is not bool:
-        raise TypeError("disabled must be a bool")
+    if type(disabled) is not bool and not callable(disabled):
+        raise TypeError("disabled must be a bool or callable")
 
     def decorator(fn: Callable[..., Any]) -> _Property:
         options: dict[str, Any] = {"name": name, "access": access, "disabled": disabled}
@@ -557,17 +575,17 @@ class ServiceInterface:
             methods=[
                 method.introspection
                 for method in ServiceInterface._get_methods(self)
-                if not method.disabled
+                if not _resolve_disabled(method, self)
             ],
             signals=[
                 signal.introspection
                 for signal in ServiceInterface._get_signals(self)
-                if not signal.disabled
+                if not _resolve_disabled(signal, self)
             ],
             properties=[
                 prop.introspection
                 for prop in ServiceInterface._get_properties(self)
-                if not prop.disabled
+                if not _resolve_disabled(prop, self)
             ],
         )
 
@@ -604,7 +622,7 @@ class ServiceInterface:
         if (method_handler := handlers.get(name)) is None:
             return None
         method = method_handler[0]
-        if method.disabled:
+        if _resolve_disabled(method, interface):
             return None
         return method_handler[1] if method.in_signature == signature else None
 
@@ -755,7 +773,7 @@ class ServiceInterface:
         result_error = None
 
         for prop in ServiceInterface._get_properties(interface):
-            if prop.disabled or not prop.access.readable():
+            if _resolve_disabled(prop, interface) or not prop.access.readable():
                 continue
             result[prop.name] = None
 
@@ -786,6 +804,6 @@ class ServiceInterface:
             callback(interface, result, user_data, result_error)
 
         for prop in ServiceInterface._get_properties(interface):
-            if prop.disabled or not prop.access.readable():
+            if _resolve_disabled(prop, interface) or not prop.access.readable():
                 continue
             ServiceInterface._get_property_value(interface, prop, get_property_callback)

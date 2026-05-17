@@ -28,7 +28,13 @@ from .errors import DBusError, InternalError, InvalidAddressError
 from .message import Message
 from .proxy_object import BaseProxyObject
 from .send_reply import SendReply
-from .service import HandlerType, ServiceInterface, _Method, _Property
+from .service import (
+    HandlerType,
+    ServiceInterface,
+    _Method,
+    _Property,
+    _resolve_disabled,
+)
 from .signature import Variant
 from .validators import assert_bus_name_valid, assert_object_path_valid
 
@@ -1136,7 +1142,7 @@ class BaseMessageBus:
             match = [
                 prop
                 for prop in properties
-                if prop.name == prop_name and not prop.disabled
+                if prop.name == prop_name and not _resolve_disabled(prop, interface)
             ]
             if not match:
                 raise DBusError(
