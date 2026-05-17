@@ -37,6 +37,8 @@ jobs:
           - "skip_cython"
           - "use_cython"
     runs-on: ${{ matrix.os }}
+    env:
+      POETRY_VIRTUALENVS_IN_PROJECT: "true"
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install libs
@@ -56,7 +58,16 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: "poetry"
           allow-prereleases: true
+      - name: Cache poetry venv
+        id: cache-venv
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: |
+            .venv
+            src/dbus_fast/**/*.so
+          key: venv-v1-${{ runner.os }}-${{ env.ImageOS }}-${{ env.ImageVersion }}-py${{ matrix.python-version }}-${{ matrix.extension }}-${{ hashFiles('poetry.lock', 'pyproject.toml', 'build_ext.py') }}-${{ hashFiles('src/dbus_fast/**/*.py', 'src/dbus_fast/**/*.pxd') }}
       - name: Install Dependencies
+        if: steps.cache-venv.outputs.cache-hit != 'true'
         run: |
           if [ "${{ matrix.extension }}" = "skip_cython" ]; then
             SKIP_CYTHON=1 poetry install --only=main,dev
@@ -106,6 +117,8 @@ jobs:
 
   benchmark:
     runs-on: ubuntu-latest
+    env:
+      POETRY_VIRTUALENVS_IN_PROJECT: "true"
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install libs
@@ -124,7 +137,16 @@ jobs:
         with:
           python-version: 3.14
           cache: "poetry"
+      - name: Cache poetry venv
+        id: cache-venv
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: |
+            .venv
+            src/dbus_fast/**/*.so
+          key: venv-v1-${{ runner.os }}-${{ env.ImageOS }}-${{ env.ImageVersion }}-benchmark-py3.14-${{ hashFiles('poetry.lock', 'pyproject.toml', 'build_ext.py') }}-${{ hashFiles('src/dbus_fast/**/*.py', 'src/dbus_fast/**/*.pxd') }}
       - name: Install Dependencies
+        if: steps.cache-venv.outputs.cache-hit != 'true'
         run: |
           REQUIRE_CYTHON=1 poetry install --only=main,dev
         shell: bash
