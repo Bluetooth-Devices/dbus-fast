@@ -11,12 +11,14 @@ from dbus_fast import Message, MessageFlag, MessageType, SignatureTree, Variant
 from dbus_fast._private._cython_compat import FakeCython
 from dbus_fast._private.constants import BIG_ENDIAN, LITTLE_ENDIAN
 from dbus_fast._private.unmarshaller import (
+    MAX_MESSAGE_SIZE,
     Unmarshaller,
     buffer_to_int16,
     buffer_to_uint16,
     buffer_to_uint32,
     is_compiled,
 )
+from dbus_fast.errors import InvalidMessageError
 from dbus_fast.signature import SignatureType
 from dbus_fast.unpack import unpack_variants
 
@@ -974,3 +976,42 @@ def test_read_variant_truncated_byte_value() -> None:
     trunc = _truncate_body(full, 3)
     with pytest.raises(IndexError):
         Unmarshaller(io.BytesIO(bytes(trunc))).unmarshall()
+
+
+def _forged_header(body_len: int, header_len: int, endian: str = "<") -> bytes:
+    """Build a 16-byte header with attacker-chosen body_len and header_len."""
+    endian_byte = b"l" if endian == "<" else b"B"
+    header = bytearray(endian_byte + bytes([1, 0, 1]))
+    header += struct.pack(f"{endian}I", body_len)
+    header += struct.pack(f"{endian}I", 1)
+    header += struct.pack(f"{endian}I", header_len)
+    return bytes(header)
+
+
+def test_unmarshall_rejects_oversized_body_len() -> None:
+    """body_len above the 128 MiB cap raises before any body read."""
+    forged = _forged_header(body_len=MAX_MESSAGE_SIZE + 1, header_len=0)
+    with pytest.raises(InvalidMessageError, match="exceeds maximum"):
+        Unmarshaller(io.BytesIO(forged)).unmarshall()
+
+
+def test_unmarshall_rejects_oversized_header_len() -> None:
+    """header_len above the 128 MiB cap raises before any body read."""
+    forged = _forged_header(body_len=0, header_len=MAX_MESSAGE_SIZE + 1)
+    with pytest.raises(InvalidMessageError, match="exceeds maximum"):
+        Unmarshaller(io.BytesIO(forged)).unmarshall()
+
+
+def test_unmarshall_rejects_oversized_combined_size() -> None:
+    """body_len + header_len above the cap raises even when each is in range."""
+    half = MAX_MESSAGE_SIZE // 2 + 1
+    forged = _forged_header(body_len=half, header_len=half)
+    with pytest.raises(InvalidMessageError, match="exceeds maximum"):
+        Unmarshaller(io.BytesIO(forged)).unmarshall()
+
+
+def test_unmarshall_rejects_max_uint32_body_len_big_endian() -> None:
+    """A forged big-endian header with body_len=0xFFFFFFFF raises."""
+    forged = _forged_header(body_len=0xFFFFFFFF, header_len=0, endian=">")
+    with pytest.raises(InvalidMessageError, match="exceeds maximum"):
+        Unmarshaller(io.BytesIO(forged)).unmarshall()

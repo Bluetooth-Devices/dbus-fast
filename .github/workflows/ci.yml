@@ -20,17 +20,6 @@ jobs:
           python-version: "3.10"
       - uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
 
-  # Make sure commit messages follow the conventional commits convention:
-  # https://www.conventionalcommits.org
-  commitlint:
-    name: Lint Commit Messages
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
-        with:
-          fetch-depth: 0
-      - uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # v6
-
   test:
     strategy:
       fail-fast: false
@@ -51,8 +40,13 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
       - name: Install libs
-        run: sudo apt-get update && sudo apt-get install -y dbus-daemon python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
-      - uses: snok/install-poetry@76e04a911780d5b312d89783f7b1cd627778900a # v1.4.1
+        run: sudo apt-get update && sudo apt-get install -y dbus-daemon python3-gi libgirepository1.0-dev libgirepository-2.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+      - name: Install poetry
+        run: uv tool install poetry
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v5
         with:
@@ -88,21 +82,37 @@ jobs:
           distro: ubuntu_latest
           run: |
             apt-get -y update
-            apt-get -y install git python3-pip python3-venv python3-poetry dbus-daemon python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
-            git clone --depth 1 $GITHUB_SERVER_URL/$GITHUB_REPOSITORY
+            apt-get -y install --no-install-recommends \
+              ca-certificates git python3-pip python3-venv python3-dev \
+              gcc dbus-daemon python3-gi
+            pip install --break-system-packages uv
+            git clone --depth 1 "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
             cd dbus-fast
-            git fetch origin --depth 1 $GITHUB_SHA
-            git checkout $GITHUB_SHA
-            REQUIRE_CYTHON=1 poetry install --only=main,dev
-            dbus-run-session -- poetry run pytest --no-cov --timeout=100
+            git fetch origin --depth 1 "$GITHUB_SHA"
+            git checkout "$GITHUB_SHA"
+            # Reuse apt's python3-gi rather than rebuilding PyGObject from
+            # source under QEMU s390x emulation (~5min), and skip pycairo
+            # entirely since the tests don't import cairo.
+            uv venv --system-site-packages .venv
+            . .venv/bin/activate
+            REQUIRE_CYTHON=1 uv pip install \
+              -e . \
+              pytest pytest-asyncio pytest-cov pytest-timeout covdefaults
+            dbus-run-session -- pytest --no-cov --timeout=100 \
+              --ignore=tests/benchmarks
 
   benchmark:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
       - name: Install libs
-        run: sudo apt-get update && sudo apt-get install -y dbus-daemon python3-gi libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
-      - uses: snok/install-poetry@76e04a911780d5b312d89783f7b1cd627778900a # v1.4.1
+        run: sudo apt-get update && sudo apt-get install -y dbus-daemon python3-gi libgirepository1.0-dev libgirepository-2.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+      - name: Install poetry
+        run: uv tool install poetry
       - name: Setup Python 3.14
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v5
         with:
@@ -123,7 +133,6 @@ jobs:
     needs:
       - test
       - lint
-      - commitlint
 
     runs-on: ubuntu-latest
     environment: release

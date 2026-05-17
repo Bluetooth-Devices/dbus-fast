@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dbus-fast"
-version = "4.1.0"
+version = "4.2.7"
 description = "A faster version of dbus-next"
 authors = ["Bluetooth Devices Authors <bluetooth@koston.org>"]
 license = "MIT"
@@ -49,7 +49,7 @@ pytest = ">=7,<10"
 pytest-cov = ">=3,<8"
 pytest-asyncio = ">=0.19,<1.4"
 pycairo = "^1.21.0"
-PyGObject = {version = ">=3.50,<3.51", python = "<4"}
+PyGObject = {version = ">=3.50,<3.57", python = "<4"}
 Cython = ">=3,<3.3.0"
 setuptools = ">=65.4.1,<83.0.0"
 pytest-timeout = "^2.1.0"
@@ -68,6 +68,14 @@ pythonpath = ["src"]
 filterwarnings = [
     "error",
     '''ignore:The global interpreter lock \(GIL\) has been enabled to load module 'gi\._gi'.*:RuntimeWarning''',
+    # PyGObject 3.56's gi.events module uses the asyncio event loop policy API
+    # (AbstractEventLoopPolicy, get_event_loop_policy, ...) which Python 3.14
+    # deprecated in full (removal in 3.16).
+    '''ignore:'asyncio\.[A-Za-z_]*[Pp]olicy[A-Za-z_]*' is deprecated.*:DeprecationWarning''',
+    # PyGObject 3.56 emits PyGIDeprecationWarning at import time on newer GLib
+    # builds (Ubuntu 25.10 / s390x leg) for symbols moved to the GLibUnix
+    # namespace. The override loader trips the warning before any test runs.
+    '''ignore:GLib\.unix_[a-z_]+ is deprecated.*:DeprecationWarning''',
 ]
 
 [tool.coverage.run]

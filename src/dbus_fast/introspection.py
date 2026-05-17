@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as ET
+import xml.parsers.expat as _expat
 
 from .constants import ArgDirection, PropertyAccess
 from .errors import InvalidIntrospectionError
@@ -6,6 +7,51 @@ from .signature import SignatureType, get_signature_tree
 from .validators import assert_interface_name_valid, assert_member_name_valid
 
 # https://dbus.freedesktop.org/doc/dbus-specification.html#introspection-format
+
+
+def _reject_internal_subset(
+    _name: str,
+    _sysid: str | None,
+    _pubid: str | None,
+    has_internal_subset: bool,
+) -> None:
+    # The standard D-Bus introspection DOCTYPE is PUBLIC-only with no
+    # internal subset. Any `[ ... ]` block in the DOCTYPE is therefore
+    # either the billion-laughs / quadratic-blowup ENTITY vector, an
+    # ATTLIST default-value amplification, or an XXE attempt from a
+    # hostile peer — reject the whole subset as a single boundary.
+    if has_internal_subset:
+        raise InvalidIntrospectionError(
+            "internal DTD subsets are not allowed in introspection XML"
+        )
+
+
+def _parse_introspection_xml(data: str) -> ET.Element:
+    """Parse introspection XML with the DTD-based amplification vectors closed."""
+    # namespace_separator="}" mirrors ElementTree's expat config so a
+    # namespaced root (`<node xmlns="urn:x">`) still surfaces with a
+    # non-"node" tag and gets rejected by the root-element check below
+    # rather than slipping through this stricter parser.
+    parser = _expat.ParserCreate(namespace_separator="}")
+    builder = ET.TreeBuilder()
+    parser.StartElementHandler = builder.start
+    parser.EndElementHandler = builder.end
+    parser.CharacterDataHandler = builder.data
+    parser.StartDoctypeDeclHandler = _reject_internal_subset
+    # Defense-in-depth: refuse to expand parameter entities, which is the
+    # path expat would otherwise take to fetch external DTDs.
+    parser.SetParamEntityParsing(_expat.XML_PARAM_ENTITY_PARSING_NEVER)
+    try:
+        parser.Parse(data.encode("utf-8") if isinstance(data, str) else data, True)
+    except _expat.ExpatError as e:
+        # Preserve the code / position metadata ElementTree attaches to
+        # ParseError so callers that inspect them (e.position, e.code) keep
+        # working as they did with ET.fromstring.
+        err = ET.ParseError(e)
+        err.code = e.code
+        err.position = (e.lineno, e.offset)
+        raise err from e
+    return builder.close()
 
 
 def _fetch_annotations(element: ET.Element) -> dict[str, str]:
@@ -532,7 +578,7 @@ class Node:
         :raises:
             - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the string is not valid introspection data.
         """
-        element = ET.fromstring(data)
+        element = _parse_introspection_xml(data)
         if element.tag != "node":
             raise InvalidIntrospectionError(
                 'introspection data must have a "node" for the root element'

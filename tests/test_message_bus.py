@@ -3,7 +3,7 @@ import socket
 import pytest
 
 from dbus_fast.aio import MessageBus
-from dbus_fast.errors import AuthError, InvalidAddressError
+from dbus_fast.errors import AuthError, InternalError, InvalidAddressError
 from dbus_fast.message_bus import BaseMessageBus
 
 
@@ -177,3 +177,10 @@ def test_create_socket_for_transport_tcp_makefile_failure_closes_socket(
     _assert_makefile_failure_closes(
         monkeypatch, "tcp", {"host": "127.0.0.1", "port": "1"}, socket.AF_INET
     )
+
+
+def test_get_proxy_object_raises_when_proxy_object_class_missing() -> None:
+    bus = BaseMessageBus.__new__(BaseMessageBus)
+    bus._ProxyObject = None
+    with pytest.raises(InternalError):
+        bus.get_proxy_object("com.example.Test", "/com/example/Test", "<node/>")

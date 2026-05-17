@@ -22,29 +22,31 @@ git fetch origin
 git checkout -b <branch-name> origin/main
 ```
 
-## 2. Conventional Commits — for both commit subjects AND PR title
+## 2. Conventional Commits — PR title is what matters
 
-Every commit subject and the PR title MUST follow
-[Conventional Commits](https://www.conventionalcommits.org/). Two
-separate CI gates check this:
-
-- **`commitlint`** (`ci.yml`) — runs
-  `@commitlint/config-conventional` over every commit on the
-  branch.
-- **`pr-title.yml`** — runs
-  `amannn/action-semantic-pull-request` over the PR title (which
-  GitHub uses as the squash-merge subject).
+The repo is squash-merge only with
+`squash_merge_commit_title = PR_TITLE`, so the PR title becomes
+the subject of the commit that lands on `main`. The
+`pr-title.yml` workflow runs
+`amannn/action-semantic-pull-request` against the title and is
+the sole CI gate on its format — individual commits on the
+branch are discarded by the squash, so CI no longer lints them.
+The local `commitizen` pre-commit hook still flags per-commit
+subjects at commit time as a convenience.
 
 Accepted types: `build`, `chore`, `ci`, `docs`, `feat`, `fix`,
 `perf`, `refactor`, `revert`, `style`, `test`. Scope is optional.
 The subject (text after `type(scope):`) must start lowercase.
-Examples that pass both gates:
+Examples that pass:
 
 ```
 feat: add async context manager to MessageBus
 fix(unmarshaller): handle empty arrays at end of frame
 perf!: drop python 3.9 support
 ```
+
+A mis-formatted PR title fails `pr-title.yml`; fix it in the
+GitHub UI (or with `gh pr edit --title`) — no push is needed.
 
 ### Pick the type that matches the release impact
 
@@ -105,19 +107,15 @@ Use `--body-file` rather than `--body "..."` so that backticks,
 asterisks, and other Markdown in the body are passed through
 verbatim instead of being mangled by shell quoting.
 
-The PR title is independently linted by `pr-title.yml` — if it
-fails the Conventional Commits check, the workflow blocks merge
-until the title is fixed. Fix it in the GitHub UI (or with
-`gh pr edit --title`); no push is needed.
-
 ## 6. After the PR is open
 
 CI runs:
 
 - `lint` — pre-commit (ruff lint + format, pyupgrade,
   trailing-whitespace).
-- `commitlint` — per-commit Conventional Commits check.
-- `pr-title` — PR-title Conventional Commits check.
+- `pr-title` — PR-title Conventional Commits check (the only
+  commit-format gate; individual commits are squashed away on
+  merge).
 - `test` matrix — Python 3.10–3.14 + `3.14t`, each in both
   `SKIP_CYTHON=1` and `REQUIRE_CYTHON=1` modes.
 - `test_big_endian` — s390x via `uraimo/run-on-arch-action`,

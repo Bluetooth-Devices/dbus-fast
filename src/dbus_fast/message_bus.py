@@ -6,7 +6,6 @@ import inspect
 import io
 import logging
 import socket
-import traceback
 import xml.etree.ElementTree as ET
 from collections.abc import Callable
 from functools import partial
@@ -24,7 +23,7 @@ from .constants import (
     ReleaseNameReply,
     RequestNameReply,
 )
-from .errors import DBusError, InvalidAddressError
+from .errors import DBusError, InternalError, InvalidAddressError
 from .message import Message
 from .proxy_object import BaseProxyObject
 from .send_reply import SendReply
@@ -510,7 +509,7 @@ class BaseMessageBus:
             - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the introspection data for the node is not valid.
         """
         if self._ProxyObject is None:
-            raise Exception(
+            raise InternalError(
                 "the message bus implementation did not provide a proxy object class"
             )
 
@@ -632,8 +631,8 @@ class BaseMessageBus:
                 if i is interface:
                     path = p
 
-        if path is None:
-            raise Exception(
+        if path is None:  # pragma: no cover
+            raise InternalError(
                 "Could not find interface on bus (this is a bug in dbus-fast)"
             )
 
@@ -800,13 +799,17 @@ class BaseMessageBus:
                     break
                 _LOGGER.exception("A message handler raised an exception: %s", e)
             except Exception as e:
+                # Log the full traceback for the operator, but never send it
+                # back to the caller — it discloses install paths, line
+                # numbers, locals and version fingerprints to any peer that
+                # can invoke a method on this bus.
                 _LOGGER.exception("A message handler raised an exception: %s", e)
                 if msg.message_type is MESSAGE_TYPE_CALL:
                     self.send(
                         Message.new_error(
                             msg,
                             ErrorType.INTERNAL_ERROR,
-                            f"An internal error occurred: {e}.\n{traceback.format_exc()}",
+                            f"An internal error occurred: {type(e).__name__}",
                         )
                     )
                     handled = True

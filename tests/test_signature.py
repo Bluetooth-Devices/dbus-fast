@@ -3,8 +3,8 @@ import pytest
 from dbus_fast import SignatureBodyMismatchError, SignatureTree, Variant
 from dbus_fast._private.unmarshaller import is_compiled
 from dbus_fast._private.util import signature_contains_type
-from dbus_fast.errors import InvalidSignatureError
-from dbus_fast.signature import SignatureType
+from dbus_fast.errors import InternalError, InvalidSignatureError
+from dbus_fast.signature import SignatureType, get_signature_tree
 
 
 def assert_simple_type(signature, type_):
@@ -271,10 +271,7 @@ def test_parse_unknown_token_raises():
         SignatureTree("z")
 
 
-def test_parse_array_missing_child_raises():
-    # SignatureType._parse_next is called recursively; a lone "a" hits the
-    # "empty signature" branch first. Force the "missing type for array"
-    # branch by feeding an unterminated struct after the array.
+def test_parse_array_with_unterminated_struct_child_raises():
     with pytest.raises(InvalidSignatureError):
         SignatureTree("a(")
 
@@ -413,21 +410,30 @@ def test_verify_double_accepts_int_and_float():
 
 
 def test_verify_unix_fd_wraps_uint32_error():
-    # _verify_unix_fd is defined but not in the validators dispatch dict;
-    # the "h" token maps directly to _verify_uint32. Call it directly so the
-    # UNIX_FD-specific wrapping branch is still exercised.
-    t = SignatureType("h")
-    with pytest.raises(SignatureBodyMismatchError, match="UNIX_FD"):
-        t._verify_unix_fd(-1)
+    _expect_mismatch("h", -1, match="UNIX_FD")
+    _expect_mismatch("h", "x", match="UNIX_FD")
+
+
+def test_verify_unix_fd_accepts_valid_uint32():
+    SignatureTree("h").verify([0])
+    SignatureTree("h").verify([0xFFFFFFFF])
 
 
 def test_verify_object_path_invalid():
-    # Same situation as _verify_unix_fd: "o" dispatches to _verify_string,
-    # so _verify_object_path is only reachable via direct call.
-    t = SignatureType("o")
-    with pytest.raises(SignatureBodyMismatchError, match="OBJECT_PATH"):
-        t._verify_object_path("not a path")
-    t._verify_object_path("/valid/path")
+    _expect_mismatch("o", "not a path", match="OBJECT_PATH")
+    _expect_mismatch("o", "missing/leading/slash", match="OBJECT_PATH")
+    _expect_mismatch("o", "", match="OBJECT_PATH")
+
+
+def test_verify_object_path_wrong_type():
+    _expect_mismatch("o", 5, match="OBJECT_PATH")
+    _expect_mismatch("o", [], match="OBJECT_PATH")
+    _expect_mismatch("o", {}, match="OBJECT_PATH")
+
+
+def test_verify_object_path_accepts_valid():
+    SignatureTree("o").verify(["/"])
+    SignatureTree("o").verify(["/com/example/Object"])
 
 
 def test_verify_string_wrong_type():
@@ -573,3 +579,35 @@ def test_variant_skip_verify_flag():
     # used as a perf escape hatch by trusted producers.
     v = Variant("s", 123, verify=False)
     assert v.value == 123
+
+
+def test_verify_raises_internal_error_when_validator_missing(monkeypatch):
+    sig_type = SignatureType("i")
+    monkeypatch.delitem(SignatureType.validators, "i")
+    with pytest.raises(InternalError):
+        sig_type.verify(123)
+
+
+def test_get_signature_tree_cache_is_bounded() -> None:
+    """The lru_cache on get_signature_tree must declare a finite maxsize."""
+    info = get_signature_tree.cache_info()
+    assert info.maxsize is not None
+    assert info.maxsize <= 8192
+
+
+def test_get_signature_tree_cache_evicts_under_unique_stream() -> None:
+    """Streaming more unique signatures than maxsize must not grow the cache."""
+    info = get_signature_tree.cache_info()
+    maxsize = info.maxsize
+    assert maxsize is not None
+
+    # Encode the index in 14 bits across two DBus type chars (y, i) so each
+    # signature is unique, short, and well under the 255-char signature
+    # length cap.
+    overflow = maxsize * 2
+    width = overflow.bit_length()
+    for n in range(overflow):
+        sig = f"{n:b}".zfill(width).translate(str.maketrans("01", "yi"))
+        get_signature_tree(sig)
+
+    assert get_signature_tree.cache_info().currsize <= maxsize

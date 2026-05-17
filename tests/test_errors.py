@@ -15,6 +15,7 @@ from dbus_fast import (
     DBusError,
     DBusFastError,
     InterfaceNotFoundError,
+    InternalError,
     InvalidAddressError,
     InvalidBusNameError,
     InvalidInterfaceNameError,
@@ -31,6 +32,7 @@ _ALL_ERRORS = [
     AuthError,
     DBusError,
     InterfaceNotFoundError,
+    InternalError,
     InvalidAddressError,
     InvalidBusNameError,
     InvalidInterfaceNameError,
@@ -150,3 +152,36 @@ def test_dbus_error_inherits_dbus_fast_error() -> None:
 def test_dbus_fast_error_directly_raisable() -> None:
     with pytest.raises(DBusFastError):
         raise DBusFastError("plain base class")
+
+
+def test_internal_error_is_runtime_error() -> None:
+    assert issubclass(InternalError, RuntimeError)
+
+
+def test_internal_error_is_dbus_fast_error() -> None:
+    assert issubclass(InternalError, DBusFastError)
+
+
+def test_internal_error_mro_order() -> None:
+    """``RuntimeError`` must precede ``DBusFastError`` in the MRO.
+
+    Same rationale as the ``ValueError`` / ``TypeError`` MRO tests: keeps
+    ``super().__init__`` routing through ``RuntimeError.__init__``.
+    """
+    mro = InternalError.__mro__
+    assert mro.index(RuntimeError) < mro.index(DBusFastError)
+
+
+def test_runtime_error_still_catches_internal_error() -> None:
+    with pytest.raises(RuntimeError):
+        raise InternalError("boom")
+
+
+def test_dbus_fast_error_catches_internal_error() -> None:
+    with pytest.raises(DBusFastError):
+        raise InternalError("boom")
+
+
+def test_internal_error_message_unchanged() -> None:
+    err = InternalError("internal boom")
+    assert str(err) == "internal boom"

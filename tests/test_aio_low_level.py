@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from dbus_fast import Message, MessageFlag, MessageType
+from dbus_fast import ErrorType, Message, MessageFlag, MessageType
 from dbus_fast.aio import MessageBus
 
 
@@ -180,6 +180,45 @@ async def test_sending_signals_between_buses():
     assert signal.member == "SomeSignal"
     assert signal.signature == "s"
     assert signal.body == ["a signal"]
+
+    bus1.disconnect()
+    bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
+
+
+@pytest.mark.asyncio
+async def test_internal_error_reply_does_not_leak_traceback() -> None:
+    """A raising message handler must surface as a sanitized INTERNAL_ERROR."""
+    bus1 = await MessageBus().connect()
+    bus2 = await MessageBus().connect()
+
+    msg = Message(
+        destination=bus1.unique_name,
+        path="/org/test/path",
+        interface="org.test.iface",
+        member="SomeMember",
+        serial=bus2.next_serial(),
+    )
+
+    def raising_handler(sent):
+        if sent.sender == bus2.unique_name and sent.serial == msg.serial:
+            bus1.remove_message_handler(raising_handler)
+            raise ValueError("must not appear on the wire")
+
+    bus1.add_message_handler(raising_handler)
+
+    reply = await bus2.call(msg)
+
+    assert reply.message_type == MessageType.ERROR
+    assert reply.error_name == ErrorType.INTERNAL_ERROR.value
+    body = reply.body[0]
+    # The body must not leak a Python traceback, file paths, or the
+    # exception's str() — only the exception class name is disclosed.
+    assert "Traceback" not in body, body
+    assert 'File "' not in body, body
+    assert "must not appear on the wire" not in body, body
+    assert "ValueError" in body, body
 
     bus1.disconnect()
     bus2.disconnect()

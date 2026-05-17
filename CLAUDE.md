@@ -86,14 +86,18 @@ benchmarks track that path. See _Build conventions_ below.
 
 ## Commit / PR conventions
 
-- **Conventional Commits, lowercase subject.** The repo runs
-  `@commitlint/config-conventional` on every commit (via the
-  `commitlint` CI job and the `commitizen` pre-commit hook) and
-  `amannn/action-semantic-pull-request` on the PR title. Accepted
-  types: `build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`,
-  `refactor`, `revert`, `style`, `test`. Scopes are optional.
-  The subject (text after `type(scope):`) must start lowercase.
-  Examples that pass:
+- **Conventional Commits, lowercase subject.** Repo is squash-
+  merge only with `squash_merge_commit_title = PR_TITLE`, so the
+  PR title — not the individual branch commits — becomes the
+  subject of the commit that lands on `main`. The
+  `pr-title.yml` workflow runs
+  `amannn/action-semantic-pull-request` against the title; the
+  `commitizen` pre-commit hook gives local feedback on per-commit
+  subjects but CI no longer re-checks them, because the squash
+  discards them anyway. Accepted types: `build`, `chore`, `ci`,
+  `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`,
+  `test`. Scopes are optional. The subject (text after
+  `type(scope):`) must start lowercase. Examples that pass:
   - `feat: add async context manager to MessageBus`
   - `fix(unmarshaller): handle empty arrays at end of frame`
   - `perf!: drop python 3.9 support`
@@ -106,13 +110,11 @@ benchmarks track that path. See _Build conventions_ below.
   reflects the actual user-visible effect — the changelog reader
   is downstream.
 - **PR title becomes the squash subject.** GitHub uses the PR
-  title as the commit subject for "Squash and merge". The
-  `pr-title.yml` workflow enforces the same Conventional Commits
-  rules on the title, so a mis-formatted title can't sneak past
-  the per-commit linter. Title length isn't capped by commitlint
-  (`header-max-length` is disabled), but keep it readable —
-  under ~70 chars for the GitHub PR list, the body carries the
-  detail.
+  title as the commit subject for "Squash and merge", and the
+  `pr-title.yml` workflow is the gate on it. Title length isn't
+  capped by the workflow (`header-max-length` isn't enforced),
+  but keep it readable — under ~70 chars for the GitHub PR list,
+  the body carries the detail.
 - **No `Co-Authored-By` trailers for LLM authorship.** Project
   preference: commits attribute the human who reviewed the
   change, not the tool that produced the draft.
@@ -183,6 +185,113 @@ body.
   The coverage config excludes those branches
   (`exclude_also = ["if cython.compiled:"]`) — don't count their
   absence in coverage as a missing test.
+
+## Cython gotchas (things that have bitten us)
+
+These are non-obvious traps in the `.py` + `.pxd` setup that work
+fine in pure-Python mode but break or silently misbehave in the
+shipped Cython wheels. The `SKIP_CYTHON=1` leg of CI is happy to
+sail past most of them — the `REQUIRE_CYTHON=1` leg, the s390x
+leg, or CodSpeed catch what's left, but only if you read the
+matrix carefully. Several were hit on the marshaller /
+unmarshaller hot paths.
+
+- **`cdef`-typed module constants are not Python-importable.**
+  Declaring `cdef unsigned int _MAX_X` in `.pxd` makes Cython
+  treat `_MAX_X = 5` in the `.py` as a C int assignment; the
+  Python module dict never gets the binding. `from module import
+_MAX_X` succeeds in pure-Python but raises `ImportError` under
+  Cython. Pattern — define both names, the un-prefixed one for
+  Python (tests, cross-module) and the underscored one for the
+  cdef hot path:
+
+  ```python
+  # in .py
+  MAX_MESSAGE_SIZE = 134_217_728      # Python-importable
+  _MAX_MESSAGE_SIZE = MAX_MESSAGE_SIZE  # cdef'd C int alias
+  ```
+
+  ```cython
+  # in .pxd
+  cdef unsigned int _MAX_MESSAGE_SIZE
+  ```
+
+  This was the trap hit on the `_read_header` size-cap fix
+  (`src/dbus_fast/_private/unmarshaller.py`). See PR
+  [esphome/aioesphomeapi#1651][aio-1651] for the related
+  upstream lesson.
+
+- **`unsigned int` returned through `cdef int` can flip sign.**
+  A wire field decoded into `unsigned int` and returned via
+  `cdef int` will come back negative for any value with bit 31
+  set. If the caller does `if x < 0: return`, an attacker-
+  controlled large value silently hits the early-return branch
+  instead of being rejected. Either cap the input range so
+  decoded values stay in signed-int range, or check explicit
+  sentinel values (`x == _SENTINEL_INCOMPLETE`) instead of
+  generic `< 0`. The marshaller/unmarshaller deal with `uint32`
+  body lengths and field sizes that routinely have bit 31 set,
+  so this is a live class-of-bug for any new cdef int returns.
+
+- **Sign-compare warnings in generated C are real.** `clang`/`gcc`
+  warns when an `unsigned int` is compared with `int` because
+  the signed value is implicitly converted to unsigned for the
+  compare — a negative value becomes a huge positive. Match
+  signedness in the `.pxd` (if the local is `unsigned int`,
+  declare the constant `cdef unsigned int`; if the local is
+  `int`, declare `cdef int`). Don't dismiss the warning as
+  cosmetic — it predicts the unsigned-vs-signed sentinel-bypass
+  class of bug above.
+
+- **`noexcept` cdef paths must be pure C.** Calling a Python
+  method that can raise from inside a `cdef ... noexcept`
+  function is undefined / lossy — Cython prints the exception
+  via `WriteUnraisable` and silently continues. Keep `noexcept`
+  paths to sentinel returns and let the caller (or a separate
+  `except *` wrapper) handle Python-level work. The
+  `_ustr_uint32` family in `_private/unmarshaller.pxd` is the
+  template — pure C, no Python calls.
+
+- **`except *` adds a `PyErr_Occurred()` check after every
+  call.** Switching a hot-path `cdef ... noexcept` to `except *`
+  inserts a per-call exception check in the generated C. Cold
+  paths don't care; the marshalling/unmarshalling hot path
+  does. CodSpeed will catch a regression but only if the
+  change is on a path the benchmarks exercise — when adding
+  `except *` to anything in `_private/marshaller.pxd` or
+  `_private/unmarshaller.pxd`, check the CodSpeed delta on the
+  PR and justify if it moved.
+
+- **Module-level Python int constants force `PyLong_AsLong`
+  per access.** A bare `MAX_X = 5` in the `.py` (without a
+  matching `cdef int MAX_X` in the `.pxd`) compiles to a Python
+  attribute lookup and `PyLong_AsLong` on every comparison —
+  fine for the once-per-message validation path, expensive
+  inside the per-field marshalling loop. For constants used
+  inside the unmarshaller's per-token loops, declare the
+  underscored alias in the `.pxd` as `cdef unsigned int` (see
+  the dual-name pattern above).
+
+- **CodSpeed regressions only show on the Cython build.** Pure-
+  Python (`SKIP_CYTHON=1`) tests can pass while the production
+  wire-format hot paths regress. Trust the CodSpeed check on
+  PRs that touch `TO_CYTHONIZE` files; before pushing perf-
+  sensitive changes, run
+  `REQUIRE_CYTHON=1 python setup.py build_ext --inplace` and
+  `pytest tests/benchmarks/` locally.
+
+[aio-1651]: https://github.com/esphome/aioesphomeapi/pull/1651
+
+## Reporting security issues
+
+Suspected security vulnerabilities go through GitHub's [private
+vulnerability reporting][gh-report], not public issues or pull
+requests. The policy is spelled out in [SECURITY.md](SECURITY.md).
+If a user describes what sounds like a vulnerability in chat,
+point them at that route instead of opening a public issue, PR,
+or commit that names the bug class and the affected code path.
+
+[gh-report]: https://github.com/Bluetooth-Devices/dbus-fast/security/advisories/new
 
 ## Useful entry points
 

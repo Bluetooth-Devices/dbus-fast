@@ -4,7 +4,7 @@ from collections.abc import Callable
 from functools import lru_cache
 from typing import Any
 
-from .errors import InvalidSignatureError, SignatureBodyMismatchError
+from .errors import InternalError, InvalidSignatureError, SignatureBodyMismatchError
 from .validators import is_object_path_valid
 
 
@@ -98,8 +98,6 @@ class SignatureType:  # noqa: PLW1641
         if token == "a":
             self = SignatureType("a")
             (child, signature) = SignatureType._parse_next(signature[1:])
-            if not child:
-                raise InvalidSignatureError("missing type for array")
             self._add_child(child)
             return (self, signature)
         if token == "(":
@@ -116,12 +114,10 @@ class SignatureType:  # noqa: PLW1641
             self = SignatureType("{")
             signature = signature[1:]
             (key_child, signature) = SignatureType._parse_next(signature)
-            if not key_child or len(key_child.children):
+            if key_child.children:
                 raise InvalidSignatureError("expected a simple type for dict entry key")
             self._add_child(key_child)
             (value_child, signature) = SignatureType._parse_next(signature)
-            if not value_child:
-                raise InvalidSignatureError("expected a value for dict entry")
             if not signature or signature[0] != "}":
                 raise InvalidSignatureError('missing closing "}" for dict entry')
             self._add_child(value_child)
@@ -235,7 +231,7 @@ class SignatureType:  # noqa: PLW1641
             ) from ex
 
     def _verify_object_path(self, body: Any) -> None:
-        if not is_object_path_valid(body):
+        if not isinstance(body, str) or not is_object_path_valid(body):
             raise SignatureBodyMismatchError(
                 'DBus OBJECT_PATH type "o" must be a valid object path'
             )
@@ -316,7 +312,7 @@ class SignatureType:  # noqa: PLW1641
         if validator:
             validator(self, body)
         else:
-            raise Exception(f"cannot verify type with token {self.token}")
+            raise InternalError(f"cannot verify type with token {self.token}")
 
         return True
 
@@ -330,8 +326,8 @@ class SignatureType:  # noqa: PLW1641
         "x": _verify_int64,
         "t": _verify_uint64,
         "d": _verify_double,
-        "h": _verify_uint32,
-        "o": _verify_string,
+        "h": _verify_unix_fd,
+        "o": _verify_object_path,
         "s": _verify_string,
         "g": _verify_signature,
         "a": _verify_array,
@@ -473,7 +469,12 @@ class Variant:  # noqa: PLW1641
         return f"<dbus_fast.signature.Variant ('{self.type.signature}', {self.value})>"
 
 
-get_signature_tree = lru_cache(maxsize=None)(SignatureTree)
+# Bound the cache so a peer streaming messages with unique attacker-chosen
+# signatures (signatures up to 255 bytes, body-side signatures pass through
+# get_signature_tree in the unmarshaller) cannot grow this dict without
+# limit and OOM the process. 4096 entries covers every signature emitted
+# by real-world D-Bus services many times over.
+get_signature_tree = lru_cache(maxsize=4096)(SignatureTree)
 """Get a signature tree for the given signature.
 
 :param signature: The signature to get a tree for.
