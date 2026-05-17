@@ -50,7 +50,7 @@ pytest-cov = ">=3,<8"
 pytest-asyncio = ">=0.19,<1.4"
 pycairo = "^1.21.0"
 PyGObject = {version = ">=3.50,<3.57", python = "<4"}
-Cython = ">=3,<3.3.0"
+Cython = "3.2.4"
 setuptools = ">=65.4.1,<83.0.0"
 pytest-timeout = "^2.1.0"
 pytest-codspeed = ">=3.1.1,<5.0.0"
@@ -116,7 +116,7 @@ module = "docs.*"
 ignore_errors = true
 
 [build-system]
-requires = ['setuptools>=65.4.1', 'wheel', 'Cython>=3,<3.3.0', "poetry-core>=1.0.0"]
+requires = ['setuptools>=65.4.1', 'wheel', 'Cython==3.2.4', "poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
