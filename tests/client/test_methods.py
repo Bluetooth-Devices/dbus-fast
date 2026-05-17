@@ -1,14 +1,21 @@
+# NOTE: Do not add `from __future__ import annotations` to this file. This file
+# provides coverage for the case where we don't have deferred evaluation of
+# annotations.
+
+import asyncio
 import logging
 import sys
 from logging.handlers import QueueHandler
 from queue import SimpleQueue
+from typing import Annotated, no_type_check
 
 import pytest
 
 import dbus_fast.introspection as intr
 from dbus_fast import DBusError, aio, glib
+from dbus_fast.annotations import DBusDict, DBusInt64, DBusSignature, DBusStr
 from dbus_fast.message import MessageFlag
-from dbus_fast.service import ServiceInterface, method
+from dbus_fast.service import ServiceInterface, dbus_method
 from dbus_fast.signature import Variant
 from tests.util import check_gi_repository, skip_reason_no_gi
 
@@ -19,32 +26,36 @@ class ExampleInterface(ServiceInterface):
     def __init__(self):
         super().__init__("test.interface")
 
-    @method()
+    @dbus_method()
     def Ping(self):
         pass
 
-    @method()
-    def EchoInt64(self, what: "x") -> "x":
+    @dbus_method()
+    def EchoInt64(self, what: DBusInt64) -> DBusInt64:
         return what
 
-    @method()
+    # This one intentionally keeps string-style annotations for coverage purposes.
+    @no_type_check
+    @dbus_method()
     def EchoString(self, what: "s") -> "s":
         return what
 
-    @method()
-    def ConcatStrings(self, what1: "s", what2: "s") -> "s":
+    @dbus_method()
+    def ConcatStrings(self, what1: DBusStr, what2: DBusStr) -> DBusStr:
         return what1 + what2
 
-    @method()
-    def EchoThree(self, what1: "s", what2: "s", what3: "s") -> "sss":
-        return [what1, what2, what3]
+    @dbus_method()
+    def EchoThree(
+        self, what1: DBusStr, what2: DBusStr, what3: DBusStr
+    ) -> Annotated[tuple[str, str, str], DBusSignature("sss")]:
+        return what1, what2, what3
 
-    @method()
-    def GetComplex(self) -> "a{sv}":  # noqa: F722
+    @dbus_method()
+    def GetComplex(self) -> DBusDict:
         """Return complex output."""
         return {"hello": Variant("s", "world")}
 
-    @method()
+    @dbus_method()
     def ThrowsError(self):
         raise DBusError("test.error", "something went wrong")
 
@@ -121,8 +132,8 @@ async def test_aio_proxy_object():
 
     bus.disconnect()
     bus2.disconnect()
-    await bus.wait_for_disconnect()
-    await bus2.wait_for_disconnect()
+    await asyncio.wait_for(bus.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
 
 
 @pytest.mark.skipif(

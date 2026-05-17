@@ -55,7 +55,7 @@ cdef class Message:
         header_buffer=bytearray,
         var=Variant
     )
-    cpdef _marshall(self, object negotiate_unix_fd)
+    cpdef _marshall(self, bint negotiate_unix_fd)
 
     cdef _fast_init(
         self,

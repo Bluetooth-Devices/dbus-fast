@@ -1,3 +1,5 @@
+# cython: freethreading_compatible = True
+
 from __future__ import annotations
 
 import os
@@ -5,7 +7,7 @@ import re
 from urllib.parse import unquote
 
 from ..constants import BusType
-from ..errors import InvalidAddressError
+from ..errors import InternalError, InvalidAddressError
 
 invalid_address_chars_re = re.compile(r"[^-0-9A-Za-z_/.%]")
 
@@ -114,4 +116,4 @@ def get_bus_address(bus_type: BusType) -> str:
         return get_session_bus_address()
     if bus_type == BusType.SYSTEM:
         return get_system_bus_address()
-    raise Exception(f"got unknown bus type: {bus_type}")
+    raise InternalError(f"got unknown bus type: {bus_type}")

@@ -1,0 +1,54 @@
+name: Lint PR Title
+
+# GitHub uses the pull request title as the commit subject when "Squash and
+# merge" is used, and the repo is configured for squash-merge only with
+# squash_merge_commit_title = PR_TITLE. Individual commits on a PR branch
+# are discarded by the squash, so this workflow — which validates the PR
+# title against the Conventional Commits spec — is the sole enforcement
+# point for the format of the commit that lands on main.
+#
+# See: https://github.com/Bluetooth-Devices/dbus-fast/issues/531
+#      https://github.com/Bluetooth-Devices/dbus-fast/issues/660
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+
+permissions:
+  pull-requests: read
+
+jobs:
+  lint:
+    name: Validate PR Title
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6.1.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Conventional Commits types accepted by @commitlint/config-conventional,
+          # matching the existing commitlint job in ci.yml.
+          types: |
+            build
+            chore
+            ci
+            docs
+            feat
+            fix
+            perf
+            refactor
+            revert
+            style
+            test
+          requireScope: false
+          # Subject (text after the type/scope) must start lowercase, matching
+          # @commitlint/config-conventional's subject-case rule.
+          subjectPattern: ^(?![A-Z]).+$
+          subjectPatternError: |
+            The subject "{subject}" found in the pull request title "{title}"
+            didn't match the configured pattern. Please ensure that the subject
+            doesn't start with an uppercase character.

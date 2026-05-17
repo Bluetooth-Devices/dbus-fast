@@ -1,8 +1,11 @@
+import asyncio
+
 import pytest
 
 from dbus_fast import Message, MessageType
 from dbus_fast import introspection as intr
 from dbus_fast.aio import MessageBus
+from dbus_fast.annotations import DBusByte, DBusStr
 from dbus_fast.constants import ErrorType
 from dbus_fast.service import PropertyAccess, ServiceInterface, dbus_property
 from dbus_fast.signature import Variant
@@ -11,27 +14,27 @@ standard_interfaces_count = len(intr.Node.default().interfaces)
 
 
 class ExampleInterface(ServiceInterface):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name)
 
 
 class ExampleComplexInterface(ServiceInterface):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         self._foo = 42
         self._bar = "str"
         self._async_prop = "async"
         super().__init__(name)
 
     @dbus_property(access=PropertyAccess.READ)
-    def Foo(self) -> "y":
+    def Foo(self) -> DBusByte:
         return self._foo
 
     @dbus_property(access=PropertyAccess.READ)
-    def Bar(self) -> "s":
+    def Bar(self) -> DBusStr:
         return self._bar
 
     @dbus_property(access=PropertyAccess.READ)
-    async def AsyncProp(self) -> "s":
+    async def AsyncProp(self) -> DBusStr:
         return self._async_prop
 
 
@@ -81,6 +84,8 @@ async def test_introspectable_interface():
 
     bus1.disconnect()
     bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
 
 
 @pytest.mark.asyncio
@@ -89,10 +94,12 @@ async def test_introspect_matching_sub_paths():
     bus2 = await MessageBus().connect()
 
     interface = ExampleInterface("test.interface1")
+    interface2 = ExampleInterface("test.interface1")
+    interface3 = ExampleInterface("test.interface1")
 
     bus1.export("/a/test/path1", interface)
-    bus1.export("/a/test/path10", interface)
-    bus1.export("/a/subpath/a/test/path2", interface)
+    bus1.export("/a/test/path10", interface2)
+    bus1.export("/a/subpath/a/test/path2", interface3)
 
     async def introspect_subpath(path, expected_subnodes):
         reply = await bus2.call(
@@ -117,6 +124,8 @@ async def test_introspect_matching_sub_paths():
 
     bus1.disconnect()
     bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
 
 
 @pytest.mark.asyncio
@@ -164,6 +173,8 @@ async def test_peer_interface():
 
     bus1.disconnect()
     bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
 
 
 @pytest.mark.asyncio
@@ -193,11 +204,12 @@ async def test_object_manager():
 
     interface = ExampleInterface("test.interface1")
     interface2 = ExampleComplexInterface("test.interface2")
+    interface_deeper = ExampleComplexInterface("test.interface2")
 
     export_path = "/test/path"
     bus1.export(export_path, interface)
     bus1.export(export_path, interface2)
-    bus1.export(export_path + "/deeper", interface2)
+    bus1.export(export_path + "/deeper", interface_deeper)
 
     reply_root = await bus2.call(
         Message(
@@ -237,6 +249,8 @@ async def test_object_manager():
 
     bus1.disconnect()
     bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
 
 
 @pytest.mark.asyncio
@@ -296,6 +310,8 @@ async def test_standard_interface_properties():
 
     bus1.disconnect()
     bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
 
 
 @pytest.mark.asyncio
@@ -324,3 +340,6 @@ async def test_bare_service_interface():
 
     bus1.disconnect()
     bus2.disconnect()
+
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)

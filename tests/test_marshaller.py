@@ -1,6 +1,7 @@
 import io
 import json
 import os
+import struct
 from enum import Enum
 from typing import Any
 
@@ -10,12 +11,15 @@ from dbus_fast import Message, MessageFlag, MessageType, SignatureTree, Variant
 from dbus_fast._private._cython_compat import FakeCython
 from dbus_fast._private.constants import BIG_ENDIAN, LITTLE_ENDIAN
 from dbus_fast._private.unmarshaller import (
+    MAX_MESSAGE_SIZE,
     Unmarshaller,
     buffer_to_int16,
     buffer_to_uint16,
     buffer_to_uint32,
     is_compiled,
 )
+from dbus_fast.errors import InvalidMessageError
+from dbus_fast.signature import SignatureType
 from dbus_fast.unpack import unpack_variants
 
 
@@ -146,7 +150,7 @@ def json_to_message(message: dict[str, Any]) -> Message:
 
 
 # variants are an object in the json
-def replace_variants(type_, item):
+def replace_variants(type_: SignatureType, item: Any) -> Any:
     if type_.token == "v" and type(item) is not Variant:
         item = Variant(
             item["signature"],
@@ -155,16 +159,22 @@ def replace_variants(type_, item):
     elif type_.token == "a":
         for i, item_child in enumerate(item):
             if type_.children[0].token == "{":
+                assert type(item) is dict
                 for k, v in item.items():
                     item[k] = replace_variants(type_.children[0].children[1], v)
             else:
                 item[i] = replace_variants(type_.children[0], item_child)
     elif type_.token == "(":
-        for i, item_child in enumerate(item):
+        # tuples are immutable, so convert to list to modify then back
+        tuple_as_list = list(item)
+
+        for i, item_child in enumerate(tuple_as_list):
             if type_.children[0].token == "{":
                 assert False
             else:
-                item[i] = replace_variants(type_.children[i], item_child)
+                tuple_as_list[i] = replace_variants(type_.children[i], item_child)
+
+        item = tuple(tuple_as_list)
 
     return item
 
@@ -237,6 +247,76 @@ def test_unmarshalling_with_table(unmarshall_table):
             assert getattr(unmarshaller.message, attr) == getattr(message, attr), (
                 f"attr doesnt match: {attr}"
             )
+
+
+items: list[dict[str, Any]] = [
+    {
+        "message": {
+            "destination": "org.freedesktop.DBus",
+            "path": "/org/freedesktop/DBus",
+            "interface": "org.freedesktop.DBus",
+            "member": "Hello",
+            "serial": 1,
+            "signature": "a(uu)",
+            "body": [[(1, 1), (2, 2)]],
+        },
+        "data": "6c01000118000000010000007b00000001016f00150000002f6f72672f667265656465736b746f702f4442757300000002017300140000006f72672e667265656465736b746f702e4442757300000000030173000500000048656c6c6f00000006017300140000006f72672e667265656465736b746f702e444275730000000008016700056128757529000000000000100000000000000001000000010000000200000002000000",
+    },
+    {
+        "message": {
+            "destination": "org.freedesktop.DBus",
+            "path": "/org/freedesktop/DBus",
+            "interface": "org.freedesktop.DBus",
+            "member": "Hello",
+            "serial": 1,
+            "signature": "a(as(uu(a{ss})))",
+            "body": [
+                [
+                    (["hello", "there"], (5, 6, ({"five": "six", "seven": "eight"},))),
+                    (
+                        ["to", "the", "world"],
+                        (7, 8, ({"seven": "eight", "nine": "ten"},)),
+                    ),
+                ]
+            ],
+        },
+        "data": "6c010001c4000000010000008600000001016f00150000002f6f72672f667265656465736b746f702f4442757300000002017300140000006f72672e667265656465736b746f702e4442757300000000030173000500000048656c6c6f00000006017300140000006f72672e667265656465736b746f702e444275730000000008016700106128617328757528617b73737d292929000000bc00000000000000160000000500000068656c6c6f0000000500000074686572650000000000000005000000060000002e0000000000000004000000666976650000000003000000736978000000000005000000736576656e0000000500000065696768740000001a00000002000000746f0000030000007468650005000000776f726c6400000007000000080000002c0000000000000005000000736576656e000000050000006569676874000000040000006e696e65000000000300000074656e00",
+    },
+]
+
+
+@pytest.mark.parametrize("item", items)
+def test_unmarshalling(item: dict[str, Any]) -> None:
+    stream = io.BytesIO(bytes.fromhex(item["data"]))
+    unmarshaller = Unmarshaller(stream)
+    try:
+        unmarshaller.unmarshall()
+    except Exception as e:
+        print("message failed to unmarshall:")
+        print(json_dump(item["message"]))
+        raise e
+
+    message = json_to_message(item["message"])
+
+    body = []
+    for i, type_ in enumerate(message.signature_tree.types):
+        body.append(replace_variants(type_, message.body[i]))
+    message.body = body
+
+    for attr in [
+        "body",
+        "signature",
+        "message_type",
+        "destination",
+        "path",
+        "interface",
+        "member",
+        "flags",
+        "serial",
+    ]:
+        assert getattr(unmarshaller.message, attr) == getattr(message, attr), (
+            f"attr doesnt match: {attr}"
+        )
 
 
 def test_unmarshall_can_resume():
@@ -729,13 +809,13 @@ def test_unmarshall_mount_message():
         "mnt-data-supervisor-mounts-test1234.mount",
         "fail",
         [
-            [
+            (
                 "Options",
                 "noserverino,credentials=/mnt/data/supervisor/.mounts_credentials/test1234",
-            ],
-            ["Type", "cifs"],
-            ["Description", "Supervisor cifs mount: test1234"],
-            ["What", "//über/tes"],
+            ),
+            ("Type", "cifs"),
+            ("Description", "Supervisor cifs mount: test1234"),
+            ("What", "//über/tes"),
         ],
         [],
     ]
@@ -767,13 +847,13 @@ def test_unmarshall_mount_message_2():
         "mnt-data-supervisor-mounts-BadTest.mount",
         "fail",
         [
-            [
+            (
                 "Options",
                 "noserverino,credentials=/mnt/data/supervisor/.mounts_credentials/BadTest",
-            ],
-            ["Type", "cifs"],
-            ["Description", "Supervisor cifs mount: BadTest"],
-            ["What", "//doesntmatter/übe"],
+            ),
+            ("Type", "cifs"),
+            ("Description", "Supervisor cifs mount: BadTest"),
+            ("What", "//doesntmatter/übe"),
         ],
         [],
     ]
@@ -825,7 +905,7 @@ def test_marshalling_struct_accepts_tuples():
     )
     marshalled = msg._marshall(False)
     unmarshalled_msg = Unmarshaller(io.BytesIO(marshalled)).unmarshall()
-    assert unpack_variants(unmarshalled_msg.body)[0] == [RaucState.GOOD.value]
+    assert unpack_variants(unmarshalled_msg.body)[0] == (RaucState.GOOD.value,)
 
 
 def test_marshalling_struct_accepts_lists():
@@ -838,4 +918,100 @@ def test_marshalling_struct_accepts_lists():
     )
     marshalled = msg._marshall(False)
     unmarshalled_msg = Unmarshaller(io.BytesIO(marshalled)).unmarshall()
-    assert unpack_variants(unmarshalled_msg.body)[0] == [RaucState.GOOD.value]
+    assert unpack_variants(unmarshalled_msg.body)[0] == (RaucState.GOOD.value,)
+
+
+def _build_variant_message(variant: Variant) -> bytearray:
+    """Build a minimal METHOD_RETURN message with a single variant body."""
+    msg = Message(
+        message_type=MessageType.METHOD_RETURN,
+        reply_serial=1,
+        signature="v",
+        body=[variant],
+    )
+    return bytearray(msg._marshall(False))
+
+
+def _truncate_body(data: bytearray, body_bytes: int) -> bytearray:
+    """Truncate a message to keep only the first body_bytes of body data.
+
+    Adjusts the body_len header field to match.
+    """
+    header_len = struct.unpack_from("<I", data, 12)[0]
+    pad = (-header_len) & 7
+    body_start = 16 + header_len + pad
+    trunc = bytearray(data[: body_start + body_bytes])
+    struct.pack_into("<I", trunc, 4, body_bytes)
+    return trunc
+
+
+@pytest.mark.skipif(not is_compiled(), reason="requires cython for bounds checks")
+def test_read_variant_truncated_signature() -> None:
+    """Truncating after the signature length byte should raise IndexError."""
+    full = _build_variant_message(Variant("n", -89))
+    # Body is: 01 6e 00 <padding> <int16>
+    # Keep only 1 byte of body (just the signature_len byte)
+    trunc = _truncate_body(full, 1)
+    with pytest.raises(IndexError):
+        Unmarshaller(io.BytesIO(bytes(trunc))).unmarshall()
+
+
+@pytest.mark.skipif(not is_compiled(), reason="requires cython for bounds checks")
+def test_read_variant_truncated_signature_no_null() -> None:
+    """Truncating after the signature char but before null should raise."""
+    full = _build_variant_message(Variant("n", -89))
+    # Body is: 01 6e 00 <padding> <int16>
+    # Keep only 2 bytes (signature_len + signature char, no null terminator)
+    trunc = _truncate_body(full, 2)
+    with pytest.raises(IndexError):
+        Unmarshaller(io.BytesIO(bytes(trunc))).unmarshall()
+
+
+@pytest.mark.skipif(not is_compiled(), reason="requires cython for bounds checks")
+def test_read_variant_truncated_byte_value() -> None:
+    """A byte variant truncated before its value should raise IndexError."""
+    full = _build_variant_message(Variant("y", 42))
+    # Body is: 01 79 00 2a (sig_len, 'y', null, value)
+    # Keep only 3 bytes (signature complete, but no value byte)
+    trunc = _truncate_body(full, 3)
+    with pytest.raises(IndexError):
+        Unmarshaller(io.BytesIO(bytes(trunc))).unmarshall()
+
+
+def _forged_header(body_len: int, header_len: int, endian: str = "<") -> bytes:
+    """Build a 16-byte header with attacker-chosen body_len and header_len."""
+    endian_byte = b"l" if endian == "<" else b"B"
+    header = bytearray(endian_byte + bytes([1, 0, 1]))
+    header += struct.pack(f"{endian}I", body_len)
+    header += struct.pack(f"{endian}I", 1)
+    header += struct.pack(f"{endian}I", header_len)
+    return bytes(header)
+
+
+def test_unmarshall_rejects_oversized_body_len() -> None:
+    """body_len above the 128 MiB cap raises before any body read."""
+    forged = _forged_header(body_len=MAX_MESSAGE_SIZE + 1, header_len=0)
+    with pytest.raises(InvalidMessageError, match="exceeds maximum"):
+        Unmarshaller(io.BytesIO(forged)).unmarshall()
+
+
+def test_unmarshall_rejects_oversized_header_len() -> None:
+    """header_len above the 128 MiB cap raises before any body read."""
+    forged = _forged_header(body_len=0, header_len=MAX_MESSAGE_SIZE + 1)
+    with pytest.raises(InvalidMessageError, match="exceeds maximum"):
+        Unmarshaller(io.BytesIO(forged)).unmarshall()
+
+
+def test_unmarshall_rejects_oversized_combined_size() -> None:
+    """body_len + header_len above the cap raises even when each is in range."""
+    half = MAX_MESSAGE_SIZE // 2 + 1
+    forged = _forged_header(body_len=half, header_len=half)
+    with pytest.raises(InvalidMessageError, match="exceeds maximum"):
+        Unmarshaller(io.BytesIO(forged)).unmarshall()
+
+
+def test_unmarshall_rejects_max_uint32_body_len_big_endian() -> None:
+    """A forged big-endian header with body_len=0xFFFFFFFF raises."""
+    forged = _forged_header(body_len=0xFFFFFFFF, header_len=0, endian=">")
+    with pytest.raises(InvalidMessageError, match="exceeds maximum"):
+        Unmarshaller(io.BytesIO(forged)).unmarshall()

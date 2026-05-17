@@ -3,15 +3,23 @@ from __future__ import annotations
 import array
 import asyncio
 import contextlib
+import inspect
 import logging
 import socket
 from collections import deque
+from collections.abc import Callable
 from copy import copy
 from functools import partial
-from typing import Any, Callable
+from typing import Any
+from warnings import warn
 
 from .. import introspection as intr
-from ..auth import Authenticator, AuthExternal
+from ..auth import (
+    _AUTH_READ_CHUNK,
+    _MAX_AUTH_LINE,
+    Authenticator,
+    AuthExternal,
+)
 from ..constants import (
     BusType,
     MessageFlag,
@@ -370,24 +378,32 @@ class MessageBus(BaseMessageBus):
 
         return await future
 
-    async def call(self, msg: Message) -> Message | None:
+    async def call(self, msg: Message) -> Message:
         """Send a method call and wait for a reply from the DBus daemon.
 
         :param msg: The method call message to send.
         :type msg: :class:`Message <dbus_fast.Message>`
 
-        :returns: A message in reply to the message sent. If the message does
-            not expect a reply based on the message flags or type, returns
-            ``None`` after the message is sent.
-        :rtype: :class:`Message <dbus_fast.Message>` or :class:`None` if no reply is expected.
+        :returns: A message in reply to the method call sent.
+        :rtype: :class:`Message <dbus_fast.Message>`
 
         :raises:
             - :class:`Exception` - If a connection error occurred.
+
+        .. versionchanged:: 3.1.0
+            Using this to call methods that do not expect a reply or messages
+            that are not a method call is deprecated. Use :func:`send()
+            <dbus_fast.aio.MessageBus.send>` instead for those cases.
         """
         if (
             msg.flags.value & NO_REPLY_EXPECTED_VALUE
             or msg.message_type is not MessageType.METHOD_CALL
         ):
+            warn(
+                "Using this to call methods that do not expect a reply or messages that are not a method call is deprecated. Use send() instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
             await self.send(msg)
             return None
 
@@ -449,7 +465,7 @@ class MessageBus(BaseMessageBus):
     def _make_method_handler(
         self, interface: ServiceInterface, method: _Method
     ) -> Callable[[Message, Callable[[Message], None]], None]:
-        if not asyncio.iscoroutinefunction(method.fn):
+        if not inspect.iscoroutinefunction(method.fn):
             return super()._make_method_handler(interface, method)
 
         negotiate_unix_fd = self._negotiate_unix_fd
@@ -495,9 +511,12 @@ class MessageBus(BaseMessageBus):
     async def _auth_readline(self) -> str:
         buf = b""
         while buf[-2:] != b"\r\n":
-            # The auth protocol is line based, so we can read until we get a
-            # newline.
-            buf += await self._loop.sock_recv(self._sock, 1024)
+            chunk = await self._loop.sock_recv(self._sock, _AUTH_READ_CHUNK)
+            if not chunk:
+                raise AuthError("connection closed during authentication")
+            buf += chunk
+            if len(buf) > _MAX_AUTH_LINE:
+                raise AuthError("auth line exceeded maximum size")
         return buf[:-2].decode()
 
     async def _authenticate(self) -> None:
@@ -526,17 +545,6 @@ class MessageBus(BaseMessageBus):
                 # from the client must be the first octet of the authenticated/encrypted stream
                 # of D-Bus messages.
                 break
-
-    def disconnect(self) -> None:
-        """Disconnect the message bus by closing the underlying connection asynchronously.
-
-        All pending  and future calls will error with a connection error.
-        """
-        super().disconnect()
-        try:
-            self._sock.close()
-        except Exception:
-            _LOGGER.warning("could not close socket", exc_info=True)
 
     def _finalize(self, err: Exception | None = None) -> None:
         try:

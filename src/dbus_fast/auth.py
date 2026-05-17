@@ -1,10 +1,18 @@
 import enum
 import os
-from typing import Optional
 
 from .errors import AuthError
 
 UID_NOT_SPECIFIED = -1
+
+# SASL auth lines are tiny in practice; cap the buffer so a hostile peer
+# cannot exhaust memory by streaming bytes without CRLF. Dual-name pattern
+# (see CLAUDE.md) so a future cdef alias in a .pxd stays Python-importable.
+MAX_AUTH_LINE = 16 * 1024
+_MAX_AUTH_LINE = MAX_AUTH_LINE
+
+AUTH_READ_CHUNK = 1024
+_AUTH_READ_CHUNK = AUTH_READ_CHUNK
 
 # The auth interface here is unstable. I would like to eventually open this up
 # for people to define their own custom authentication protocols, but I'm not
@@ -25,9 +33,9 @@ class _AuthResponse(enum.Enum):
     AGREE_UNIX_FD = "AGREE_UNIX_FD"
 
     @classmethod
-    def parse(klass, line: str) -> tuple["_AuthResponse", list[str]]:
+    def parse(cls, line: str) -> tuple["_AuthResponse", list[str]]:
         args = line.split(" ")
-        response = klass(args[0])
+        response = cls(args[0])
         return response, args[1:]
 
 
@@ -65,10 +73,10 @@ class AuthExternal(Authenticator):
     :sealso: https://dbus.freedesktop.org/doc/dbus-specification.html#auth-protocol
     """
 
-    def __init__(self, uid: Optional[int] = None) -> None:
+    def __init__(self, uid: int | None = None) -> None:
         self.negotiate_unix_fd: bool = False
         self.negotiating_fds: bool = False
-        self.uid: Optional[int] = uid
+        self.uid: int | None = uid
 
     def _authentication_start(self, negotiate_unix_fd: bool = False) -> str:
         self.negotiate_unix_fd = negotiate_unix_fd

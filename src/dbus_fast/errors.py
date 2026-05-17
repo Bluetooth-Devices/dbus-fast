@@ -1,54 +1,65 @@
-from typing import Optional, Union
+class DBusFastError(Exception):
+    """Common base class for all dbus-fast exceptions.
+
+    Catch this to handle any error raised by dbus-fast regardless of which
+    Python built-in exception type the specific error also derives from.
+    Existing ``except ValueError`` / ``except TypeError`` handlers continue
+    to work because individual error classes still inherit from those.
+    """
 
 
-class SignatureBodyMismatchError(ValueError):
+class SignatureBodyMismatchError(ValueError, DBusFastError):
     pass
 
 
-class InvalidSignatureError(ValueError):
+class InvalidSignatureError(ValueError, DBusFastError):
     pass
 
 
-class InvalidAddressError(ValueError):
+class InvalidAddressError(ValueError, DBusFastError):
     pass
 
 
-class AuthError(Exception):
+class AuthError(DBusFastError):
     pass
 
 
-class InvalidMessageError(ValueError):
+class InternalError(RuntimeError, DBusFastError):
+    """Indicates a bug inside dbus-fast itself."""
+
+
+class InvalidMessageError(ValueError, DBusFastError):
     pass
 
 
-class InvalidIntrospectionError(ValueError):
+class InvalidIntrospectionError(ValueError, DBusFastError):
     pass
 
 
-class InterfaceNotFoundError(Exception):
+class InterfaceNotFoundError(DBusFastError):
     pass
 
 
-class SignalDisabledError(Exception):
+class SignalDisabledError(DBusFastError):
     pass
 
 
-class InvalidBusNameError(TypeError):
+class InvalidBusNameError(TypeError, DBusFastError):
     def __init__(self, name: str) -> None:
         super().__init__(f"invalid bus name: {name}")
 
 
-class InvalidObjectPathError(TypeError):
+class InvalidObjectPathError(TypeError, DBusFastError):
     def __init__(self, path: str) -> None:
         super().__init__(f"invalid object path: {path}")
 
 
-class InvalidInterfaceNameError(TypeError):
+class InvalidInterfaceNameError(TypeError, DBusFastError):
     def __init__(self, name: str) -> None:
         super().__init__(f"invalid interface name: {name}")
 
 
-class InvalidMemberNameError(TypeError):
+class InvalidMemberNameError(TypeError, DBusFastError):
     def __init__(self, member: str) -> None:
         super().__init__(f"invalid member name: {member}")
 
@@ -58,9 +69,9 @@ from .message import Message  # noqa: E402
 from .validators import assert_interface_name_valid  # noqa: E402
 
 
-class DBusError(Exception):
+class DBusError(DBusFastError):
     def __init__(
-        self, type_: Union[ErrorType, str], text: str, reply: Optional[Message] = None
+        self, type_: ErrorType | str, text: str, reply: Message | None = None
     ) -> None:
         super().__init__(text)
 

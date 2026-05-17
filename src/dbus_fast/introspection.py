@@ -1,5 +1,5 @@
 import xml.etree.ElementTree as ET
-from typing import Optional, Union
+import xml.parsers.expat as _expat
 
 from .constants import ArgDirection, PropertyAccess
 from .errors import InvalidIntrospectionError
@@ -7,6 +7,51 @@ from .signature import SignatureType, get_signature_tree
 from .validators import assert_interface_name_valid, assert_member_name_valid
 
 # https://dbus.freedesktop.org/doc/dbus-specification.html#introspection-format
+
+
+def _reject_internal_subset(
+    _name: str,
+    _sysid: str | None,
+    _pubid: str | None,
+    has_internal_subset: bool,
+) -> None:
+    # The standard D-Bus introspection DOCTYPE is PUBLIC-only with no
+    # internal subset. Any `[ ... ]` block in the DOCTYPE is therefore
+    # either the billion-laughs / quadratic-blowup ENTITY vector, an
+    # ATTLIST default-value amplification, or an XXE attempt from a
+    # hostile peer — reject the whole subset as a single boundary.
+    if has_internal_subset:
+        raise InvalidIntrospectionError(
+            "internal DTD subsets are not allowed in introspection XML"
+        )
+
+
+def _parse_introspection_xml(data: str) -> ET.Element:
+    """Parse introspection XML with the DTD-based amplification vectors closed."""
+    # namespace_separator="}" mirrors ElementTree's expat config so a
+    # namespaced root (`<node xmlns="urn:x">`) still surfaces with a
+    # non-"node" tag and gets rejected by the root-element check below
+    # rather than slipping through this stricter parser.
+    parser = _expat.ParserCreate(namespace_separator="}")
+    builder = ET.TreeBuilder()
+    parser.StartElementHandler = builder.start
+    parser.EndElementHandler = builder.end
+    parser.CharacterDataHandler = builder.data
+    parser.StartDoctypeDeclHandler = _reject_internal_subset
+    # Defense-in-depth: refuse to expand parameter entities, which is the
+    # path expat would otherwise take to fetch external DTDs.
+    parser.SetParamEntityParsing(_expat.XML_PARAM_ENTITY_PARSING_NEVER)
+    try:
+        parser.Parse(data.encode("utf-8") if isinstance(data, str) else data, True)
+    except _expat.ExpatError as e:
+        # Preserve the code / position metadata ElementTree attaches to
+        # ParseError so callers that inspect them (e.position, e.code) keep
+        # working as they did with ET.fromstring.
+        err = ET.ParseError(e)
+        err.code = e.code
+        err.position = (e.lineno, e.offset)
+        raise err from e
+    return builder.close()
 
 
 def _fetch_annotations(element: ET.Element) -> dict[str, str]:
@@ -50,10 +95,10 @@ class Arg:
 
     def __init__(
         self,
-        signature: Union[SignatureType, str],
-        direction: Optional[ArgDirection] = None,
-        name: Optional[str] = None,
-        annotations: Optional[dict[str, str]] = None,
+        signature: SignatureType | str,
+        direction: ArgDirection | None = None,
+        name: str | None = None,
+        annotations: dict[str, str] | None = None,
     ):
         type_ = None
         if type(signature) is SignatureType:
@@ -73,6 +118,7 @@ class Arg:
         self.direction = direction
         self.annotations = annotations or {}
 
+    @staticmethod
     def from_xml(element: ET.Element, direction: ArgDirection) -> "Arg":
         """Convert a :class:`xml.etree.ElementTree.Element` into a
         :class:`Arg`.
@@ -132,9 +178,9 @@ class Signal:
 
     def __init__(
         self,
-        name: Optional[str],
-        args: Optional[list[Arg]] = None,
-        annotations: Optional[dict[str, str]] = None,
+        name: str,
+        args: list[Arg] | None = None,
+        annotations: dict[str, str] | None = None,
     ):
         if name is not None:
             assert_member_name_valid(name)
@@ -144,7 +190,8 @@ class Signal:
         self.signature = "".join(arg.signature for arg in self.args)
         self.annotations = annotations or {}
 
-    def from_xml(element):
+    @staticmethod
+    def from_xml(element: ET.Element) -> "Signal":
         """Convert an :class:`xml.etree.ElementTree.Element` to a :class:`Signal`.
 
         The element must be valid DBus introspection XML for a ``signal``.
@@ -161,7 +208,7 @@ class Signal:
         if not name:
             raise InvalidIntrospectionError('signals must have a "name" attribute')
 
-        args = []
+        args: list[Arg] = []
         for child in element:
             if child.tag == "arg":
                 args.append(Arg.from_xml(child, ArgDirection.OUT))
@@ -210,7 +257,7 @@ class Method:
         name: str,
         in_args: list[Arg] = [],
         out_args: list[Arg] = [],
-        annotations: Optional[dict[str, str]] = None,
+        annotations: dict[str, str] | None = None,
     ):
         assert_member_name_valid(name)
 
@@ -221,6 +268,7 @@ class Method:
         self.out_signature = "".join(arg.signature for arg in out_args)
         self.annotations = annotations or {}
 
+    @staticmethod
     def from_xml(element: ET.Element) -> "Method":
         """Convert an :class:`xml.etree.ElementTree.Element` to a :class:`Method`.
 
@@ -238,8 +286,8 @@ class Method:
         if not name:
             raise InvalidIntrospectionError('interfaces must have a "name" attribute')
 
-        in_args = []
-        out_args = []
+        in_args: list[Arg] = []
+        out_args: list[Arg] = []
 
         for child in element:
             if child.tag == "arg":
@@ -295,7 +343,7 @@ class Property:
         name: str,
         signature: str,
         access: PropertyAccess = PropertyAccess.READWRITE,
-        annotations: Optional[dict[str, str]] = None,
+        annotations: dict[str, str] | None = None,
         validate: bool = True,
     ):
         if validate:
@@ -313,7 +361,8 @@ class Property:
         self.type = tree.types[0]
         self.annotations = annotations or {}
 
-    def from_xml(element, validate: bool = True):
+    @staticmethod
+    def from_xml(element: ET.Element, validate: bool = True) -> "Property":
         """Convert an :class:`xml.etree.ElementTree.Element` to a :class:`Property`.
 
         The element must be valid DBus introspection XML for a ``property``.
@@ -373,10 +422,10 @@ class Interface:
     def __init__(
         self,
         name: str,
-        methods: Optional[list[Method]] = None,
-        signals: Optional[list[Signal]] = None,
-        properties: Optional[list[Property]] = None,
-        annotations: Optional[dict[str, str]] = None,
+        methods: list[Method] | None = None,
+        signals: list[Signal] | None = None,
+        properties: list[Property] | None = None,
+        annotations: dict[str, str] | None = None,
     ):
         assert_interface_name_valid(name)
 
@@ -467,15 +516,15 @@ class Node:
 
     def __init__(
         self,
-        name: Optional[str] = None,
-        interfaces: Optional[list[Interface]] = None,
+        name: str | None = None,
+        interfaces: list[Interface] | None = None,
         is_root: bool = True,
     ):
         if not is_root and not name:
             raise InvalidIntrospectionError('child nodes must have a "name" attribute')
 
         self.interfaces = interfaces if interfaces is not None else []
-        self.nodes = []
+        self.nodes: list[Node] = []
         self.name = name
         self.is_root = is_root
 
@@ -529,7 +578,7 @@ class Node:
         :raises:
             - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the string is not valid introspection data.
         """
-        element = ET.fromstring(data)
+        element = _parse_introspection_xml(data)
         if element.tag != "node":
             raise InvalidIntrospectionError(
                 'introspection data must have a "node" for the root element'
@@ -576,7 +625,7 @@ class Node:
         return header + ET.tostring(xml, encoding="unicode").rstrip()
 
     @staticmethod
-    def default(name: Optional[str] = None) -> "Node":
+    def default(name: str | None = None) -> "Node":
         """Create a :class:`Node` with the default interfaces supported by this library.
 
         The default interfaces include:

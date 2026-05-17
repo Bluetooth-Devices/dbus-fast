@@ -75,6 +75,9 @@ async def test_tcp_connection_with_forwarding():
     assert bus._sock.gettimeout() == 0
     assert bus._stream.closed is False
 
+    bus.disconnect()
+    await asyncio.wait_for(bus.wait_for_disconnect(), timeout=1)
+
     for c in closables:
         c.close()
 

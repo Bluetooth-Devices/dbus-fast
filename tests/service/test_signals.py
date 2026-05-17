@@ -1,60 +1,62 @@
 import asyncio
+from typing import Annotated
 
 import pytest
 
 from dbus_fast import Message, MessageType
 from dbus_fast.aio import MessageBus
+from dbus_fast.annotations import DBusInt32, DBusSignature, DBusStr
 from dbus_fast.constants import PropertyAccess
 from dbus_fast.service import (
     ServiceInterface,
     SignalDisabledError,
     dbus_property,
-    signal,
+    dbus_signal,
 )
 from dbus_fast.signature import Variant
 
 
 class ExampleInterface(ServiceInterface):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name)
 
-    @signal()
+    @dbus_signal()
     def signal_empty(self):
         assert type(self) is ExampleInterface
 
-    @signal()
-    def signal_simple(self) -> "s":
+    @dbus_signal()
+    def signal_simple(self) -> DBusStr:
         assert type(self) is ExampleInterface
         return "hello"
 
-    @signal()
-    def signal_multiple(self) -> "ss":
+    @dbus_signal()
+    def signal_multiple(self) -> Annotated[tuple[str, str], DBusSignature("ss")]:
         assert type(self) is ExampleInterface
-        return ["hello", "world"]
+        return "hello", "world"
 
-    @signal(name="renamed")
+    @dbus_signal(name="renamed")
     def original_name(self):
         assert type(self) is ExampleInterface
 
-    @signal(disabled=True)
+    @dbus_signal(disabled=True)
     def signal_disabled(self):
         assert type(self) is ExampleInterface
 
     @dbus_property(access=PropertyAccess.READ)
-    def test_prop(self) -> "i":
+    def test_prop(self) -> DBusInt32:
         return 42
 
 
 class SecondExampleInterface(ServiceInterface):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name)
 
     @dbus_property(access=PropertyAccess.READ)
-    def str_prop(self) -> "s":
+    def str_prop(self) -> DBusStr:
         return "abc"
 
     @dbus_property(access=PropertyAccess.READ)
-    def list_prop(self) -> "ai":
+    def list_prop(self) -> Annotated[list[int], DBusSignature("ai")]:
         return [1, 2, 3]
 
 
@@ -161,8 +163,8 @@ async def test_signals():
 
     bus1.disconnect()
     bus2.disconnect()
-    bus1._sock.close()
-    bus2._sock.close()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
 
 
 @pytest.mark.asyncio
@@ -257,5 +259,5 @@ async def test_interface_add_remove_signal():
 
     bus1.disconnect()
     bus2.disconnect()
-    bus1._sock.close()
-    bus2._sock.close()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)

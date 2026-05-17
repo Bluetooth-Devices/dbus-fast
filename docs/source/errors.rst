@@ -1,6 +1,7 @@
 Errors
 ======
 
+.. autoclass:: dbus_fast.DBusFastError
 .. autoclass:: dbus_fast.DBusError
     :members:
     :undoc-members:
@@ -9,6 +10,7 @@ Errors
 .. autoclass:: dbus_fast.InvalidSignatureError
 .. autoclass:: dbus_fast.InvalidAddressError
 .. autoclass:: dbus_fast.AuthError
+.. autoclass:: dbus_fast.InternalError
 .. autoclass:: dbus_fast.InvalidMessageError
 .. autoclass:: dbus_fast.InvalidIntrospectionError
 .. autoclass:: dbus_fast.InterfaceNotFoundError

@@ -7,6 +7,7 @@ import pytest
 
 from dbus_fast import (
     ArgDirection,
+    InvalidIntrospectionError,
     InvalidMemberNameError,
     PropertyAccess,
     SignatureType,
@@ -154,6 +155,95 @@ def test_default_interfaces():
     # just make sure it doesn't throw
     default = intr.Node.default()
     assert type(default) is intr.Node
+
+
+def test_introspection_rejects_billion_laughs() -> None:
+    """Nested-entity expansion in an Introspect reply is rejected."""
+    payload = (
+        '<?xml version="1.0"?>'
+        "<!DOCTYPE node ["
+        '<!ENTITY a "AAAAAAAAAA">'
+        '<!ENTITY b "&a;&a;&a;&a;&a;&a;&a;&a;&a;&a;">'
+        '<!ENTITY c "&b;&b;&b;&b;&b;&b;&b;&b;&b;&b;">'
+        "]>"
+        "<node>&c;</node>"
+    )
+    with pytest.raises(InvalidIntrospectionError, match="internal DTD"):
+        intr.Node.parse(payload)
+
+
+def test_introspection_rejects_quadratic_blowup() -> None:
+    """A single large entity referenced many times is rejected."""
+    payload = (
+        '<?xml version="1.0"?>'
+        "<!DOCTYPE node ["
+        '<!ENTITY pad "' + ("A" * 1024) + '">'
+        "]>"
+        "<node>" + ("&pad;" * 64) + "</node>"
+    )
+    with pytest.raises(InvalidIntrospectionError, match="internal DTD"):
+        intr.Node.parse(payload)
+
+
+def test_introspection_rejects_xxe_external_entity() -> None:
+    """External-entity declarations are rejected even without expansion."""
+    payload = (
+        '<?xml version="1.0"?>'
+        "<!DOCTYPE node ["
+        '<!ENTITY xxe SYSTEM "file:///etc/passwd">'
+        "]>"
+        "<node>&xxe;</node>"
+    )
+    with pytest.raises(InvalidIntrospectionError, match="internal DTD"):
+        intr.Node.parse(payload)
+
+
+def test_introspection_rejects_attlist_amplification() -> None:
+    """ATTLIST default-value declarations are rejected (amplification vector)."""
+    payload = (
+        '<?xml version="1.0"?>'
+        "<!DOCTYPE node ["
+        '<!ATTLIST node bogus CDATA "' + ("A" * 1024) + '">'
+        "]>"
+        "<node/>"
+    )
+    with pytest.raises(InvalidIntrospectionError, match="internal DTD"):
+        intr.Node.parse(payload)
+
+
+def test_introspection_accepts_standard_doctype() -> None:
+    """The standard D-Bus introspection DOCTYPE (no internal subset) parses."""
+    payload = (
+        '<?xml version="1.0"?>\n'
+        '<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"\n'
+        '"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">\n'
+        '<node><interface name="org.example.Iface"/></node>'
+    )
+    node = intr.Node.parse(payload)
+    assert len(node.interfaces) == 1
+    assert node.interfaces[0].name == "org.example.Iface"
+
+
+def test_introspection_malformed_xml_raises_parse_error() -> None:
+    """Malformed XML still raises ET.ParseError, not a silent failure."""
+    with pytest.raises(ET.ParseError):
+        intr.Node.parse("<node><unclosed")
+
+
+def test_introspection_parse_error_preserves_code_and_position() -> None:
+    """ET.ParseError still carries the expat code and position metadata."""
+    with pytest.raises(ET.ParseError) as excinfo:
+        intr.Node.parse("<bad")
+    assert excinfo.value.code  # non-zero expat error code
+    assert isinstance(excinfo.value.position, tuple)
+    assert len(excinfo.value.position) == 2
+
+
+def test_introspection_rejects_default_namespaced_root() -> None:
+    """A namespaced <node> root is still rejected by the root-tag check."""
+    payload = '<node xmlns="urn:example"><interface name="a"/></node>'
+    with pytest.raises(InvalidIntrospectionError, match="node"):
+        intr.Node.parse(payload)
 
 
 class MockMessageBus(BaseMessageBus):

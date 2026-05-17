@@ -1,3 +1,10 @@
+# NOTE: This is not strictly needed, but included to get code coverage for
+# deferred evaluation of annotations. Do not remove this line.
+from __future__ import annotations
+
+import asyncio
+from typing import Annotated, no_type_check
+
 import pytest
 
 from dbus_fast import (
@@ -10,100 +17,125 @@ from dbus_fast import (
     Variant,
 )
 from dbus_fast.aio import MessageBus
-from dbus_fast.service import ServiceInterface, method
+from dbus_fast.annotations import DBusDict, DBusSignature, DBusStr, DBusVariant
+from dbus_fast.service import ServiceInterface, dbus_method
 
 
 class ExampleInterface(ServiceInterface):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name)
 
-    @method()
-    def echo(self, what: "s") -> "s":
+    @dbus_method()
+    def echo(self, what: DBusStr) -> DBusStr:
         assert type(self) is ExampleInterface
         return what
 
-    @method()
-    def echo_multiple(self, what1: "s", what2: "s") -> "ss":
+    # This one intentionally keeps string-style annotations for coverage purposes.
+    @no_type_check
+    @dbus_method()
+    def echo_multiple(self, what1: "s", what2: "s") -> "ss":  # noqa: UP037
         assert type(self) is ExampleInterface
-        return [what1, what2]
+        return what1, what2
 
-    @method()
+    @dbus_method()
     def echo_containers(
         self,
-        array: "as",  # noqa: F722
-        variant: "v",
-        dict_entries: "a{sv}",  # noqa: F722
-        struct: "(s(s(v)))",
-    ) -> "asva{sv}(s(s(v)))":  # noqa: F722
+        array: Annotated[list[str], DBusSignature("as")],
+        variant: DBusVariant,
+        dict_entries: DBusDict,
+        struct: Annotated[
+            tuple[str, tuple[str, tuple[Variant]]], DBusSignature("(s(s(v)))")
+        ],
+    ) -> Annotated[
+        tuple[
+            list[str],
+            Variant,
+            dict[str, Variant],
+            tuple[str, tuple[str, tuple[Variant]]],
+        ],
+        DBusSignature("asva{sv}(s(s(v)))"),
+    ]:
         assert type(self) is ExampleInterface
-        return [array, variant, dict_entries, struct]
+        return array, variant, dict_entries, struct
 
-    @method()
+    @dbus_method()
     def ping(self):
         assert type(self) is ExampleInterface
 
-    @method(name="renamed")
+    @dbus_method(name="renamed")
     def original_name(self):
         assert type(self) is ExampleInterface
 
-    @method(disabled=True)
+    @dbus_method(disabled=True)
     def not_here(self):
         assert type(self) is ExampleInterface
 
-    @method()
+    @dbus_method()
     def throws_unexpected_error(self):
         assert type(self) is ExampleInterface
         raise Exception("oops")
 
-    @method()
+    @dbus_method()
     def throws_dbus_error(self):
         assert type(self) is ExampleInterface
         raise DBusError("test.error", "an error occurred")
 
 
 class AsyncInterface(ServiceInterface):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name)
 
-    @method()
-    async def echo(self, what: "s") -> "s":
+    @dbus_method()
+    async def echo(self, what: DBusStr) -> DBusStr:
         assert type(self) is AsyncInterface
         return what
 
-    @method()
-    async def echo_multiple(self, what1: "s", what2: "s") -> "ss":
+    @dbus_method()
+    async def echo_multiple(
+        self, what1: DBusStr, what2: DBusStr
+    ) -> Annotated[tuple[str, str], DBusSignature("ss")]:
         assert type(self) is AsyncInterface
-        return [what1, what2]
+        return what1, what2
 
-    @method()
+    @dbus_method()
     async def echo_containers(
         self,
-        array: "as",  # noqa: F722
-        variant: "v",
-        dict_entries: "a{sv}",  # noqa: F722
-        struct: "(s(s(v)))",
-    ) -> "asva{sv}(s(s(v)))":  # noqa: F722
+        array: Annotated[list[str], DBusSignature("as")],
+        variant: DBusVariant,
+        dict_entries: DBusDict,
+        struct: Annotated[
+            tuple[str, tuple[str, tuple[Variant]]], DBusSignature("(s(s(v)))")
+        ],
+    ) -> Annotated[
+        tuple[
+            list[str],
+            Variant,
+            dict[str, Variant],
+            tuple[str, tuple[str, tuple[Variant]]],
+        ],
+        DBusSignature("asva{sv}(s(s(v)))"),
+    ]:
         assert type(self) is AsyncInterface
-        return [array, variant, dict_entries, struct]
+        return array, variant, dict_entries, struct
 
-    @method()
+    @dbus_method()
     async def ping(self):
         assert type(self) is AsyncInterface
 
-    @method(name="renamed")
+    @dbus_method(name="renamed")
     async def original_name(self):
         assert type(self) is AsyncInterface
 
-    @method(disabled=True)
+    @dbus_method(disabled=True)
     async def not_here(self):
         assert type(self) is AsyncInterface
 
-    @method()
+    @dbus_method()
     async def throws_unexpected_error(self):
         assert type(self) is AsyncInterface
         raise Exception("oops")
 
-    @method()
+    @dbus_method()
     def throws_dbus_error(self):
         assert type(self) is AsyncInterface
         raise DBusError("test.error", "an error occurred")
@@ -121,17 +153,21 @@ async def test_methods(interface_class):
     async def call(
         member, signature="", body=[], flags=MessageFlag.NONE, interface=interface.name
     ):
-        return await bus2.call(
-            Message(
-                destination=bus1.unique_name,
-                path=export_path,
-                interface=interface,
-                member=member,
-                signature=signature,
-                body=body,
-                flags=flags,
-            )
+        msg = Message(
+            destination=bus1.unique_name,
+            path=export_path,
+            interface=interface,
+            member=member,
+            signature=signature,
+            body=body,
+            flags=flags,
         )
+
+        if flags & MessageFlag.NO_REPLY_EXPECTED:
+            await bus2.send(msg)
+            return None
+
+        return await bus2.call(msg)
 
     bus1.export(export_path, interface)
 
@@ -150,9 +186,9 @@ async def test_methods(interface_class):
 
     body = [
         ["hello", "world"],
-        Variant("v", Variant("(ss)", ["hello", "world"])),
+        Variant("v", Variant("(ss)", ("hello", "world"))),
         {"foo": Variant("t", 100)},
-        ["one", ["two", [Variant("s", "three")]]],
+        ("one", ("two", (Variant("s", "three"),))),
     ]
     signature = "asva{sv}(s(s(v)))"
     SignatureTree(signature).verify(body)
@@ -194,6 +230,13 @@ async def test_methods(interface_class):
     reply = await call("throws_unexpected_error")
     assert reply.message_type == MessageType.ERROR, reply.body[0]
     assert reply.error_name == ErrorType.SERVICE_ERROR.value, reply.body[0]
+    # The body must not leak a traceback (paths, line numbers, locals) or
+    # the exception's str(); only the exception class name is disclosed.
+    body = reply.body[0]
+    assert "Traceback" not in body, body
+    assert 'File "' not in body, body
+    assert "oops" not in body, body
+    assert "Exception" in body, body
 
     reply = await call("throws_dbus_error")
     assert reply.message_type == MessageType.ERROR, reply.body[0]
@@ -218,5 +261,5 @@ async def test_methods(interface_class):
 
     bus1.disconnect()
     bus2.disconnect()
-    bus1._sock.close()
-    bus2._sock.close()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)

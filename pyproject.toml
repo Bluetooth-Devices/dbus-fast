@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dbus-fast"
-version = "2.44.5"
+version = "4.3.0"
 description = "A faster version of dbus-next"
 authors = ["Bluetooth Devices Authors <bluetooth@koston.org>"]
 license = "MIT"
@@ -13,7 +13,6 @@ classifiers = [
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Topic :: Software Development :: Libraries",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -35,24 +34,24 @@ script = "build_ext.py"
 "Changelog" = "https://github.com/bluetooth-devices/dbus-fast/blob/main/CHANGELOG.md"
 
 [tool.poetry.dependencies]
-python = ">=3.9"
+python = ">=3.10"
 
 # duplicated in docs/requirements.txt for readthedocs compatibility
 [tool.poetry.group.docs.dependencies]
-myst-parser = ">=0.18,<3.1"
-sphinx = ">=5.1.1,<8.0.0"
+myst-parser = ">=0.18,<4.1"
+sphinx = ">=5.1.1,<9.0.0"
 sphinx-rtd-theme = ">=1,<4"
 sphinxcontrib-asyncio = "^0.3.0"
 sphinxcontrib-fulltoc = "^1.2.0"
 
 [tool.poetry.group.dev.dependencies]
-pytest = ">=7,<9"
+pytest = ">=7,<10"
 pytest-cov = ">=3,<8"
-pytest-asyncio = ">=0.19,<1.3"
+pytest-asyncio = ">=0.19,<1.4"
 pycairo = "^1.21.0"
-PyGObject = {version = ">=3.50,<3.51", python = "<4"}
-Cython = ">=3,<3.2.0"
-setuptools = ">=65.4.1,<81.0.0"
+PyGObject = {version = ">=3.50,<3.57", python = "<4"}
+Cython = ">=3,<3.3.0"
+setuptools = ">=65.4.1,<83.0.0"
 pytest-timeout = "^2.1.0"
 pytest-codspeed = ">=3.1.1,<5.0.0"
 covdefaults = "^2.3.0"
@@ -64,8 +63,20 @@ version_variables = ["src/dbus_fast/__version__.py:__version__"]
 build_command = "pip install poetry && poetry build"
 
 [tool.pytest.ini_options]
-addopts = "-v -Wdefault --cov=dbus_fast --cov-report=term-missing:skip-covered"
+addopts = "-v --cov=dbus_fast --cov-report=term-missing:skip-covered"
 pythonpath = ["src"]
+filterwarnings = [
+    "error",
+    '''ignore:The global interpreter lock \(GIL\) has been enabled to load module 'gi\._gi'.*:RuntimeWarning''',
+    # PyGObject 3.56's gi.events module uses the asyncio event loop policy API
+    # (AbstractEventLoopPolicy, get_event_loop_policy, ...) which Python 3.14
+    # deprecated in full (removal in 3.16).
+    '''ignore:'asyncio\.[A-Za-z_]*[Pp]olicy[A-Za-z_]*' is deprecated.*:DeprecationWarning''',
+    # PyGObject 3.56 emits PyGIDeprecationWarning at import time on newer GLib
+    # builds (Ubuntu 25.10 / s390x leg) for symbols moved to the GLibUnix
+    # namespace. The override loader trips the warning before any test runs.
+    '''ignore:GLib\.unix_[a-z_]+ is deprecated.*:DeprecationWarning''',
+]
 
 [tool.coverage.run]
 branch = true
@@ -105,11 +116,11 @@ module = "docs.*"
 ignore_errors = true
 
 [build-system]
-requires = ['setuptools>=65.4.1', 'wheel', 'Cython>=3,<3.1.0', "poetry-core>=1.0.0"]
+requires = ['setuptools>=65.4.1', 'wheel', 'Cython>=3,<3.3.0', "poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 line-length = 88
 
 [tool.ruff.lint]

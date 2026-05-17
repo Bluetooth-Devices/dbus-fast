@@ -28,12 +28,12 @@ cdef class Marshaller:
     )
     cdef unsigned int _align(self, unsigned int n)
 
-    cpdef write_boolean(self, object boolean, SignatureType type_)
+    cpdef write_boolean(self, bint boolean, SignatureType type_)
 
     @cython.locals(
         written=cython.uint,
     )
-    cdef unsigned int _write_boolean(self, object boolean)
+    cdef unsigned int _write_boolean(self, bint boolean)
 
     cpdef write_string(self, object value, SignatureType type_)
 

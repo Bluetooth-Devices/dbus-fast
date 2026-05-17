@@ -1,9 +1,11 @@
+# cython: freethreading_compatible = True
+
 from __future__ import annotations
 
 import logging
 import socket
+from collections.abc import Callable
 from functools import partial
-from typing import Callable
 
 from .._private.unmarshaller import Unmarshaller
 from ..message import Message

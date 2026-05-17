@@ -5,10 +5,9 @@ import inspect
 import logging
 import re
 import xml.etree.ElementTree as ET
-from collections.abc import Coroutine
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Callable
 
 from . import introspection as intr
 from . import message_bus
@@ -237,8 +236,8 @@ class BaseProxyObject:
     :vartype introspection: :class:`Node <dbus_fast.introspection.Node>`
     :ivar bus: The message bus this proxy object is connected to.
     :vartype bus: :class:`BaseMessageBus <dbus_fast.message_bus.BaseMessageBus>`
-    :ivar ~.ProxyInterface: The proxy interface class this proxy object uses.
-    :vartype ~.ProxyInterface: Type[:class:`BaseProxyInterface <dbus_fast.proxy_object.BaseProxyObject>`]
+    :ivar ProxyInterface: The proxy interface class this proxy object uses.
+    :vartype ProxyInterface: Type[:class:`BaseProxyInterface <dbus_fast.proxy_object.BaseProxyInterface>`]
     :ivar child_paths: A list of absolute object paths of the children of this object.
     :vartype child_paths: list(str)
 

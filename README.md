@@ -118,8 +118,10 @@ To define a service on the bus, use the `ServiceInterface` class and decorate cl
 For more information, see the [overview for the high-level service](https://dbus-fast.readthedocs.io/en/latest/high-level-service/index.html).
 
 ```python
-from dbus_fast.service import ServiceInterface, method, dbus_property, signal, Variant
-from dbus_fast.aio MessageBus
+from dbus_fast.annotations import DBusStr, DBusDict
+from dbus_fast.service import ServiceInterface, dbus_method, dbus_property, dbus_signal
+from dbus_fast import Variant
+from dbus_fast.aio import MessageBus
 
 import asyncio
 
@@ -128,12 +130,12 @@ class ExampleInterface(ServiceInterface):
         super().__init__(name)
         self._string_prop = 'kevin'
 
-    @method()
-    def Echo(self, what: 's') -> 's':
+    @dbus_method()
+    def Echo(self, what: DBusStr) -> DBusStr:
         return what
 
-    @method()
-    def GetVariantDict() -> 'a{sv}':
+    @dbus_method()
+    def GetVariantDict(self) -> DBusDict:
         return {
             'foo': Variant('s', 'bar'),
             'bat': Variant('x', -55),
@@ -141,15 +143,15 @@ class ExampleInterface(ServiceInterface):
         }
 
     @dbus_property()
-    def string_prop(self) -> 's':
+    def string_prop(self) -> DBusStr:
         return self._string_prop
 
     @string_prop.setter
-    def string_prop_setter(self, val: 's'):
+    def string_prop_setter(self, val: DBusStr):
         self._string_prop = val
 
-    @signal()
-    def signal_simple(self) -> 's':
+    @dbus_signal()
+    def signal_simple(self) -> DBusStr:
         return 'hello'
 
 async def main():

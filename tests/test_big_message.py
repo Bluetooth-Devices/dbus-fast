@@ -1,9 +1,11 @@
+import asyncio
 import sys
 
 import pytest
 
 from dbus_fast import Message, MessageType, aio, glib
-from dbus_fast.service import ServiceInterface, method
+from dbus_fast.annotations import DBusBytes
+from dbus_fast.service import ServiceInterface, dbus_method
 from tests.util import check_gi_repository, skip_reason_no_gi
 
 has_gi = check_gi_repository()
@@ -13,8 +15,8 @@ class ExampleInterface(ServiceInterface):
     def __init__(self):
         super().__init__("example.interface")
 
-    @method()
-    def echo_bytes(self, what: "ay") -> "ay":
+    @dbus_method()
+    def echo_bytes(self, what: DBusBytes) -> DBusBytes:
         return what
 
 
@@ -43,6 +45,8 @@ async def test_aio_big_message():
 
     bus1.disconnect()
     bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
 
 
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)

@@ -1,8 +1,12 @@
+# cython: freethreading_compatible = True
+
 from __future__ import annotations
 
+from collections.abc import Callable
 from struct import Struct, error
-from typing import Any, Callable
+from typing import Any
 
+from ..errors import InternalError
 from ..signature import SignatureType, Variant, get_signature_tree
 
 PACK_LITTLE_ENDIAN = "<"
@@ -191,7 +195,7 @@ class Marshaller:
             ) from ex
         except error:
             self.signature_tree.verify(self.body)
-        raise RuntimeError("should not reach here")
+        raise InternalError("should not reach here")  # pragma: no cover
 
     def _construct_buffer(self) -> bytearray:
         self._buf.clear()

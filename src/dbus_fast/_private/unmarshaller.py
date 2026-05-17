@@ -1,3 +1,5 @@
+# cython: freethreading_compatible = True
+
 from __future__ import annotations
 
 import array
@@ -5,9 +7,9 @@ import errno
 import io
 import socket
 import sys
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from struct import Struct
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP, MessageFlag
 from ..errors import InvalidMessageError
@@ -64,6 +66,25 @@ UINT16_UNPACK_BIG_ENDIAN = Struct(f">{UINT16_CAST}").unpack_from
 
 HEADER_SIGNATURE_SIZE = 16
 HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION = 12
+
+# D-Bus spec: total message length must not exceed 128 MiB. Enforced on the
+# attacker-controlled header_len / body_len fields before any allocation or
+# socket read sized by them, so a forged header can't push the process into
+# an OOM. https://dbus.freedesktop.org/doc/dbus-specification.html
+#
+# The check in _read_header bounds header_len and body_len independently
+# (each <= 128 MiB, sum <= 128 MiB). The actual on-wire read in _read_body
+# is HEADER_SIGNATURE_SIZE + _msg_len, where _msg_len adds up to 7 bytes of
+# header-to-body alignment padding — so the worst-case read is the cap plus
+# HEADER_SIGNATURE_SIZE (16) + 7 = 23 bytes of slack. That's deliberate: the
+# DoS vector is "buffer gigabytes from a forged header", and 23 bytes over
+# the spec ceiling doesn't change that. Keeping the check on the raw fields
+# is simpler than computing the padded total here.
+#
+# MAX_MESSAGE_SIZE is the Python-importable form (used by tests);
+# _MAX_MESSAGE_SIZE is the cdef unsigned int form used internally per .pxd.
+MAX_MESSAGE_SIZE = 134_217_728
+_MAX_MESSAGE_SIZE = MAX_MESSAGE_SIZE
 
 
 # Most common signatures
@@ -299,7 +320,7 @@ class Unmarshaller:
         negotiate_unix_fd: bool = True,
     ) -> None:
         self._unix_fds: list[int] = []
-        self._buf: bytearray = bytearray.__new__(bytearray)  # Actual buffer
+        self._buf: bytearray = bytearray()  # Actual buffer
         self._buf_ustr = self._buf  # Used to avoid type checks
         self._buf_len = 0
         self._stream = stream
@@ -342,7 +363,7 @@ class Unmarshaller:
             self._unix_fds = []
         to_clear = HEADER_SIGNATURE_SIZE + self._msg_len
         if self._buf_len == to_clear:
-            self._buf = bytearray.__new__(bytearray)
+            del self._buf[:]
             self._buf_len = 0
         else:
             del self._buf[:to_clear]
@@ -534,10 +555,19 @@ class Unmarshaller:
         return self._read_variant()
 
     def _read_variant(self) -> Variant:
-        signature = self._read_signature()
-        token_as_int = ord(signature[0])
+        # Inline signature reading to avoid _read_signature() call,
+        # .decode(), and ord() for the common single-byte case.
         # verify in Variant is only useful on construction not unmarshalling
-        if len(signature) == 1:
+        if cython.compiled:
+            if self._buf_len <= self._pos:
+                raise IndexError("Not enough data to read signature")
+        signature_len = self._buf_ustr[self._pos]
+        if signature_len == 1:
+            self._pos += 3  # 1 len byte + 1 signature char + 1 null terminator
+            if cython.compiled:
+                if self._buf_len < self._pos:
+                    raise IndexError("Not enough data to read signature")
+            token_as_int = self._buf_ustr[self._pos - 2]
             if token_as_int == TOKEN_N_AS_INT:
                 return Variant._factory(SIGNATURE_TREE_N, self._read_int16_unpack())
             if token_as_int == TOKEN_S_AS_INT:
@@ -549,12 +579,22 @@ class Unmarshaller:
             if token_as_int == TOKEN_U_AS_INT:
                 return Variant._factory(SIGNATURE_TREE_U, self._read_uint32_unpack())
             if token_as_int == TOKEN_Y_AS_INT:
+                self._pos += 1
                 if cython.compiled:
                     if self._buf_len < self._pos:
                         raise IndexError("Not enough data to read byte")
-                self._pos += 1
                 return Variant._factory(SIGNATURE_TREE_Y, self._buf_ustr[self._pos - 1])
-        elif token_as_int == TOKEN_A_AS_INT:
+            # Uncommon single-byte type, decode for fallback
+            signature = chr(token_as_int)
+        else:
+            o = self._pos + 1
+            self._pos = o + signature_len + 1
+            if cython.compiled:
+                if self._buf_len < self._pos:
+                    raise IndexError("Not enough data to read signature")
+            signature = self._buf_ustr[o : o + signature_len].decode()
+            token_as_int = self._buf_ustr[o]
+        if token_as_int == TOKEN_A_AS_INT:
             if signature == "ay":
                 return Variant._factory(
                     SIGNATURE_TREE_AY, self.read_array(SIGNATURE_TREE_AY_TYPES_0)
@@ -581,12 +621,12 @@ class Unmarshaller:
             tree, self._readers[signature_type.token](self, signature_type)
         )
 
-    def read_struct(self, type_: _SignatureType) -> list[Any]:
+    def read_struct(self, type_: _SignatureType) -> tuple[Any, ...]:
         self._pos += -self._pos & 7  # align 8
         readers = self._readers
-        return [
+        return tuple(
             readers[child_type.token](self, child_type) for child_type in type_.children
-        ]
+        )
 
     def read_dict_entry(self, type_: _SignatureType) -> tuple[Any, Any]:
         self._pos += -self._pos & 7  # align 8
@@ -716,7 +756,9 @@ class Unmarshaller:
                 headers[field_0] = self._read_string_unpack()
             elif token_as_int == TOKEN_G_AS_INT:
                 headers[field_0] = self._read_signature()
-            else:
+            elif token_as_int == TOKEN_U_AS_INT:
+                headers[field_0] = self._read_uint32_unpack()
+            else:  # pragma: no cover
                 token = self._buf_ustr[o : o + signature_len].decode()
                 # There shouldn't be any other types in the header
                 # but just in case, we'll read it using the slow path
@@ -765,6 +807,16 @@ class Unmarshaller:
             self._uint32_unpack = UINT32_UNPACK_BIG_ENDIAN
             self._int16_unpack = INT16_UNPACK_BIG_ENDIAN
             self._uint16_unpack = UINT16_UNPACK_BIG_ENDIAN
+
+        if (
+            self._body_len > _MAX_MESSAGE_SIZE
+            or self._header_len > _MAX_MESSAGE_SIZE
+            or self._body_len + self._header_len > _MAX_MESSAGE_SIZE
+        ):
+            raise InvalidMessageError(
+                f"message size exceeds maximum {_MAX_MESSAGE_SIZE}: "
+                f"header={self._header_len}, body={self._body_len}"
+            )
 
         # align 8
         self._msg_len = self._header_len + (-self._header_len & 7) + self._body_len
@@ -823,6 +875,7 @@ class Unmarshaller:
         flags = MESSAGE_FLAG_MAP.get(self._flag)
         if flags is None:
             flags = MESSAGE_FLAG_INTENUM(self._flag)
+        reply_serial = header_fields[HEADER_REPLY_SERIAL_IDX]
         message = Message.__new__(Message)
         message._fast_init(
             header_fields[HEADER_DESTINATION_IDX],
@@ -832,7 +885,7 @@ class Unmarshaller:
             MESSAGE_TYPE_MAP[self._message_type],
             flags,
             header_fields[HEADER_ERROR_NAME_IDX],
-            header_fields[HEADER_REPLY_SERIAL_IDX] or 0,
+            reply_serial if reply_serial is not None else 0,
             header_fields[HEADER_SENDER_IDX],
             self._unix_fds,
             tree,
