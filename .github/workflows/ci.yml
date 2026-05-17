@@ -89,13 +89,31 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Cache s390x apt + uv downloads
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: |
+            ~/cache-s390x/apt
+            ~/cache-s390x/uv
+          key: s390x-deps-v1-${{ hashFiles('pyproject.toml', 'poetry.lock') }}
+          restore-keys: |
+            s390x-deps-v1-
+      - name: Prepare s390x cache mountpoints
+        run: mkdir -p ~/cache-s390x/apt ~/cache-s390x/uv
       - uses: uraimo/run-on-arch-action@1c358dc49363439f8c563ce8f93005f7fe76b849 # v3
         name: Run commands
         id: runcmd
         with:
           arch: s390x
           distro: ubuntu_latest
+          dockerRunArgs: |
+            --volume /home/runner/cache-s390x/apt:/var/cache/apt/archives
+            --volume /home/runner/cache-s390x/uv:/root/.cache/uv
           run: |
+            # Keep downloaded .deb files so the host-side cache picks them up.
+            rm -f /etc/apt/apt.conf.d/docker-clean
+            echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' \
+              > /etc/apt/apt.conf.d/99keep-downloaded
             apt-get -y update
             apt-get -y install --no-install-recommends \
               ca-certificates git python3-pip python3-venv python3-dev \
@@ -115,6 +133,9 @@ jobs:
               pytest pytest-asyncio pytest-cov pytest-timeout covdefaults
             dbus-run-session -- pytest --no-cov --timeout=100 --durations=30 \
               --ignore=tests/benchmarks
+      - name: Reclaim cache dirs for actions/cache save
+        if: always()
+        run: sudo chown -h -R "$(id -u):$(id -g)" ~/cache-s390x || true
 
   benchmark:
     runs-on: ubuntu-latest
