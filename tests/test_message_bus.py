@@ -1,9 +1,10 @@
+import asyncio
 import socket
 
 import pytest
 
 from dbus_fast.aio import MessageBus
-from dbus_fast.errors import AuthError, InternalError, InvalidAddressError
+from dbus_fast.errors import AuthError, DBusError, InternalError, InvalidAddressError
 from dbus_fast.message_bus import BaseMessageBus
 
 
@@ -184,3 +185,51 @@ def test_get_proxy_object_raises_when_proxy_object_class_missing() -> None:
     bus._ProxyObject = None
     with pytest.raises(InternalError):
         bus.get_proxy_object("com.example.Test", "/com/example/Test", "<node/>")
+
+
+@pytest.mark.asyncio
+async def test_aio_connect_hello_error_propagates_and_clears_state(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """on_hello with an error reply tears down sock/stream/fd/writer."""
+    listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    listener.bind(("127.0.0.1", 0))
+    listener.listen(1)
+    host, port = listener.getsockname()
+    try:
+
+        async def _auth_noop(self: MessageBus) -> None:
+            return
+
+        monkeypatch.setattr(MessageBus, "_authenticate", _auth_noop)
+
+        bus = MessageBus(f"tcp:host={host},port={port}")
+        # Force next_serial() to return 2 so the else-branch that calls
+        # _generate_hello_serialized() is exercised instead of the cached
+        # HELLO_1_SERIALIZED constant.
+        bus._serial = 1
+
+        task = asyncio.create_task(bus.connect())
+
+        for _ in range(200):
+            if bus._method_return_handlers:
+                break
+            await asyncio.sleep(0)
+        else:
+            task.cancel()
+            raise AssertionError("on_hello handler never registered")
+
+        serial, handler = next(iter(bus._method_return_handlers.items()))
+        assert serial == 2
+
+        handler(None, DBusError("org.freedesktop.DBus.Error.Failed", "boom", None))
+
+        with pytest.raises(DBusError, match="boom"):
+            await task
+
+        assert bus._sock is None
+        assert bus._stream is None
+        assert bus._fd is None
+        assert bus._writer is None
+    finally:
+        listener.close()
