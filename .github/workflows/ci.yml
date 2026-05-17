@@ -37,6 +37,8 @@ jobs:
           - "skip_cython"
           - "use_cython"
     runs-on: ${{ matrix.os }}
+    env:
+      PIP_CONSTRAINT: ${{ github.workspace }}/.github/ci-constraints.txt
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install libs
@@ -99,6 +101,7 @@ jobs:
             uv venv --system-site-packages .venv
             . .venv/bin/activate
             REQUIRE_CYTHON=1 uv pip install \
+              --constraints "$GITHUB_WORKSPACE/.github/ci-constraints.txt" \
               -e . \
               pytest pytest-asyncio pytest-cov pytest-timeout covdefaults
             dbus-run-session -- pytest --no-cov --timeout=100 --durations=30 \
@@ -106,6 +109,8 @@ jobs:
 
   benchmark:
     runs-on: ubuntu-latest
+    env:
+      PIP_CONSTRAINT: ${{ github.workspace }}/.github/ci-constraints.txt
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install libs
