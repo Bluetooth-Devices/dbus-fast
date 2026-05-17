@@ -193,20 +193,80 @@ jobs:
     needs: [release]
     if: needs.release.outputs.released == 'true'
 
-    name: Build wheels on ${{ matrix.os }} with arch ${{ matrix.arch }}
+    name: Build wheels on ${{ matrix.os }} ${{ matrix.musl }} ${{ matrix.qemu }} ${{ matrix.pyver }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-24.04-arm, ubuntu-24.04-riscv, ubuntu-latest, macos-latest]
+        os: [ubuntu-24.04-arm, ubuntu-latest, macos-latest]
         musl: ["", "musllinux"]
+        qemu: [""]
+        pyver: [""]
         exclude:
           - os: macos-latest
             musl: "musllinux"
+        include:
+          # qemu is slow, make a single runner per Python version
+          - {
+              os: ubuntu-latest,
+              qemu: riscv64,
+              musl: "musllinux",
+              pyver: cp310,
+            }
+          - {
+              os: ubuntu-latest,
+              qemu: riscv64,
+              musl: "musllinux",
+              pyver: cp311,
+            }
+          - {
+              os: ubuntu-latest,
+              qemu: riscv64,
+              musl: "musllinux",
+              pyver: cp312,
+            }
+          - {
+              os: ubuntu-latest,
+              qemu: riscv64,
+              musl: "musllinux",
+              pyver: cp313,
+            }
+          - {
+              os: ubuntu-latest,
+              qemu: riscv64,
+              musl: "musllinux",
+              pyver: cp314,
+            }
+          - {
+              os: ubuntu-latest,
+              qemu: riscv64,
+              musl: "musllinux",
+              pyver: cp314t,
+            }
+          - { os: ubuntu-latest, qemu: riscv64, musl: "", pyver: cp310 }
+          - { os: ubuntu-latest, qemu: riscv64, musl: "", pyver: cp311 }
+          - { os: ubuntu-latest, qemu: riscv64, musl: "", pyver: cp312 }
+          - { os: ubuntu-latest, qemu: riscv64, musl: "", pyver: cp313 }
+          - { os: ubuntu-latest, qemu: riscv64, musl: "", pyver: cp314 }
+          - { os: ubuntu-latest, qemu: riscv64, musl: "", pyver: cp314t }
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
         with:
           ref: "v${{ needs.release.outputs.newest_release_tag }}"
           fetch-depth: 0
+
+      - name: Set up QEMU
+        if: ${{ matrix.qemu }}
+        uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
+        with:
+          platforms: all
+          # xref https://github.com/docker/setup-qemu-action/issues/188
+          # xref https://github.com/tonistiigi/binfmt/issues/215
+          image: tonistiigi/binfmt:qemu-v8.1.5
+        id: qemu
+
+      - name: Limit to a specific Python version on slow QEMU
+        if: ${{ matrix.pyver }}
+        run: echo "CIBW_BUILD=${{ matrix.pyver }}-*" >> $GITHUB_ENV
 
       - name: Build wheels
         uses: pypa/cibuildwheel@8d2b08b68458a16aeb24b64e68a09ab1c8e82084 # v3.4.1
@@ -215,12 +275,12 @@ jobs:
           CIBW_BEFORE_ALL_LINUX: apt-get install -y gcc || yum install -y gcc || apk add gcc
           CIBW_BUILD_VERBOSITY: 3
           REQUIRE_CYTHON: 1
-          CIBW_ARCHS_LINUX: ${{ ( matrix.os == 'ubuntu-24.04-arm' && 'aarch64' ) || ( matrix.os == 'ubuntu-24.04-riscv' && 'riscv64' ) || 'auto' }}
+          CIBW_ARCHS_LINUX: ${{ ( matrix.os == 'ubuntu-24.04-arm' && 'aarch64' ) || matrix.qemu || 'auto' }}
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
         with:
           path: ./wheelhouse/*.whl
-          name: wheels-${{ matrix.os }}-${{ matrix.musl }}
+          name: wheels-${{ matrix.os }}-${{ matrix.musl }}-${{ matrix.qemu }}-${{ matrix.pyver }}
 
   upload_pypi:
     needs: [build_wheels]
