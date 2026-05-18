@@ -382,9 +382,7 @@ async def test_add_property_dynamic_read_only_set_rejected() -> None:
     bus2 = await MessageBus().connect()
 
     bag = _Bag()
-    bag.add_property(
-        "ro_prop", "u", lambda iface: 42, access=PropertyAccess.READ
-    )
+    bag.add_property("ro_prop", "u", lambda iface: 42, access=PropertyAccess.READ)
     bus1.export("/dyn", bag)
 
     result = await bus2.call(
@@ -571,12 +569,18 @@ def test_add_property_validation_errors() -> None:
 
     with pytest.raises(TypeError, match="access must be a PropertyAccess"):
         bag.add_property(
-            "p", "s", lambda iface: "x", access="read"  # type: ignore[arg-type]
+            "p",
+            "s",
+            lambda iface: "x",
+            access="read",  # type: ignore[arg-type]
         )
 
     with pytest.raises(TypeError, match="disabled must be a bool"):
         bag.add_property(
-            "p", "s", lambda iface: "x", disabled="yes"  # type: ignore[arg-type]
+            "p",
+            "s",
+            lambda iface: "x",
+            disabled="yes",  # type: ignore[arg-type]
         )
 
     with pytest.raises(ValueError, match="does not have a setter"):
