@@ -523,15 +523,20 @@ class ServiceInterface:
                     f'property "{prop.name}" is writable but does not have a setter'
                 )
 
+    # Parameter annotations are intentionally omitted: under Cython
+    # compilation, ``access: PropertyAccess`` and ``disabled: bool``
+    # annotations get coerced (e.g. ``"yes"`` -> ``True``) before the
+    # explicit ``type(...)`` checks below can run, silently letting bad
+    # values through. Keep the types in the docstring instead.
     def add_property(
         self,
-        name: str,
-        signature: str,
-        getter: Callable[[ServiceInterface], Any],
-        setter: Callable[[ServiceInterface, Any], None] | None = None,
+        name,
+        signature,
+        getter,
+        setter=None,
         *,
-        access: PropertyAccess = PropertyAccess.READWRITE,
-        disabled: bool = False,
+        access=PropertyAccess.READWRITE,
+        disabled=False,
     ) -> None:
         """Register a property on this interface at runtime.
 

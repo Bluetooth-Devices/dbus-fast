@@ -555,14 +555,10 @@ async def test_add_property_dynamic_emit_properties_changed() -> None:
 def test_add_property_validation_errors() -> None:
     bag = _Bag()
 
-    # Under Cython compilation, strict ``str`` / ``bool`` / ``PropertyAccess``
-    # annotations on add_property are enforced before our Python-side check
-    # fires, so the TypeError text differs between pure-Python and compiled
-    # builds. Regexes anchor on the parameter name, which appears in both.
-    with pytest.raises(TypeError, match="name"):
+    with pytest.raises(TypeError, match="name must be a string"):
         bag.add_property(123, "s", lambda iface: "x")  # type: ignore[arg-type]
 
-    with pytest.raises(TypeError, match="signature"):
+    with pytest.raises(TypeError, match="signature must be a string"):
         bag.add_property("p", 123, lambda iface: "x")  # type: ignore[arg-type]
 
     with pytest.raises(TypeError, match="getter must be callable"):
@@ -571,7 +567,7 @@ def test_add_property_validation_errors() -> None:
     with pytest.raises(TypeError, match="setter must be callable"):
         bag.add_property("p", "s", lambda iface: "x", setter=123)  # type: ignore[arg-type]
 
-    with pytest.raises(TypeError, match="access"):
+    with pytest.raises(TypeError, match="access must be a PropertyAccess"):
         bag.add_property(
             "p",
             "s",
@@ -579,7 +575,7 @@ def test_add_property_validation_errors() -> None:
             access="read",  # type: ignore[arg-type]
         )
 
-    with pytest.raises(TypeError, match="disabled"):
+    with pytest.raises(TypeError, match="disabled must be a bool"):
         bag.add_property(
             "p",
             "s",
