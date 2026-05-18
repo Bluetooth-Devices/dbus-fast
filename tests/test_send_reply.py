@@ -32,10 +32,10 @@ def send_reply_setup() -> Generator[
             pass
 
     class MockBus(BaseMessageBus):
-        def __init__(self) -> None:
-            super().__init__()
+        def connect(self) -> "MockBus":
             self._sock = MockClosable()  # type: ignore
             self._stream = MockClosable()  # type: ignore
+            return self
 
         def send(self, msg: Message) -> None:
             messages.append(msg)
@@ -43,7 +43,7 @@ def send_reply_setup() -> Generator[
         def send_message(self, msg: Message) -> None:
             messages.append(msg)
 
-    bus = MockBus()
+    bus = MockBus().connect()
     msg = Message(
         path="/test/path", interface="test.interface", member="test_member", serial=1
     )
