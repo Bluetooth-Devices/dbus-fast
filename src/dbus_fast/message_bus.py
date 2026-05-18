@@ -686,6 +686,7 @@ class BaseMessageBus:
         target for :func:`socket.socket.connect`.
 
         :raises InvalidAddressError: if the transport is unknown or malformed.
+        :raises ValueError: if a tcp ``port`` option is not a valid integer.
         """
         if transport == "unix":
             if "path" in options:
