@@ -310,3 +310,296 @@ async def test_property_changed_signal(interface_class):
     bus2.disconnect()
     await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
     await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
+
+
+class _Bag(ServiceInterface):
+    def __init__(self) -> None:
+        super().__init__("test.bag")
+
+
+@pytest.mark.asyncio
+async def test_add_property_dynamic_read_write() -> None:
+    bus1 = await MessageBus().connect()
+    bus2 = await MessageBus().connect()
+
+    state = {"v": "alpha"}
+    bag = _Bag()
+    bag.add_property(
+        "dyn_str",
+        "s",
+        lambda iface: state["v"],
+        lambda iface, value: state.update(v=value),
+    )
+    bus1.export("/dyn", bag)
+
+    result = await bus2.call(
+        Message(
+            destination=bus1.unique_name,
+            path="/dyn",
+            interface="org.freedesktop.DBus.Properties",
+            member="Get",
+            signature="ss",
+            body=["test.bag", "dyn_str"],
+        )
+    )
+    assert result.message_type == MessageType.METHOD_RETURN
+    assert result.body == [Variant("s", "alpha")]
+
+    result = await bus2.call(
+        Message(
+            destination=bus1.unique_name,
+            path="/dyn",
+            interface="org.freedesktop.DBus.Properties",
+            member="Set",
+            signature="ssv",
+            body=["test.bag", "dyn_str", Variant("s", "beta")],
+        )
+    )
+    assert result.message_type == MessageType.METHOD_RETURN
+    assert state["v"] == "beta"
+
+    result = await bus2.call(
+        Message(
+            destination=bus1.unique_name,
+            path="/dyn",
+            interface="org.freedesktop.DBus.Properties",
+            member="GetAll",
+            signature="s",
+            body=["test.bag"],
+        )
+    )
+    assert result.body == [{"dyn_str": Variant("s", "beta")}]
+
+    bus1.disconnect()
+    bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
+
+
+@pytest.mark.asyncio
+async def test_add_property_dynamic_read_only_set_rejected() -> None:
+    bus1 = await MessageBus().connect()
+    bus2 = await MessageBus().connect()
+
+    bag = _Bag()
+    bag.add_property(
+        "ro_prop", "u", lambda iface: 42, access=PropertyAccess.READ
+    )
+    bus1.export("/dyn", bag)
+
+    result = await bus2.call(
+        Message(
+            destination=bus1.unique_name,
+            path="/dyn",
+            interface="org.freedesktop.DBus.Properties",
+            member="Set",
+            signature="ssv",
+            body=["test.bag", "ro_prop", Variant("u", 99)],
+        )
+    )
+    assert result.message_type == MessageType.ERROR
+    assert result.error_name == ErrorType.PROPERTY_READ_ONLY.value
+
+    bus1.disconnect()
+    bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
+
+
+@pytest.mark.asyncio
+async def test_add_property_dynamic_async_getter_and_setter() -> None:
+    bus1 = await MessageBus().connect()
+    bus2 = await MessageBus().connect()
+
+    state = {"v": 7}
+
+    async def getter(_iface):
+        return state["v"]
+
+    async def setter(_iface, value):
+        state["v"] = value
+
+    bag = _Bag()
+    bag.add_property("dyn_uint", "u", getter, setter)
+    bus1.export("/dyn", bag)
+
+    result = await bus2.call(
+        Message(
+            destination=bus1.unique_name,
+            path="/dyn",
+            interface="org.freedesktop.DBus.Properties",
+            member="Get",
+            signature="ss",
+            body=["test.bag", "dyn_uint"],
+        )
+    )
+    assert result.body == [Variant("u", 7)]
+
+    result = await bus2.call(
+        Message(
+            destination=bus1.unique_name,
+            path="/dyn",
+            interface="org.freedesktop.DBus.Properties",
+            member="Set",
+            signature="ssv",
+            body=["test.bag", "dyn_uint", Variant("u", 19)],
+        )
+    )
+    assert result.message_type == MessageType.METHOD_RETURN
+    assert state["v"] == 19
+
+    bus1.disconnect()
+    bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
+
+
+@pytest.mark.asyncio
+async def test_add_property_dynamic_disabled_hidden() -> None:
+    bus1 = await MessageBus().connect()
+    bus2 = await MessageBus().connect()
+
+    bag = _Bag()
+    bag.add_property(
+        "hidden",
+        "s",
+        lambda iface: "secret",
+        access=PropertyAccess.READ,
+        disabled=True,
+    )
+    bus1.export("/dyn", bag)
+
+    result = await bus2.call(
+        Message(
+            destination=bus1.unique_name,
+            path="/dyn",
+            interface="org.freedesktop.DBus.Properties",
+            member="GetAll",
+            signature="s",
+            body=["test.bag"],
+        )
+    )
+    assert result.body == [{}]
+
+    result = await bus2.call(
+        Message(
+            destination=bus1.unique_name,
+            path="/dyn",
+            interface="org.freedesktop.DBus.Properties",
+            member="Get",
+            signature="ss",
+            body=["test.bag", "hidden"],
+        )
+    )
+    assert result.message_type == MessageType.ERROR
+    assert result.error_name == ErrorType.UNKNOWN_PROPERTY.value
+
+    intr_xml = bag.introspect()
+    assert all(p.name != "hidden" for p in intr_xml.properties)
+
+    bus1.disconnect()
+    bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
+
+
+@pytest.mark.asyncio
+async def test_add_property_dynamic_emit_properties_changed() -> None:
+    bus1 = await MessageBus().connect()
+    bus2 = await MessageBus().connect()
+
+    await bus2.call(
+        Message(
+            destination="org.freedesktop.DBus",
+            path="/org/freedesktop/DBus",
+            interface="org.freedesktop.DBus",
+            member="AddMatch",
+            signature="s",
+            body=[f"sender={bus1.unique_name}"],
+        )
+    )
+
+    state = {"v": "one"}
+    bag = _Bag()
+    bag.add_property(
+        "dyn_str",
+        "s",
+        lambda iface: state["v"],
+        lambda iface, value: state.update(v=value),
+    )
+    bus1.export("/dyn", bag)
+
+    future = asyncio.get_running_loop().create_future()
+
+    def handler(signal):
+        if signal.interface == "org.freedesktop.DBus.Properties":
+            bus2.remove_message_handler(handler)
+            future.set_result(signal)
+
+    bus2.add_message_handler(handler)
+
+    state["v"] = "two"
+    bag.emit_properties_changed({"dyn_str": "two"})
+
+    signal = await asyncio.wait_for(future, timeout=2)
+    assert signal.body == [
+        "test.bag",
+        {"dyn_str": Variant("s", "two")},
+        [],
+    ]
+
+    bus1.disconnect()
+    bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
+
+
+def test_add_property_validation_errors() -> None:
+    bag = _Bag()
+
+    with pytest.raises(TypeError, match="name must be a string"):
+        bag.add_property(123, "s", lambda iface: "x")  # type: ignore[arg-type]
+
+    with pytest.raises(TypeError, match="signature must be a string"):
+        bag.add_property("p", 123, lambda iface: "x")  # type: ignore[arg-type]
+
+    with pytest.raises(TypeError, match="getter must be callable"):
+        bag.add_property("p", "s", "not callable")  # type: ignore[arg-type]
+
+    with pytest.raises(TypeError, match="setter must be callable"):
+        bag.add_property("p", "s", lambda iface: "x", setter=123)  # type: ignore[arg-type]
+
+    with pytest.raises(TypeError, match="access must be a PropertyAccess"):
+        bag.add_property(
+            "p", "s", lambda iface: "x", access="read"  # type: ignore[arg-type]
+        )
+
+    with pytest.raises(TypeError, match="disabled must be a bool"):
+        bag.add_property(
+            "p", "s", lambda iface: "x", disabled="yes"  # type: ignore[arg-type]
+        )
+
+    with pytest.raises(ValueError, match="does not have a setter"):
+        bag.add_property("rw_no_setter", "s", lambda iface: "x")
+
+    with pytest.raises(ValueError, match="must be a single complete type"):
+        bag.add_property(
+            "two_types",
+            "ss",
+            lambda iface: ("a", "b"),
+            lambda iface, v: None,
+        )
+
+    bag.add_property(
+        "dup",
+        "s",
+        lambda iface: "x",
+        lambda iface, v: None,
+    )
+    with pytest.raises(ValueError, match="already registered"):
+        bag.add_property(
+            "dup",
+            "s",
+            lambda iface: "y",
+            lambda iface, v: None,
+        )

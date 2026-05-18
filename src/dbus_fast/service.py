@@ -303,25 +303,37 @@ class _Property(property):
 
         self.__dict__["__DBUS_PROPERTY"] = True
 
-    def __init__(self, fn: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        fn: Callable[..., Any],
+        *args: Any,
+        signature: str | None = None,
+        **kwargs: Any,
+    ) -> None:
         self.prop_getter = fn
         self.prop_setter: Callable[..., Any] | None = None
+        self.dynamic = signature is not None
 
-        inspection = inspect.signature(fn)
-        if len(inspection.parameters) != 1:
-            raise ValueError('the property must only have the "self" input parameter')
+        if signature is None:
+            inspection = inspect.signature(fn)
+            if len(inspection.parameters) != 1:
+                raise ValueError(
+                    'the property must only have the "self" input parameter'
+                )
 
-        module = inspect.getmodule(fn)
+            module = inspect.getmodule(fn)
 
-        return_annotation = parse_annotation(inspection.return_annotation, module)
+            return_annotation = parse_annotation(inspection.return_annotation, module)
 
-        if not return_annotation:
-            raise ValueError(
-                "the property must specify the dbus type string as a return annotation string"
-            )
+            if not return_annotation:
+                raise ValueError(
+                    "the property must specify the dbus type string as a return annotation string"
+                )
 
-        self.signature = return_annotation
-        tree = get_signature_tree(return_annotation)
+            signature = return_annotation
+
+        self.signature = signature
+        tree = get_signature_tree(signature)
 
         if len(tree.types) != 1:
             raise ValueError("the property signature must be a single complete type")
@@ -510,6 +522,82 @@ class ServiceInterface:
                 raise ValueError(
                     f'property "{prop.name}" is writable but does not have a setter'
                 )
+
+    def add_property(
+        self,
+        name: str,
+        signature: str,
+        getter: Callable[[ServiceInterface], Any],
+        setter: Callable[[ServiceInterface, Any], None] | None = None,
+        *,
+        access: PropertyAccess = PropertyAccess.READWRITE,
+        disabled: bool = False,
+    ) -> None:
+        """Register a property on this interface at runtime.
+
+        Unlike :func:`@dbus_property <dbus_fast.service.dbus_property>` — which
+        declares properties as decorated class methods — this lets callers
+        attach a property to an existing :class:`ServiceInterface` instance.
+        Useful when the set of properties is only known at construction time
+        (e.g. driven by a plugin manifest or a remote schema).
+
+        The ``getter`` is called as ``getter(interface)`` and may be sync or
+        a coroutine. ``setter``, if given, is called as
+        ``setter(interface, value)`` and may also be a coroutine. The DBus
+        signature is supplied explicitly because the callables are not
+        introspected for return annotations.
+
+        :param name: The member name clients will see on the bus.
+        :param signature: A DBus signature string of a single complete type.
+        :param getter: Returns the property value when read.
+        :param setter: Sets the property value when written. Required when
+            ``access`` is writable.
+        :param access: The :class:`PropertyAccess` mode. Defaults to
+            ``READWRITE``.
+        :param disabled: If true, the property is hidden from clients.
+
+        :raises ValueError: If a property with the same name already exists,
+            if the signature is not a single complete type, or if the access
+            is writable but no setter was supplied.
+        :raises TypeError: If any argument is of the wrong type.
+
+        .. note::
+            Properties added after the interface is exported are immediately
+            visible through ``GetAll`` and ``Get`` on
+            ``org.freedesktop.DBus.Properties``. Clients that cached
+            introspection XML will not see them until they reintrospect.
+        """
+        if type(name) is not str:
+            raise TypeError("name must be a string")
+        if type(signature) is not str:
+            raise TypeError("signature must be a string")
+        if not callable(getter):
+            raise TypeError("getter must be callable")
+        if setter is not None and not callable(setter):
+            raise TypeError("setter must be callable")
+        if type(access) is not PropertyAccess:
+            raise TypeError("access must be a PropertyAccess")
+        if type(disabled) is not bool:
+            raise TypeError("disabled must be a bool")
+
+        if access.writable() and setter is None:
+            raise ValueError(
+                f'property "{name}" is writable but does not have a setter'
+            )
+
+        for existing in self.__properties:
+            if existing.name == name:
+                raise ValueError(
+                    f'a property named "{name}" is already registered on this interface'
+                )
+
+        prop = _Property(
+            getter,
+            signature=signature,
+            options={"name": name, "access": access, "disabled": disabled},
+        )
+        prop.prop_setter = setter
+        self.__properties.append(prop)
 
     def emit_properties_changed(
         self, changed_properties: dict[str, Any], invalidated_properties: list[str] = []
@@ -706,9 +794,11 @@ class ServiceInterface:
                 _background_tasks.add(task)
                 return
 
-            callback(
-                interface, prop, getattr(interface, prop.prop_getter.__name__), None
-            )
+            if prop.dynamic:
+                value = prop.prop_getter(interface)
+            else:
+                value = getattr(interface, prop.prop_getter.__name__)
+            callback(interface, prop, value, None)
         except Exception as e:
             callback(interface, prop, None, e)
 
@@ -740,7 +830,10 @@ class ServiceInterface:
                 _background_tasks.add(task)
                 return
 
-            setattr(interface, prop.prop_setter.__name__, value)
+            if prop.dynamic:
+                prop.prop_setter(interface, value)
+            else:
+                setattr(interface, prop.prop_setter.__name__, value)
             callback(interface, prop, None)
         except Exception as e:
             callback(interface, prop, e)
