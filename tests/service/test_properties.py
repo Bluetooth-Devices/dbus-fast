@@ -607,3 +607,27 @@ def test_add_property_validation_errors() -> None:
             lambda iface: "y",
             lambda iface, v: None,
         )
+
+
+def test_dbus_property_decorator_extra_params_rejected() -> None:
+    with pytest.raises(ValueError, match='must only have the "self" input parameter'):
+
+        class Bad(ServiceInterface):
+            def __init__(self) -> None:
+                super().__init__("test.bad")
+
+            @dbus_property()
+            def two_params(self, extra) -> "s":  # type: ignore[no-untyped-def]
+                return "x"
+
+
+def test_dbus_property_decorator_missing_return_annotation_rejected() -> None:
+    with pytest.raises(ValueError, match="must specify the dbus type string"):
+
+        class Bad(ServiceInterface):
+            def __init__(self) -> None:
+                super().__init__("test.bad")
+
+            @dbus_property()
+            def no_annotation(self):  # type: ignore[no-untyped-def]
+                return "x"
