@@ -181,8 +181,10 @@ def test_create_socket_for_transport_tcp_makefile_failure_closes_socket(
 
 
 def test_get_proxy_object_raises_when_proxy_object_class_missing() -> None:
-    bus = BaseMessageBus.__new__(BaseMessageBus)
-    bus._ProxyObject = None
+    # ProxyObject defaults to None on BaseMessageBus, which is the condition
+    # under test. Passing an explicit bus_address avoids depending on
+    # DBUS_SESSION_BUS_ADDRESS in the environment.
+    bus = BaseMessageBus(bus_address="unix:path=/dev/null")
     with pytest.raises(InternalError):
         bus.get_proxy_object("com.example.Test", "/com/example/Test", "<node/>")
 
