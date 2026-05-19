@@ -137,12 +137,21 @@ async def test_aio_connect_cleanup_after_socket_connected(
         listener.close()
 
 
-def _assert_makefile_failure_closes(
+@pytest.mark.parametrize(
+    ("transport", "options", "family"),
+    [
+        ("unix", {"path": "/nope"}, socket.AF_UNIX),
+        ("tcp", {"host": "127.0.0.1", "port": "1"}, socket.AF_INET),
+    ],
+    ids=["unix", "tcp"],
+)
+def test_create_socket_for_transport_makefile_failure_closes_socket(
     monkeypatch: pytest.MonkeyPatch,
     transport: str,
     options: dict[str, str],
     family: int,
 ) -> None:
+    """A makefile() failure closes the socket before re-raising."""
     closed: list[int] = []
     real_close = socket.socket.close
 
@@ -160,24 +169,6 @@ def _assert_makefile_failure_closes(
         BaseMessageBus._create_socket_for_transport(transport, options)
 
     assert family in closed
-
-
-def test_create_socket_for_transport_unix_makefile_failure_closes_socket(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """A unix-transport makefile() failure closes the socket before re-raising."""
-    _assert_makefile_failure_closes(
-        monkeypatch, "unix", {"path": "/nope"}, socket.AF_UNIX
-    )
-
-
-def test_create_socket_for_transport_tcp_makefile_failure_closes_socket(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """A tcp-transport makefile() failure closes the socket before re-raising."""
-    _assert_makefile_failure_closes(
-        monkeypatch, "tcp", {"host": "127.0.0.1", "port": "1"}, socket.AF_INET
-    )
 
 
 def test_get_proxy_object_raises_when_proxy_object_class_missing() -> None:
