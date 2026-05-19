@@ -1,0 +1,33 @@
+name: Install poetry deps with retry
+description: >
+  Run `poetry install --only=main,dev` with a retry loop so transient
+  PyPI flakes (for example BadZipFile in poetry's isolated build env
+  for pygobject) don't fail the job on the first attempt.
+
+inputs:
+  extension:
+    description: Either "skip_cython" or "use_cython".
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install Dependencies
+      shell: bash
+      env:
+        EXTENSION: ${{ inputs.extension }}
+      run: |
+        if [ "$EXTENSION" = "skip_cython" ]; then
+          export SKIP_CYTHON=1
+        else
+          export REQUIRE_CYTHON=1
+        fi
+        for attempt in 1 2 3; do
+          if poetry install --only=main,dev; then
+            exit 0
+          fi
+          echo "::warning::poetry install failed on attempt $attempt; retrying"
+          sleep $((attempt * 5))
+        done
+        echo "::error::poetry install failed after 3 attempts"
+        exit 1

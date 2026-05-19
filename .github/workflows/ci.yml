@@ -69,12 +69,9 @@ jobs:
           key: venv-v1-${{ runner.os }}-py${{ matrix.python-version }}-${{ matrix.extension }}-${{ hashFiles('poetry.lock', 'pyproject.toml', 'build_ext.py', 'src/dbus_fast/**/*.py', 'src/dbus_fast/**/*.pxd') }}
       - name: Install Dependencies
         if: steps.cache-venv.outputs.cache-hit != 'true'
-        run: |
-          if [ "${{ matrix.extension }}" = "skip_cython" ]; then
-            SKIP_CYTHON=1 poetry install --only=main,dev
-          else
-            REQUIRE_CYTHON=1 poetry install --only=main,dev
-          fi
+        uses: ./.github/actions/poetry-install
+        with:
+          extension: ${{ matrix.extension }}
       - name: Test with Pytest
         run: dbus-run-session -- poetry run pytest --cov-report=xml --timeout=5 --durations=30 --ignore=tests/benchmarks
       - name: Upload coverage to Codecov
@@ -167,9 +164,9 @@ jobs:
           key: venv-v1-${{ runner.os }}-benchmark-py3.14-${{ hashFiles('poetry.lock', 'pyproject.toml', 'build_ext.py', 'src/dbus_fast/**/*.py', 'src/dbus_fast/**/*.pxd') }}
       - name: Install Dependencies
         if: steps.cache-venv.outputs.cache-hit != 'true'
-        run: |
-          REQUIRE_CYTHON=1 poetry install --only=main,dev
-        shell: bash
+        uses: ./.github/actions/poetry-install
+        with:
+          extension: use_cython
       - name: Run benchmarks
         uses: CodSpeedHQ/action@c381be0bfd20e844fb45594f6aa182ffcd94545c # v4.15.0
         with:
