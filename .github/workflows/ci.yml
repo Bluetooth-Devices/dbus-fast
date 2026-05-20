@@ -54,6 +54,7 @@ jobs:
       - name: Install poetry
         run: uv tool install poetry
       - name: Set up Python
+        id: setup-python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{ matrix.python-version }}
@@ -66,7 +67,7 @@ jobs:
           path: |
             .venv
             src/dbus_fast/**/*.so
-          key: venv-v1-${{ runner.os }}-py${{ matrix.python-version }}-${{ matrix.extension }}-${{ hashFiles('poetry.lock', 'pyproject.toml', 'build_ext.py', 'src/dbus_fast/**/*.py', 'src/dbus_fast/**/*.pxd') }}
+          key: venv-v1-${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-${{ matrix.extension }}-${{ hashFiles('poetry.lock', 'pyproject.toml', 'build_ext.py', 'src/dbus_fast/**/*.py', 'src/dbus_fast/**/*.pxd') }}
       - name: Install Dependencies
         if: steps.cache-venv.outputs.cache-hit != 'true'
         uses: ./.github/actions/poetry-install
@@ -150,6 +151,7 @@ jobs:
       - name: Install poetry
         run: uv tool install poetry
       - name: Setup Python 3.14
+        id: setup-python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: 3.14
@@ -161,7 +163,7 @@ jobs:
           path: |
             .venv
             src/dbus_fast/**/*.so
-          key: venv-v1-${{ runner.os }}-benchmark-py3.14-${{ hashFiles('poetry.lock', 'pyproject.toml', 'build_ext.py', 'src/dbus_fast/**/*.py', 'src/dbus_fast/**/*.pxd') }}
+          key: venv-v1-${{ runner.os }}-benchmark-py${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('poetry.lock', 'pyproject.toml', 'build_ext.py', 'src/dbus_fast/**/*.py', 'src/dbus_fast/**/*.pxd') }}
       - name: Install Dependencies
         if: steps.cache-venv.outputs.cache-hit != 'true'
         uses: ./.github/actions/poetry-install
