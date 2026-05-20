@@ -685,8 +685,9 @@ class BaseMessageBus:
         Returns a ``(sock, stream, address)`` tuple where ``address`` is the
         target for :func:`socket.socket.connect`.
 
-        :raises InvalidAddressError: if the transport is unknown or malformed.
-        :raises ValueError: if a tcp ``port`` option is not a valid integer.
+        :raises InvalidAddressError: if the transport is unknown or
+            malformed, including a tcp ``port`` option that is not a valid
+            integer.
         """
         if transport == "unix":
             if "path" in options:
@@ -707,7 +708,12 @@ class BaseMessageBus:
 
         if transport == "tcp":
             ip_addr = options.get("host", "")
-            ip_port = int(options["port"]) if "port" in options else 0
+            try:
+                ip_port = int(options["port"]) if "port" in options else 0
+            except ValueError as e:
+                raise InvalidAddressError(
+                    f"got tcp transport with invalid port: {options['port']!r}"
+                ) from e
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
                 stream = sock.makefile("rwb")

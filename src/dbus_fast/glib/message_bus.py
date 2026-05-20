@@ -186,8 +186,8 @@ class MessageBus(BaseMessageBus):
                 sock, stream, address = self._create_socket_for_transport(
                     transport, options
                 )
-                stack.callback(stream.close)
                 stack.callback(sock.close)
+                stack.callback(stream.close)
 
                 try:
                     sock.connect(address)

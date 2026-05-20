@@ -92,6 +92,17 @@ async def test_unknown_socket_type() -> None:
 
 
 @pytest.mark.asyncio
+async def test_tcp_socket_non_integer_port() -> None:
+    """A non-integer tcp port option is reported as InvalidAddressError."""
+    bus = MessageBus("tcp:host=127.0.0.1,port=not-a-number")
+
+    with pytest.raises(
+        InvalidAddressError, match="got tcp transport with invalid port"
+    ):
+        await bus.connect()
+
+
+@pytest.mark.asyncio
 async def test_aio_connect_falls_back_between_transports() -> None:
     """If the first transport fails, aio connect() tries the next one and
     raises the last error if all fail.
