@@ -22,7 +22,12 @@ from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
-from blockbuster import BlockBuster, blockbuster_ctx
+
+try:
+    from blockbuster import BlockBuster, blockbuster_ctx
+except ImportError:  # s390x leg skips installing blockbuster under QEMU
+    BlockBuster = None  # type: ignore[assignment,misc]
+    blockbuster_ctx = None  # type: ignore[assignment]
 
 _BENCHMARKS_DIR = "tests/benchmarks"
 
@@ -84,6 +89,8 @@ def pytest_collection_modifyitems(
     config: pytest.Config, items: list[pytest.Item]
 ) -> None:
     """Mark known-blocking tests xfail so CI is green while we work through them."""
+    if blockbuster_ctx is None:
+        return
     marker = pytest.mark.xfail(
         reason="blockbuster: blocking call in asyncio path, to be fixed",
         strict=False,
@@ -94,9 +101,11 @@ def pytest_collection_modifyitems(
 
 
 @pytest.fixture(autouse=True)
-def blockbuster(request: pytest.FixtureRequest) -> Iterator[BlockBuster | None]:
+def blockbuster(
+    request: pytest.FixtureRequest,
+) -> Iterator[BlockBuster | None]:
     """Fail any test that performs a blocking call inside the asyncio loop."""
-    if _BENCHMARKS_DIR in str(request.node.fspath):
+    if blockbuster_ctx is None or _BENCHMARKS_DIR in str(request.node.fspath):
         yield None
         return
     with blockbuster_ctx() as bb:
