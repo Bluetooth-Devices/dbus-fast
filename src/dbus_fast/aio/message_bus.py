@@ -325,8 +325,10 @@ class MessageBus(BaseMessageBus):
                 serialized = HELLO_1_SERIALIZED
             else:
                 serialized = _generate_hello_serialized(next_serial)
-            self._stream.write(serialized)
-            self._stream.flush()
+            # Send Hello via sock_sendall instead of the buffered stream so
+            # we don't perform synchronous BufferedWriter.write() in an async
+            # context. aio writes never go through the stream at runtime.
+            await self._loop.sock_sendall(self._sock, serialized)
             return await future
         except BaseException:
             self._loop.remove_reader(self._fd)
@@ -604,7 +606,6 @@ class MessageBus(BaseMessageBus):
                 await self._loop.sock_sendall(
                     self._sock, Authenticator._format_line(response)
                 )
-                self._stream.flush()
             if response == "BEGIN":
                 # The first octet received by the server after the \r\n of the BEGIN command
                 # from the client must be the first octet of the authenticated/encrypted stream
