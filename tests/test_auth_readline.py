@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import socket
 from types import SimpleNamespace
 
@@ -48,6 +49,8 @@ async def test_auth_readline_rejects_oversize_line() -> None:
                 await asyncio.wait_for(coro, timeout=1.0)
         finally:
             writer.cancel()
+            with contextlib.suppress(asyncio.CancelledError, OSError):
+                await writer
     finally:
         server.close()
         client.close()
@@ -60,11 +63,11 @@ async def test_auth_readline_returns_line() -> None:
         client.setblocking(False)
         server.setblocking(False)
         await asyncio.get_running_loop().sock_sendall(server, b"OK 1234\r\n")
-        server.close()
 
         line = await asyncio.wait_for(
             MessageBus._auth_readline(_fake_aio_self(client)), timeout=1.0
         )
         assert line == "OK 1234"
     finally:
+        server.close()
         client.close()
