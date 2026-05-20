@@ -128,7 +128,7 @@ jobs:
             . .venv/bin/activate
             REQUIRE_CYTHON=1 uv pip install \
               -e . \
-              pytest pytest-asyncio pytest-cov pytest-timeout covdefaults
+              pytest pytest-asyncio pytest-cov pytest-timeout covdefaults blockbuster
             dbus-run-session -- pytest --no-cov --timeout=100 --durations=30 \
               --ignore=tests/benchmarks
       - name: Reclaim cache dirs for actions/cache save
