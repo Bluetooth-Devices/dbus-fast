@@ -2,6 +2,37 @@
 
 <!-- version list -->
 
+## v5.0.1 (2026-05-20)
+
+### Bug Fixes
+
+- **aio**: Send hello via sock_sendall to keep connect off the event loop
+  ([#691](https://github.com/Bluetooth-Devices/dbus-fast/pull/691),
+  [`03a2a2e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/03a2a2e080a8039bb1e9b7e3becfe4e098014571))
+
+### Continuous Integration
+
+- Key venv cache on resolved python patch version
+  ([#687](https://github.com/Bluetooth-Devices/dbus-fast/pull/687),
+  [`6c391ae`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6c391aea25c88a0366daf5afdb97af0f162b18d5))
+
+### Documentation
+
+- Add PSR insertion-flag marker to CHANGELOG
+  ([#689](https://github.com/Bluetooth-Devices/dbus-fast/pull/689),
+  [`af2dc25`](https://github.com/Bluetooth-Devices/dbus-fast/commit/af2dc257349a6dcb9132d8ee76f1bfdbba043e2b))
+
+- Regenerate CHANGELOG.md with all releases through v5.0.0
+  ([#688](https://github.com/Bluetooth-Devices/dbus-fast/pull/688),
+  [`4f77d03`](https://github.com/Bluetooth-Devices/dbus-fast/commit/4f77d03516feb1f7d4cb58f06557def68e5443b9))
+
+### Testing
+
+- Add blockbuster to detect blocking calls in asyncio tests
+  ([#690](https://github.com/Bluetooth-Devices/dbus-fast/pull/690),
+  [`b7cb49e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b7cb49ea535e466419002e97266ce3b4aa788440))
+
+
 ## Unreleased
 
 ### Continuous Integration
