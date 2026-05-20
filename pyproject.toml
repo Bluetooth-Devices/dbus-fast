@@ -68,9 +68,10 @@ addopts = "-v --cov=dbus_fast --cov-report=term-missing:skip-covered"
 pythonpath = ["src"]
 filterwarnings = [
     "error",
-    # Tests xfailed for blockbuster halt mid-flight and leak sockets/transports;
-    # their finalizers raise ResourceWarning which pytest collects as unraisable.
-    # Remove once the blocking calls in tests/conftest.py::_KNOWN_BLOCKING are fixed.
+    # Two auth_readline tests xfail on a blocking socket.sendall in their
+    # peer-side setup; the server socket leaks when setup raises and its
+    # finalizer escalates ResourceWarning via pytest unraisable. Remove once
+    # tests/conftest.py::_KNOWN_BLOCKING is empty.
     "ignore::pytest.PytestUnraisableExceptionWarning",
     "ignore::ResourceWarning",
     '''ignore:The global interpreter lock \(GIL\) has been enabled to load module 'gi\._gi'.*:RuntimeWarning''',
@@ -89,7 +90,7 @@ branch = true
 plugins = ["covdefaults"]
 
 [tool.coverage.report]
-fail_under = 20 # temporarily lowered while tests in tests/conftest.py::_KNOWN_BLOCKING are xfailed; restore to 30 once they pass
+fail_under = 30 # cython version will have low cover because we do not have Cython tracing
 exclude_also = [
     "if cython.compiled:",
 ]

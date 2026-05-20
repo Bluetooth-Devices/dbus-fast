@@ -325,8 +325,7 @@ class MessageBus(BaseMessageBus):
                 serialized = HELLO_1_SERIALIZED
             else:
                 serialized = _generate_hello_serialized(next_serial)
-            self._stream.write(serialized)
-            self._stream.flush()
+            await self._loop.sock_sendall(self._sock, serialized)
             return await future
         except BaseException:
             self._loop.remove_reader(self._fd)
