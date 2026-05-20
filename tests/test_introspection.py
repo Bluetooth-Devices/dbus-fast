@@ -238,3 +238,23 @@ def test_introspection_rejects_default_namespaced_root() -> None:
     payload = '<node xmlns="urn:example"><interface name="a"/></node>'
     with pytest.raises(InvalidIntrospectionError, match="node"):
         intr.Node.parse(payload)
+
+
+def test_introspection_rejects_deeply_nested_nodes() -> None:
+    """Deeply nested <node> elements are bounded to avoid stack exhaustion."""
+    depth = intr._MAX_NODE_DEPTH + 8
+    payload = "<node>" + ('<node name="x">' * depth) + ("</node>" * depth) + "</node>"
+    with pytest.raises(InvalidIntrospectionError, match="nesting"):
+        intr.Node.parse(payload)
+
+
+def test_introspection_accepts_nesting_up_to_cap() -> None:
+    """Nesting up to the cap parses without raising."""
+    depth = intr._MAX_NODE_DEPTH
+    payload = "<node>" + ('<node name="x">' * depth) + ("</node>" * depth) + "</node>"
+    node = intr.Node.parse(payload)
+    cursor = node
+    for _ in range(depth):
+        assert len(cursor.nodes) == 1
+        cursor = cursor.nodes[0]
+    assert cursor.nodes == []
