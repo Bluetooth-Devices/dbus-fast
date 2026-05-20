@@ -532,10 +532,7 @@ class Node:
 
     @staticmethod
     def from_xml(
-        element: ET.Element,
-        is_root: bool = False,
-        validate_property_names: bool = True,
-        _depth: int = 0,
+        element: ET.Element, is_root: bool = False, validate_property_names: bool = True
     ) -> "Node":
         """Convert an :class:`xml.etree.ElementTree.Element` to a :class:`Node`.
 
@@ -551,11 +548,20 @@ class Node:
         :raises:
             - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the XML tree is not valid introspection data.
         """
+        return Node._from_xml(element, is_root, validate_property_names, 0)
+
+    @staticmethod
+    def _from_xml(
+        element: ET.Element,
+        is_root: bool,
+        validate_property_names: bool,
+        depth: int,
+    ) -> "Node":
         # Real D-Bus object paths are at most a handful of components deep;
         # 32 is well above any plausible legitimate nesting and keeps a
         # hostile peer from exhausting the Python (or C) stack via a
         # `<node><node>...</node></node>` payload.
-        if _depth > _MAX_NODE_DEPTH:
+        if depth > _MAX_NODE_DEPTH:
             raise InvalidIntrospectionError(
                 f"introspection node nesting exceeds {_MAX_NODE_DEPTH} levels"
             )
@@ -571,10 +577,11 @@ class Node:
                 )
             elif child.tag == "node":
                 node.nodes.append(
-                    Node.from_xml(
+                    Node._from_xml(
                         child,
-                        validate_property_names=validate_property_names,
-                        _depth=_depth + 1,
+                        False,
+                        validate_property_names,
+                        depth + 1,
                     )
                 )
 
