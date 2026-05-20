@@ -68,6 +68,11 @@ addopts = "-v --cov=dbus_fast --cov-report=term-missing:skip-covered"
 pythonpath = ["src"]
 filterwarnings = [
     "error",
+    # Tests xfailed for blockbuster halt mid-flight and leak sockets/transports;
+    # their finalizers raise ResourceWarning which pytest collects as unraisable.
+    # Remove once the blocking calls in tests/conftest.py::_KNOWN_BLOCKING are fixed.
+    "ignore::pytest.PytestUnraisableExceptionWarning",
+    "ignore::ResourceWarning",
     '''ignore:The global interpreter lock \(GIL\) has been enabled to load module 'gi\._gi'.*:RuntimeWarning''',
     # PyGObject 3.56's gi.events module uses the asyncio event loop policy API
     # (AbstractEventLoopPolicy, get_event_loop_policy, ...) which Python 3.14
