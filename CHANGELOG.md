@@ -1,5 +1,6 @@
 # CHANGELOG
 
+<!-- version list -->
 
 ## Unreleased
 
