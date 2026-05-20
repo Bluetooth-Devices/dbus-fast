@@ -34,15 +34,7 @@ _BENCHMARKS_DIR = "tests/benchmarks"
 # Tests that perform sync IO inside the asyncio event loop and trip
 # blockbuster. Marked xfail so CI is green; pop entries as they get
 # fixed so the underlying blocking call is gone for good.
-_KNOWN_BLOCKING: frozenset[str] = frozenset(
-    {
-        # Test peer sockets simulating the dbus daemon side use a blocking
-        # socket.sendall in test setup; not a production bug. Switch the
-        # tests to loop.sock_sendall to clear these.
-        "tests/test_auth_readline.py::test_auth_readline_rejects_oversize_line",
-        "tests/test_auth_readline.py::test_auth_readline_returns_line",
-    }
-)
+_KNOWN_BLOCKING: frozenset[str] = frozenset()
 
 
 def pytest_collection_modifyitems(

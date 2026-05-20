@@ -68,12 +68,6 @@ addopts = "-v --cov=dbus_fast --cov-report=term-missing:skip-covered"
 pythonpath = ["src"]
 filterwarnings = [
     "error",
-    # Two auth_readline tests xfail on a blocking socket.sendall in their
-    # peer-side setup; the server socket leaks when setup raises and its
-    # finalizer escalates ResourceWarning via pytest unraisable. Remove once
-    # tests/conftest.py::_KNOWN_BLOCKING is empty.
-    "ignore::pytest.PytestUnraisableExceptionWarning",
-    "ignore::ResourceWarning",
     '''ignore:The global interpreter lock \(GIL\) has been enabled to load module 'gi\._gi'.*:RuntimeWarning''',
     # PyGObject 3.56's gi.events module uses the asyncio event loop policy API
     # (AbstractEventLoopPolicy, get_event_loop_policy, ...) which Python 3.14
