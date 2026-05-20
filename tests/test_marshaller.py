@@ -11,6 +11,7 @@ from dbus_fast import Message, MessageFlag, MessageType, SignatureTree, Variant
 from dbus_fast._private._cython_compat import FakeCython
 from dbus_fast._private.constants import BIG_ENDIAN, LITTLE_ENDIAN
 from dbus_fast._private.unmarshaller import (
+    MAX_CONTAINER_DEPTH,
     MAX_MESSAGE_SIZE,
     Unmarshaller,
     buffer_to_int16,
@@ -1015,3 +1016,147 @@ def test_unmarshall_rejects_max_uint32_body_len_big_endian() -> None:
     forged = _forged_header(body_len=0xFFFFFFFF, header_len=0, endian=">")
     with pytest.raises(InvalidMessageError, match="exceeds maximum"):
         Unmarshaller(io.BytesIO(forged)).unmarshall()
+
+
+def _replace_body(template: bytearray, new_body: bytes) -> bytes:
+    """Swap a `v`-signature message's body bytes and fix up body_len."""
+    header_len = struct.unpack_from("<I", template, 12)[0]
+    pad = (-header_len) & 7
+    body_start = 16 + header_len + pad
+    result = bytearray(template[:body_start])
+    result.extend(new_body)
+    struct.pack_into("<I", result, 4, len(new_body))
+    return bytes(result)
+
+
+def _nested_variant_body(depth: int) -> bytes:
+    """Wire bytes for `depth` levels of variant-in-variant ending in a 'y' byte."""
+    return (b"\x01v\x00" * (depth - 1)) + b"\x01y\x00\x01"
+
+
+def _build_nested_variant_message(depth: int) -> bytes:
+    template = _build_variant_message(Variant("y", 1))
+    return _replace_body(template, _nested_variant_body(depth))
+
+
+def test_unmarshall_accepts_variant_nesting_at_cap() -> None:
+    """A message right at the cap depth must still parse."""
+    data = _build_nested_variant_message(MAX_CONTAINER_DEPTH)
+    msg = Unmarshaller(io.BytesIO(data)).unmarshall()
+    assert msg is not None
+    # Walk to the innermost byte to confirm full parse.
+    inner = msg.body[0]
+    for _ in range(MAX_CONTAINER_DEPTH - 1):
+        inner = inner.value
+    assert inner.value == 1
+
+
+def test_unmarshall_rejects_variant_nesting_above_cap() -> None:
+    """One past the cap raises InvalidMessageError before the stack blows."""
+    data = _build_nested_variant_message(MAX_CONTAINER_DEPTH + 1)
+    with pytest.raises(InvalidMessageError, match="container nesting exceeds maximum"):
+        Unmarshaller(io.BytesIO(data)).unmarshall()
+
+
+def test_unmarshall_rejects_deeply_nested_variant_dos() -> None:
+    """A million levels of variant-in-variant must be rejected, not crash."""
+    data = _build_nested_variant_message(1_000_000)
+    with pytest.raises(InvalidMessageError, match="container nesting exceeds maximum"):
+        Unmarshaller(io.BytesIO(data)).unmarshall()
+
+
+def test_unmarshall_accepts_many_sibling_variants() -> None:
+    """Many variants at the same depth must not trip the cap (siblings, not nested)."""
+    entries = {f"k{i}": Variant("y", i & 0xFF) for i in range(MAX_CONTAINER_DEPTH * 4)}
+    msg = Message(
+        message_type=MessageType.METHOD_RETURN,
+        reply_serial=1,
+        signature="a{sv}",
+        body=[entries],
+    )
+    marshalled = msg._marshall(False)
+    result = Unmarshaller(io.BytesIO(marshalled)).unmarshall()
+    assert result is not None
+    assert len(result.body[0]) == len(entries)
+
+
+def test_unmarshall_depth_counter_resets_between_messages() -> None:
+    """Two cap-depth messages back-to-back must both parse on the same unmarshaller."""
+    data1 = _build_nested_variant_message(MAX_CONTAINER_DEPTH)
+    data2 = _build_nested_variant_message(MAX_CONTAINER_DEPTH)
+    stream = io.BytesIO(data1 + data2)
+    unmarshaller = Unmarshaller(stream)
+    assert unmarshaller.unmarshall() is not None
+    assert unmarshaller.unmarshall() is not None
+
+
+def _nested_variants_then_signature(outer_count: int, inner_signature: bytes) -> bytes:
+    """`outer_count` 'v' variant levels then a final variant carrying `inner_signature`.
+
+    The final variant's value bytes are intentionally omitted; the per-reader
+    depth check raises before any value bytes are read.
+    """
+    body = bytearray()
+    for _ in range(outer_count):
+        body.extend(b"\x01v\x00")
+    body.append(len(inner_signature))
+    body.extend(inner_signature)
+    body.append(0)  # null terminator
+    return bytes(body)
+
+
+def test_unmarshall_rejects_struct_nesting_above_cap() -> None:
+    """64 'v' levels wrapping a struct trips read_struct's depth check."""
+    template = _build_variant_message(Variant("y", 1))
+    inner_body = _nested_variants_then_signature(MAX_CONTAINER_DEPTH - 1, b"(y)")
+    data = _replace_body(template, inner_body)
+    with pytest.raises(InvalidMessageError, match="container nesting exceeds maximum"):
+        Unmarshaller(io.BytesIO(data)).unmarshall()
+
+
+def test_unmarshall_rejects_array_nesting_above_cap() -> None:
+    """64 'v' levels wrapping an array trips read_array's depth check."""
+    template = _build_variant_message(Variant("y", 1))
+    inner_body = _nested_variants_then_signature(MAX_CONTAINER_DEPTH - 1, b"ay")
+    data = _replace_body(template, inner_body)
+    with pytest.raises(InvalidMessageError, match="container nesting exceeds maximum"):
+        Unmarshaller(io.BytesIO(data)).unmarshall()
+
+
+def test_unmarshall_rejects_dict_entry_nesting_above_cap() -> None:
+    """64 'v' levels wrapping a {sv} dict entry trips read_dict_entry's depth check."""
+    # `{sv}` parses as a top-level signature, so wrapping it in variants routes
+    # the deepest dispatch through self._readers["{"] = read_dict_entry rather
+    # than the inline `{` handling in read_array.
+    template = _build_variant_message(Variant("y", 1))
+    inner_body = _nested_variants_then_signature(MAX_CONTAINER_DEPTH - 1, b"{sv}")
+    data = _replace_body(template, inner_body)
+    with pytest.raises(InvalidMessageError, match="container nesting exceeds maximum"):
+        Unmarshaller(io.BytesIO(data)).unmarshall()
+
+
+def test_unmarshall_accepts_variant_of_dict_entry() -> None:
+    """A variant carrying a `{sv}` dict entry exercises read_dict_entry's success path."""
+    # Variant._construct rejects `{sv}` as a top-level signature, so we forge
+    # the body bytes directly. Routes the deepest dispatch through
+    # self._readers["{"] = read_dict_entry instead of read_array's inline path.
+    template = _build_variant_message(Variant("y", 1))
+    header_len = struct.unpack_from("<I", template, 12)[0]
+    body_start = 16 + header_len + ((-header_len) & 7)
+
+    new_body = bytearray(b"\x04{sv}\x00")  # variant header for `{sv}`
+    align_pad = (-(body_start + len(new_body))) & 7
+    new_body.extend(b"\x00" * align_pad)
+    new_body.extend(struct.pack("<I", 1))  # key length
+    new_body.extend(b"k\x00")  # key chars + null
+    new_body.extend(b"\x01y\x00\x07")  # value variant of 'y' = 7
+
+    data = _replace_body(template, bytes(new_body))
+    msg = Unmarshaller(io.BytesIO(data)).unmarshall()
+    assert msg is not None
+    outer = msg.body[0]
+    assert outer.signature == "{sv}"
+    key, value = outer.value
+    assert key == "k"
+    assert value.signature == "y"
+    assert value.value == 7
