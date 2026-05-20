@@ -603,7 +603,6 @@ class MessageBus(BaseMessageBus):
                 await self._loop.sock_sendall(
                     self._sock, Authenticator._format_line(response)
                 )
-                self._stream.flush()
             if response == "BEGIN":
                 # The first octet received by the server after the \r\n of the BEGIN command
                 # from the client must be the first octet of the authenticated/encrypted stream
