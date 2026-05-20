@@ -22,6 +22,15 @@ from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
+from blockbuster import BlockBuster, blockbuster_ctx
+
+
+@pytest.fixture(autouse=True)
+def blockbuster() -> Iterator[BlockBuster]:
+    """Fail any test that performs a blocking call inside the asyncio loop."""
+    with blockbuster_ctx() as bb:
+        yield bb
+
 
 _SESSION_CONF = """<!DOCTYPE busconfig PUBLIC "-//freedesktop//DTD D-Bus Bus Configuration 1.0//EN"
  "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
