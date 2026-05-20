@@ -2,6 +2,27 @@
 
 <!-- version list -->
 
+## v5.0.2 (2026-05-20)
+
+### Bug Fixes
+
+- **introspection**: Bound <node> nesting depth to prevent DoS
+  ([#697](https://github.com/Bluetooth-Devices/dbus-fast/pull/697),
+  [`6870443`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6870443978cbf0232a1943519522213d601e275d))
+
+### Refactoring
+
+- **aio**: Drop dead self._stream.flush() in _authenticate()
+  ([#694](https://github.com/Bluetooth-Devices/dbus-fast/pull/694),
+  [`27e1fd2`](https://github.com/Bluetooth-Devices/dbus-fast/commit/27e1fd2a3decb07fa4c6c648861b617b08983f1e))
+
+### Testing
+
+- Drop blocking sendall in auth_readline peer-side setup
+  ([#692](https://github.com/Bluetooth-Devices/dbus-fast/pull/692),
+  [`c754780`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c754780d8e0486a3483d909e8617858ed1490f66))
+
+
 ## v5.0.1 (2026-05-20)
 
 ### Bug Fixes
