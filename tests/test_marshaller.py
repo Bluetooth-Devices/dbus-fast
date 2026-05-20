@@ -1031,11 +1031,7 @@ def _replace_body(template: bytearray, new_body: bytes) -> bytes:
 
 def _nested_variant_body(depth: int) -> bytes:
     """Wire bytes for `depth` levels of variant-in-variant ending in a 'y' byte."""
-    body = bytearray()
-    for _ in range(depth - 1):
-        body.extend(b"\x01v\x00")  # signature_len=1, 'v', null
-    body.extend(b"\x01y\x00\x01")  # signature_len=1, 'y', null, value=1
-    return bytes(body)
+    return (b"\x01v\x00" * (depth - 1)) + b"\x01y\x00\x01"
 
 
 def _build_nested_variant_message(depth: int) -> bytes:
