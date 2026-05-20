@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v5.0.3 (2026-05-20)
+
+### Bug Fixes
+
+- **unmarshaller**: Cap container nesting depth to prevent stack overflow DoS
+  ([#698](https://github.com/Bluetooth-Devices/dbus-fast/pull/698),
+  [`ef528a6`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ef528a61b46bf85713e6a0ae83b8427e9c3bb8f3))
+
+
 ## v5.0.2 (2026-05-20)
 
 ### Bug Fixes
