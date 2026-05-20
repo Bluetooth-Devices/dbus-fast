@@ -581,6 +581,18 @@ class Unmarshaller:
         # *after* any recursive read_array / self._readers[...] call, so an
         # attacker can't pop the counter back to zero between siblings of a
         # deeply nested variant. The pxd declares `result=Variant`.
+        #
+        # Inline += / -= rather than try/finally: try/finally in Cython
+        # compiles to setjmp-style cleanup that lands on the hot path,
+        # while a cdef unsigned int decrement is score-0 C. Skipping the
+        # decrement on the error path is safe because the only recoverable
+        # exception here is the BlockingIOError raised by _read_to_pos
+        # *before* any container reader runs; every other mid-parse error
+        # (IndexError, InvalidMessageError) means the message is corrupt
+        # and the bus connection tears down. As a backstop, _read_body
+        # resets _container_depth to 0 at the start of every message so a
+        # stale counter cannot leak across messages. The same pattern
+        # repeats in read_array, read_struct, and read_dict_entry.
         self._container_depth += 1
         if self._container_depth > _MAX_CONTAINER_DEPTH:
             raise InvalidMessageError(
@@ -589,7 +601,7 @@ class Unmarshaller:
         if cython.compiled:
             if self._buf_len <= self._pos:
                 raise IndexError("Not enough data to read signature")
-        result = None
+        result: Variant | None = None
         signature_len = self._buf_ustr[self._pos]
         if signature_len == 1:
             self._pos += 3  # 1 len byte + 1 signature char + 1 null terminator
