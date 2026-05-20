@@ -2,6 +2,7 @@ import io
 import logging
 import traceback
 from collections.abc import Callable
+from contextlib import ExitStack
 
 from .. import introspection as intr
 from .._private.unmarshaller import Unmarshaller
@@ -178,6 +179,37 @@ class MessageBus(BaseMessageBus):
             raise _import_error
 
         super().__init__(bus_address, bus_type, ProxyObject)
+
+        last_err: Exception | None = None
+        for transport, options in self._bus_address:
+            with ExitStack() as stack:
+                sock, stream, address = self._create_socket_for_transport(
+                    transport, options
+                )
+                stack.callback(sock.close)
+                stack.callback(stream.close)
+
+                try:
+                    sock.connect(address)
+                    sock.setblocking(False)
+                except Exception as e:
+                    last_err = e
+                    continue
+
+                # responsibility to close sockets is deferred to the bus
+                stack.pop_all()
+                self._sock = sock
+                self._stream = stream
+                self._fd = sock.fileno()
+                break
+        else:
+            if last_err is None:  # pragma: no branch
+                # Should not normally happen, but just in case
+                raise TypeError(  # pragma: no cover
+                    "empty list of bus addresses given"
+                )
+            raise last_err
+
         self._main_context = GLib.main_context_default()
         # buffer messages until connect
         self._buffered_messages = []

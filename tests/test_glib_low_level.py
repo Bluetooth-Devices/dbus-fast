@@ -3,6 +3,7 @@ import sys
 import pytest
 
 from dbus_fast import Message, MessageFlag, MessageType
+from dbus_fast.errors import InvalidAddressError
 from dbus_fast.glib import MessageBus
 from tests.util import check_gi_repository, skip_reason_no_gi
 
@@ -10,6 +11,30 @@ has_gi = check_gi_repository()
 
 if has_gi:
     from gi.repository import GLib
+
+
+@pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
+def test_glib_init_raises_on_single_transport_connect_failure() -> None:
+    """glib MessageBus() surfaces the underlying connect error when the only transport fails."""
+    with pytest.raises(ConnectionRefusedError):
+        MessageBus("tcp:host=127.0.0.1,port=1")
+
+
+@pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
+def test_glib_init_falls_back_between_transports() -> None:
+    """glib MessageBus() tries each transport in turn and raises the last error if all fail."""
+    with pytest.raises(ConnectionRefusedError):
+        MessageBus(
+            "unix:path=/there-is-no-way-that-this-file-should-exist;"
+            "tcp:host=127.0.0.1,port=1"
+        )
+
+
+@pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
+def test_glib_init_raises_on_unknown_transport() -> None:
+    """glib MessageBus() raises InvalidAddressError for unknown transports."""
+    with pytest.raises(InvalidAddressError, match="got unknown address transport"):
+        MessageBus("unknown:works=nope")
 
 
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)

@@ -8,6 +8,7 @@ import logging
 import socket
 from collections import deque
 from collections.abc import Callable
+from contextlib import ExitStack
 from copy import copy
 from functools import partial
 from typing import Any
@@ -200,6 +201,11 @@ class MessageBus(BaseMessageBus):
     :ivar connected: True if this message bus is expected to be able to send
         and receive messages.
     :vartype connected: bool
+
+    .. versionchanged:: v5.0.0
+        The socket is no longer connected in the constructor. Connection
+        errors that were previously raised from ``MessageBus()`` are now
+        raised from :func:`connect() <dbus_fast.aio.MessageBus.connect>`.
     """
 
     __slots__ = ("_auth", "_disconnect_future", "_loop", "_pending_futures", "_writer")
@@ -214,7 +220,10 @@ class MessageBus(BaseMessageBus):
         super().__init__(bus_address, bus_type, ProxyObject, negotiate_unix_fd)
         self._loop = asyncio.get_running_loop()
 
-        self._writer = _MessageWriter(self)
+        # _writer is created in connect() once the socket is connected, so the
+        # writer is constructed exactly once with a valid socket/fd rather than
+        # being back-patched.
+        self._writer: _MessageWriter | None = None
 
         if auth is None:
             self._auth = AuthExternal()
@@ -235,43 +244,99 @@ class MessageBus(BaseMessageBus):
         :raises:
             - :class:`AuthError <dbus_fast.AuthError>` - If authorization to \
               the DBus daemon failed.
-            - :class:`Exception` - If there was a connection error.
+            - :class:`OSError` - If the socket could not be connected (e.g. \
+              :class:`ConnectionRefusedError`, :class:`FileNotFoundError`). \
+              When multiple transports are given, the error from the last \
+              attempted transport is raised.
+            - :class:`InvalidAddressError \
+              <dbus_fast.InvalidAddressError>` - If the bus address contains \
+              an unknown transport.
+            - :class:`Exception` - If there was any other connection error.
+
+        .. versionchanged:: v5.0.0
+            Socket creation and connection are now performed here rather than
+            in the constructor. Connection errors that were previously raised
+            from ``MessageBus()`` are now raised from this method. This avoids
+            performing blocking I/O on the event loop during ``__init__``.
         """
-        await self._authenticate()
+        last_err: Exception | None = None
 
-        future = self._loop.create_future()
+        for transport, options in self._bus_address:
+            with ExitStack() as stack:
+                sock, stream, address = self._create_socket_for_transport(
+                    transport, options
+                )
+                stack.callback(sock.close)
+                stack.callback(stream.close)
+                sock.setblocking(False)
+                try:
+                    await self._loop.sock_connect(sock, address)
+                except Exception as e:
+                    last_err = e
+                    continue
 
-        self._loop.add_reader(
-            self._fd,
-            build_message_reader(
-                self._sock,
-                self._process_message,
-                self._finalize,
-                self._negotiate_unix_fd,
-            ),
-        )
-
-        def on_hello(reply, err):
-            try:
-                if err:
-                    raise err
-                self.unique_name = reply.body[0]
-                self._writer.schedule_write()
-                _future_set_result(future, self)
-            except Exception as e:
-                _future_set_exception(future, e)
-                self.disconnect()
-                self._finalize(err)
-
-        next_serial = self.next_serial()
-        self._method_return_handlers[next_serial] = on_hello
-        if next_serial == 1:
-            serialized = HELLO_1_SERIALIZED
+                # responsibility to close sockets is deferred to the bus
+                stack.pop_all()
+                self._sock = sock
+                self._stream = stream
+                self._fd = sock.fileno()
+                self._writer = _MessageWriter(self)
+                break
         else:
-            serialized = _generate_hello_serialized(next_serial)
-        self._stream.write(serialized)
-        self._stream.flush()
-        return await future
+            # REVISIT: when Python 3.10 support is dropped, surface all
+            # transport failures via ExceptionGroup instead of only the last.
+            if last_err is None:  # pragma: no branch
+                # Should not normally happen, but just in case
+                raise TypeError(  # pragma: no cover
+                    "empty list of bus addresses given"
+                )
+            raise last_err
+
+        try:
+            await self._authenticate()
+
+            future = self._loop.create_future()
+
+            self._loop.add_reader(
+                self._fd,
+                build_message_reader(
+                    self._sock,
+                    self._process_message,
+                    self._finalize,
+                    self._negotiate_unix_fd,
+                ),
+            )
+
+            def on_hello(reply, err):
+                try:
+                    if err:
+                        raise err
+                    self.unique_name = reply.body[0]
+                    self._writer.schedule_write()
+                    _future_set_result(future, self)
+                except Exception as e:
+                    _future_set_exception(future, e)
+                    self.disconnect()
+                    self._finalize(err)
+
+            next_serial = self.next_serial()
+            self._method_return_handlers[next_serial] = on_hello
+            if next_serial == 1:
+                serialized = HELLO_1_SERIALIZED
+            else:
+                serialized = _generate_hello_serialized(next_serial)
+            self._stream.write(serialized)
+            self._stream.flush()
+            return await future
+        except BaseException:
+            self._loop.remove_reader(self._fd)
+            self._stream.close()
+            self._sock.close()
+            self._sock = None
+            self._stream = None
+            self._fd = None
+            self._writer = None
+            raise
 
     async def introspect(
         self,
