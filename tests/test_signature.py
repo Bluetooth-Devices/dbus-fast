@@ -4,7 +4,11 @@ from dbus_fast import SignatureBodyMismatchError, SignatureTree, Variant
 from dbus_fast._private.unmarshaller import is_compiled
 from dbus_fast._private.util import signature_contains_type
 from dbus_fast.errors import InternalError, InvalidSignatureError
-from dbus_fast.signature import SignatureType, get_signature_tree
+from dbus_fast.signature import (
+    MAX_SIGNATURE_DEPTH,
+    SignatureType,
+    get_signature_tree,
+)
 
 
 def assert_simple_type(signature, type_):
@@ -296,6 +300,32 @@ def test_signature_too_long_raises():
     long_sig = "s" * 256
     with pytest.raises(InvalidSignatureError, match="less than 256 characters"):
         SignatureTree(long_sig)
+
+
+def test_nested_arrays_at_max_depth_parse():
+    SignatureTree("a" * MAX_SIGNATURE_DEPTH + "i")
+
+
+def test_nested_arrays_over_max_depth_raise():
+    with pytest.raises(InvalidSignatureError, match="maximum depth"):
+        SignatureTree("a" * (MAX_SIGNATURE_DEPTH + 1) + "i")
+
+
+def test_nested_structs_over_max_depth_raise():
+    n = MAX_SIGNATURE_DEPTH + 1
+    with pytest.raises(InvalidSignatureError, match="maximum depth"):
+        SignatureTree("(" * n + "i" + ")" * n)
+
+
+def test_nested_dict_entries_over_max_depth_raise():
+    # a{sa{sa{s...v}}} — each "a{s" adds two nesting levels (array + dict).
+    # 40 repetitions exceeds depth 64 while staying under the 256-char cap so
+    # the depth check, not the length check, is what trips.
+    n = 40
+    sig = "a{s" * n + "v" + "}" * n
+    assert len(sig) < 256
+    with pytest.raises(InvalidSignatureError, match="maximum depth"):
+        SignatureTree(sig)
 
 
 # --- SignatureType.__eq__ ---
