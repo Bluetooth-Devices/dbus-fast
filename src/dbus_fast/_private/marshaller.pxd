@@ -11,6 +11,8 @@ cdef bytes PACKED_UINT32_ZERO
 cdef bytes PACKED_BOOL_TRUE
 cdef bytes PACKED_BOOL_FALSE
 
+cdef unsigned int _MAX_ARRAY_LENGTH
+
 cdef get_signature_tree
 
 cdef class Marshaller:
