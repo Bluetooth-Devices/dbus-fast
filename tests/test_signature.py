@@ -328,6 +328,17 @@ def test_nested_dict_entries_over_max_depth_raise():
         SignatureTree(sig)
 
 
+def test_dict_entry_over_max_depth_raise():
+    # Nest structs to the limit, then open a dict entry so the "{" depth check
+    # (not the preceding array's) is what trips. "a{s" hits the array cap first,
+    # leaving the dict-entry branch untested.
+    n = MAX_SIGNATURE_DEPTH
+    sig = "(" * n + "{sv}" + ")" * n
+    assert len(sig) < 256
+    with pytest.raises(InvalidSignatureError, match="maximum depth"):
+        SignatureTree(sig)
+
+
 # --- SignatureType.__eq__ ---
 
 
