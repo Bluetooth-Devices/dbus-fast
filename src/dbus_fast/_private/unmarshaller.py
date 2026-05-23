@@ -15,7 +15,7 @@ from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP, MessageFlag, Message
 from ..errors import InvalidMessageError
 from ..message import Message
 from ..signature import SignatureType, Variant, get_signature_tree
-from .constants import BIG_ENDIAN, LITTLE_ENDIAN, PROTOCOL_VERSION
+from .constants import BIG_ENDIAN, LITTLE_ENDIAN, MAX_MESSAGE_SIZE, PROTOCOL_VERSION
 
 MESSAGE_FLAG_INTENUM = MessageFlag
 
@@ -81,9 +81,9 @@ HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION = 12
 # the spec ceiling doesn't change that. Keeping the check on the raw fields
 # is simpler than computing the padded total here.
 #
-# MAX_MESSAGE_SIZE is the Python-importable form (used by tests);
-# _MAX_MESSAGE_SIZE is the cdef unsigned int form used internally per .pxd.
-MAX_MESSAGE_SIZE = 134_217_728
+# MAX_MESSAGE_SIZE (re-exported from .constants) is the Python-importable form
+# shared with the marshalling side; _MAX_MESSAGE_SIZE is the cdef unsigned int
+# form used internally per .pxd.
 _MAX_MESSAGE_SIZE = MAX_MESSAGE_SIZE
 
 # D-Bus spec sec 4.4 caps signature container nesting at 32 array + 32 struct

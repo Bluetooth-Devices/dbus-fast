@@ -2,7 +2,12 @@
 
 from typing import Any
 
-from ._private.constants import LITTLE_ENDIAN, PROTOCOL_VERSION, HeaderField
+from ._private.constants import (
+    LITTLE_ENDIAN,
+    MAX_MESSAGE_SIZE,
+    PROTOCOL_VERSION,
+    HeaderField,
+)
 from ._private.marshaller import Marshaller
 from .constants import ErrorType, MessageFlag, MessageType
 from .errors import InvalidMessageError
@@ -321,9 +326,16 @@ class Message:
 
     def _marshall(self, negotiate_unix_fd: bool) -> bytearray:
         """Marshall this message into a byte array."""
-        # TODO maximum message size is 134217728 (128 MiB)
         body_block = Marshaller(self.signature, self.body)
         body_buffer = body_block._marshall()
+        # Spec caps a message at 128 MiB and the body dominates the frame, so
+        # reject an oversized body here instead of letting the bus drop the
+        # connection. Compared against the Python int (not a cdef uint32): a
+        # body can marshal past UINT32_MAX, which a uint32 compare would wrap.
+        if len(body_buffer) > MAX_MESSAGE_SIZE:
+            raise InvalidMessageError(
+                f"message size {len(body_buffer)} exceeds maximum {MAX_MESSAGE_SIZE}"
+            )
 
         fields = []
 

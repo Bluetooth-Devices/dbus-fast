@@ -1030,6 +1030,20 @@ def test_unmarshall_rejects_unknown_message_type(message_type: int) -> None:
         Unmarshaller(io.BytesIO(bytes(header))).unmarshall()
 
 
+@pytest.mark.timeout(60)
+def test_marshall_rejects_message_over_max_size() -> None:
+    """A body marshalling past the 128 MiB cap raises before it reaches a bus."""
+    # Two arrays each at the 64 MiB array ceiling: neither trips a per-array
+    # limit, but together the marshalled body clears MAX_MESSAGE_SIZE. The
+    # zero-filled source bytes are calloc-backed so they stay cheap to copy.
+    half = MAX_MESSAGE_SIZE // 2
+    msg = Message(
+        path="/test", member="test", signature="ayay", body=[bytes(half), bytes(half)]
+    )
+    with pytest.raises(InvalidMessageError, match="exceeds maximum"):
+        msg._marshall(False)
+
+
 def _replace_body(template: bytearray, new_body: bytes) -> bytes:
     """Swap a `v`-signature message's body bytes and fix up body_len."""
     header_len = struct.unpack_from("<I", template, 12)[0]
