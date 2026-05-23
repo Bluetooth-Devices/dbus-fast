@@ -13,7 +13,11 @@ from .validators import is_object_path_valid
 # change can't reintroduce unbounded recursion, and rejects over-nested
 # signatures at parse time the way a conformant daemon does. Mirrors the
 # runtime container-depth cap in the unmarshaller.
+#
+# MAX_SIGNATURE_DEPTH is the Python-importable form (used by tests);
+# _MAX_SIGNATURE_DEPTH is the cdef unsigned int form used internally per .pxd.
 MAX_SIGNATURE_DEPTH = 64
+_MAX_SIGNATURE_DEPTH = MAX_SIGNATURE_DEPTH
 
 
 class SignatureType:  # noqa: PLW1641
@@ -104,18 +108,18 @@ class SignatureType:  # noqa: PLW1641
 
         # container types
         if token == "a":
-            if depth >= MAX_SIGNATURE_DEPTH:
+            if depth >= _MAX_SIGNATURE_DEPTH:
                 raise InvalidSignatureError(
-                    f"container nesting exceeds maximum depth {MAX_SIGNATURE_DEPTH}"
+                    f"container nesting exceeds maximum depth {_MAX_SIGNATURE_DEPTH}"
                 )
             self = SignatureType("a")
             (child, signature) = SignatureType._parse_next(signature[1:], depth + 1)
             self._add_child(child)
             return (self, signature)
         if token == "(":
-            if depth >= MAX_SIGNATURE_DEPTH:
+            if depth >= _MAX_SIGNATURE_DEPTH:
                 raise InvalidSignatureError(
-                    f"container nesting exceeds maximum depth {MAX_SIGNATURE_DEPTH}"
+                    f"container nesting exceeds maximum depth {_MAX_SIGNATURE_DEPTH}"
                 )
             self = SignatureType("(")
             signature = signature[1:]
@@ -127,9 +131,9 @@ class SignatureType:  # noqa: PLW1641
                 if signature[0] == ")":
                     return (self, signature[1:])
         elif token == "{":
-            if depth >= MAX_SIGNATURE_DEPTH:
+            if depth >= _MAX_SIGNATURE_DEPTH:
                 raise InvalidSignatureError(
-                    f"container nesting exceeds maximum depth {MAX_SIGNATURE_DEPTH}"
+                    f"container nesting exceeds maximum depth {_MAX_SIGNATURE_DEPTH}"
                 )
             self = SignatureType("{")
             signature = signature[1:]
