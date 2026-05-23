@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v5.0.4 (2026-05-23)
+
+### Bug Fixes
+
+- **signature**: Bound container nesting depth during parsing
+  ([#699](https://github.com/Bluetooth-Devices/dbus-fast/pull/699),
+  [`4c5a927`](https://github.com/Bluetooth-Devices/dbus-fast/commit/4c5a927f79b1fb5434951efc626c0ca9020cfcde))
+
+
 ## v5.0.3 (2026-05-20)
 
 ### Bug Fixes
