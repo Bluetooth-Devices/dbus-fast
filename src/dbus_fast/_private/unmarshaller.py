@@ -940,6 +940,13 @@ class Unmarshaller:
         if not self._body_len:
             tree = SIGNATURE_TREE_EMPTY
             body: list[Any] = []
+        elif not signature:
+            # A non-empty body requires a signature header field (spec §4.1).
+            # Without this guard a forged frame leaks a bare TypeError (missing
+            # field) or IndexError (empty signature) out to the reader.
+            raise InvalidMessageError(
+                "message has a body but no signature header field"
+            )
         else:
             token_as_int = ord(signature[0])
             if len(signature) == 1:

@@ -1209,3 +1209,22 @@ def test_unmarshall_ignores_unknown_header_field_code() -> None:
     assert unmarshalled.path is None
     assert unmarshalled.interface == "test.iface"
     assert unmarshalled.member == "Member"
+
+
+def test_unmarshall_rejects_body_with_missing_signature_field() -> None:
+    """body_len > 0 with no signature header field raises InvalidMessageError."""
+    forged = _forged_header(body_len=4, header_len=0) + b"\x00\x00\x00\x00"
+    with pytest.raises(InvalidMessageError, match="no signature header field"):
+        Unmarshaller(io.BytesIO(forged)).unmarshall()
+
+
+def test_unmarshall_rejects_body_with_empty_signature_field() -> None:
+    """body_len > 0 with an empty signature header field raises InvalidMessageError."""
+    # One header field: code 8 (SIGNATURE) carrying a 'g' variant of length 0.
+    field = bytes([8, 1]) + b"g\x00" + bytes([0]) + b"\x00"
+    forged = bytearray(_forged_header(body_len=4, header_len=len(field)))
+    forged += field
+    forged += b"\x00" * (-len(forged) & 7)  # align body to 8
+    forged += b"\x00\x00\x00\x00"
+    with pytest.raises(InvalidMessageError, match="no signature header field"):
+        Unmarshaller(io.BytesIO(bytes(forged))).unmarshall()
