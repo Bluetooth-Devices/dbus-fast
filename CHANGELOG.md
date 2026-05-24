@@ -2,6 +2,31 @@
 
 <!-- version list -->
 
+## v5.0.5 (2026-05-24)
+
+### Bug Fixes
+
+- **auth**: Raise AuthError on unknown server response
+  ([#702](https://github.com/Bluetooth-Devices/dbus-fast/pull/702),
+  [`28af8ea`](https://github.com/Bluetooth-Devices/dbus-fast/commit/28af8ea4c97b6539124421f4001b5ade48027a36))
+
+### Refactoring
+
+- **marshaller**: Drop unused align() and buffer wrappers
+  ([#707](https://github.com/Bluetooth-Devices/dbus-fast/pull/707),
+  [`16b952b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/16b952beb9be5e770598d9d265aca3677bebdc94))
+
+### Testing
+
+- **benchmarks**: Add systemd ListUnits array-of-structs unmarshall benchmark
+  ([#708](https://github.com/Bluetooth-Devices/dbus-fast/pull/708),
+  [`0edbfee`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0edbfee177498062fbede6ef97acb8972e069bdf))
+
+- **benchmarks**: Add unpack_variants benchmark
+  ([#709](https://github.com/Bluetooth-Devices/dbus-fast/pull/709),
+  [`5d4f2d1`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5d4f2d1cc46356b8d8ca484fa7b98adf139cc88d))
+
+
 ## v5.0.4 (2026-05-23)
 
 ### Bug Fixes
