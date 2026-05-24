@@ -31,8 +31,9 @@ def test_auth_external_no_uid():
 
 
 @pytest.mark.parametrize("line", ["GARBAGE", "", "REJECTED\tfoo"])
-def test_receive_line_unknown_response_raises_auth_error(line):
-    """An unrecognized server keyword surfaces as AuthError, not ValueError."""
+@pytest.mark.parametrize("expected", [AuthError, ValueError])
+def test_receive_line_unknown_response_raises_auth_error(line, expected):
+    """An unrecognized server keyword raises AuthError, which is also a ValueError."""
     auth = AuthExternal(uid=UID_NOT_SPECIFIED)
-    with pytest.raises(AuthError):
+    with pytest.raises(expected):
         auth._receive_line(line)

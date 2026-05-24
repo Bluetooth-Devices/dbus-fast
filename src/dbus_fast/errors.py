@@ -20,7 +20,7 @@ class InvalidAddressError(ValueError, DBusFastError):
     pass
 
 
-class AuthError(DBusFastError):
+class AuthError(ValueError, DBusFastError):
     pass
 
 
