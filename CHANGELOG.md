@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v5.0.6 (2026-05-24)
+
+### Performance Improvements
+
+- **unmarshaller**: Build struct results without a generator object
+  ([#710](https://github.com/Bluetooth-Devices/dbus-fast/pull/710),
+  [`47073b9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/47073b9945bcab054a8bcca54da493a34e174b75))
+
+- **unpack**: Build unpacked tuples without a generator object
+  ([#711](https://github.com/Bluetooth-Devices/dbus-fast/pull/711),
+  [`9368c90`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9368c90239279a8bf31109d776edb0db5d098f5c))
+
+
 ## v5.0.5 (2026-05-24)
 
 ### Bug Fixes
