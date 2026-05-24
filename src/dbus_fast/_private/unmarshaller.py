@@ -682,7 +682,10 @@ class Unmarshaller:
         self._pos += -self._pos & 7  # align 8
         readers = self._readers
         result = tuple(
-            readers[child_type.token](self, child_type) for child_type in type_.children
+            [
+                readers[child_type.token](self, child_type)
+                for child_type in type_.children
+            ]
         )
         self._container_depth -= 1
         return result
