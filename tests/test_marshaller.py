@@ -1214,7 +1214,7 @@ def test_unmarshall_ignores_unknown_header_field_code() -> None:
 def test_unmarshall_rejects_body_with_missing_signature_field() -> None:
     """body_len > 0 with no signature header field raises InvalidMessageError."""
     forged = _forged_header(body_len=4, header_len=0) + b"\x00\x00\x00\x00"
-    with pytest.raises(InvalidMessageError, match="no signature header field"):
+    with pytest.raises(InvalidMessageError, match="signature header field"):
         Unmarshaller(io.BytesIO(forged)).unmarshall()
 
 
@@ -1226,5 +1226,25 @@ def test_unmarshall_rejects_body_with_empty_signature_field() -> None:
     forged += field
     forged += b"\x00" * (-len(forged) & 7)  # align body to 8
     forged += b"\x00\x00\x00\x00"
-    with pytest.raises(InvalidMessageError, match="no signature header field"):
+    with pytest.raises(InvalidMessageError, match="signature header field"):
         Unmarshaller(io.BytesIO(bytes(forged))).unmarshall()
+
+
+def test_unmarshall_rejects_body_with_wrong_typed_signature_field() -> None:
+    """body_len > 0 with a non-'g'-typed signature field raises InvalidMessageError."""
+    msg = Message(
+        destination="a.b",
+        path="/a",
+        interface="a.b",
+        member="M",
+        signature="s",
+        body=["hello"],
+    )
+    data = bytearray(msg._marshall(False))
+    # The SIGNATURE header field marshals as code 8 then a 'g' variant; forge
+    # the variant type byte to 'u' (uint32) so the field decodes to an int.
+    sig_field = data.index(b"\x08\x01g\x00")
+    assert data[sig_field + 2] == ord("g")
+    data[sig_field + 2] = ord("u")
+    with pytest.raises(InvalidMessageError, match="signature header field"):
+        Unmarshaller(io.BytesIO(bytes(data))).unmarshall()
