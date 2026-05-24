@@ -21,8 +21,6 @@ cdef class Marshaller:
 
     cdef _buffer(self)
 
-    cpdef align(self, unsigned int n)
-
     @cython.locals(
         offset=cython.ulong,
     )
