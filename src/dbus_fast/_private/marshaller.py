@@ -32,15 +32,8 @@ class Marshaller:
         self._buf = bytearray()
         self.body = body
 
-    @property
-    def buffer(self) -> bytearray:
-        return self._buf
-
     def _buffer(self) -> bytearray:
         return self._buf
-
-    def align(self, n: _int) -> int:
-        return self._align(n)
 
     def _align(self, n: _int) -> _int:
         offset = n - len(self._buf) % n
