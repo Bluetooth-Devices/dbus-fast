@@ -208,6 +208,9 @@ HEADER_UNIX_FDS_IDX = HEADER_IDX_TO_ARG_NAME.index("unix_fds")
 
 _EMPTY_HEADERS: list[Any | None] = [None] * len(HEADER_IDX_TO_ARG_NAME)
 
+HEADER_FIELDS_LEN = len(HEADER_IDX_TO_ARG_NAME)  # Python-importable
+_HEADER_FIELDS_LEN = HEADER_FIELDS_LEN  # cdef'd C int alias
+
 _SignatureType = SignatureType
 _int = int
 
@@ -845,18 +848,21 @@ class Unmarshaller:
             # Strings and signatures are the most common types
             # so we inline them for performance
             if token_as_int == TOKEN_O_AS_INT or token_as_int == TOKEN_S_AS_INT:
-                headers[field_0] = self._read_string_unpack()
+                value = self._read_string_unpack()
             elif token_as_int == TOKEN_G_AS_INT:
-                headers[field_0] = self._read_signature()
+                value = self._read_signature()
             elif token_as_int == TOKEN_U_AS_INT:
-                headers[field_0] = self._read_uint32_unpack()
+                value = self._read_uint32_unpack()
             else:  # pragma: no cover
                 token = self._buf_ustr[o : o + signature_len].decode()
                 # There shouldn't be any other types in the header
                 # but just in case, we'll read it using the slow path
-                headers[field_0] = self._readers[token](
-                    self, get_signature_tree(token).root_type
-                )
+                value = self._readers[token](self, get_signature_tree(token).root_type)
+            # D-Bus spec: ignore header fields with an unrecognized code. A
+            # forged frame can carry a code past the known range — consume the
+            # value to stay aligned, but don't index past the headers list.
+            if field_0 < _HEADER_FIELDS_LEN:
+                headers[field_0] = value
         return headers
 
     def _read_header(self) -> None:

@@ -1189,3 +1189,19 @@ def test_marshaller_write_dict_entry_matches_array_path() -> None:
     # full array = 4-byte length + 4-byte alignment pad + dict-entry bytes
     assert bytes(buf) == bytes(full[8:])
     assert written == len(full) - 8
+
+
+def test_unmarshall_ignores_unknown_header_field_code() -> None:
+    """A header field with an unrecognized code is skipped, not crashed on."""
+    msg = Message.new_signal("/path", "test.iface", "Member")
+    data = bytearray(msg._marshall(False))
+    # The first header field a SIGNAL marshals is PATH (code 1) at offset 16.
+    assert data[16] == 1
+    data[16] = 100  # a code outside the known 1..9 range
+
+    unmarshalled = Unmarshaller(io.BytesIO(bytes(data))).unmarshall()
+    assert unmarshalled is not None
+    # The unknown-coded field is dropped; the rest of the header is intact.
+    assert unmarshalled.path is None
+    assert unmarshalled.interface == "test.iface"
+    assert unmarshalled.member == "Member"
