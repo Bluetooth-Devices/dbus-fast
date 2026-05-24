@@ -258,3 +258,38 @@ def test_introspection_accepts_nesting_up_to_cap() -> None:
         assert len(cursor.nodes) == 1
         cursor = cursor.nodes[0]
     assert cursor.nodes == []
+
+
+@pytest.mark.parametrize(
+    "annotation",
+    [
+        "<annotation/>",
+        '<annotation value="x"/>',
+        '<annotation name=""/>',
+    ],
+)
+def test_introspection_rejects_annotation_missing_name(annotation: str) -> None:
+    """An annotation without a name attribute raises rather than leaking KeyError."""
+    payload = f'<node><interface name="a.b">{annotation}</interface></node>'
+    with pytest.raises(
+        InvalidIntrospectionError, match='annotations must have a "name"'
+    ):
+        intr.Node.parse(payload)
+
+
+def test_introspection_rejects_annotation_missing_value() -> None:
+    """An annotation without a value attribute raises rather than leaking KeyError."""
+    payload = '<node><interface name="a.b"><annotation name="x"/></interface></node>'
+    with pytest.raises(
+        InvalidIntrospectionError, match='annotations must have a "value"'
+    ):
+        intr.Node.parse(payload)
+
+
+def test_introspection_accepts_annotation_empty_value() -> None:
+    """An empty string value is valid and preserved (only a missing value raises)."""
+    payload = (
+        '<node><interface name="a.b"><annotation name="x" value=""/></interface></node>'
+    )
+    node = intr.Node.parse(payload)
+    assert node.interfaces[0].annotations == {"x": ""}
