@@ -25,6 +25,8 @@ cdef unsigned int BIG_ENDIAN
 cdef unsigned int PROTOCOL_VERSION
 cdef unsigned int _MAX_MESSAGE_SIZE
 cdef unsigned int _MAX_CONTAINER_DEPTH
+cdef unsigned int _MESSAGE_TYPE_CALL
+cdef unsigned int _MESSAGE_TYPE_SIGNAL
 
 
 cdef unsigned int HEADER_PATH_IDX
@@ -235,6 +237,7 @@ cdef class Unmarshaller:
 
     @cython.locals(
         endian=cython.uint,
+        message_type=cython.uint,
         buffer=cython.bytearray,
         protocol_version=cython.uint,
         key=cython.str,

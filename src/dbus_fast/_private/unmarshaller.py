@@ -11,7 +11,7 @@ from collections.abc import Callable, Iterable
 from struct import Struct
 from typing import TYPE_CHECKING, Any
 
-from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP, MessageFlag
+from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP, MessageFlag, MessageType
 from ..errors import InvalidMessageError
 from ..message import Message
 from ..signature import SignatureType, Variant, get_signature_tree
@@ -99,6 +99,13 @@ _MAX_MESSAGE_SIZE = MAX_MESSAGE_SIZE
 # _MAX_CONTAINER_DEPTH is the cdef unsigned int form used internally per .pxd.
 MAX_CONTAINER_DEPTH = 64
 _MAX_CONTAINER_DEPTH = MAX_CONTAINER_DEPTH
+
+# Valid message-type bytes are the contiguous MessageType range 1 (METHOD_CALL)
+# to 4 (SIGNAL). _read_header range-checks against these so the test compiles to
+# a C compare rather than a PySequence_Contains call on MESSAGE_TYPE_MAP. Declared
+# cdef unsigned int in the .pxd to match the unsigned local and stay sign-clean.
+_MESSAGE_TYPE_CALL = MessageType.METHOD_CALL.value
+_MESSAGE_TYPE_SIGNAL = MessageType.SIGNAL.value
 
 
 # Most common signatures
@@ -847,7 +854,8 @@ class Unmarshaller:
         # BYTE, BYTE, BYTE, BYTE, UINT32, UINT32, ARRAY of STRUCT of (BYTE,VARIANT)
         self._read_to_pos(HEADER_SIGNATURE_SIZE)
         endian = self._buf_ustr[0]
-        self._message_type = self._buf_ustr[1]
+        message_type = self._buf_ustr[1]
+        self._message_type = message_type
         self._flag = self._buf_ustr[2]
         protocol_version = self._buf_ustr[3]
 
@@ -861,8 +869,8 @@ class Unmarshaller:
                 f"Expecting endianness as the first byte, got {endian} from {self._buf}"
             )
 
-        if self._message_type not in MESSAGE_TYPE_MAP:
-            raise InvalidMessageError(f"got unknown message type: {self._message_type}")
+        if message_type < _MESSAGE_TYPE_CALL or message_type > _MESSAGE_TYPE_SIGNAL:
+            raise InvalidMessageError(f"got unknown message type: {message_type}")
 
         if cython.compiled:
             self._body_len = _ustr_uint32(self._buf_ustr, 4, endian)
