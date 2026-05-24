@@ -861,6 +861,9 @@ class Unmarshaller:
                 f"Expecting endianness as the first byte, got {endian} from {self._buf}"
             )
 
+        if self._message_type not in MESSAGE_TYPE_MAP:
+            raise InvalidMessageError(f"got unknown message type: {self._message_type}")
+
         if cython.compiled:
             self._body_len = _ustr_uint32(self._buf_ustr, 4, endian)
             self._serial = _ustr_uint32(self._buf_ustr, 8, endian)

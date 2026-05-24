@@ -1019,6 +1019,17 @@ def test_unmarshall_rejects_max_uint32_body_len_big_endian() -> None:
         Unmarshaller(io.BytesIO(forged)).unmarshall()
 
 
+@pytest.mark.parametrize("message_type", [0, 5, 255])
+def test_unmarshall_rejects_unknown_message_type(message_type: int) -> None:
+    """A header carrying a message-type byte outside 1-4 raises InvalidMessageError."""
+    header = bytearray(b"l" + bytes([message_type, 0, 1]))
+    header += struct.pack("<I", 0)  # body_len
+    header += struct.pack("<I", 1)  # serial
+    header += struct.pack("<I", 0)  # header_len
+    with pytest.raises(InvalidMessageError, match="unknown message type"):
+        Unmarshaller(io.BytesIO(bytes(header))).unmarshall()
+
+
 def _replace_body(template: bytearray, new_body: bytes) -> bytes:
     """Swap a `v`-signature message's body bytes and fix up body_len."""
     header_len = struct.unpack_from("<I", template, 12)[0]
