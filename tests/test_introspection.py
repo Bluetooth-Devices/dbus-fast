@@ -260,6 +260,18 @@ def test_introspection_accepts_nesting_up_to_cap() -> None:
     assert cursor.nodes == []
 
 
+# Each wrapper routes the embedded annotation through a distinct
+# _fetch_annotations call site: interface, method, signal, property, arg.
+_ANNOTATION_CONTAINERS = [
+    '<node><interface name="a.b">{ann}</interface></node>',
+    '<node><interface name="a.b"><method name="M">{ann}</method></interface></node>',
+    '<node><interface name="a.b"><signal name="S">{ann}</signal></interface></node>',
+    '<node><interface name="a.b"><property name="P" type="s">{ann}</property></interface></node>',
+    '<node><interface name="a.b"><method name="M"><arg type="s">{ann}</arg></method></interface></node>',
+]
+
+
+@pytest.mark.parametrize("container", _ANNOTATION_CONTAINERS)
 @pytest.mark.parametrize(
     "annotation",
     [
@@ -268,22 +280,23 @@ def test_introspection_accepts_nesting_up_to_cap() -> None:
         '<annotation name=""/>',
     ],
 )
-def test_introspection_rejects_annotation_missing_name(annotation: str) -> None:
-    """An annotation without a name attribute raises rather than leaking KeyError."""
-    payload = f'<node><interface name="a.b">{annotation}</interface></node>'
+def test_introspection_rejects_annotation_missing_name(
+    container: str, annotation: str
+) -> None:
+    """A name-less annotation raises at every _fetch_annotations call site."""
     with pytest.raises(
         InvalidIntrospectionError, match='annotations must have a "name"'
     ):
-        intr.Node.parse(payload)
+        intr.Node.parse(container.format(ann=annotation))
 
 
-def test_introspection_rejects_annotation_missing_value() -> None:
-    """An annotation without a value attribute raises rather than leaking KeyError."""
-    payload = '<node><interface name="a.b"><annotation name="x"/></interface></node>'
+@pytest.mark.parametrize("container", _ANNOTATION_CONTAINERS)
+def test_introspection_rejects_annotation_missing_value(container: str) -> None:
+    """A value-less annotation raises at every _fetch_annotations call site."""
     with pytest.raises(
         InvalidIntrospectionError, match='annotations must have a "value"'
     ):
-        intr.Node.parse(payload)
+        intr.Node.parse(container.format(ann='<annotation name="x"/>'))
 
 
 def test_introspection_accepts_annotation_empty_value() -> None:
