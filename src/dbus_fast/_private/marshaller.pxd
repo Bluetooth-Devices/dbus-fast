@@ -11,6 +11,8 @@ cdef bytes PACKED_UINT32_ZERO
 cdef bytes PACKED_BOOL_TRUE
 cdef bytes PACKED_BOOL_FALSE
 
+cdef unsigned int _MAX_ARRAY_LENGTH
+
 cdef get_signature_tree
 
 cdef class Marshaller:
@@ -51,7 +53,7 @@ cdef class Marshaller:
     cpdef write_array(self, object array, SignatureType type_)
 
     @cython.locals(
-        array_len=cython.uint,
+        array_len=cython.ulonglong,
         buf=cython.bytearray,
         written=cython.uint,
         token=cython.str,

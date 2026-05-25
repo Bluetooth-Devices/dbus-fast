@@ -10,7 +10,7 @@ import pytest
 from dbus_fast import Message, MessageFlag, MessageType, SignatureTree, Variant
 from dbus_fast._private._cython_compat import FakeCython
 from dbus_fast._private.constants import BIG_ENDIAN, LITTLE_ENDIAN
-from dbus_fast._private.marshaller import Marshaller
+from dbus_fast._private.marshaller import MAX_ARRAY_LENGTH, Marshaller
 from dbus_fast._private.unmarshaller import (
     MAX_CONTAINER_DEPTH,
     MAX_MESSAGE_SIZE,
@@ -1248,3 +1248,15 @@ def test_unmarshall_rejects_body_with_wrong_typed_signature_field() -> None:
     data[sig_field + 2] = ord("u")
     with pytest.raises(InvalidMessageError, match="signature header field"):
         Unmarshaller(io.BytesIO(bytes(data))).unmarshall()
+
+
+def test_marshall_rejects_oversized_byte_array() -> None:
+    """A byte array one past the 64 MiB array cap raises before being copied."""
+
+    class _OversizedBytes:
+        def __len__(self) -> int:
+            return MAX_ARRAY_LENGTH + 1
+
+    marshaller = Marshaller("ay", [_OversizedBytes()])
+    with pytest.raises(InvalidMessageError, match="exceeds maximum"):
+        marshaller.marshall()
