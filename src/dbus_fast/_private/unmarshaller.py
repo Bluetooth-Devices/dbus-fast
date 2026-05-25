@@ -109,6 +109,15 @@ _MAX_CONTAINER_DEPTH = MAX_CONTAINER_DEPTH
 _MESSAGE_TYPE_MIN = min(t.value for t in MessageType)
 _MESSAGE_TYPE_MAX = max(t.value for t in MessageType)
 
+# Value-indexed lookup paired with the uint self._message_type slot; _read_body
+# resolves the enum via _MESSAGE_TYPE_BY_VALUE[self._message_type], which
+# Cython emits as a C array index (__Pyx_GetItemInt_Tuple_Fast) instead of the
+# PyObject_GetItem + hash a dict lookup would cost. _read_header guarantees
+# the index is in range and non-None before _read_body runs.
+_MESSAGE_TYPE_BY_VALUE = tuple(
+    MESSAGE_TYPE_MAP.get(i) for i in range(_MESSAGE_TYPE_MAX + 1)
+)
+
 
 # Most common signatures
 
@@ -970,7 +979,7 @@ class Unmarshaller:
             header_fields[HEADER_PATH_IDX],
             header_fields[HEADER_INTERFACE_IDX],
             header_fields[HEADER_MEMBER_IDX],
-            MESSAGE_TYPE_MAP[self._message_type],
+            _MESSAGE_TYPE_BY_VALUE[self._message_type],
             flags,
             header_fields[HEADER_ERROR_NAME_IDX],
             reply_serial if reply_serial is not None else 0,

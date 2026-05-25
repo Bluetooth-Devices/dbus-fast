@@ -61,6 +61,7 @@ cdef object UINT16_UNPACK_LITTLE_ENDIAN
 cdef object UINT16_UNPACK_BIG_ENDIAN
 
 cdef cython.dict MESSAGE_TYPE_MAP
+cdef tuple _MESSAGE_TYPE_BY_VALUE
 cdef cython.dict MESSAGE_FLAG_MAP
 cdef dict HEADER_MESSAGE_ARG_NAME
 
@@ -145,7 +146,7 @@ cdef class Unmarshaller:
     cdef unsigned int _body_len
     cdef unsigned int _serial
     cdef unsigned int _header_len
-    cdef object _message_type
+    cdef unsigned int _message_type
     cdef object _flag
     cdef unsigned int _msg_len
     cdef object _uint32_unpack
