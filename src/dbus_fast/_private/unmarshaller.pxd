@@ -38,6 +38,7 @@ cdef unsigned int HEADER_DESTINATION_IDX
 cdef unsigned int HEADER_SENDER_IDX
 cdef unsigned int HEADER_SIGNATURE_IDX
 cdef unsigned int HEADER_UNIX_FDS_IDX
+cdef unsigned int _HEADER_FIELDS_LEN
 
 cdef cython.list HEADER_IDX_TO_ARG_NAME
 
@@ -263,8 +264,10 @@ cdef class Unmarshaller:
     @cython.locals(
         beginning_pos=cython.ulong,
         o=cython.ulong,
+        field_0=cython.uint,
         token_as_int=cython.uint,
         signature_len=cython.uint,
+        value=cython.object,
         headers=cython.list
     )
     cdef cython.list _header_fields(self, unsigned int header_length)
