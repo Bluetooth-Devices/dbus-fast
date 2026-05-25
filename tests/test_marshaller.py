@@ -1168,9 +1168,13 @@ def test_marshaller_write_dict_entry_matches_array_path() -> None:
     dict_entry_type = SignatureTree("a{sv}").types[0].children[0]
     full = Marshaller("a{sv}", [{"k": Variant("s", "v")}]).marshall()
 
-    marshaller = Marshaller("a{sv}", [])
+    # marshall() returns the live buffer; an empty signature leaves it empty, so
+    # write_dict_entry's appends are observable without reaching into the cdef
+    # _buf attribute (which is not Python-accessible in the Cython build).
+    marshaller = Marshaller("", [])
+    buf = marshaller.marshall()
     written = marshaller.write_dict_entry(["k", Variant("s", "v")], dict_entry_type)
 
     # full array = 4-byte length + 4-byte alignment pad + dict-entry bytes
-    assert bytes(marshaller._buf) == bytes(full[8:])
+    assert bytes(buf) == bytes(full[8:])
     assert written == len(full) - 8
