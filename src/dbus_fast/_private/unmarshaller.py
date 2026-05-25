@@ -11,7 +11,7 @@ from collections.abc import Callable, Iterable
 from struct import Struct
 from typing import TYPE_CHECKING, Any
 
-from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP, MessageFlag
+from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP, MessageFlag, MessageType
 from ..errors import InvalidMessageError
 from ..message import Message
 from ..signature import SignatureType, Variant, get_signature_tree
@@ -99,6 +99,24 @@ _MAX_MESSAGE_SIZE = MAX_MESSAGE_SIZE
 # _MAX_CONTAINER_DEPTH is the cdef unsigned int form used internally per .pxd.
 MAX_CONTAINER_DEPTH = 64
 _MAX_CONTAINER_DEPTH = MAX_CONTAINER_DEPTH
+
+# Valid message-type bytes span the contiguous MessageType enum (1-4 today).
+# Derive the bounds from the enum so a new member updates them automatically.
+# _read_header range-checks against these so it compiles to a C compare rather
+# than a PySequence_Contains call on MESSAGE_TYPE_MAP; the range compare only
+# matches "valid type" while the enum values stay contiguous. Declared cdef
+# unsigned int in the .pxd to match the unsigned local and stay sign-clean.
+_MESSAGE_TYPE_MIN = min(t.value for t in MessageType)
+_MESSAGE_TYPE_MAX = max(t.value for t in MessageType)
+
+# Value-indexed lookup paired with the uint self._message_type slot; _read_body
+# resolves the enum via _MESSAGE_TYPE_BY_VALUE[self._message_type], which
+# Cython emits as a C array index (__Pyx_GetItemInt_Tuple_Fast) instead of the
+# PyObject_GetItem + hash a dict lookup would cost. _read_header guarantees
+# the index is in range and non-None before _read_body runs.
+_MESSAGE_TYPE_BY_VALUE = tuple(
+    MESSAGE_TYPE_MAP.get(i) for i in range(_MESSAGE_TYPE_MAX + 1)
+)
 
 
 # Most common signatures
@@ -861,6 +879,12 @@ class Unmarshaller:
                 f"Expecting endianness as the first byte, got {endian} from {self._buf}"
             )
 
+        if (
+            self._message_type < _MESSAGE_TYPE_MIN
+            or self._message_type > _MESSAGE_TYPE_MAX
+        ):
+            raise InvalidMessageError(f"got unknown message type: {self._message_type}")
+
         if cython.compiled:
             self._body_len = _ustr_uint32(self._buf_ustr, 4, endian)
             self._serial = _ustr_uint32(self._buf_ustr, 8, endian)
@@ -957,7 +981,7 @@ class Unmarshaller:
             header_fields[HEADER_PATH_IDX],
             header_fields[HEADER_INTERFACE_IDX],
             header_fields[HEADER_MEMBER_IDX],
-            MESSAGE_TYPE_MAP[self._message_type],
+            _MESSAGE_TYPE_BY_VALUE[self._message_type],
             flags,
             header_fields[HEADER_ERROR_NAME_IDX],
             reply_serial if reply_serial is not None else 0,
