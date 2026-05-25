@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v5.0.8 (2026-05-25)
+
+### Bug Fixes
+
+- **unmarshaller**: Reject messages with an unknown type byte
+  ([#703](https://github.com/Bluetooth-Devices/dbus-fast/pull/703),
+  [`64f7390`](https://github.com/Bluetooth-Devices/dbus-fast/commit/64f739016ae217c58a3439e3cc37e055c4dfa66d))
+
+
 ## v5.0.7 (2026-05-25)
 
 ### Performance Improvements
