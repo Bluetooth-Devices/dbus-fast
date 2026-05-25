@@ -2,6 +2,33 @@
 
 <!-- version list -->
 
+## v5.0.10 (2026-05-25)
+
+### Bug Fixes
+
+- **aio**: Drop stray %s format token from message-reader error log
+  ([#715](https://github.com/Bluetooth-Devices/dbus-fast/pull/715),
+  [`1c5543e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/1c5543e00670a3a11134bd4d7e1353954a9aefc2))
+
+### Documentation
+
+- **validators**: Allow hyphens in member names
+  ([#718](https://github.com/Bluetooth-Devices/dbus-fast/pull/718),
+  [`b1ed99b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b1ed99b5cfba6cbacd32424b18309e2b5351910c))
+
+### Refactoring
+
+- **service**: Drop unused _get_handler accessor
+  ([#714](https://github.com/Bluetooth-Devices/dbus-fast/pull/714),
+  [`8fc84d5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/8fc84d5928f09d07bc39827501d9691991512382))
+
+### Testing
+
+- **benchmarks**: Add isolated bluez manufacturer-data unmarshall benchmark
+  ([#717](https://github.com/Bluetooth-Devices/dbus-fast/pull/717),
+  [`b6668b9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b6668b9d7ded53bf5f6bea9a1dbd32123a3b7788))
+
+
 ## v5.0.9 (2026-05-25)
 
 ### Bug Fixes
