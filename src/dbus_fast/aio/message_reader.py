@@ -28,7 +28,7 @@ def _message_reader(
             try:
                 process(message)
             except Exception:
-                _LOGGER.error("Unexpected error processing message", exc_info=True)
+                _LOGGER.exception("Unexpected error processing message")
             # If we are not negotiating unix fds, we can stop reading as soon as we have
             # the buffer is empty as asyncio will call us again when there is more data.
             if (
