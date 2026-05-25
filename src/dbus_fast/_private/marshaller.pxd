@@ -56,11 +56,9 @@ cdef class Marshaller:
         written=cython.uint,
         token=cython.str,
         child_type=SignatureType,
-        array_len_packed=cython.bytes,
         size=cython.uint,
         writer=cython.object,
         packer=cython.object,
-        i=cython.uint,
     )
     cdef unsigned int _write_array(self, object array, SignatureType type_)
 

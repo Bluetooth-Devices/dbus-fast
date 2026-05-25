@@ -129,9 +129,7 @@ class Marshaller:
                 for value in array:
                     array_len += writer(self, value, child_type)
 
-        array_len_packed = PACK_UINT32(array_len)
-        for i in range(offset, offset + 4):
-            buf[i] = array_len_packed[i - offset]
+        buf[offset : offset + 4] = PACK_UINT32(array_len)
 
         return written + array_len
 
