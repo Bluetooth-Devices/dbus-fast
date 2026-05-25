@@ -11,6 +11,7 @@ from dbus_fast import (
     SignatureType,
 )
 from dbus_fast import introspection as intr
+from dbus_fast.signature import get_signature_tree
 
 with open(f"{os.path.dirname(__file__)}/data/strict-introspection.xml") as f:
     strict_data = f.read()
@@ -349,3 +350,41 @@ def test_introspection_rejects_element_missing_required_attribute(
     """Each introspection element rejects malformed/missing required attributes."""
     with pytest.raises(InvalidIntrospectionError, match=match):
         intr.Node.parse(payload)
+
+
+def test_introspection_tostring_round_trips() -> None:
+    """tostring() emits the DOCTYPE header and re-parses to an equal tree."""
+    node = intr.Node.parse(strict_data)
+    xml = node.tostring()
+    assert xml.startswith("<!DOCTYPE node PUBLIC")
+    assert intr.Node.parse(xml).interfaces[0].name == node.interfaces[0].name
+
+
+def test_introspection_arg_to_xml_omits_unset_name_and_direction() -> None:
+    """An Arg without a name or direction serialises with just a type."""
+    assert intr.Arg("s").to_xml().attrib == {"type": "s"}
+
+
+def test_introspection_arg_accepts_signature_type() -> None:
+    """Arg accepts a parsed SignatureType in place of a signature string."""
+    sig_type = get_signature_tree("s").types[0]
+    arg = intr.Arg(sig_type)
+    assert arg.signature == "s"
+    assert arg.type is sig_type
+
+
+def test_introspection_signal_allows_none_name() -> None:
+    """Signal(None) skips member-name validation."""
+    assert intr.Signal(None).name is None
+
+
+def test_introspection_node_to_xml_omits_unset_name() -> None:
+    """A nameless Node serialises without a name attribute."""
+    assert "name" not in intr.Node().to_xml().attrib
+
+
+def test_introspection_ignores_unknown_node_children() -> None:
+    """Unknown child elements under <node> are skipped, not rejected."""
+    node = intr.Node.parse("<node><foo/></node>")
+    assert node.interfaces == []
+    assert node.nodes == []
