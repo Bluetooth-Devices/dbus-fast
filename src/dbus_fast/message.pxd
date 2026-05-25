@@ -22,6 +22,8 @@ cdef object HEADER_UNIX_FDS
 cdef object LITTLE_ENDIAN
 cdef object PROTOCOL_VERSION
 
+cdef Py_ssize_t _MAX_MESSAGE_SIZE
+
 cdef object MESSAGE_FLAG
 cdef object MESSAGE_FLAG_NONE
 cdef object MESSAGE_TYPE_METHOD_CALL

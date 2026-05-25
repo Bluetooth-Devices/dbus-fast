@@ -2,7 +2,12 @@
 
 from typing import Any
 
-from ._private.constants import LITTLE_ENDIAN, PROTOCOL_VERSION, HeaderField
+from ._private.constants import (
+    LITTLE_ENDIAN,
+    MAX_MESSAGE_SIZE,
+    PROTOCOL_VERSION,
+    HeaderField,
+)
 from ._private.marshaller import Marshaller
 from .constants import ErrorType, MessageFlag, MessageType
 from .errors import InvalidMessageError
@@ -39,6 +44,11 @@ SIGNATURE_TREE_G = get_signature_tree("g")
 SIGNATURE_TREE_O = get_signature_tree("o")
 SIGNATURE_TREE_S = get_signature_tree("s")
 SIGNATURE_TREE_U = get_signature_tree("u")
+
+# _MAX_MESSAGE_SIZE is the cdef alias of MAX_MESSAGE_SIZE used in the marshall
+# path. Typed Py_ssize_t (per message.pxd), not unsigned int, to match the
+# signed len(body_buffer) it is compared against and stay sign-compare clean.
+_MAX_MESSAGE_SIZE = MAX_MESSAGE_SIZE
 
 _int = int
 _str = str
@@ -321,9 +331,15 @@ class Message:
 
     def _marshall(self, negotiate_unix_fd: bool) -> bytearray:
         """Marshall this message into a byte array."""
-        # TODO maximum message size is 134217728 (128 MiB)
         body_block = Marshaller(self.signature, self.body)
         body_buffer = body_block._marshall()
+        # Reject before the header packs body_len as a uint32, so a body past
+        # UINT32_MAX fails with a clear error instead of a struct.error.
+        if len(body_buffer) > _MAX_MESSAGE_SIZE:
+            raise InvalidMessageError(
+                f"message size exceeds maximum {_MAX_MESSAGE_SIZE}: "
+                f"body={len(body_buffer)}"
+            )
 
         fields = []
 
@@ -386,4 +402,12 @@ class Message:
         header_block._marshall()
         header_block._align(8)
         header_buffer = header_block._buffer()
+        # The bus measures header + body against the 128 MiB ceiling, so a body
+        # that fits alone can still overflow once the header is added. Mirror the
+        # unmarshaller's combined check (and its error format).
+        if len(header_buffer) + len(body_buffer) > _MAX_MESSAGE_SIZE:
+            raise InvalidMessageError(
+                f"message size exceeds maximum {_MAX_MESSAGE_SIZE}: "
+                f"header={len(header_buffer)}, body={len(body_buffer)}"
+            )
         return header_buffer + body_buffer
