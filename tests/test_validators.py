@@ -90,8 +90,8 @@ def test_interface_name_validator():
 
 
 def test_member_name_validator():
-    valid_members = ["foo", "FooBar", "Bat_Baz69", "foo-bar"]
-    invalid_members = [None, "", "foo.bar", "5foo", "foo$bar"]
+    valid_members = ["foo", "FooBar", "Bat_Baz69"]
+    invalid_members = [None, "", "foo.bar", "5foo", "foo$bar", "foo-bar"]
 
     for member in valid_members:
         assert is_member_name_valid(member), f'member name should be valid: "{member}"'
@@ -175,8 +175,9 @@ def test_assert_interface_name_valid() -> None:
 def test_assert_member_name_valid() -> None:
     """assert_member_name_valid returns None for valid names, raises for invalid."""
     assert assert_member_name_valid("Foo") is None
-    assert assert_member_name_valid("foo-bar") is None
     with pytest.raises(InvalidMemberNameError):
         assert_member_name_valid("5foo")
     with pytest.raises(InvalidMemberNameError):
         assert_member_name_valid("foo.bar")
+    with pytest.raises(InvalidMemberNameError):
+        assert_member_name_valid("foo-bar")
