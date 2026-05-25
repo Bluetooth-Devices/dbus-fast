@@ -100,12 +100,14 @@ _MAX_MESSAGE_SIZE = MAX_MESSAGE_SIZE
 MAX_CONTAINER_DEPTH = 64
 _MAX_CONTAINER_DEPTH = MAX_CONTAINER_DEPTH
 
-# Valid message-type bytes are the contiguous MessageType range 1 (METHOD_CALL)
-# to 4 (SIGNAL). _read_header range-checks against these so the test compiles to
-# a C compare rather than a PySequence_Contains call on MESSAGE_TYPE_MAP. Declared
-# cdef unsigned int in the .pxd to match the unsigned local and stay sign-clean.
-_MESSAGE_TYPE_CALL = MessageType.METHOD_CALL.value
-_MESSAGE_TYPE_SIGNAL = MessageType.SIGNAL.value
+# Valid message-type bytes span the contiguous MessageType enum (1-4 today).
+# Derive the bounds from the enum so a new member updates them automatically.
+# _read_header range-checks against these so it compiles to a C compare rather
+# than a PySequence_Contains call on MESSAGE_TYPE_MAP; the range compare only
+# matches "valid type" while the enum values stay contiguous. Declared cdef
+# unsigned int in the .pxd to match the unsigned local and stay sign-clean.
+_MESSAGE_TYPE_MIN = min(t.value for t in MessageType)
+_MESSAGE_TYPE_MAX = max(t.value for t in MessageType)
 
 
 # Most common signatures
@@ -869,7 +871,7 @@ class Unmarshaller:
                 f"Expecting endianness as the first byte, got {endian} from {self._buf}"
             )
 
-        if message_type < _MESSAGE_TYPE_CALL or message_type > _MESSAGE_TYPE_SIGNAL:
+        if message_type < _MESSAGE_TYPE_MIN or message_type > _MESSAGE_TYPE_MAX:
             raise InvalidMessageError(f"got unknown message type: {message_type}")
 
         if cython.compiled:
