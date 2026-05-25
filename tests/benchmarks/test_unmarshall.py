@@ -6,6 +6,7 @@ from pytest_codspeed import BenchmarkFixture
 from dbus_fast._private.unmarshaller import Unmarshaller
 from dbus_fast.constants import MessageType
 from dbus_fast.message import Message
+from dbus_fast.signature import Variant
 
 ITERATIONS = 1000
 
@@ -208,6 +209,62 @@ systemd_list_units_message = _build_systemd_list_units_message()
 
 def test_unmarshall_systemd_list_units_message(benchmark: BenchmarkFixture) -> None:
     stream = io.BytesIO(systemd_list_units_message * ITERATIONS)
+
+    unmarshaller = Unmarshaller(stream)
+    unmarshall = unmarshaller.unmarshall
+    seek = stream.seek
+
+    @benchmark
+    def _():
+        seek(0)
+        for _ in range(ITERATIONS):
+            unmarshall()
+
+
+def _build_bluez_manufacturer_data_message() -> bytes:
+    """A BLE advertisement PropertiesChanged carrying ManufacturerData.
+
+    ManufacturerData is ``a{qv}`` (uint16 company id -> variant), the one
+    dict shape with integer keys the unmarshaller inlines separately from
+    the string-keyed ``a{sv}`` path, with ``ay`` byte-array values. The
+    other BlueZ fixtures only reach it bundled behind eight RSSI-only
+    messages, so a regression in that branch would be diluted out of range.
+    """
+    body = [
+        "org.bluez.Device1",
+        {
+            "RSSI": Variant("n", -66),
+            "ManufacturerData": Variant(
+                "a{qv}",
+                {
+                    0x0075: Variant(
+                        "ay", b"\x42\x04\x01\x01\x70\xd0\xc2\x4e\x08\xab\x57"
+                    ),
+                    0x004C: Variant("ay", b"\x02\x15\x49\x4e\x54\x45\x4c\x4c\x49"),
+                },
+            ),
+        },
+        [],
+    ]
+    return bytes(
+        Message(
+            path="/org/bluez/hci0/dev_D0_C2_4E_08_AB_57",
+            interface="org.freedesktop.DBus.Properties",
+            member="PropertiesChanged",
+            message_type=MessageType.SIGNAL,
+            signature="sa{sv}as",
+            body=body,
+        )._marshall(False)
+    )
+
+
+bluez_manufacturer_data_message = _build_bluez_manufacturer_data_message()
+
+
+def test_unmarshall_bluez_manufacturer_data_message(
+    benchmark: BenchmarkFixture,
+) -> None:
+    stream = io.BytesIO(bluez_manufacturer_data_message * ITERATIONS)
 
     unmarshaller = Unmarshaller(stream)
     unmarshall = unmarshaller.unmarshall
