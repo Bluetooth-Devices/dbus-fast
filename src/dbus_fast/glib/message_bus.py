@@ -219,6 +219,12 @@ class MessageBus(BaseMessageBus):
         else:
             self._auth = auth
 
+    def __enter__(self) -> "MessageBus":
+        return self.connect_sync()
+
+    def __exit__(self, *args, **kwargs) -> None:
+        self.disconnect()
+
     def _on_message(self, msg: Message) -> None:
         try:
             self._process_message(msg)

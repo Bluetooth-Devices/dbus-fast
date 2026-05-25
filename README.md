@@ -82,31 +82,31 @@ import asyncio
 
 
 async def main():
-    bus = await MessageBus().connect()
-    # the introspection xml would normally be included in your project, but
-    # this is convenient for development
-    introspection = await bus.introspect('org.mpris.MediaPlayer2.vlc', '/org/mpris/MediaPlayer2')
+    async with MessageBus() as bus:
+        # the introspection xml would normally be included in your project, but
+        # this is convenient for development
+        introspection = await bus.introspect('org.mpris.MediaPlayer2.vlc', '/org/mpris/MediaPlayer2')
 
-    obj = bus.get_proxy_object('org.mpris.MediaPlayer2.vlc', '/org/mpris/MediaPlayer2', introspection)
-    player = obj.get_interface('org.mpris.MediaPlayer2.Player')
-    properties = obj.get_interface('org.freedesktop.DBus.Properties')
+        obj = bus.get_proxy_object('org.mpris.MediaPlayer2.vlc', '/org/mpris/MediaPlayer2', introspection)
+        player = obj.get_interface('org.mpris.MediaPlayer2.Player')
+        properties = obj.get_interface('org.freedesktop.DBus.Properties')
 
-    # call methods on the interface (this causes the media player to play)
-    await player.call_play()
+        # call methods on the interface (this causes the media player to play)
+        await player.call_play()
 
-    volume = await player.get_volume()
-    print(f'current volume: {volume}, setting to 0.5')
+        volume = await player.get_volume()
+        print(f'current volume: {volume}, setting to 0.5')
 
-    await player.set_volume(0.5)
+        await player.set_volume(0.5)
 
-    # listen to signals
-    def on_properties_changed(interface_name, changed_properties, invalidated_properties):
-        for changed, variant in changed_properties.items():
-            print(f'property changed: {changed} - {variant.value}')
+        # listen to signals
+        def on_properties_changed(interface_name, changed_properties, invalidated_properties):
+            for changed, variant in changed_properties.items():
+                print(f'property changed: {changed} - {variant.value}')
 
-    properties.on_properties_changed(on_properties_changed)
+        properties.on_properties_changed(on_properties_changed)
 
-    await asyncio.Event().wait()
+        await asyncio.Event().wait()
 
 asyncio.run(main())
 ```
@@ -155,13 +155,13 @@ class ExampleInterface(ServiceInterface):
         return 'hello'
 
 async def main():
-    bus = await MessageBus().connect()
-    interface = ExampleInterface('test.interface')
-    bus.export('/test/path', interface)
-    # now that we are ready to handle requests, we can request name from D-Bus
-    await bus.request_name('test.name')
-    # wait indefinitely
-    await asyncio.Event().wait()
+    async with MessageBus() as bus:
+        interface = ExampleInterface('test.interface')
+        bus.export('/test/path', interface)
+        # now that we are ready to handle requests, we can request name from D-Bus
+        await bus.request_name('test.name')
+        # wait indefinitely
+        await asyncio.Event().wait()
 
 asyncio.run(main())
 ```
@@ -181,18 +181,17 @@ import json
 
 
 async def main():
-    bus = await MessageBus().connect()
+    async with MessageBus() as bus:
+        reply = await bus.call(
+            Message(destination='org.freedesktop.DBus',
+                    path='/org/freedesktop/DBus',
+                    interface='org.freedesktop.DBus',
+                    member='ListNames'))
 
-    reply = await bus.call(
-        Message(destination='org.freedesktop.DBus',
-                path='/org/freedesktop/DBus',
-                interface='org.freedesktop.DBus',
-                member='ListNames'))
+        if reply.message_type == MessageType.ERROR:
+            raise Exception(reply.body[0])
 
-    if reply.message_type == MessageType.ERROR:
-        raise Exception(reply.body[0])
-
-    print(json.dumps(reply.body[0], indent=2))
+        print(json.dumps(reply.body[0], indent=2))
 
 
 asyncio.run(main())
