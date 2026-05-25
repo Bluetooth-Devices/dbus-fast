@@ -29,6 +29,15 @@ except ImportError:  # s390x leg skips installing blockbuster under QEMU
     BlockBuster = None  # type: ignore[assignment,misc]
     blockbuster_ctx = None  # type: ignore[assignment]
 
+from dbus_fast._private.unmarshaller import is_compiled
+
+# blockbuster monkey-patches threading.Lock.acquire and walks the frame
+# stack via inspect.getframeinfo. Coverage's CTracer takes that lock on
+# every traced line, and walking a frame whose code object belongs to a
+# Cython extension has segfaulted in CI. The SKIP_CYTHON matrix leg
+# still exercises blockbuster, so blocking-call detection is preserved.
+_RUNNING_COMPILED = is_compiled()
+
 _BENCHMARKS_DIR = "tests/benchmarks"
 
 # Tests that perform sync IO inside the asyncio event loop and trip
@@ -57,7 +66,11 @@ def blockbuster(
     request: pytest.FixtureRequest,
 ) -> Iterator[BlockBuster | None]:
     """Fail any test that performs a blocking call inside the asyncio loop."""
-    if blockbuster_ctx is None or _BENCHMARKS_DIR in str(request.node.fspath):
+    if (
+        blockbuster_ctx is None
+        or _RUNNING_COMPILED
+        or _BENCHMARKS_DIR in str(request.node.fspath)
+    ):
         yield None
         return
     with blockbuster_ctx() as bb:
