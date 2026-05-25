@@ -936,11 +936,20 @@ class Unmarshaller:
         self._container_depth = 0
         header_fields = self._header_fields(self._header_len)
         self._pos += -self._pos & 7  # align 8
-        signature: str = header_fields[HEADER_SIGNATURE_IDX]
+        header_signature = header_fields[HEADER_SIGNATURE_IDX]
         if not self._body_len:
             tree = SIGNATURE_TREE_EMPTY
             body: list[Any] = []
+        elif type(header_signature) is not str or not header_signature:
+            # A non-empty body requires a valid signature header field
+            # (spec §4.1). A forged frame may omit it (None), send it empty, or
+            # carry a non-'g' variant type (a non-str value) — each would
+            # otherwise leak a bare TypeError/IndexError out to the reader.
+            raise InvalidMessageError(
+                "message has a body but no valid signature header field"
+            )
         else:
+            signature: str = header_signature
             token_as_int = ord(signature[0])
             if len(signature) == 1:
                 if token_as_int == TOKEN_O_AS_INT:
