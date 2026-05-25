@@ -2,6 +2,25 @@
 
 <!-- version list -->
 
+## v5.0.12 (2026-05-25)
+
+### Bug Fixes
+
+- **marshaller**: Reject arrays larger than the 64 MiB D-Bus limit
+  ([#700](https://github.com/Bluetooth-Devices/dbus-fast/pull/700),
+  [`e2b2599`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e2b2599232b84a0a43e5d602e4f7e00c5f5331ee))
+
+### Chores
+
+- **deps-dev**: Bump cython from 3.2.4 to 3.2.5
+  ([#723](https://github.com/Bluetooth-Devices/dbus-fast/pull/723),
+  [`44f573a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/44f573a8e53244da27fa0023387271cc7ed09873))
+
+- **deps-dev**: Bump pytest-codspeed from 5.0.2 to 5.0.3
+  ([#722](https://github.com/Bluetooth-Devices/dbus-fast/pull/722),
+  [`dad91ed`](https://github.com/Bluetooth-Devices/dbus-fast/commit/dad91ed83727d0995029c5d844aec76b6b550d13))
+
+
 ## v5.0.11 (2026-05-25)
 
 ### Bug Fixes
