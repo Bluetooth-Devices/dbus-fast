@@ -2,6 +2,27 @@
 
 <!-- version list -->
 
+## v5.0.11 (2026-05-25)
+
+### Bug Fixes
+
+- **unmarshaller**: Reject body with a malformed signature field
+  ([#704](https://github.com/Bluetooth-Devices/dbus-fast/pull/704),
+  [`6792ef2`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6792ef230284a1434a09dcbc8f5fc72ebe12895b))
+
+### Chores
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#720](https://github.com/Bluetooth-Devices/dbus-fast/pull/720),
+  [`732e554`](https://github.com/Bluetooth-Devices/dbus-fast/commit/732e55493a954270cc20d8afbebb1b4ff92409fa))
+
+### Continuous Integration
+
+- Enable additional clean ruff lint rule families
+  ([#721](https://github.com/Bluetooth-Devices/dbus-fast/pull/721),
+  [`b95eab1`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b95eab18612110ffed20499b2ab61e1597130fe3))
+
+
 ## v5.0.10 (2026-05-25)
 
 ### Bug Fixes
