@@ -238,7 +238,6 @@ cdef class Unmarshaller:
 
     @cython.locals(
         endian=cython.uint,
-        message_type=cython.uint,
         buffer=cython.bytearray,
         protocol_version=cython.uint,
         key=cython.str,

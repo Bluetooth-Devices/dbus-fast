@@ -865,8 +865,7 @@ class Unmarshaller:
         # BYTE, BYTE, BYTE, BYTE, UINT32, UINT32, ARRAY of STRUCT of (BYTE,VARIANT)
         self._read_to_pos(HEADER_SIGNATURE_SIZE)
         endian = self._buf_ustr[0]
-        message_type = self._buf_ustr[1]
-        self._message_type = message_type
+        self._message_type = self._buf_ustr[1]
         self._flag = self._buf_ustr[2]
         protocol_version = self._buf_ustr[3]
 
@@ -880,8 +879,11 @@ class Unmarshaller:
                 f"Expecting endianness as the first byte, got {endian} from {self._buf}"
             )
 
-        if message_type < _MESSAGE_TYPE_MIN or message_type > _MESSAGE_TYPE_MAX:
-            raise InvalidMessageError(f"got unknown message type: {message_type}")
+        if (
+            self._message_type < _MESSAGE_TYPE_MIN
+            or self._message_type > _MESSAGE_TYPE_MAX
+        ):
+            raise InvalidMessageError(f"got unknown message type: {self._message_type}")
 
         if cython.compiled:
             self._body_len = _ustr_uint32(self._buf_ustr, 4, endian)
