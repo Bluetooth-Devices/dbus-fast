@@ -1248,3 +1248,17 @@ def test_unmarshall_rejects_body_with_wrong_typed_signature_field() -> None:
     data[sig_field + 2] = ord("u")
     with pytest.raises(InvalidMessageError, match="signature header field"):
         Unmarshaller(io.BytesIO(bytes(data))).unmarshall()
+
+
+def test_unmarshall_rejects_body_with_string_typed_signature_field() -> None:
+    """body_len > 0 with an 's'-variant signature field raises InvalidMessageError."""
+    # One header field: code 8 (SIGNATURE) carrying an 's' variant of value "s".
+    # An 's'/'o' variant decodes to a non-empty str, so it slips past the
+    # type(...) is str guard unless the variant type byte itself is rejected.
+    field = bytes([8, 1]) + b"s\x00" + struct.pack("<I", 1) + b"s\x00"
+    forged = bytearray(_forged_header(body_len=4, header_len=len(field)))
+    forged += field
+    forged += b"\x00" * (-len(forged) & 7)  # align body to 8
+    forged += b"\x00\x00\x00\x00"
+    with pytest.raises(InvalidMessageError, match="signature header field"):
+        Unmarshaller(io.BytesIO(bytes(forged))).unmarshall()

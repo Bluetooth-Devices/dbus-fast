@@ -858,6 +858,12 @@ class Unmarshaller:
                 # There shouldn't be any other types in the header
                 # but just in case, we'll read it using the slow path
                 value = self._readers[token](self, get_signature_tree(token).root_type)
+            if field_0 == HEADER_SIGNATURE_IDX and token_as_int != TOKEN_G_AS_INT:
+                # The SIGNATURE field must be a 'g' variant (spec §4.1). A forged
+                # frame can send it as an 's'/'o' variant whose value still
+                # decodes to a str; the value is already consumed above, so leave
+                # it unset (None) for _read_body to reject a bogus signature.
+                continue
             # D-Bus spec: ignore header fields with an unrecognized code. Codes
             # are defined only for 1..9; a forged frame can carry 0 or a code
             # past the known range — consume the value to stay aligned, but
@@ -941,10 +947,11 @@ class Unmarshaller:
             tree = SIGNATURE_TREE_EMPTY
             body: list[Any] = []
         elif type(header_signature) is not str or not header_signature:
-            # A non-empty body requires a valid signature header field
-            # (spec §4.1). A forged frame may omit it (None), send it empty, or
-            # carry a non-'g' variant type (a non-str value) — each would
-            # otherwise leak a bare TypeError/IndexError out to the reader.
+            # A non-empty body requires a valid 'g' signature header field
+            # (spec §4.1). _header_fields leaves a missing or non-'g'-typed
+            # field unset (None); an empty 'g' field decodes to "". Either way
+            # ord(signature[0]) below would otherwise leak a bare
+            # TypeError/IndexError out to the reader.
             raise InvalidMessageError(
                 "message has a body but no valid signature header field"
             )
