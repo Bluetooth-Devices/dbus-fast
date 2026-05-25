@@ -2,6 +2,21 @@
 
 <!-- version list -->
 
+## v5.0.13 (2026-05-25)
+
+### Bug Fixes
+
+- **message**: Reject outgoing messages over the 128 MiB D-Bus limit
+  ([#701](https://github.com/Bluetooth-Devices/dbus-fast/pull/701),
+  [`4dec60a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/4dec60a6092566f6db8aaa1a2847d46d5346a762))
+
+### Testing
+
+- Skip blockbuster on the cython matrix leg
+  ([#724](https://github.com/Bluetooth-Devices/dbus-fast/pull/724),
+  [`8caa1f2`](https://github.com/Bluetooth-Devices/dbus-fast/commit/8caa1f254de9bcba7f80576f5443ee63dab09dee))
+
+
 ## v5.0.12 (2026-05-25)
 
 ### Bug Fixes
