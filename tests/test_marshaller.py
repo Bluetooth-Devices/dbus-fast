@@ -7,7 +7,7 @@ from typing import Any
 
 import pytest
 
-from dbus_fast import Message, MessageFlag, MessageType, SignatureTree, Variant
+from dbus_fast import Message, MessageFlag, MessageType, SignatureTree, Variant, message
 from dbus_fast._private._cython_compat import FakeCython
 from dbus_fast._private.constants import BIG_ENDIAN, LITTLE_ENDIAN
 from dbus_fast._private.marshaller import MAX_ARRAY_LENGTH, Marshaller
@@ -1030,17 +1030,31 @@ def test_unmarshall_rejects_unknown_message_type(message_type: int) -> None:
         Unmarshaller(io.BytesIO(bytes(header))).unmarshall()
 
 
-@pytest.mark.timeout(60)
-def test_marshall_rejects_message_over_max_size() -> None:
-    """A body marshalling past the 128 MiB cap raises before it reaches a bus."""
-    # Two arrays each at the 64 MiB array ceiling: neither trips a per-array
-    # limit, but together the marshalled body clears MAX_MESSAGE_SIZE. The
-    # zero-filled source bytes are calloc-backed so they stay cheap to copy.
-    half = MAX_MESSAGE_SIZE // 2
-    msg = Message(
-        path="/test", member="test", signature="ayay", body=[bytes(half), bytes(half)]
-    )
+@pytest.mark.skipif(
+    is_compiled(),
+    reason="_MAX_MESSAGE_SIZE is a compiled-in C constant that can't be patched",
+)
+def test_marshall_rejects_oversized_body(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A marshalled body over the cap raises before the header packs body_len."""
+    monkeypatch.setattr(message, "_MAX_MESSAGE_SIZE", 16)
+    msg = Message(path="/test", member="test", signature="ay", body=[bytes(64)])
     with pytest.raises(InvalidMessageError, match="exceeds maximum"):
+        msg._marshall(False)
+
+
+@pytest.mark.skipif(
+    is_compiled(),
+    reason="_MAX_MESSAGE_SIZE is a compiled-in C constant that can't be patched",
+)
+def test_marshall_rejects_oversized_header_plus_body(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A body within the cap but header+body over it raises, mirroring incoming."""
+    msg = Message(path="/test", member="test", signature="ay", body=[bytes(64)])
+    body_len = len(Marshaller(msg.signature, msg.body)._marshall())
+    # Body fits exactly, so only the post-header combined check can reject it.
+    monkeypatch.setattr(message, "_MAX_MESSAGE_SIZE", body_len)
+    with pytest.raises(InvalidMessageError, match="header="):
         msg._marshall(False)
 
 

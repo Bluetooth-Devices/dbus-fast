@@ -45,6 +45,11 @@ SIGNATURE_TREE_O = get_signature_tree("o")
 SIGNATURE_TREE_S = get_signature_tree("s")
 SIGNATURE_TREE_U = get_signature_tree("u")
 
+# _MAX_MESSAGE_SIZE is the cdef alias of MAX_MESSAGE_SIZE used in the marshall
+# path. Typed Py_ssize_t (per message.pxd), not unsigned int, to match the
+# signed len(body_buffer) it is compared against and stay sign-compare clean.
+_MAX_MESSAGE_SIZE = MAX_MESSAGE_SIZE
+
 _int = int
 _str = str
 _bool = bool
@@ -328,13 +333,12 @@ class Message:
         """Marshall this message into a byte array."""
         body_block = Marshaller(self.signature, self.body)
         body_buffer = body_block._marshall()
-        # Spec caps a message at 128 MiB and the body dominates the frame, so
-        # reject an oversized body here instead of letting the bus drop the
-        # connection. Compared against the Python int (not a cdef uint32): a
-        # body can marshal past UINT32_MAX, which a uint32 compare would wrap.
-        if len(body_buffer) > MAX_MESSAGE_SIZE:
+        # Reject before the header packs body_len as a uint32, so a body past
+        # UINT32_MAX fails with a clear error instead of a struct.error.
+        if len(body_buffer) > _MAX_MESSAGE_SIZE:
             raise InvalidMessageError(
-                f"message size {len(body_buffer)} exceeds maximum {MAX_MESSAGE_SIZE}"
+                f"message size exceeds maximum {_MAX_MESSAGE_SIZE}: "
+                f"body={len(body_buffer)}"
             )
 
         fields = []
@@ -398,4 +402,12 @@ class Message:
         header_block._marshall()
         header_block._align(8)
         header_buffer = header_block._buffer()
+        # The bus measures header + body against the 128 MiB ceiling, so a body
+        # that fits alone can still overflow once the header is added. Mirror the
+        # unmarshaller's combined check (and its error format).
+        if len(header_buffer) + len(body_buffer) > _MAX_MESSAGE_SIZE:
+            raise InvalidMessageError(
+                f"message size exceeds maximum {_MAX_MESSAGE_SIZE}: "
+                f"header={len(header_buffer)}, body={len(body_buffer)}"
+            )
         return header_buffer + body_buffer
