@@ -10,6 +10,7 @@ import pytest
 from dbus_fast import Message, MessageFlag, MessageType, SignatureTree, Variant
 from dbus_fast._private._cython_compat import FakeCython
 from dbus_fast._private.constants import BIG_ENDIAN, LITTLE_ENDIAN
+from dbus_fast._private.marshaller import Marshaller
 from dbus_fast._private.unmarshaller import (
     MAX_CONTAINER_DEPTH,
     MAX_MESSAGE_SIZE,
@@ -1160,3 +1161,16 @@ def test_unmarshall_accepts_variant_of_dict_entry() -> None:
     assert key == "k"
     assert value.signature == "y"
     assert value.value == 7
+
+
+def test_marshaller_write_dict_entry_matches_array_path() -> None:
+    """The public write_dict_entry delegate writes the same bytes as the array path."""
+    dict_entry_type = SignatureTree("a{sv}").types[0].children[0]
+    full = Marshaller("a{sv}", [{"k": Variant("s", "v")}]).marshall()
+
+    marshaller = Marshaller("a{sv}", [])
+    written = marshaller.write_dict_entry(["k", Variant("s", "v")], dict_entry_type)
+
+    # full array = 4-byte length + 4-byte alignment pad + dict-entry bytes
+    assert bytes(marshaller._buf) == bytes(full[8:])
+    assert written == len(full) - 8
