@@ -858,10 +858,11 @@ class Unmarshaller:
                 # There shouldn't be any other types in the header
                 # but just in case, we'll read it using the slow path
                 value = self._readers[token](self, get_signature_tree(token).root_type)
-            # D-Bus spec: ignore header fields with an unrecognized code. A
-            # forged frame can carry a code past the known range — consume the
-            # value to stay aligned, but don't index past the headers list.
-            if field_0 < _HEADER_FIELDS_LEN:
+            # D-Bus spec: ignore header fields with an unrecognized code. Codes
+            # are defined only for 1..9; a forged frame can carry 0 or a code
+            # past the known range — consume the value to stay aligned, but
+            # don't store it (index 0 is a placeholder, >= len is out of range).
+            if 0 < field_0 < _HEADER_FIELDS_LEN:
                 headers[field_0] = value
         return headers
 
