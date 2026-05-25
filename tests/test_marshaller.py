@@ -1251,11 +1251,12 @@ def test_unmarshall_rejects_body_with_wrong_typed_signature_field() -> None:
 
 
 def test_marshall_rejects_oversized_byte_array() -> None:
-    """A byte array one past the 64 MiB array cap raises before being copied.
+    """A byte array one past the 64 MiB array cap raises before being copied."""
 
-    ``bytes(n)`` is lazily backed, so ``len()`` here never faults the pages in:
-    the size guard rejects the payload before the bulk copy would touch them.
-    """
-    marshaller = Marshaller("ay", [bytes(MAX_ARRAY_LENGTH + 1)])
+    class _OversizedBytes:
+        def __len__(self) -> int:
+            return MAX_ARRAY_LENGTH + 1
+
+    marshaller = Marshaller("ay", [_OversizedBytes()])
     with pytest.raises(InvalidMessageError, match="exceeds maximum"):
         marshaller.marshall()

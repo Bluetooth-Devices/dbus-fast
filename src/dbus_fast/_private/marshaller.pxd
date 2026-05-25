@@ -53,7 +53,7 @@ cdef class Marshaller:
     cpdef write_array(self, object array, SignatureType type_)
 
     @cython.locals(
-        array_len=cython.uint,
+        array_len=cython.ulonglong,
         buf=cython.bytearray,
         written=cython.uint,
         token=cython.str,
