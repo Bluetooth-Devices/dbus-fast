@@ -198,8 +198,16 @@ select = [
     "SIM", # flake8-simplify
     "SLF", # flake8-self
     "SLOT", # flake8-slots
-    "T100", # Trace found: {name} used
+    "T10", # flake8-debugger
     "T20", # flake8-print
+    "A",   # flake8-builtins
+    "DTZ", # flake8-datetimez
+    "EXE", # flake8-executable
+    "FA",  # flake8-future-annotations
+    "ICN", # flake8-import-conventions
+    "ISC", # flake8-implicit-str-concat
+    "Q",   # flake8-quotes
+    "YTT", # flake8-2020
     "TID", # Tidy imports
     "TRY", # tryceratops
 ]
@@ -250,4 +258,5 @@ select = [
 ]
 "docs/**/*" = [
     "E402", # as intended
+    "A001", # sphinx conf.py assigns `copyright` by convention
 ]
