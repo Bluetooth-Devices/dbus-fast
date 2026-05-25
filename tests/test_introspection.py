@@ -306,3 +306,46 @@ def test_introspection_accepts_annotation_empty_value() -> None:
     )
     node = intr.Node.parse(payload)
     assert node.interfaces[0].annotations == {"x": ""}
+
+
+@pytest.mark.parametrize(
+    ("payload", "match"),
+    [
+        ("<node><interface/></node>", 'interfaces must have a "name"'),
+        (
+            '<node><interface name="a.b"><method/></interface></node>',
+            'methods must have a "name"',
+        ),
+        (
+            '<node><interface name="a.b"><signal/></interface></node>',
+            'signals must have a "name"',
+        ),
+        (
+            '<node><interface name="a.b"><property type="s"/></interface></node>',
+            'properties must have a "name"',
+        ),
+        (
+            '<node><interface name="a.b"><property name="P"/></interface></node>',
+            'properties must have a "type"',
+        ),
+        (
+            '<node><interface name="a.b"><property name="P" type="ss"/></interface></node>',
+            "properties must have a single complete type",
+        ),
+        (
+            '<node><interface name="a.b"><method name="M"><arg/></method></interface></node>',
+            'a method argument must have a "type"',
+        ),
+        (
+            '<node><interface name="a.b"><method name="M"><arg type="ss"/></method></interface></node>',
+            "an argument must have a single complete type",
+        ),
+        ("<node><node/></node>", 'child nodes must have a "name"'),
+    ],
+)
+def test_introspection_rejects_element_missing_required_attribute(
+    payload: str, match: str
+) -> None:
+    """Each introspection element rejects malformed/missing required attributes."""
+    with pytest.raises(InvalidIntrospectionError, match=match):
+        intr.Node.parse(payload)

@@ -290,7 +290,7 @@ class Method:
         """
         name = element.attrib.get("name")
         if not name:
-            raise InvalidIntrospectionError('interfaces must have a "name" attribute')
+            raise InvalidIntrospectionError('methods must have a "name" attribute')
 
         in_args: list[Arg] = []
         out_args: list[Arg] = []
