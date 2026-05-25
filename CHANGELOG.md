@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v5.0.9 (2026-05-25)
+
+### Bug Fixes
+
+- **unmarshaller**: Ignore header fields with an unknown field code
+  ([#706](https://github.com/Bluetooth-Devices/dbus-fast/pull/706),
+  [`8ac9948`](https://github.com/Bluetooth-Devices/dbus-fast/commit/8ac994801b7cc1141ca7a5d51151ce63e06f2187))
+
+
 ## v5.0.8 (2026-05-25)
 
 ### Bug Fixes
