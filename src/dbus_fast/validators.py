@@ -11,7 +11,9 @@ from .errors import (
 _bus_name_re = re.compile(r"^[A-Za-z_-][A-Za-z0-9_-]*$")
 _path_re = re.compile(r"^[A-Za-z0-9_]+$")
 _element_re = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
-_member_re = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+# Hyphens are not permitted in member names by the D-Bus spec, but the
+# allowance is intentional here: downstream consumers rely on it.
+_member_re = re.compile(r"^[A-Za-z_][A-Za-z0-9_-]*$")
 
 
 @lru_cache(maxsize=32)
