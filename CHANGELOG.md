@@ -2,6 +2,21 @@
 
 <!-- version list -->
 
+## v5.0.7 (2026-05-25)
+
+### Performance Improvements
+
+- **marshaller**: Write dict entries without a throwaway list
+  ([#713](https://github.com/Bluetooth-Devices/dbus-fast/pull/713),
+  [`5c57241`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5c57241ff5c8f69a59d956a33186262fa50fa2f5))
+
+### Testing
+
+- **benchmarks**: Add dict-heavy marshall benchmarks
+  ([#712](https://github.com/Bluetooth-Devices/dbus-fast/pull/712),
+  [`7fdd405`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7fdd405ad149a4f8b6213e38c5f7e838930df4a1))
+
+
 ## v5.0.6 (2026-05-24)
 
 ### Performance Improvements
