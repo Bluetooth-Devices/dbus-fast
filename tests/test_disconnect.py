@@ -94,5 +94,6 @@ async def test_disconnect_after_finalize_does_not_warn(
 
     assert bus._user_disconnect
     assert not any(
-        "could not shut down socket" in record.message for record in caplog.records
+        "could not shut down socket" in record.getMessage()
+        for record in caplog.records
     )
