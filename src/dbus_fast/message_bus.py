@@ -523,7 +523,7 @@ class BaseMessageBus:
         All pending  and future calls will error with a connection error.
         """
         self._user_disconnect = True
-        if self._sock:
+        if self._sock and not self._disconnected:
             try:
                 self._sock.shutdown(socket.SHUT_RDWR)
             except Exception:
