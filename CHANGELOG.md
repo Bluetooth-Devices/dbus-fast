@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v5.0.14 (2026-05-26)
+
+### Bug Fixes
+
+- **introspection**: Reject annotations missing name or value attribute
+  ([#705](https://github.com/Bluetooth-Devices/dbus-fast/pull/705),
+  [`c2613d0`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c2613d0d740e1c1fa272ec9e96ff9bbb71891058))
+
+
 ## v5.0.13 (2026-05-25)
 
 ### Bug Fixes
