@@ -78,7 +78,9 @@ async def test_unexpected_disconnect():
 
 
 @pytest.mark.asyncio
-async def test_disconnect_after_finalize_does_not_warn(caplog):
+async def test_disconnect_after_finalize_does_not_warn(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     """disconnect() on an already finalized bus does not warn about the socket."""
     bus = MessageBus()
     await bus.connect()
