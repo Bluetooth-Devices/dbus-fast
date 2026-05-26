@@ -17,6 +17,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 from collections.abc import Iterator
 from pathlib import Path
@@ -38,6 +39,11 @@ from dbus_fast._private.unmarshaller import is_compiled
 # still exercises blockbuster, so blocking-call detection is preserved.
 _RUNNING_COMPILED = is_compiled()
 
+# The same frame walk has segfaulted intermittently on Python 3.10 and
+# 3.11 even on the skip_cython leg; restrict blockbuster to 3.12+ where
+# the frame APIs are stable enough for it to coexist with coverage.
+_PY_SUPPORTS_BLOCKBUSTER = sys.version_info >= (3, 12)
+
 _BENCHMARKS_DIR = "tests/benchmarks"
 
 # Tests that perform sync IO inside the asyncio event loop and trip
@@ -50,7 +56,7 @@ def pytest_collection_modifyitems(
     config: pytest.Config, items: list[pytest.Item]
 ) -> None:
     """Mark known-blocking tests xfail so CI is green while we work through them."""
-    if blockbuster_ctx is None:
+    if blockbuster_ctx is None or not _PY_SUPPORTS_BLOCKBUSTER:
         return
     marker = pytest.mark.xfail(
         reason="blockbuster: blocking call in asyncio path, to be fixed",
@@ -69,6 +75,7 @@ def blockbuster(
     if (
         blockbuster_ctx is None
         or _RUNNING_COMPILED
+        or not _PY_SUPPORTS_BLOCKBUSTER
         or _BENCHMARKS_DIR in str(request.node.fspath)
     ):
         yield None
