@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from unittest.mock import patch
 
 import pytest
@@ -74,3 +75,22 @@ async def test_unexpected_disconnect():
     bus.disconnect()
     with pytest.raises(OSError):
         await asyncio.wait_for(bus.wait_for_disconnect(), timeout=1)
+
+
+@pytest.mark.asyncio
+async def test_disconnect_after_finalize_does_not_warn(caplog):
+    """disconnect() on an already finalized bus does not warn about the socket."""
+    bus = MessageBus()
+    await bus.connect()
+    assert bus.connected
+
+    bus._finalize(EOFError())
+    assert bus._disconnected
+
+    with caplog.at_level(logging.WARNING, logger="dbus_fast.message_bus"):
+        bus.disconnect()
+
+    assert bus._user_disconnect
+    assert not any(
+        "could not shut down socket" in record.message for record in caplog.records
+    )
