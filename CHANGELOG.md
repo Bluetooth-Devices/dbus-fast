@@ -2,6 +2,21 @@
 
 <!-- version list -->
 
+## v5.0.15 (2026-05-26)
+
+### Bug Fixes
+
+- **message_bus**: Skip socket shutdown when bus is already finalized
+  ([#725](https://github.com/Bluetooth-Devices/dbus-fast/pull/725),
+  [`cfa6f3e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/cfa6f3e9a71eb13cecc4d10ef4d76a76c7a8855b))
+
+### Testing
+
+- Skip blockbuster on python < 3.12
+  ([#726](https://github.com/Bluetooth-Devices/dbus-fast/pull/726),
+  [`e1012e1`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e1012e19d8ea334c2a0bef5d4ae348fdc2af1873))
+
+
 ## v5.0.14 (2026-05-26)
 
 ### Bug Fixes
