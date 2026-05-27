@@ -843,7 +843,11 @@ class BaseMessageBus:
                     if handler:
                         handler(msg, BLOCK_UNEXPECTED_REPLY)  # type: ignore[arg-type]
                     else:
-                        _LOGGER.error(
+                        # NO_REPLY_EXPECTED is fire-and-forget; the sender
+                        # opted out of a response, so a missing handler is
+                        # benign, and inherently racy when an export is
+                        # torn down while remote calls are in flight.
+                        _LOGGER.debug(
                             '"%s.%s" with signature "%s" could not be found',
                             msg.interface,
                             msg.member,
