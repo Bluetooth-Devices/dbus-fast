@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import Annotated, no_type_check
 
 import pytest
@@ -258,6 +259,65 @@ async def test_methods(interface_class):
     assert reply.body == [
         'test.interface.does_not_exist with signature "" could not be found'
     ]
+
+    bus1.disconnect()
+    bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
+
+
+@pytest.mark.asyncio
+async def test_no_reply_expected_missing_handler_logs_at_debug(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A NO_REPLY_EXPECTED call with no handler should log at DEBUG, not ERROR.
+
+    The remote end opted out of a reply, so a missing handler is benign
+    and inherently racy when an export is torn down while remote calls
+    are in flight (e.g. BlueZ AdvertisementMonitor1 DeviceFound after
+    unexport but before UnregisterMonitor completes).
+    """
+    bus1 = await MessageBus().connect()
+    bus2 = await MessageBus().connect()
+
+    interface = ExampleInterface("test.interface")
+    export_path = "/test/path"
+    bus1.export(export_path, interface)
+
+    fire_and_forget = Message(
+        destination=bus1.unique_name,
+        path=export_path,
+        interface=interface.name,
+        member="does_not_exist",
+        signature="",
+        body=[],
+        flags=MessageFlag.NO_REPLY_EXPECTED,
+    )
+
+    with caplog.at_level(logging.DEBUG, logger="dbus_fast.message_bus"):
+        await bus2.send(fire_and_forget)
+        # Round-trip a real call so the receiver has definitely processed
+        # the fire-and-forget message above before we inspect caplog.
+        reply = await bus2.call(
+            Message(
+                destination=bus1.unique_name,
+                path=export_path,
+                interface=interface.name,
+                member="ping",
+            )
+        )
+        assert reply is not None
+        assert reply.message_type == MessageType.METHOD_RETURN
+
+    matching = [
+        record
+        for record in caplog.records
+        if record.name == "dbus_fast.message_bus"
+        and "does_not_exist" in record.getMessage()
+        and "could not be found" in record.getMessage()
+    ]
+    assert len(matching) == 1, [r.getMessage() for r in caplog.records]
+    assert matching[0].levelno == logging.DEBUG
 
     bus1.disconnect()
     bus2.disconnect()
