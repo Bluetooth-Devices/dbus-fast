@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v5.0.16 (2026-05-27)
+
+### Bug Fixes
+
+- **message_bus**: Log missing NO_REPLY_EXPECTED handler at debug
+  ([#727](https://github.com/Bluetooth-Devices/dbus-fast/pull/727),
+  [`55743cc`](https://github.com/Bluetooth-Devices/dbus-fast/commit/55743ccd7629a2d3f6f5332f934c514baaed132e))
+
+
 ## v5.0.15 (2026-05-26)
 
 ### Bug Fixes
