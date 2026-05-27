@@ -270,13 +270,7 @@ async def test_methods(interface_class):
 async def test_no_reply_expected_missing_handler_logs_at_debug(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """A NO_REPLY_EXPECTED call with no handler should log at DEBUG, not ERROR.
-
-    The remote end opted out of a reply, so a missing handler is benign
-    and inherently racy when an export is torn down while remote calls
-    are in flight (e.g. BlueZ AdvertisementMonitor1 DeviceFound after
-    unexport but before UnregisterMonitor completes).
-    """
+    """A NO_REPLY_EXPECTED call with no handler should log at DEBUG, not ERROR."""
     bus1 = await MessageBus().connect()
     bus2 = await MessageBus().connect()
 
