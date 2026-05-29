@@ -48,21 +48,10 @@ _background_tasks: set[asyncio.Task[Any]] = set()
 
 _KEYWORD_ONLY = inspect.Parameter.KEYWORD_ONLY
 
-# Keyword-only parameter names a ``@dbus_method`` can use to receive the
-# originating ``Message``'s metadata. Names map 1:1 to attributes of
-# :class:`~dbus_fast.message.Message`, with the special name ``message``
-# meaning "the whole Message".
-METHOD_METADATA_KWARGS: frozenset[str] = frozenset(
-    {
-        "sender",
-        "destination",
-        "path",
-        "interface",
-        "flags",
-        "unix_fds",
-        "message",
-    }
-)
+# The single keyword-only parameter a ``@dbus_method`` handler may declare to
+# receive the inbound :class:`~dbus_fast.message.Message`. It is not part of
+# the D-Bus signature.
+_MESSAGE_KWARG = "message"
 
 
 class _Method:
@@ -76,19 +65,19 @@ class _Method:
         module = inspect.getmodule(fn)
 
         in_args: list[intr.Arg] = []
-        kw_metadata: list[str] = []
+        wants_message = False
         for i, param in enumerate(inspection.parameters.values()):
             if i == 0:
                 # first is self
                 continue
             if param.kind is _KEYWORD_ONLY:
-                if param.name not in METHOD_METADATA_KWARGS:
+                if param.name != _MESSAGE_KWARG:
                     raise ValueError(
                         f"unknown keyword-only parameter {param.name!r} on DBus "
-                        f"method; allowed names are: "
-                        f"{', '.join(sorted(METHOD_METADATA_KWARGS))}"
+                        f"method; the only supported keyword-only parameter is "
+                        f"{_MESSAGE_KWARG!r}"
                     )
-                kw_metadata.append(param.name)
+                wants_message = True
                 continue
             annotation = parse_annotation(param.annotation, module)
             if not annotation:
@@ -112,7 +101,7 @@ class _Method:
         self.out_signature = out_signature
         self.in_signature_tree = get_signature_tree(in_signature)
         self.out_signature_tree = get_signature_tree(out_signature)
-        self.kw_metadata = tuple(kw_metadata)
+        self.wants_message = wants_message
 
 
 def dbus_method(
@@ -173,31 +162,22 @@ def dbus_method(
     .. versionadded:: v2.46.0
         In older versions, this was named ``@method``. The old name still exists.
 
-    **Message metadata via keyword-only parameters**
-
-    Keyword-only parameters (those declared after ``*``) are not part of the
-    D-Bus signature; instead, they receive metadata about the inbound
-    :class:`~dbus_fast.message.Message`. The recognised names are:
-
-    - ``sender`` — unique bus name of the caller (``str | None``)
-    - ``destination`` — destination from the header (``str | None``)
-    - ``path`` — object path the call was routed to (``str | None``)
-    - ``interface`` — interface name the call was routed to (``str | None``)
-    - ``flags`` — :class:`~dbus_fast.MessageFlag` bitfield from the header
-    - ``unix_fds`` — list of received file descriptors
-    - ``message`` — the full :class:`~dbus_fast.message.Message`
-
-    Useful for caller-identity authorisation (e.g. polkit) and for
-    inspecting flags like ``ALLOW_INTERACTIVE_AUTHORIZATION``::
+    A handler may declare a single keyword-only parameter named ``message``
+    (after ``*``) to receive the inbound :class:`~dbus_fast.message.Message`.
+    It is not part of the D-Bus signature. Read header fields such as
+    ``message.sender`` and ``message.flags`` off it, for caller-identity
+    authorisation (e.g. polkit) or to honour ``ALLOW_INTERACTIVE_AUTHORIZATION``::
 
         @dbus_method()
-        def Foo(self, bar: 's', *, sender: str, flags: MessageFlag) -> '': ...
+        def Foo(self, bar: 's', *, message: Message) -> '':
+            if not self._authorize(message.sender, message.flags):
+                raise DBusError(...)
 
     Any other keyword-only parameter name raises :class:`ValueError` at
     decoration time.
 
     .. versionadded:: next
-        Keyword-only metadata parameters.
+        The ``message`` keyword-only parameter.
     """
     if name is not None and type(name) is not str:
         raise TypeError("name must be a string")
