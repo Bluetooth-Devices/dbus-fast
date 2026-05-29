@@ -7,10 +7,12 @@ from typing import Any
 
 import pytest
 
-from dbus_fast import Message, MessageFlag, MessageType, SignatureTree, Variant
+from dbus_fast import Message, MessageFlag, MessageType, SignatureTree, Variant, message
 from dbus_fast._private._cython_compat import FakeCython
 from dbus_fast._private.constants import BIG_ENDIAN, LITTLE_ENDIAN
+from dbus_fast._private.marshaller import MAX_ARRAY_LENGTH, Marshaller
 from dbus_fast._private.unmarshaller import (
+    MAX_CONTAINER_DEPTH,
     MAX_MESSAGE_SIZE,
     Unmarshaller,
     buffer_to_int16,
@@ -1015,3 +1017,274 @@ def test_unmarshall_rejects_max_uint32_body_len_big_endian() -> None:
     forged = _forged_header(body_len=0xFFFFFFFF, header_len=0, endian=">")
     with pytest.raises(InvalidMessageError, match="exceeds maximum"):
         Unmarshaller(io.BytesIO(forged)).unmarshall()
+
+
+@pytest.mark.parametrize("message_type", [0, 5, 255])
+def test_unmarshall_rejects_unknown_message_type(message_type: int) -> None:
+    """A header carrying a message-type byte outside 1-4 raises InvalidMessageError."""
+    header = bytearray(b"l" + bytes([message_type, 0, 1]))
+    header += struct.pack("<I", 0)  # body_len
+    header += struct.pack("<I", 1)  # serial
+    header += struct.pack("<I", 0)  # header_len
+    with pytest.raises(InvalidMessageError, match="unknown message type"):
+        Unmarshaller(io.BytesIO(bytes(header))).unmarshall()
+
+
+@pytest.mark.skipif(
+    is_compiled(),
+    reason="_MAX_MESSAGE_SIZE is a compiled-in C constant that can't be patched",
+)
+def test_marshall_rejects_oversized_body(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A marshalled body over the cap raises before the header packs body_len."""
+    monkeypatch.setattr(message, "_MAX_MESSAGE_SIZE", 16)
+    msg = Message(path="/test", member="test", signature="ay", body=[bytes(64)])
+    with pytest.raises(InvalidMessageError, match="exceeds maximum"):
+        msg._marshall(False)
+
+
+@pytest.mark.skipif(
+    is_compiled(),
+    reason="_MAX_MESSAGE_SIZE is a compiled-in C constant that can't be patched",
+)
+def test_marshall_rejects_oversized_header_plus_body(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A body within the cap but header+body over it raises, mirroring incoming."""
+    msg = Message(path="/test", member="test", signature="ay", body=[bytes(64)])
+    body_len = len(Marshaller(msg.signature, msg.body)._marshall())
+    # Body fits exactly, so only the post-header combined check can reject it.
+    monkeypatch.setattr(message, "_MAX_MESSAGE_SIZE", body_len)
+    with pytest.raises(InvalidMessageError, match="header="):
+        msg._marshall(False)
+
+
+def _replace_body(template: bytearray, new_body: bytes) -> bytes:
+    """Swap a `v`-signature message's body bytes and fix up body_len."""
+    header_len = struct.unpack_from("<I", template, 12)[0]
+    pad = (-header_len) & 7
+    body_start = 16 + header_len + pad
+    result = bytearray(template[:body_start])
+    result.extend(new_body)
+    struct.pack_into("<I", result, 4, len(new_body))
+    return bytes(result)
+
+
+def _nested_variant_body(depth: int) -> bytes:
+    """Wire bytes for `depth` levels of variant-in-variant ending in a 'y' byte."""
+    return (b"\x01v\x00" * (depth - 1)) + b"\x01y\x00\x01"
+
+
+def _build_nested_variant_message(depth: int) -> bytes:
+    template = _build_variant_message(Variant("y", 1))
+    return _replace_body(template, _nested_variant_body(depth))
+
+
+def test_unmarshall_accepts_variant_nesting_at_cap() -> None:
+    """A message right at the cap depth must still parse."""
+    data = _build_nested_variant_message(MAX_CONTAINER_DEPTH)
+    msg = Unmarshaller(io.BytesIO(data)).unmarshall()
+    assert msg is not None
+    # Walk to the innermost byte to confirm full parse.
+    inner = msg.body[0]
+    for _ in range(MAX_CONTAINER_DEPTH - 1):
+        inner = inner.value
+    assert inner.value == 1
+
+
+def test_unmarshall_rejects_variant_nesting_above_cap() -> None:
+    """One past the cap raises InvalidMessageError before the stack blows."""
+    data = _build_nested_variant_message(MAX_CONTAINER_DEPTH + 1)
+    with pytest.raises(InvalidMessageError, match="container nesting exceeds maximum"):
+        Unmarshaller(io.BytesIO(data)).unmarshall()
+
+
+def test_unmarshall_rejects_deeply_nested_variant_dos() -> None:
+    """A million levels of variant-in-variant must be rejected, not crash."""
+    data = _build_nested_variant_message(1_000_000)
+    with pytest.raises(InvalidMessageError, match="container nesting exceeds maximum"):
+        Unmarshaller(io.BytesIO(data)).unmarshall()
+
+
+def test_unmarshall_accepts_many_sibling_variants() -> None:
+    """Many variants at the same depth must not trip the cap (siblings, not nested)."""
+    entries = {f"k{i}": Variant("y", i & 0xFF) for i in range(MAX_CONTAINER_DEPTH * 4)}
+    msg = Message(
+        message_type=MessageType.METHOD_RETURN,
+        reply_serial=1,
+        signature="a{sv}",
+        body=[entries],
+    )
+    marshalled = msg._marshall(False)
+    result = Unmarshaller(io.BytesIO(marshalled)).unmarshall()
+    assert result is not None
+    assert len(result.body[0]) == len(entries)
+
+
+def test_unmarshall_depth_counter_resets_between_messages() -> None:
+    """Two cap-depth messages back-to-back must both parse on the same unmarshaller."""
+    data1 = _build_nested_variant_message(MAX_CONTAINER_DEPTH)
+    data2 = _build_nested_variant_message(MAX_CONTAINER_DEPTH)
+    stream = io.BytesIO(data1 + data2)
+    unmarshaller = Unmarshaller(stream)
+    assert unmarshaller.unmarshall() is not None
+    assert unmarshaller.unmarshall() is not None
+
+
+def _nested_variants_then_signature(outer_count: int, inner_signature: bytes) -> bytes:
+    """`outer_count` 'v' variant levels then a final variant carrying `inner_signature`.
+
+    The final variant's value bytes are intentionally omitted; the per-reader
+    depth check raises before any value bytes are read.
+    """
+    body = bytearray()
+    for _ in range(outer_count):
+        body.extend(b"\x01v\x00")
+    body.append(len(inner_signature))
+    body.extend(inner_signature)
+    body.append(0)  # null terminator
+    return bytes(body)
+
+
+def test_unmarshall_rejects_struct_nesting_above_cap() -> None:
+    """64 'v' levels wrapping a struct trips read_struct's depth check."""
+    template = _build_variant_message(Variant("y", 1))
+    inner_body = _nested_variants_then_signature(MAX_CONTAINER_DEPTH - 1, b"(y)")
+    data = _replace_body(template, inner_body)
+    with pytest.raises(InvalidMessageError, match="container nesting exceeds maximum"):
+        Unmarshaller(io.BytesIO(data)).unmarshall()
+
+
+def test_unmarshall_rejects_array_nesting_above_cap() -> None:
+    """64 'v' levels wrapping an array trips read_array's depth check."""
+    template = _build_variant_message(Variant("y", 1))
+    inner_body = _nested_variants_then_signature(MAX_CONTAINER_DEPTH - 1, b"ay")
+    data = _replace_body(template, inner_body)
+    with pytest.raises(InvalidMessageError, match="container nesting exceeds maximum"):
+        Unmarshaller(io.BytesIO(data)).unmarshall()
+
+
+def test_unmarshall_rejects_dict_entry_nesting_above_cap() -> None:
+    """64 'v' levels wrapping a {sv} dict entry trips read_dict_entry's depth check."""
+    # `{sv}` parses as a top-level signature, so wrapping it in variants routes
+    # the deepest dispatch through self._readers["{"] = read_dict_entry rather
+    # than the inline `{` handling in read_array.
+    template = _build_variant_message(Variant("y", 1))
+    inner_body = _nested_variants_then_signature(MAX_CONTAINER_DEPTH - 1, b"{sv}")
+    data = _replace_body(template, inner_body)
+    with pytest.raises(InvalidMessageError, match="container nesting exceeds maximum"):
+        Unmarshaller(io.BytesIO(data)).unmarshall()
+
+
+def test_unmarshall_accepts_variant_of_dict_entry() -> None:
+    """A variant carrying a `{sv}` dict entry exercises read_dict_entry's success path."""
+    # Variant._construct rejects `{sv}` as a top-level signature, so we forge
+    # the body bytes directly. Routes the deepest dispatch through
+    # self._readers["{"] = read_dict_entry instead of read_array's inline path.
+    template = _build_variant_message(Variant("y", 1))
+    header_len = struct.unpack_from("<I", template, 12)[0]
+    body_start = 16 + header_len + ((-header_len) & 7)
+
+    new_body = bytearray(b"\x04{sv}\x00")  # variant header for `{sv}`
+    align_pad = (-(body_start + len(new_body))) & 7
+    new_body.extend(b"\x00" * align_pad)
+    new_body.extend(struct.pack("<I", 1))  # key length
+    new_body.extend(b"k\x00")  # key chars + null
+    new_body.extend(b"\x01y\x00\x07")  # value variant of 'y' = 7
+
+    data = _replace_body(template, bytes(new_body))
+    msg = Unmarshaller(io.BytesIO(data)).unmarshall()
+    assert msg is not None
+    outer = msg.body[0]
+    assert outer.signature == "{sv}"
+    key, value = outer.value
+    assert key == "k"
+    assert value.signature == "y"
+    assert value.value == 7
+
+
+def test_marshaller_write_dict_entry_matches_array_path() -> None:
+    """The public write_dict_entry delegate writes the same bytes as the array path."""
+    dict_entry_type = SignatureTree("a{sv}").types[0].children[0]
+    full = Marshaller("a{sv}", [{"k": Variant("s", "v")}]).marshall()
+
+    # marshall() returns the live buffer; an empty signature leaves it empty, so
+    # write_dict_entry's appends are observable without reaching into the cdef
+    # _buf attribute (which is not Python-accessible in the Cython build).
+    marshaller = Marshaller("", [])
+    buf = marshaller.marshall()
+    written = marshaller.write_dict_entry(["k", Variant("s", "v")], dict_entry_type)
+
+    # full array = 4-byte length + 4-byte alignment pad + dict-entry bytes
+    assert bytes(buf) == bytes(full[8:])
+    assert written == len(full) - 8
+
+
+def test_unmarshall_ignores_unknown_header_field_code() -> None:
+    """A header field with an unrecognized code is skipped, not crashed on."""
+    msg = Message.new_signal("/path", "test.iface", "Member")
+    data = bytearray(msg._marshall(False))
+    # Locate the PATH header field by its variant signature ('o', unique to
+    # PATH among header fields) rather than a fixed wire offset, so the test
+    # survives header layout/ordering changes. The 'y' field-code byte precedes
+    # the variant: 1-byte signature length, 'o', null terminator.
+    code_pos = data.index(b"\x01o\x00") - 1
+    assert data[code_pos] == 1  # PATH field code
+    data[code_pos] = 100  # a code outside the known 1..9 range
+
+    unmarshalled = Unmarshaller(io.BytesIO(bytes(data))).unmarshall()
+    assert unmarshalled is not None
+    # The unknown-coded field is dropped; the rest of the header is intact.
+    assert unmarshalled.path is None
+    assert unmarshalled.interface == "test.iface"
+    assert unmarshalled.member == "Member"
+
+
+def test_unmarshall_rejects_body_with_missing_signature_field() -> None:
+    """body_len > 0 with no signature header field raises InvalidMessageError."""
+    forged = _forged_header(body_len=4, header_len=0) + b"\x00\x00\x00\x00"
+    with pytest.raises(InvalidMessageError, match="signature header field"):
+        Unmarshaller(io.BytesIO(forged)).unmarshall()
+
+
+def test_unmarshall_rejects_body_with_empty_signature_field() -> None:
+    """body_len > 0 with an empty signature header field raises InvalidMessageError."""
+    # One header field: code 8 (SIGNATURE) carrying a 'g' variant of length 0.
+    field = bytes([8, 1]) + b"g\x00" + bytes([0]) + b"\x00"
+    forged = bytearray(_forged_header(body_len=4, header_len=len(field)))
+    forged += field
+    forged += b"\x00" * (-len(forged) & 7)  # align body to 8
+    forged += b"\x00\x00\x00\x00"
+    with pytest.raises(InvalidMessageError, match="signature header field"):
+        Unmarshaller(io.BytesIO(bytes(forged))).unmarshall()
+
+
+def test_unmarshall_rejects_body_with_wrong_typed_signature_field() -> None:
+    """body_len > 0 with a non-'g'-typed signature field raises InvalidMessageError."""
+    msg = Message(
+        destination="a.b",
+        path="/a",
+        interface="a.b",
+        member="M",
+        signature="s",
+        body=["hello"],
+    )
+    data = bytearray(msg._marshall(False))
+    # The SIGNATURE header field marshals as code 8 then a 'g' variant; forge
+    # the variant type byte to 'u' (uint32) so the field decodes to an int.
+    sig_field = data.index(b"\x08\x01g\x00")
+    assert data[sig_field + 2] == ord("g")
+    data[sig_field + 2] = ord("u")
+    with pytest.raises(InvalidMessageError, match="signature header field"):
+        Unmarshaller(io.BytesIO(bytes(data))).unmarshall()
+
+
+def test_marshall_rejects_oversized_byte_array() -> None:
+    """A byte array one past the 64 MiB array cap raises before being copied."""
+
+    class _OversizedBytes:
+        def __len__(self) -> int:
+            return MAX_ARRAY_LENGTH + 1
+
+    marshaller = Marshaller("ay", [_OversizedBytes()])
+    with pytest.raises(InvalidMessageError, match="exceeds maximum"):
+        marshaller.marshall()

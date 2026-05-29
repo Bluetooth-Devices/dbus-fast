@@ -4,6 +4,9 @@ from enum import Enum
 
 PROTOCOL_VERSION = 1
 
+# D-Bus spec §4.4: a single message may not exceed 128 MiB (2**27).
+MAX_MESSAGE_SIZE = 134_217_728
+
 LITTLE_ENDIAN = ord("l")
 BIG_ENDIAN = ord("B")
 

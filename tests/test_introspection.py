@@ -11,6 +11,7 @@ from dbus_fast import (
     SignatureType,
 )
 from dbus_fast import introspection as intr
+from dbus_fast.signature import get_signature_tree
 
 with open(f"{os.path.dirname(__file__)}/data/strict-introspection.xml") as f:
     strict_data = f.read()
@@ -238,3 +239,152 @@ def test_introspection_rejects_default_namespaced_root() -> None:
     payload = '<node xmlns="urn:example"><interface name="a"/></node>'
     with pytest.raises(InvalidIntrospectionError, match="node"):
         intr.Node.parse(payload)
+
+
+def test_introspection_rejects_deeply_nested_nodes() -> None:
+    """Deeply nested <node> elements are bounded to avoid stack exhaustion."""
+    depth = intr._MAX_NODE_DEPTH + 8
+    payload = "<node>" + ('<node name="x">' * depth) + ("</node>" * depth) + "</node>"
+    with pytest.raises(InvalidIntrospectionError, match="nesting"):
+        intr.Node.parse(payload)
+
+
+def test_introspection_accepts_nesting_up_to_cap() -> None:
+    """Nesting up to the cap parses without raising."""
+    depth = intr._MAX_NODE_DEPTH
+    payload = "<node>" + ('<node name="x">' * depth) + ("</node>" * depth) + "</node>"
+    node = intr.Node.parse(payload)
+    cursor = node
+    for _ in range(depth):
+        assert len(cursor.nodes) == 1
+        cursor = cursor.nodes[0]
+    assert cursor.nodes == []
+
+
+# Each wrapper routes the embedded annotation through a distinct
+# _fetch_annotations call site: interface, method, signal, property, arg.
+_ANNOTATION_CONTAINERS = [
+    '<node><interface name="a.b">{ann}</interface></node>',
+    '<node><interface name="a.b"><method name="M">{ann}</method></interface></node>',
+    '<node><interface name="a.b"><signal name="S">{ann}</signal></interface></node>',
+    '<node><interface name="a.b"><property name="P" type="s">{ann}</property></interface></node>',
+    '<node><interface name="a.b"><method name="M"><arg type="s">{ann}</arg></method></interface></node>',
+]
+
+
+@pytest.mark.parametrize("container", _ANNOTATION_CONTAINERS)
+@pytest.mark.parametrize(
+    "annotation",
+    [
+        "<annotation/>",
+        '<annotation value="x"/>',
+        '<annotation name=""/>',
+    ],
+)
+def test_introspection_rejects_annotation_missing_name(
+    container: str, annotation: str
+) -> None:
+    """A name-less annotation raises at every _fetch_annotations call site."""
+    with pytest.raises(
+        InvalidIntrospectionError, match='annotations must have a "name"'
+    ):
+        intr.Node.parse(container.format(ann=annotation))
+
+
+@pytest.mark.parametrize("container", _ANNOTATION_CONTAINERS)
+def test_introspection_rejects_annotation_missing_value(container: str) -> None:
+    """A value-less annotation raises at every _fetch_annotations call site."""
+    with pytest.raises(
+        InvalidIntrospectionError, match='annotations must have a "value"'
+    ):
+        intr.Node.parse(container.format(ann='<annotation name="x"/>'))
+
+
+def test_introspection_accepts_annotation_empty_value() -> None:
+    """An empty string value is valid and preserved (only a missing value raises)."""
+    payload = (
+        '<node><interface name="a.b"><annotation name="x" value=""/></interface></node>'
+    )
+    node = intr.Node.parse(payload)
+    assert node.interfaces[0].annotations == {"x": ""}
+
+
+@pytest.mark.parametrize(
+    ("payload", "match"),
+    [
+        ("<node><interface/></node>", 'interfaces must have a "name"'),
+        (
+            '<node><interface name="a.b"><method/></interface></node>',
+            'methods must have a "name"',
+        ),
+        (
+            '<node><interface name="a.b"><signal/></interface></node>',
+            'signals must have a "name"',
+        ),
+        (
+            '<node><interface name="a.b"><property type="s"/></interface></node>',
+            'properties must have a "name"',
+        ),
+        (
+            '<node><interface name="a.b"><property name="P"/></interface></node>',
+            'properties must have a "type"',
+        ),
+        (
+            '<node><interface name="a.b"><property name="P" type="ss"/></interface></node>',
+            "properties must have a single complete type",
+        ),
+        (
+            '<node><interface name="a.b"><method name="M"><arg/></method></interface></node>',
+            'a method argument must have a "type"',
+        ),
+        (
+            '<node><interface name="a.b"><method name="M"><arg type="ss"/></method></interface></node>',
+            "an argument must have a single complete type",
+        ),
+        ("<node><node/></node>", 'child nodes must have a "name"'),
+    ],
+)
+def test_introspection_rejects_element_missing_required_attribute(
+    payload: str, match: str
+) -> None:
+    """Each introspection element rejects malformed/missing required attributes."""
+    with pytest.raises(InvalidIntrospectionError, match=match):
+        intr.Node.parse(payload)
+
+
+def test_introspection_tostring_round_trips() -> None:
+    """tostring() emits the DOCTYPE header and re-parses to an equal tree."""
+    node = intr.Node.parse(strict_data)
+    xml = node.tostring()
+    assert xml.startswith("<!DOCTYPE node PUBLIC")
+    assert intr.Node.parse(xml).interfaces[0].name == node.interfaces[0].name
+
+
+def test_introspection_arg_to_xml_omits_unset_name_and_direction() -> None:
+    """An Arg without a name or direction serialises with just a type."""
+    assert intr.Arg("s").to_xml().attrib == {"type": "s"}
+
+
+def test_introspection_arg_accepts_signature_type() -> None:
+    """Arg accepts a parsed SignatureType in place of a signature string."""
+    sig_type = get_signature_tree("s").types[0]
+    arg = intr.Arg(sig_type)
+    assert arg.signature == "s"
+    assert arg.type is sig_type
+
+
+def test_introspection_signal_allows_none_name() -> None:
+    """Signal(None) skips member-name validation."""
+    assert intr.Signal(None).name is None
+
+
+def test_introspection_node_to_xml_omits_unset_name() -> None:
+    """A nameless Node serialises without a name attribute."""
+    assert "name" not in intr.Node().to_xml().attrib
+
+
+def test_introspection_ignores_unknown_node_children() -> None:
+    """Unknown child elements under <node> are skipped, not rejected."""
+    node = intr.Node.parse("<node><foo/></node>")
+    assert node.interfaces == []
+    assert node.nodes == []

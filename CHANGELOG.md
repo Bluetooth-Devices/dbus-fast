@@ -1,5 +1,1221 @@
 # CHANGELOG
 
+<!-- version list -->
+
+## v5.0.16 (2026-05-27)
+
+### Bug Fixes
+
+- **message_bus**: Log missing NO_REPLY_EXPECTED handler at debug
+  ([#727](https://github.com/Bluetooth-Devices/dbus-fast/pull/727),
+  [`55743cc`](https://github.com/Bluetooth-Devices/dbus-fast/commit/55743ccd7629a2d3f6f5332f934c514baaed132e))
+
+
+## v5.0.15 (2026-05-26)
+
+### Bug Fixes
+
+- **message_bus**: Skip socket shutdown when bus is already finalized
+  ([#725](https://github.com/Bluetooth-Devices/dbus-fast/pull/725),
+  [`cfa6f3e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/cfa6f3e9a71eb13cecc4d10ef4d76a76c7a8855b))
+
+### Testing
+
+- Skip blockbuster on python < 3.12
+  ([#726](https://github.com/Bluetooth-Devices/dbus-fast/pull/726),
+  [`e1012e1`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e1012e19d8ea334c2a0bef5d4ae348fdc2af1873))
+
+
+## v5.0.14 (2026-05-26)
+
+### Bug Fixes
+
+- **introspection**: Reject annotations missing name or value attribute
+  ([#705](https://github.com/Bluetooth-Devices/dbus-fast/pull/705),
+  [`c2613d0`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c2613d0d740e1c1fa272ec9e96ff9bbb71891058))
+
+
+## v5.0.13 (2026-05-25)
+
+### Bug Fixes
+
+- **message**: Reject outgoing messages over the 128 MiB D-Bus limit
+  ([#701](https://github.com/Bluetooth-Devices/dbus-fast/pull/701),
+  [`4dec60a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/4dec60a6092566f6db8aaa1a2847d46d5346a762))
+
+### Testing
+
+- Skip blockbuster on the cython matrix leg
+  ([#724](https://github.com/Bluetooth-Devices/dbus-fast/pull/724),
+  [`8caa1f2`](https://github.com/Bluetooth-Devices/dbus-fast/commit/8caa1f254de9bcba7f80576f5443ee63dab09dee))
+
+
+## v5.0.12 (2026-05-25)
+
+### Bug Fixes
+
+- **marshaller**: Reject arrays larger than the 64 MiB D-Bus limit
+  ([#700](https://github.com/Bluetooth-Devices/dbus-fast/pull/700),
+  [`e2b2599`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e2b2599232b84a0a43e5d602e4f7e00c5f5331ee))
+
+### Chores
+
+- **deps-dev**: Bump cython from 3.2.4 to 3.2.5
+  ([#723](https://github.com/Bluetooth-Devices/dbus-fast/pull/723),
+  [`44f573a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/44f573a8e53244da27fa0023387271cc7ed09873))
+
+- **deps-dev**: Bump pytest-codspeed from 5.0.2 to 5.0.3
+  ([#722](https://github.com/Bluetooth-Devices/dbus-fast/pull/722),
+  [`dad91ed`](https://github.com/Bluetooth-Devices/dbus-fast/commit/dad91ed83727d0995029c5d844aec76b6b550d13))
+
+
+## v5.0.11 (2026-05-25)
+
+### Bug Fixes
+
+- **unmarshaller**: Reject body with a malformed signature field
+  ([#704](https://github.com/Bluetooth-Devices/dbus-fast/pull/704),
+  [`6792ef2`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6792ef230284a1434a09dcbc8f5fc72ebe12895b))
+
+### Chores
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#720](https://github.com/Bluetooth-Devices/dbus-fast/pull/720),
+  [`732e554`](https://github.com/Bluetooth-Devices/dbus-fast/commit/732e55493a954270cc20d8afbebb1b4ff92409fa))
+
+### Continuous Integration
+
+- Enable additional clean ruff lint rule families
+  ([#721](https://github.com/Bluetooth-Devices/dbus-fast/pull/721),
+  [`b95eab1`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b95eab18612110ffed20499b2ab61e1597130fe3))
+
+
+## v5.0.10 (2026-05-25)
+
+### Bug Fixes
+
+- **aio**: Drop stray %s format token from message-reader error log
+  ([#715](https://github.com/Bluetooth-Devices/dbus-fast/pull/715),
+  [`1c5543e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/1c5543e00670a3a11134bd4d7e1353954a9aefc2))
+
+### Documentation
+
+- **validators**: Allow hyphens in member names
+  ([#718](https://github.com/Bluetooth-Devices/dbus-fast/pull/718),
+  [`b1ed99b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b1ed99b5cfba6cbacd32424b18309e2b5351910c))
+
+### Refactoring
+
+- **service**: Drop unused _get_handler accessor
+  ([#714](https://github.com/Bluetooth-Devices/dbus-fast/pull/714),
+  [`8fc84d5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/8fc84d5928f09d07bc39827501d9691991512382))
+
+### Testing
+
+- **benchmarks**: Add isolated bluez manufacturer-data unmarshall benchmark
+  ([#717](https://github.com/Bluetooth-Devices/dbus-fast/pull/717),
+  [`b6668b9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b6668b9d7ded53bf5f6bea9a1dbd32123a3b7788))
+
+
+## v5.0.9 (2026-05-25)
+
+### Bug Fixes
+
+- **unmarshaller**: Ignore header fields with an unknown field code
+  ([#706](https://github.com/Bluetooth-Devices/dbus-fast/pull/706),
+  [`8ac9948`](https://github.com/Bluetooth-Devices/dbus-fast/commit/8ac994801b7cc1141ca7a5d51151ce63e06f2187))
+
+
+## v5.0.8 (2026-05-25)
+
+### Bug Fixes
+
+- **unmarshaller**: Reject messages with an unknown type byte
+  ([#703](https://github.com/Bluetooth-Devices/dbus-fast/pull/703),
+  [`64f7390`](https://github.com/Bluetooth-Devices/dbus-fast/commit/64f739016ae217c58a3439e3cc37e055c4dfa66d))
+
+
+## v5.0.7 (2026-05-25)
+
+### Performance Improvements
+
+- **marshaller**: Write dict entries without a throwaway list
+  ([#713](https://github.com/Bluetooth-Devices/dbus-fast/pull/713),
+  [`5c57241`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5c57241ff5c8f69a59d956a33186262fa50fa2f5))
+
+### Testing
+
+- **benchmarks**: Add dict-heavy marshall benchmarks
+  ([#712](https://github.com/Bluetooth-Devices/dbus-fast/pull/712),
+  [`7fdd405`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7fdd405ad149a4f8b6213e38c5f7e838930df4a1))
+
+
+## v5.0.6 (2026-05-24)
+
+### Performance Improvements
+
+- **unmarshaller**: Build struct results without a generator object
+  ([#710](https://github.com/Bluetooth-Devices/dbus-fast/pull/710),
+  [`47073b9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/47073b9945bcab054a8bcca54da493a34e174b75))
+
+- **unpack**: Build unpacked tuples without a generator object
+  ([#711](https://github.com/Bluetooth-Devices/dbus-fast/pull/711),
+  [`9368c90`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9368c90239279a8bf31109d776edb0db5d098f5c))
+
+
+## v5.0.5 (2026-05-24)
+
+### Bug Fixes
+
+- **auth**: Raise AuthError on unknown server response
+  ([#702](https://github.com/Bluetooth-Devices/dbus-fast/pull/702),
+  [`28af8ea`](https://github.com/Bluetooth-Devices/dbus-fast/commit/28af8ea4c97b6539124421f4001b5ade48027a36))
+
+### Refactoring
+
+- **marshaller**: Drop unused align() and buffer wrappers
+  ([#707](https://github.com/Bluetooth-Devices/dbus-fast/pull/707),
+  [`16b952b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/16b952beb9be5e770598d9d265aca3677bebdc94))
+
+### Testing
+
+- **benchmarks**: Add systemd ListUnits array-of-structs unmarshall benchmark
+  ([#708](https://github.com/Bluetooth-Devices/dbus-fast/pull/708),
+  [`0edbfee`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0edbfee177498062fbede6ef97acb8972e069bdf))
+
+- **benchmarks**: Add unpack_variants benchmark
+  ([#709](https://github.com/Bluetooth-Devices/dbus-fast/pull/709),
+  [`5d4f2d1`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5d4f2d1cc46356b8d8ca484fa7b98adf139cc88d))
+
+
+## v5.0.4 (2026-05-23)
+
+### Bug Fixes
+
+- **signature**: Bound container nesting depth during parsing
+  ([#699](https://github.com/Bluetooth-Devices/dbus-fast/pull/699),
+  [`4c5a927`](https://github.com/Bluetooth-Devices/dbus-fast/commit/4c5a927f79b1fb5434951efc626c0ca9020cfcde))
+
+
+## v5.0.3 (2026-05-20)
+
+### Bug Fixes
+
+- **unmarshaller**: Cap container nesting depth to prevent stack overflow DoS
+  ([#698](https://github.com/Bluetooth-Devices/dbus-fast/pull/698),
+  [`ef528a6`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ef528a61b46bf85713e6a0ae83b8427e9c3bb8f3))
+
+
+## v5.0.2 (2026-05-20)
+
+### Bug Fixes
+
+- **introspection**: Bound <node> nesting depth to prevent DoS
+  ([#697](https://github.com/Bluetooth-Devices/dbus-fast/pull/697),
+  [`6870443`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6870443978cbf0232a1943519522213d601e275d))
+
+### Refactoring
+
+- **aio**: Drop dead self._stream.flush() in _authenticate()
+  ([#694](https://github.com/Bluetooth-Devices/dbus-fast/pull/694),
+  [`27e1fd2`](https://github.com/Bluetooth-Devices/dbus-fast/commit/27e1fd2a3decb07fa4c6c648861b617b08983f1e))
+
+### Testing
+
+- Drop blocking sendall in auth_readline peer-side setup
+  ([#692](https://github.com/Bluetooth-Devices/dbus-fast/pull/692),
+  [`c754780`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c754780d8e0486a3483d909e8617858ed1490f66))
+
+
+## v5.0.1 (2026-05-20)
+
+### Bug Fixes
+
+- **aio**: Send hello via sock_sendall to keep connect off the event loop
+  ([#691](https://github.com/Bluetooth-Devices/dbus-fast/pull/691),
+  [`03a2a2e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/03a2a2e080a8039bb1e9b7e3becfe4e098014571))
+
+### Continuous Integration
+
+- Key venv cache on resolved python patch version
+  ([#687](https://github.com/Bluetooth-Devices/dbus-fast/pull/687),
+  [`6c391ae`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6c391aea25c88a0366daf5afdb97af0f162b18d5))
+
+### Documentation
+
+- Add PSR insertion-flag marker to CHANGELOG
+  ([#689](https://github.com/Bluetooth-Devices/dbus-fast/pull/689),
+  [`af2dc25`](https://github.com/Bluetooth-Devices/dbus-fast/commit/af2dc257349a6dcb9132d8ee76f1bfdbba043e2b))
+
+- Regenerate CHANGELOG.md with all releases through v5.0.0
+  ([#688](https://github.com/Bluetooth-Devices/dbus-fast/pull/688),
+  [`4f77d03`](https://github.com/Bluetooth-Devices/dbus-fast/commit/4f77d03516feb1f7d4cb58f06557def68e5443b9))
+
+### Testing
+
+- Add blockbuster to detect blocking calls in asyncio tests
+  ([#690](https://github.com/Bluetooth-Devices/dbus-fast/pull/690),
+  [`b7cb49e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b7cb49ea535e466419002e97266ce3b4aa788440))
+
+
+## Unreleased
+
+### Continuous Integration
+
+- Key venv cache on resolved python patch version
+  ([#687](https://github.com/Bluetooth-Devices/dbus-fast/pull/687),
+  [`6c391ae`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6c391aea25c88a0366daf5afdb97af0f162b18d5))
+
+
+## v5.0.0 (2026-05-20)
+
+### Bug Fixes
+
+- Defer socket.connect() from __init__ to connect()
+  ([#570](https://github.com/Bluetooth-Devices/dbus-fast/pull/570),
+  [`5c9ddd9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5c9ddd930f5cf3dfe0aa5120737bcb10f04c0b7f))
+
+### Chores
+
+- **ci**: Pin action comments to full semver
+  ([#673](https://github.com/Bluetooth-Devices/dbus-fast/pull/673),
+  [`5ee2f95`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5ee2f9574b24a7307b3cae50d1671911e8d45300))
+
+- **deps-dev**: Bump idna from 3.10 to 3.15 in the pip group across 1 directory
+  ([#684](https://github.com/Bluetooth-Devices/dbus-fast/pull/684),
+  [`d59d7dc`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d59d7dcb2c9cad8294daec11247008a337edf52c))
+
+- **deps-dev**: Bump pytest-codspeed from 4.5.0 to 5.0.2
+  ([#683](https://github.com/Bluetooth-Devices/dbus-fast/pull/683),
+  [`61e71fa`](https://github.com/Bluetooth-Devices/dbus-fast/commit/61e71fabc5f1df754b2462f8f7b29cdaaa8fdaae))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#682](https://github.com/Bluetooth-Devices/dbus-fast/pull/682),
+  [`e7b3941`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e7b394101bb3ba08664a5887ad9354eeeb75183f))
+
+### Continuous Integration
+
+- Cache apt and uv downloads for the s390x big-endian job
+  ([#676](https://github.com/Bluetooth-Devices/dbus-fast/pull/676),
+  [`95e7e30`](https://github.com/Bluetooth-Devices/dbus-fast/commit/95e7e304003c60a02e10cb9a973d2f5e599919ae))
+
+- Cache apt packages for test and benchmark jobs
+  ([#674](https://github.com/Bluetooth-Devices/dbus-fast/pull/674),
+  [`b64f1b5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b64f1b573d68275a9b2e391504a2615efa0d0228))
+
+- Cache poetry venv keyed on lockfile and cython sources
+  ([#675](https://github.com/Bluetooth-Devices/dbus-fast/pull/675),
+  [`f4d9965`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f4d9965dc2274cdcc7d97151d10edddc99cd5134))
+
+- Retry poetry install to absorb transient pypi flakes
+  ([#685](https://github.com/Bluetooth-Devices/dbus-fast/pull/685),
+  [`b3b2957`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b3b295714023fdca914ef5a67937a21a826f83da))
+
+- Scope release concurrency group per ref
+  ([#677](https://github.com/Bluetooth-Devices/dbus-fast/pull/677),
+  [`37527fb`](https://github.com/Bluetooth-Devices/dbus-fast/commit/37527fba2b23221ab24c512bc05ba7ccd22a8d29))
+
+- Simplify venv cache key and consolidate poetry env
+  ([#679](https://github.com/Bluetooth-Devices/dbus-fast/pull/679),
+  [`c951cba`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c951cba1b3b3ecd9e892d7d6382c93c101e434ed))
+
+### Documentation
+
+- **contributing**: Fix grammar in submit-feedback line
+  ([#680](https://github.com/Bluetooth-Devices/dbus-fast/pull/680),
+  [`cff4e8a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/cff4e8a3c2b0de8d5e97f95f3b1c3ff4f79a8364))
+
+
+## v4.3.0 (2026-05-17)
+
+### Continuous Integration
+
+- Report top 30 slowest tests via --durations=30
+  ([#670](https://github.com/Bluetooth-Devices/dbus-fast/pull/670),
+  [`e18c504`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e18c5041a0c55c37f2652df6d1ab3084eb905e1c))
+
+- Skip benchmark tests in main test job
+  ([#672](https://github.com/Bluetooth-Devices/dbus-fast/pull/672),
+  [`4691ee0`](https://github.com/Bluetooth-Devices/dbus-fast/commit/4691ee0d03ab843ddbb93667372239b4d1f457d5))
+
+### Features
+
+- Introduce riscv64 to linux and musllinux builds
+  ([#620](https://github.com/Bluetooth-Devices/dbus-fast/pull/620),
+  [`8e112c1`](https://github.com/Bluetooth-Devices/dbus-fast/commit/8e112c1d09ebdfb5a6978c146fabd7b88153c237))
+
+
+## v4.2.8 (2026-05-17)
+
+### Bug Fixes
+
+- **ci**: Drop -- separator in release-job git switch
+  ([#668](https://github.com/Bluetooth-Devices/dbus-fast/pull/668),
+  [`e93c3e0`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e93c3e0055c27db473e49385e803dd54bc4d326a))
+
+### Build System
+
+- Adjust actions checkout ref parameter on release
+  ([#624](https://github.com/Bluetooth-Devices/dbus-fast/pull/624),
+  [`d55714e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d55714efeb28129801b1ba22385c93e178b1f63d))
+
+### Refactoring
+
+- **signature**: Drop unreachable child guards in _parse_next
+  ([#665](https://github.com/Bluetooth-Devices/dbus-fast/pull/665),
+  [`ff98e50`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ff98e50ce8653cc59e30a4eafa4217215828ee3a))
+
+
+## v4.2.7 (2026-05-16)
+
+### Bug Fixes
+
+- **signature**: Route 'o' and 'h' tokens to their dedicated validators
+  ([#663](https://github.com/Bluetooth-Devices/dbus-fast/pull/663),
+  [`54b3fd8`](https://github.com/Bluetooth-Devices/dbus-fast/commit/54b3fd801285c19d12b521a824bba48afc1475d8))
+
+
+## v4.2.6 (2026-05-16)
+
+### Continuous Integration
+
+- **s390x**: Drop pycairo/PyGObject builds and use uv for installs
+  ([#662](https://github.com/Bluetooth-Devices/dbus-fast/pull/662),
+  [`33d2c58`](https://github.com/Bluetooth-Devices/dbus-fast/commit/33d2c5828d45d5769fe29e86d88927cb750eed57))
+
+### Performance Improvements
+
+- **build**: Parallelize cython extension compilation
+  ([#664](https://github.com/Bluetooth-Devices/dbus-fast/pull/664),
+  [`28d14e0`](https://github.com/Bluetooth-Devices/dbus-fast/commit/28d14e01dae14b089013c6696da0e2cb1fb2b334))
+
+
+## v4.2.5 (2026-05-16)
+
+### Bug Fixes
+
+- **auth**: Cap auth-line buffer and treat EOF as error
+  ([#658](https://github.com/Bluetooth-Devices/dbus-fast/pull/658),
+  [`fd07e86`](https://github.com/Bluetooth-Devices/dbus-fast/commit/fd07e86edf082b499a2ed90337bf04693802a7c4))
+
+
+## v4.2.4 (2026-05-16)
+
+### Bug Fixes
+
+- Drop per-commit commitlint, rely on PR-title check
+  ([#661](https://github.com/Bluetooth-Devices/dbus-fast/pull/661),
+  [`59f16fc`](https://github.com/Bluetooth-Devices/dbus-fast/commit/59f16fc526065d5ba1e3479bcd8247788ca5b72f))
+
+
+## v4.2.3 (2026-05-16)
+
+### Bug Fixes
+
+- Stop sending python tracebacks to remote dbus callers
+  ([#659](https://github.com/Bluetooth-Devices/dbus-fast/pull/659),
+  [`f6af2eb`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f6af2eb47ac824dab1ce014b1b69e423a4db8099))
+
+
+## v4.2.2 (2026-05-15)
+
+### Bug Fixes
+
+- **signature**: Cap get_signature_tree lru_cache to 4096 entries
+  ([#657](https://github.com/Bluetooth-Devices/dbus-fast/pull/657),
+  [`62ae5d0`](https://github.com/Bluetooth-Devices/dbus-fast/commit/62ae5d0faa85b157bd8d495195d133029a354dd3))
+
+
+## v4.2.1 (2026-05-15)
+
+### Bug Fixes
+
+- **introspection**: Reject entity declarations to block billion-laughs
+  ([#655](https://github.com/Bluetooth-Devices/dbus-fast/pull/655),
+  [`54fd3e1`](https://github.com/Bluetooth-Devices/dbus-fast/commit/54fd3e17498c057b43f7168a49f28025388d07df))
+
+### Documentation
+
+- **errors**: Document DBusFastError and InternalError
+  ([#656](https://github.com/Bluetooth-Devices/dbus-fast/pull/656),
+  [`ecf6c76`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ecf6c763f119cccb75190fd726f8e066927cfba0))
+
+
+## v4.2.0 (2026-05-15)
+
+### Features
+
+- **errors**: Add InternalError so library bugs are catchable
+  ([#638](https://github.com/Bluetooth-Devices/dbus-fast/pull/638),
+  [`f0cbf2e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f0cbf2eb1d076d8d5d9b13ac966808d273e60093))
+
+
+## v4.1.1 (2026-05-15)
+
+### Bug Fixes
+
+- **unmarshaller**: Cap message size at 128 MiB per d-bus spec
+  ([#653](https://github.com/Bluetooth-Devices/dbus-fast/pull/653),
+  [`ed14eb1`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ed14eb103dab872809709107d066594c9f4a4966))
+
+### Chores
+
+- **deps-dev**: Bump pygobject from 3.50.0 to 3.56.3
+  ([#631](https://github.com/Bluetooth-Devices/dbus-fast/pull/631),
+  [`0614100`](https://github.com/Bluetooth-Devices/dbus-fast/commit/06141008ccf2b5a4784c48fd68aa6e9659c451cc))
+
+- **deps-dev**: Bump urllib3 from 2.6.3 to 2.7.0 in the pip group across 1 directory
+  ([#629](https://github.com/Bluetooth-Devices/dbus-fast/pull/629),
+  [`5d181d5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5d181d5f7c1864dfabd6f682cba76b4b93444cf0))
+
+### Continuous Integration
+
+- Ignore pygobject 3.56 AbstractEventLoopPolicy DeprecationWarning
+  ([#649](https://github.com/Bluetooth-Devices/dbus-fast/pull/649),
+  [`36d52ed`](https://github.com/Bluetooth-Devices/dbus-fast/commit/36d52ed527eef176353a4191fba114110218cadc))
+
+- Install libgirepository-2.0-dev for PyGObject 3.56+
+  ([#648](https://github.com/Bluetooth-Devices/dbus-fast/pull/648),
+  [`c1a6fee`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c1a6fee972db03a0f705c3c304d0ad21ff99afe0))
+
+- Use uv to install poetry in CI workflow
+  ([#652](https://github.com/Bluetooth-Devices/dbus-fast/pull/652),
+  [`794cbb9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/794cbb9eae8a88d511907b0bf9d38948934ba797))
+
+- Validate PR title against Conventional Commits
+  ([#635](https://github.com/Bluetooth-Devices/dbus-fast/pull/635),
+  [`7fca763`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7fca7636d91da788cf4e8267d9e83b963ec50a1d))
+
+- Widen asyncio policy DeprecationWarning filter for pygobject 3.56
+  ([#650](https://github.com/Bluetooth-Devices/dbus-fast/pull/650),
+  [`31ffd32`](https://github.com/Bluetooth-Devices/dbus-fast/commit/31ffd325e642f6e09bd0f2faa78255c331f389dc))
+
+### Documentation
+
+- Add CLAUDE.md and pr-workflow skill for LLM contributors
+  ([#646](https://github.com/Bluetooth-Devices/dbus-fast/pull/646),
+  [`cbfe1f9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/cbfe1f9ebab03232b8f944f801520d1d6751954b))
+
+- Add cython gotchas section to CLAUDE.md
+  ([#654](https://github.com/Bluetooth-Devices/dbus-fast/pull/654),
+  [`ed75962`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ed75962019476ad0297a434cd8776491d0458bd6))
+
+- Add SECURITY.md with private vulnerability reporting policy
+  ([#651](https://github.com/Bluetooth-Devices/dbus-fast/pull/651),
+  [`d64ff78`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d64ff78325370ff1d760d2f1173efd8e005017e3))
+
+### Testing
+
+- Spawn a dbus-daemon when no session bus is available
+  ([#647](https://github.com/Bluetooth-Devices/dbus-fast/pull/647),
+  [`3e06c0f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3e06c0f1521cfa922d814be0495471c014192f8c))
+
+- **address**: Cover get_session_bus_address branches
+  ([#637](https://github.com/Bluetooth-Devices/dbus-fast/pull/637),
+  [`7b85364`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7b85364f8406a61097b38843086d899a674d3eff))
+
+- **send_reply**: Close coverage gaps in SendReply
+  ([#636](https://github.com/Bluetooth-Devices/dbus-fast/pull/636),
+  [`d1e6149`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d1e614999131fb27aeeaa2988d275e8a17822813))
+
+- **signature**: Close coverage gaps in signature.py
+  ([#640](https://github.com/Bluetooth-Devices/dbus-fast/pull/640),
+  [`c6b4d7f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c6b4d7f06d31d811d592a936c61569bb4350a74b))
+
+
+## v4.1.0 (2026-05-15)
+
+### Features
+
+- **errors**: Add DBusFastError common base class
+  ([#634](https://github.com/Bluetooth-Devices/dbus-fast/pull/634),
+  [`7edf99f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7edf99feed84d3ef2da987583a7d47808d361067))
+
+
+## v4.0.5 (2026-05-14)
+
+### Bug Fixes
+
+- Avoid Python 3.15 segfault from bytearray.__new__
+  ([#633](https://github.com/Bluetooth-Devices/dbus-fast/pull/633),
+  [`e959ea0`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e959ea0a67bc0266ca263a179dce4fd69819e6b5))
+
+### Chores
+
+- **deps-ci**: Bump the github-actions group with 4 updates
+  ([#621](https://github.com/Bluetooth-Devices/dbus-fast/pull/621),
+  [`6327c66`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6327c668db3a7bd1210a3e357beb41034c3a0975))
+
+- **deps-dev**: Bump pytest from 9.0.2 to 9.0.3
+  ([#613](https://github.com/Bluetooth-Devices/dbus-fast/pull/613),
+  [`8356fc3`](https://github.com/Bluetooth-Devices/dbus-fast/commit/8356fc38b0e8b7ab4858f8d7b55fd01558304693))
+
+- **deps-dev**: Bump pytest-codspeed from 4.3.0 to 4.4.0
+  ([#616](https://github.com/Bluetooth-Devices/dbus-fast/pull/616),
+  [`b11d120`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b11d120e62ae3aeea2a9547be339a934d2f6ca9c))
+
+- **deps-dev**: Bump pytest-codspeed from 4.4.0 to 4.5.0
+  ([#627](https://github.com/Bluetooth-Devices/dbus-fast/pull/627),
+  [`58b364c`](https://github.com/Bluetooth-Devices/dbus-fast/commit/58b364cc2efe64896376ed045b7ffe2ff0eab5dd))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#630](https://github.com/Bluetooth-Devices/dbus-fast/pull/630),
+  [`1735455`](https://github.com/Bluetooth-Devices/dbus-fast/commit/17354553ac62487de410269ec3acf95a1eb1b015))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#626](https://github.com/Bluetooth-Devices/dbus-fast/pull/626),
+  [`c962471`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c96247148dc8ac59feab48656b7b9b78d433d0c3))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#617](https://github.com/Bluetooth-Devices/dbus-fast/pull/617),
+  [`000d91c`](https://github.com/Bluetooth-Devices/dbus-fast/commit/000d91c1acdc1faaacd8d4a623bdc95ddddea8da))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#615](https://github.com/Bluetooth-Devices/dbus-fast/pull/615),
+  [`89f150c`](https://github.com/Bluetooth-Devices/dbus-fast/commit/89f150c29c7e1efcebea8df66503d738f561fe31))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#614](https://github.com/Bluetooth-Devices/dbus-fast/pull/614),
+  [`ad2954e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ad2954ec86107f4ff79ff29ef1e359b580dd0786))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#611](https://github.com/Bluetooth-Devices/dbus-fast/pull/611),
+  [`0cd71d6`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0cd71d648633d7a51db9583dfbff2e5d16b1b325))
+
+### Continuous Integration
+
+- Drop deprecated cibuildwheel options p36 p37
+  ([#625](https://github.com/Bluetooth-Devices/dbus-fast/pull/625),
+  [`06220c4`](https://github.com/Bluetooth-Devices/dbus-fast/commit/06220c485cee63c6782a69bcadbaadf2d025c7df))
+
+### Testing
+
+- **validators**: Close coverage gaps in is_*/assert_* paths
+  ([#632](https://github.com/Bluetooth-Devices/dbus-fast/pull/632),
+  [`265be56`](https://github.com/Bluetooth-Devices/dbus-fast/commit/265be56776e9d807d84e0304593caa21f7ab1ee5))
+
+
+## v4.0.4 (2026-04-02)
+
+### Performance Improvements
+
+- Avoid Python truth test for reply_serial in _read_body
+  ([#607](https://github.com/Bluetooth-Devices/dbus-fast/pull/607),
+  [`20c06e9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/20c06e9f40833a81d03f924899aa713beecd4f5a))
+
+- Reduce function call overhead in variant unmarshalling
+  ([#605](https://github.com/Bluetooth-Devices/dbus-fast/pull/605),
+  [`2c79a81`](https://github.com/Bluetooth-Devices/dbus-fast/commit/2c79a8151529dce57ca5d6378bc11c8aac242bd3))
+
+
+## v4.0.3 (2026-04-02)
+
+### Bug Fixes
+
+- **bench**: Run benchmarks in tight loop for CodSpeed accuracy
+  ([#609](https://github.com/Bluetooth-Devices/dbus-fast/pull/609),
+  [`0bdf254`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0bdf25481bc84defa225473b478d894b3c5d15b3))
+
+### Chores
+
+- **deps-dev**: Bump pytest from 8.4.2 to 9.0.2
+  ([#573](https://github.com/Bluetooth-Devices/dbus-fast/pull/573),
+  [`08219a6`](https://github.com/Bluetooth-Devices/dbus-fast/commit/08219a68affa4ca0ea63c69449ae1ef99cc37c6d))
+
+- **deps-dev**: Bump requests from 2.32.4 to 2.33.0 in the pip group across 1 directory
+  ([#603](https://github.com/Bluetooth-Devices/dbus-fast/pull/603),
+  [`96dc654`](https://github.com/Bluetooth-Devices/dbus-fast/commit/96dc654f941877b79a587d5de1167415395e2472))
+
+### Continuous Integration
+
+- Switch benchmark to Python 3.14 ([#608](https://github.com/Bluetooth-Devices/dbus-fast/pull/608),
+  [`6a3d354`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6a3d35417ab08bc8c169cbd555c3dd76bf6fae74))
+
+
+## v4.0.2 (2026-04-02)
+
+### Chores
+
+- **deps**: Bump sphinx-rtd-theme from 3.0.2 to 3.1.0
+  ([#588](https://github.com/Bluetooth-Devices/dbus-fast/pull/588),
+  [`4194cb0`](https://github.com/Bluetooth-Devices/dbus-fast/commit/4194cb03400cc2b4205a2c62786fcd31804e1128))
+
+- **deps-dev**: Bump setuptools from 80.9.0 to 82.0.1
+  ([#600](https://github.com/Bluetooth-Devices/dbus-fast/pull/600),
+  [`f85b1a0`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f85b1a00bf3fa82a609bcbac0663cfbe1e47f989))
+
+### Performance Improvements
+
+- Reuse bytearray buffer in _next_message instead of allocating
+  ([#597](https://github.com/Bluetooth-Devices/dbus-fast/pull/597),
+  [`e3f09aa`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e3f09aa119f0b414c968c5b3a6d9a7297f1559fa))
+
+
+## v4.0.1 (2026-04-02)
+
+### Bug Fixes
+
+- **bench**: Cache bound methods to avoid _PyObject_GetMethod overhead
+  ([#606](https://github.com/Bluetooth-Devices/dbus-fast/pull/606),
+  [`e161c4e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e161c4e4d517cc41aa48441f93b2d764d8729c4c))
+
+### Chores
+
+- **deps-ci**: Bump the github-actions group across 1 directory with 7 updates
+  ([#604](https://github.com/Bluetooth-Devices/dbus-fast/pull/604),
+  [`065ef42`](https://github.com/Bluetooth-Devices/dbus-fast/commit/065ef421ee853d05338f625eeb659156a65614db))
+
+- **deps-dev**: Bump pytest-codspeed from 4.2.0 to 4.3.0
+  ([#590](https://github.com/Bluetooth-Devices/dbus-fast/pull/590),
+  [`8a1c9bc`](https://github.com/Bluetooth-Devices/dbus-fast/commit/8a1c9bc13f5afdec215223021e333114be5325c9))
+
+- **deps-dev**: Bump pytest-cov from 7.0.0 to 7.1.0
+  ([#602](https://github.com/Bluetooth-Devices/dbus-fast/pull/602),
+  [`dfa9663`](https://github.com/Bluetooth-Devices/dbus-fast/commit/dfa9663ef00e1e1662f2e7bcb0dd132a80000e99))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#591](https://github.com/Bluetooth-Devices/dbus-fast/pull/591),
+  [`b90ec2f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b90ec2fc19d615f67e8cb50d26563464e3759edd))
+
+### Documentation
+
+- Fix example imports of decorators in README
+  ([#585](https://github.com/Bluetooth-Devices/dbus-fast/pull/585),
+  [`5c61e6f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5c61e6f4f8c345e7eee6457bdabc164885bbded6))
+
+
+## v4.0.0 (2026-02-01)
+
+### Chores
+
+- **deps**: Bump myst-parser from 3.0.1 to 4.0.1
+  ([#557](https://github.com/Bluetooth-Devices/dbus-fast/pull/557),
+  [`0d2bc8f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0d2bc8f108ec5bd9b69d0ef9fc3b5db78132a9e7))
+
+- **deps**: Bump myst-parser from 4.0.0 to 4.0.1
+  ([#565](https://github.com/Bluetooth-Devices/dbus-fast/pull/565),
+  [`a327310`](https://github.com/Bluetooth-Devices/dbus-fast/commit/a3273106b984515bf96fdd0ca55f2c3902fe059d))
+
+- **deps**: Bump sphinx from 7.4.7 to 8.1.3
+  ([#566](https://github.com/Bluetooth-Devices/dbus-fast/pull/566),
+  [`fb38783`](https://github.com/Bluetooth-Devices/dbus-fast/commit/fb38783e4a12cc9a90db0cb3d8fc99bd7c281d5a))
+
+- **deps**: Bump sphinx-rtd-theme from 3.0.2 to 3.1.0
+  ([#582](https://github.com/Bluetooth-Devices/dbus-fast/pull/582),
+  [`9685e6e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9685e6e632f932ac3f82b2d0078ecb67e4676d58))
+
+- **deps-ci**: Bump the github-actions group with 5 updates
+  ([#564](https://github.com/Bluetooth-Devices/dbus-fast/pull/564),
+  [`2b9d987`](https://github.com/Bluetooth-Devices/dbus-fast/commit/2b9d98707ec0c9d10e0f68197135b67939e937fb))
+
+- **deps-ci**: Bump the github-actions group with 6 updates
+  ([#579](https://github.com/Bluetooth-Devices/dbus-fast/pull/579),
+  [`86c4fa2`](https://github.com/Bluetooth-Devices/dbus-fast/commit/86c4fa2fde68565a1efead36dbd5800eb40dc95d))
+
+- **deps-dev**: Bump cython from 3.2.0 to 3.2.1
+  ([#558](https://github.com/Bluetooth-Devices/dbus-fast/pull/558),
+  [`b41c7e5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b41c7e5eb863fbfe1364b2b9d100818779c497a5))
+
+- **deps-dev**: Bump cython from 3.2.1 to 3.2.2
+  ([#567](https://github.com/Bluetooth-Devices/dbus-fast/pull/567),
+  [`8627bb4`](https://github.com/Bluetooth-Devices/dbus-fast/commit/8627bb4552ee400be080610c02e7dd2a90f805ca))
+
+- **deps-dev**: Bump cython from 3.2.2 to 3.2.3
+  ([#575](https://github.com/Bluetooth-Devices/dbus-fast/pull/575),
+  [`46d23da`](https://github.com/Bluetooth-Devices/dbus-fast/commit/46d23dafc79b38342b71a41fe75aa2b378525fb7))
+
+- **deps-dev**: Bump cython from 3.2.3 to 3.2.4
+  ([#580](https://github.com/Bluetooth-Devices/dbus-fast/pull/580),
+  [`22f35d9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/22f35d966e37b870794ac514faa907e06081ac7a))
+
+- **deps-dev**: Bump pycairo from 1.28.0 to 1.29.0
+  ([#556](https://github.com/Bluetooth-Devices/dbus-fast/pull/556),
+  [`bcacf57`](https://github.com/Bluetooth-Devices/dbus-fast/commit/bcacf575b053ee3d6eeda5757491d58cf74a1e94))
+
+- **deps-dev**: Bump pytest-asyncio from 1.2.0 to 1.3.0
+  ([#572](https://github.com/Bluetooth-Devices/dbus-fast/pull/572),
+  [`383275a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/383275aab13de13d1737c44a5e6c53921ac6cb7e))
+
+- **deps-dev**: Bump urllib3 from 2.5.0 to 2.6.0 in the pip group across 1 directory
+  ([#571](https://github.com/Bluetooth-Devices/dbus-fast/pull/571),
+  [`b9d8c0e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b9d8c0e21fc8969e9a4464b453e78da5c354daec))
+
+- **deps-dev**: Bump urllib3 from 2.6.0 to 2.6.3 in the pip group across 1 directory
+  ([#581](https://github.com/Bluetooth-Devices/dbus-fast/pull/581),
+  [`593f907`](https://github.com/Bluetooth-Devices/dbus-fast/commit/593f907854de8ac9328369745bdc23f1fb198aaa))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#576](https://github.com/Bluetooth-Devices/dbus-fast/pull/576),
+  [`35b4163`](https://github.com/Bluetooth-Devices/dbus-fast/commit/35b41632b17866cbf9e55a20188736f6cf16bf28))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#574](https://github.com/Bluetooth-Devices/dbus-fast/pull/574),
+  [`650cf0a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/650cf0a44f62aa1fb8a4f34afa83c4bfc56b05d3))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#568](https://github.com/Bluetooth-Devices/dbus-fast/pull/568),
+  [`d94e5a6`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d94e5a68e770eb3454858c1f724b05b6df07b16f))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#559](https://github.com/Bluetooth-Devices/dbus-fast/pull/559),
+  [`d4389e5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d4389e50d4abfdad2024311a2dc9d0181d4e5175))
+
+### Continuous Integration
+
+- Apt-get update before apt-get install
+  ([#577](https://github.com/Bluetooth-Devices/dbus-fast/pull/577),
+  [`cbbe616`](https://github.com/Bluetooth-Devices/dbus-fast/commit/cbbe616e18b07183c571a359ef4dcd4dfdd1fc95))
+
+### Documentation
+
+- Fix unix_fds parameter types ([#554](https://github.com/Bluetooth-Devices/dbus-fast/pull/554),
+  [`fa28774`](https://github.com/Bluetooth-Devices/dbus-fast/commit/fa28774e8e759028eb20ca343b83b0ad261e4ea4))
+
+- Wrap lines in docs ([#547](https://github.com/Bluetooth-Devices/dbus-fast/pull/547),
+  [`6c93986`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6c9398627f5c6b65d0d5dd9327c1ce86c3e5a3ed))
+
+### Features
+
+- Annotated types for D-Bus signatures
+  ([#563](https://github.com/Bluetooth-Devices/dbus-fast/pull/563),
+  [`9c20ca2`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9c20ca2a0af27019ed39df1583a0cab7a3c0587f))
+
+
+## v3.1.2 (2025-11-17)
+
+### Bug Fixes
+
+- Stricter type hints for service decorators
+  ([#549](https://github.com/Bluetooth-Devices/dbus-fast/pull/549),
+  [`b967cce`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b967cce5928f6c33dbbf0fe5e76064220ae65da2))
+
+
+## v3.1.1 (2025-11-17)
+
+### Bug Fixes
+
+- Fix service getter/setter tasks tracking
+  ([#550](https://github.com/Bluetooth-Devices/dbus-fast/pull/550),
+  [`9aa8f56`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9aa8f5617470ec1b16225de6e7a6283f4fadd4f9))
+
+### Chores
+
+- Fix missing backtick in SignatureTree docstring
+  ([#552](https://github.com/Bluetooth-Devices/dbus-fast/pull/552),
+  [`8af089e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/8af089e56ba24492aeebcaa541a1186b9e78c4d7))
+
+- Remove stray `~.`s from the docs ([#553](https://github.com/Bluetooth-Devices/dbus-fast/pull/553),
+  [`546da7e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/546da7ee0858ac1e261986db7d689b2cbd9d150f))
+
+
+## v3.1.0 (2025-11-16)
+
+### Chores
+
+- Add staticmethod decorators to from_xml() methods
+  ([#546](https://github.com/Bluetooth-Devices/dbus-fast/pull/546),
+  [`5d4b499`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5d4b4995c720d00d000605c51310b51bd12d5f04))
+
+- Use cls for classmethods ([#545](https://github.com/Bluetooth-Devices/dbus-fast/pull/545),
+  [`d87af15`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d87af153ffb130c7c9510469302bf8b1c9d4c883))
+
+### Features
+
+- Change aio MessageBus.call return type to Message
+  ([#548](https://github.com/Bluetooth-Devices/dbus-fast/pull/548),
+  [`ea93352`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ea93352476b605413764176605148bc61b5531e9))
+
+
+## v3.0.0 (2025-11-16)
+
+### Chores
+
+- Change pytest warning flag from default to errors
+  ([#540](https://github.com/Bluetooth-Devices/dbus-fast/pull/540),
+  [`ecf5f45`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ecf5f4578822a9e132c93c1403f4f93c76ae398f))
+
+### Features
+
+- Use tuple for STRUCT types instead of list
+  ([#526](https://github.com/Bluetooth-Devices/dbus-fast/pull/526),
+  [`7d96850`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7d968503c9d319b63f1a3385c14cf7f5d593adf0))
+
+
+## v2.46.4 (2025-11-16)
+
+### Bug Fixes
+
+- Enable freethreading in Cython modules
+  ([#544](https://github.com/Bluetooth-Devices/dbus-fast/pull/544),
+  [`095e86e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/095e86e6f71d9299996ad7cac395f8f35b3c1398))
+
+### Chores
+
+- Fix type hints in test_send_reply.py
+  ([#543](https://github.com/Bluetooth-Devices/dbus-fast/pull/543),
+  [`fa1aedb`](https://github.com/Bluetooth-Devices/dbus-fast/commit/fa1aedbde33655b5e2ca0954256e996dc3a1d4e7))
+
+- Ignore C files generated by Cython
+  ([#541](https://github.com/Bluetooth-Devices/dbus-fast/pull/541),
+  [`aaee4bb`](https://github.com/Bluetooth-Devices/dbus-fast/commit/aaee4bb7258187de7e4b8cde8a8a09065a7811ab))
+
+- Replace asyncio.iscoroutinefunction with inspect.iscoroutinefunction
+  ([#542](https://github.com/Bluetooth-Devices/dbus-fast/pull/542),
+  [`9de4dba`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9de4dbaf8c43eb5f4c1cf68d59f6ed1da80b7b81))
+
+
+## v2.46.3 (2025-11-16)
+
+### Bug Fixes
+
+- Move call to close socket ([#538](https://github.com/Bluetooth-Devices/dbus-fast/pull/538),
+  [`e3e956d`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e3e956d01a27b1124c635bcc370fd288c95923cf))
+
+
+## v2.46.2 (2025-11-16)
+
+### Bug Fixes
+
+- Close socket file handle to prevent resource leak
+  ([#539](https://github.com/Bluetooth-Devices/dbus-fast/pull/539),
+  [`62cfad4`](https://github.com/Bluetooth-Devices/dbus-fast/commit/62cfad486ddc0e7435f81029f6083fccc01b10c0))
+
+
+## v2.46.1 (2025-11-16)
+
+### Bug Fixes
+
+- **message_bus**: Prevent socket leak on connection error
+  ([#491](https://github.com/Bluetooth-Devices/dbus-fast/pull/491),
+  [`c58709d`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c58709d7441e34db17e52422e71c60029470a789))
+
+### Chores
+
+- Always wait for disconnect in async tests
+  ([#534](https://github.com/Bluetooth-Devices/dbus-fast/pull/534),
+  [`99ca0b4`](https://github.com/Bluetooth-Devices/dbus-fast/commit/99ca0b45ffd7ae03c5b7b58f7a201817ef4cf539))
+
+
+## v2.46.0 (2025-11-16)
+
+### Features
+
+- Rename method and signal decorators to dbus_method and dbus_signal
+  ([#528](https://github.com/Bluetooth-Devices/dbus-fast/pull/528),
+  [`3667203`](https://github.com/Bluetooth-Devices/dbus-fast/commit/36672038851c86a48c2bd4018bf0fc197bb905d4))
+
+
+## v2.45.3 (2025-11-16)
+
+### Bug Fixes
+
+- Ordering in BaseMessageBus.export()
+  ([#535](https://github.com/Bluetooth-Devices/dbus-fast/pull/535),
+  [`6690f13`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6690f1336c65eba9688c9ff84d7982841023c41c))
+
+
+## v2.45.2 (2025-11-16)
+
+### Bug Fixes
+
+- Drop Python 3.9 support to fix CI
+  ([#537](https://github.com/Bluetooth-Devices/dbus-fast/pull/537),
+  [`04fb21c`](https://github.com/Bluetooth-Devices/dbus-fast/commit/04fb21c6ba642b48692d226bff43c9bdd56dfda8))
+
+### Chores
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#536](https://github.com/Bluetooth-Devices/dbus-fast/pull/536),
+  [`797d245`](https://github.com/Bluetooth-Devices/dbus-fast/commit/797d2457a194022b168acd8399d880100583300f))
+
+
+## v2.45.1 (2025-11-08)
+
+### Bug Fixes
+
+- Raise ValueError if same interface instance is exported again
+  ([#530](https://github.com/Bluetooth-Devices/dbus-fast/pull/530),
+  [`d6aec58`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d6aec58439a88639f4bab3ac86db100fcfaf9f83))
+
+
+## v2.45.0 (2025-11-08)
+
+### Chores
+
+- **deps-dev**: Bump cython from 3.1.6 to 3.2.0
+  ([#524](https://github.com/Bluetooth-Devices/dbus-fast/pull/524),
+  [`1894544`](https://github.com/Bluetooth-Devices/dbus-fast/commit/1894544aaa7e7f4ad7263b9f40911ceb25d6909a))
+
+### Features
+
+- Add cython support for Cython 3.2+
+  ([#533](https://github.com/Bluetooth-Devices/dbus-fast/pull/533),
+  [`c2e106c`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c2e106cee010fdcff7cca68a6777965e8146dc91))
+
+
+## v2.44.6 (2025-11-08)
+
+### Bug Fixes
+
+- Add missing type hint to Node.nodes attribute
+  ([#525](https://github.com/Bluetooth-Devices/dbus-fast/pull/525),
+  [`b2738b9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b2738b9141eaa9345f1d83b9f9c58435613a8ae4))
+
+### Chores
+
+- Remove bus._sock.close() from tests
+  ([#529](https://github.com/Bluetooth-Devices/dbus-fast/pull/529),
+  [`459a1ab`](https://github.com/Bluetooth-Devices/dbus-fast/commit/459a1aba2d42b36425bbfc39b7fe1d33ce9e9c82))
+
+- **deps-ci**: Bump the github-actions group with 5 updates
+  ([#521](https://github.com/Bluetooth-Devices/dbus-fast/pull/521),
+  [`eb75cf4`](https://github.com/Bluetooth-Devices/dbus-fast/commit/eb75cf4a1b19c9f3b6abba70e38d533005a5553d))
+
+- **deps-dev**: Bump cython from 3.1.4 to 3.1.6
+  ([#519](https://github.com/Bluetooth-Devices/dbus-fast/pull/519),
+  [`2d108e5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/2d108e5977c9b2f5c15ab02616c93e107fa0aee3))
+
+- **deps-dev**: Bump pytest-codspeed from 4.0.0 to 4.2.0
+  ([#520](https://github.com/Bluetooth-Devices/dbus-fast/pull/520),
+  [`72c6c36`](https://github.com/Bluetooth-Devices/dbus-fast/commit/72c6c36535bf3e4748475dc6d33a7059481c7264))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#522](https://github.com/Bluetooth-Devices/dbus-fast/pull/522),
+  [`32f60e2`](https://github.com/Bluetooth-Devices/dbus-fast/commit/32f60e22a45d9b1f84adac17a3d2c81c3ff5fec6))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#515](https://github.com/Bluetooth-Devices/dbus-fast/pull/515),
+  [`dffb6e9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/dffb6e9a801b0291a9c88c88bb0adc1191e7419f))
+
+
+## v2.44.5 (2025-10-04)
+
+### Bug Fixes
+
+- Cibuildwheel sha ([#514](https://github.com/Bluetooth-Devices/dbus-fast/pull/514),
+  [`9edb983`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9edb983766e3f731846f65a23e043ef73485c949))
+
+
+## v2.44.4 (2025-10-04)
+
+### Bug Fixes
+
+- Add wheels for Python 3.14 ([#511](https://github.com/Bluetooth-Devices/dbus-fast/pull/511),
+  [`36cbb30`](https://github.com/Bluetooth-Devices/dbus-fast/commit/36cbb30a6ba281606d33cd4d7afa8240356914de))
+
+### Chores
+
+- Switch to using cibuildwheel action
+  ([#513](https://github.com/Bluetooth-Devices/dbus-fast/pull/513),
+  [`dd0a6e9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/dd0a6e941a671e4de592b3f6eca83489bd5cb6a7))
+
+- **deps-ci**: Bump the github-actions group with 5 updates
+  ([#497](https://github.com/Bluetooth-Devices/dbus-fast/pull/497),
+  [`691f551`](https://github.com/Bluetooth-Devices/dbus-fast/commit/691f551ccdef1e35a21d98e51ed7cc1f5e2175c6))
+
+- **deps-ci**: Bump the github-actions group with 7 updates
+  ([#510](https://github.com/Bluetooth-Devices/dbus-fast/pull/510),
+  [`380af8e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/380af8eebb4f654b18b34d015f9d7d39d8519e7b))
+
+- **deps-dev**: Bump cython from 3.1.2 to 3.1.3
+  ([#493](https://github.com/Bluetooth-Devices/dbus-fast/pull/493),
+  [`3249dc5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3249dc53b73385370afeef54d6aea24b7bfe187b))
+
+- **deps-dev**: Bump cython from 3.1.3 to 3.1.4
+  ([#508](https://github.com/Bluetooth-Devices/dbus-fast/pull/508),
+  [`b96a651`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b96a65128bbf374d616327487653a3b507f04ce0))
+
+- **deps-dev**: Bump pytest from 8.4.1 to 8.4.2
+  ([#498](https://github.com/Bluetooth-Devices/dbus-fast/pull/498),
+  [`1194f08`](https://github.com/Bluetooth-Devices/dbus-fast/commit/1194f08fa184d7c92ec4aa9f3339376744e5c552))
+
+- **deps-dev**: Bump pytest-asyncio from 1.1.0 to 1.2.0
+  ([#503](https://github.com/Bluetooth-Devices/dbus-fast/pull/503),
+  [`44b7612`](https://github.com/Bluetooth-Devices/dbus-fast/commit/44b7612317984ec157d28834134cd22d7cf49703))
+
+- **deps-dev**: Bump pytest-cov from 6.2.1 to 6.3.0
+  ([#499](https://github.com/Bluetooth-Devices/dbus-fast/pull/499),
+  [`74aef97`](https://github.com/Bluetooth-Devices/dbus-fast/commit/74aef977dd592bb0f54cc2baaa73d155947988ef))
+
+- **deps-dev**: Bump pytest-cov from 6.3.0 to 7.0.0
+  ([#504](https://github.com/Bluetooth-Devices/dbus-fast/pull/504),
+  [`534890a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/534890ae31e47cd8fc575a8abff6f82ca8cc32c4))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#506](https://github.com/Bluetooth-Devices/dbus-fast/pull/506),
+  [`572cf40`](https://github.com/Bluetooth-Devices/dbus-fast/commit/572cf40c3873d5098aa5884b4a442ece15739980))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#501](https://github.com/Bluetooth-Devices/dbus-fast/pull/501),
+  [`b65f7fd`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b65f7fd0fc0fb2b6cf303e5049c58a2c7330d70c))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#496](https://github.com/Bluetooth-Devices/dbus-fast/pull/496),
+  [`e4d5164`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e4d516421a06129e604521919fb345c4dbc70d36))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#492](https://github.com/Bluetooth-Devices/dbus-fast/pull/492),
+  [`8679747`](https://github.com/Bluetooth-Devices/dbus-fast/commit/8679747756c98703fdc93da5423eec180dd4bc17))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#490](https://github.com/Bluetooth-Devices/dbus-fast/pull/490),
+  [`5afc3a9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5afc3a9db283055a7af05dc29fab4cb34c4dddb0))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#488](https://github.com/Bluetooth-Devices/dbus-fast/pull/488),
+  [`fd8db13`](https://github.com/Bluetooth-Devices/dbus-fast/commit/fd8db131e3d798f1c983a92c400abe2b3f2873ed))
+
+
+## v2.44.3 (2025-08-04)
+
+### Bug Fixes
+
+- Passing multiple fds ([#484](https://github.com/Bluetooth-Devices/dbus-fast/pull/484),
+  [`38bc9af`](https://github.com/Bluetooth-Devices/dbus-fast/commit/38bc9af522d3b2777f1578b9d5a3b52eafaf4f9f))
+
+### Chores
+
+- **deps-ci**: Bump CodSpeedHQ/action from 3.5.0 to 3.8.0 in the github-actions group
+  ([#487](https://github.com/Bluetooth-Devices/dbus-fast/pull/487),
+  [`e7a538d`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e7a538d1a32d5acebbb81fed5ca00dbcfbac6c5d))
+
+- **deps-dev**: Bump pytest-asyncio from 0.26.0 to 1.1.0
+  ([#481](https://github.com/Bluetooth-Devices/dbus-fast/pull/481),
+  [`44a940b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/44a940be17215c1cd98e211aec9c121e6173d9da))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#485](https://github.com/Bluetooth-Devices/dbus-fast/pull/485),
+  [`f6baaf4`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f6baaf4b2bddf143d8b61fa5a9893e1e36124719))
+
+### Testing
+
+- Replace deprecated `event_loop` fixture
+  ([#482](https://github.com/Bluetooth-Devices/dbus-fast/pull/482),
+  [`9b9019a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9b9019ab3de191d9bb8cea9a62e0d2d7ccd93e7a))
+
+
+## v2.44.2 (2025-07-22)
+
+### Bug Fixes
+
+- Correct ServiceInterface signature
+  ([#474](https://github.com/Bluetooth-Devices/dbus-fast/pull/474),
+  [`cd0a09c`](https://github.com/Bluetooth-Devices/dbus-fast/commit/cd0a09c97b675e4a6c5db24e6a29cd3881d6fabc))
+
+### Chores
+
+- **deps-ci**: Bump python-semantic-release/python-semantic-release from 10.0.2 to 10.2.0 in the
+  github-actions group ([#479](https://github.com/Bluetooth-Devices/dbus-fast/pull/479),
+  [`49c757e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/49c757e1d81ed29902d746546ee5db2848896d93))
+
+- **deps-ci**: Bump the github-actions group with 2 updates
+  ([#466](https://github.com/Bluetooth-Devices/dbus-fast/pull/466),
+  [`76383b7`](https://github.com/Bluetooth-Devices/dbus-fast/commit/76383b7209513564ace0a1cff502afb0d8df151e))
+
+- **deps-ci**: Bump the github-actions group with 3 updates
+  ([#455](https://github.com/Bluetooth-Devices/dbus-fast/pull/455),
+  [`680449b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/680449b629c7fd4c9ed0af0f2a188a9d61732b1e))
+
+- **deps-dev**: Bump cython from 3.0.12 to 3.1.1
+  ([#463](https://github.com/Bluetooth-Devices/dbus-fast/pull/463),
+  [`88b4811`](https://github.com/Bluetooth-Devices/dbus-fast/commit/88b48114543063addab85c50f049b0178597aa6f))
+
+- **deps-dev**: Bump cython from 3.1.1 to 3.1.2
+  ([#469](https://github.com/Bluetooth-Devices/dbus-fast/pull/469),
+  [`4604005`](https://github.com/Bluetooth-Devices/dbus-fast/commit/46040053e71ad10b3ba4bd6e169f0282aa6cb439))
+
+- **deps-dev**: Bump pycairo from 1.27.0 to 1.28.0
+  ([#451](https://github.com/Bluetooth-Devices/dbus-fast/pull/451),
+  [`491d01d`](https://github.com/Bluetooth-Devices/dbus-fast/commit/491d01d6988a15950f4fbfa7eba06a29d3ca9a58))
+
+- **deps-dev**: Bump pytest from 8.3.5 to 8.4.0
+  ([#468](https://github.com/Bluetooth-Devices/dbus-fast/pull/468),
+  [`545c374`](https://github.com/Bluetooth-Devices/dbus-fast/commit/545c37405ee55aeb23cc01890b4f0c8ccad10d1f))
+
+- **deps-dev**: Bump pytest from 8.4.0 to 8.4.1
+  ([#478](https://github.com/Bluetooth-Devices/dbus-fast/pull/478),
+  [`b9468a3`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b9468a3e26e9ff06e7081bbdf801e89ee073dffc))
+
+- **deps-dev**: Bump pytest-codspeed from 3.2.0 to 4.0.0
+  ([#480](https://github.com/Bluetooth-Devices/dbus-fast/pull/480),
+  [`def4744`](https://github.com/Bluetooth-Devices/dbus-fast/commit/def47443ac924f8c086055215fbf5501fe771fee))
+
+- **deps-dev**: Bump pytest-cov from 6.0.0 to 6.1.1
+  ([#447](https://github.com/Bluetooth-Devices/dbus-fast/pull/447),
+  [`fd08d2a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/fd08d2a0647345cc1f410103db24dfe1293bbb74))
+
+- **deps-dev**: Bump pytest-cov from 6.1.1 to 6.2.1
+  ([#471](https://github.com/Bluetooth-Devices/dbus-fast/pull/471),
+  [`793cee8`](https://github.com/Bluetooth-Devices/dbus-fast/commit/793cee823da40522a5f1e451324c9488d2677ea8))
+
+- **deps-dev**: Bump pytest-timeout from 2.3.1 to 2.4.0
+  ([#460](https://github.com/Bluetooth-Devices/dbus-fast/pull/460),
+  [`8421cf5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/8421cf587850ec9c8303cffc50d91d98b52abc5e))
+
+- **deps-dev**: Bump requests from 2.32.3 to 2.32.4 in the pip group
+  ([#470](https://github.com/Bluetooth-Devices/dbus-fast/pull/470),
+  [`7f56406`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7f5640680c9584606960b79f7acaae11868f48dc))
+
+- **deps-dev**: Bump setuptools from 78.1.0 to 79.0.0
+  ([#450](https://github.com/Bluetooth-Devices/dbus-fast/pull/450),
+  [`3f45637`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3f4563721db36b41cadd7f40b1928796c5578a86))
+
+- **deps-dev**: Bump setuptools from 79.0.0 to 80.0.0
+  ([#453](https://github.com/Bluetooth-Devices/dbus-fast/pull/453),
+  [`36ba3f9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/36ba3f932bb739ce971d844220e0d52d2f2b843e))
+
+- **deps-dev**: Bump setuptools from 80.0.0 to 80.3.1
+  ([#457](https://github.com/Bluetooth-Devices/dbus-fast/pull/457),
+  [`98ba851`](https://github.com/Bluetooth-Devices/dbus-fast/commit/98ba851088385e4e98cd2e6e8244e1e318146859))
+
+- **deps-dev**: Bump setuptools from 80.3.1 to 80.4.0
+  ([#459](https://github.com/Bluetooth-Devices/dbus-fast/pull/459),
+  [`7ab47b8`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7ab47b89401cf750d942ae306e50e55229e2614f))
+
+- **deps-dev**: Bump setuptools from 80.4.0 to 80.8.0
+  ([#464](https://github.com/Bluetooth-Devices/dbus-fast/pull/464),
+  [`44b6d30`](https://github.com/Bluetooth-Devices/dbus-fast/commit/44b6d309d8d5fd6888862650a368be148eb66096))
+
+- **deps-dev**: Bump setuptools from 80.8.0 to 80.9.0
+  ([#467](https://github.com/Bluetooth-Devices/dbus-fast/pull/467),
+  [`4eceec3`](https://github.com/Bluetooth-Devices/dbus-fast/commit/4eceec3269c3dee561a87ad7d2fdfee7f9a5b2b1))
+
+- **deps-dev**: Bump urllib3 from 2.3.0 to 2.5.0 in the pip group
+  ([#475](https://github.com/Bluetooth-Devices/dbus-fast/pull/475),
+  [`10f0107`](https://github.com/Bluetooth-Devices/dbus-fast/commit/10f0107c83178ff12862771e93f9c516794edcea))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#476](https://github.com/Bluetooth-Devices/dbus-fast/pull/476),
+  [`899bbe1`](https://github.com/Bluetooth-Devices/dbus-fast/commit/899bbe19e7aaaf63e2044f8e70434a7931368ece))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#465](https://github.com/Bluetooth-Devices/dbus-fast/pull/465),
+  [`7760510`](https://github.com/Bluetooth-Devices/dbus-fast/commit/776051034a535643bd7b0b55affe61b5294c3457))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#461](https://github.com/Bluetooth-Devices/dbus-fast/pull/461),
+  [`78b6fa6`](https://github.com/Bluetooth-Devices/dbus-fast/commit/78b6fa689295373628494bfa1bef07a08748549a))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#458](https://github.com/Bluetooth-Devices/dbus-fast/pull/458),
+  [`57f033b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/57f033b71196925661f0b1222b90c0832a3895dc))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#454](https://github.com/Bluetooth-Devices/dbus-fast/pull/454),
+  [`5a00261`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5a002615f8962177b65a5e7de1ea73c9f74c4656))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#452](https://github.com/Bluetooth-Devices/dbus-fast/pull/452),
+  [`7bd8feb`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7bd8febff714abf20e458ac8216ca1fd8c895ee3))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#449](https://github.com/Bluetooth-Devices/dbus-fast/pull/449),
+  [`2cd6d27`](https://github.com/Bluetooth-Devices/dbus-fast/commit/2cd6d27804ff6a99169f4632e0ae9438eadbad72))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#448](https://github.com/Bluetooth-Devices/dbus-fast/pull/448),
+  [`cdce6f1`](https://github.com/Bluetooth-Devices/dbus-fast/commit/cdce6f1c5dcb79dd038ecca886065149fde7f406))
+
 
 ## v2.44.1 (2025-04-03)
 
@@ -26,10 +1242,6 @@
   ([#439](https://github.com/Bluetooth-Devices/dbus-fast/pull/439),
   [`33332d9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/33332d9ec0bc980a68916457bcb59c04a3673a01))
 
-Signed-off-by: dependabot[bot] <support@github.com>
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **deps-dev**: Bump setuptools from 78.0.1 to 78.1.0
   ([#444](https://github.com/Bluetooth-Devices/dbus-fast/pull/444),
   [`f59d9f9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f59d9f92c795c7aa0c62000a0c7a6c0a86d89337))
@@ -37,8 +1249,6 @@ Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.c
 - **pre-commit.ci**: Pre-commit autoupdate
   ([#440](https://github.com/Bluetooth-Devices/dbus-fast/pull/440),
   [`f00f224`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f00f224da36f5a4340ec6641853722f6d7243dfb))
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
 
 ### Features
 
@@ -83,15 +1293,13 @@ Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.gi
 
 ### Features
 
-- Improve performance of unmarshalling boolean Variants
+- Improve performance of boolean Variants
   ([#431](https://github.com/Bluetooth-Devices/dbus-fast/pull/431),
   [`888a3c3`](https://github.com/Bluetooth-Devices/dbus-fast/commit/888a3c3ea57e1d8c5f415f2efdf7aa6eed5c9fcd))
 
-* feat: improve performance of boolean Variants
-
-There are only two of these type and relatively common so we can use pre-constructed objects
-
-* chore: tweaks
+- Improve performance of unmarshalling boolean Variants
+  ([#431](https://github.com/Bluetooth-Devices/dbus-fast/pull/431),
+  [`888a3c3`](https://github.com/Bluetooth-Devices/dbus-fast/commit/888a3c3ea57e1d8c5f415f2efdf7aa6eed5c9fcd))
 
 
 ## v2.40.0 (2025-03-23)
@@ -101,32 +1309,22 @@ There are only two of these type and relatively common so we can use pre-constru
 - Add socket unmarshall benchmark ([#428](https://github.com/Bluetooth-Devices/dbus-fast/pull/428),
   [`1802f35`](https://github.com/Bluetooth-Devices/dbus-fast/commit/1802f35ce9267d8af728045ba47277779af7fea7))
 
-* chore: add socket unmarshall benchmark
+- Bench multiple messages ([#428](https://github.com/Bluetooth-Devices/dbus-fast/pull/428),
+  [`1802f35`](https://github.com/Bluetooth-Devices/dbus-fast/commit/1802f35ce9267d8af728045ba47277779af7fea7))
 
-* chore: bench multiple messages
+- Fix violations ([#427](https://github.com/Bluetooth-Devices/dbus-fast/pull/427),
+  [`bfc8151`](https://github.com/Bluetooth-Devices/dbus-fast/commit/bfc8151005e143c961421d4e2c5e05ac58964100))
 
 - Remove lower python bound from PyGObject
   ([#425](https://github.com/Bluetooth-Devices/dbus-fast/pull/425),
   [`28615ee`](https://github.com/Bluetooth-Devices/dbus-fast/commit/28615ee7eb00d7e50f68818f8c9915a1f570c8e5))
 
+- **pre-commit.ci**: Auto fixes ([#427](https://github.com/Bluetooth-Devices/dbus-fast/pull/427),
+  [`bfc8151`](https://github.com/Bluetooth-Devices/dbus-fast/commit/bfc8151005e143c961421d4e2c5e05ac58964100))
+
 - **pre-commit.ci**: Pre-commit autoupdate
   ([#427](https://github.com/Bluetooth-Devices/dbus-fast/pull/427),
   [`bfc8151`](https://github.com/Bluetooth-Devices/dbus-fast/commit/bfc8151005e143c961421d4e2c5e05ac58964100))
-
-* chore(pre-commit.ci): pre-commit autoupdate
-
-updates: - [github.com/astral-sh/ruff-pre-commit: v0.1.0 →
-  v0.11.0](https://github.com/astral-sh/ruff-pre-commit/compare/v0.1.0...v0.11.0)
-
-* chore(pre-commit.ci): auto fixes
-
-* chore: fix violations
-
----------
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
 
 ### Features
 
@@ -139,18 +1337,13 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
 
 ### Bug Fixes
 
-- Don't limit python upper bound ([#424](https://github.com/Bluetooth-Devices/dbus-fast/pull/424),
+- Adjust pygobject pin to required python < 4 (see
+  https://gitlab.gnome.org/GNOME/pygobject/-/merge_requests/418)
+  ([#424](https://github.com/Bluetooth-Devices/dbus-fast/pull/424),
   [`9cafbb6`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9cafbb6a0b70d975b73889ded99e2e0a6af2b467))
 
-This requires all projects that depend on dbus-fast to have to set the same limit, which is an
-  unnecessary burden.
-
-* fix: adjust pygobject pin to required python < 4 (see
-  https://gitlab.gnome.org/GNOME/pygobject/-/merge_requests/418)
-
----------
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
+- Don't limit python upper bound ([#424](https://github.com/Bluetooth-Devices/dbus-fast/pull/424),
+  [`9cafbb6`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9cafbb6a0b70d975b73889ded99e2e0a6af2b467))
 
 ### Chores
 
@@ -209,11 +1402,17 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
   ([#415](https://github.com/Bluetooth-Devices/dbus-fast/pull/415),
   [`f64eb58`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f64eb58573e068ad731f6dc268dd903dee2e66af))
 
-* chore: add more coverage for big endian systems
+- Should have been unsigned int ([#415](https://github.com/Bluetooth-Devices/dbus-fast/pull/415),
+  [`f64eb58`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f64eb58573e068ad731f6dc268dd903dee2e66af))
 
-* chore: fix overflow
+### Chores
 
-* fix: should have been unsigned int
+- Add more coverage for big endian systems
+  ([#415](https://github.com/Bluetooth-Devices/dbus-fast/pull/415),
+  [`f64eb58`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f64eb58573e068ad731f6dc268dd903dee2e66af))
+
+- Fix overflow ([#415](https://github.com/Bluetooth-Devices/dbus-fast/pull/415),
+  [`f64eb58`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f64eb58573e068ad731f6dc268dd903dee2e66af))
 
 
 ## v2.39.1 (2025-03-07)
@@ -241,9 +1440,6 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
   ([#412](https://github.com/Bluetooth-Devices/dbus-fast/pull/412),
   [`5068e41`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5068e41488e71499265e1fc3ea7d4210821e09a2))
 
-- Added `SignatureTree` type in a few more places to avoid python lookups - Improved performance and
-  reduced code to create `Variant` object
-
 
 ## v2.38.0 (2025-03-06)
 
@@ -258,10 +1454,6 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
   ([#410](https://github.com/Bluetooth-Devices/dbus-fast/pull/410),
   [`4887160`](https://github.com/Bluetooth-Devices/dbus-fast/commit/488716020e275ef777454724d2ab41cfc050b40a))
 
-* feat: improve performance of checking SignatureType tokens
-
-* chore: fixes
-
 
 ## v2.37.1 (2025-03-06)
 
@@ -272,25 +1464,18 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
 
 ### Chores
 
-- Add s390x tests ([#408](https://github.com/Bluetooth-Devices/dbus-fast/pull/408),
-  [`81ce030`](https://github.com/Bluetooth-Devices/dbus-fast/commit/81ce03058a64e9fd304981ef9e05bf6415dc1fb3))
-
 - Add more coverage for marshall ([#406](https://github.com/Bluetooth-Devices/dbus-fast/pull/406),
   [`ed38f69`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ed38f690f5926b17354810c51ac0dee900d9f01e))
+
+- Add s390x tests ([#408](https://github.com/Bluetooth-Devices/dbus-fast/pull/408),
+  [`81ce030`](https://github.com/Bluetooth-Devices/dbus-fast/commit/81ce03058a64e9fd304981ef9e05bf6415dc1fb3))
 
 - Fix type for hello message constant
   ([#407](https://github.com/Bluetooth-Devices/dbus-fast/pull/407),
   [`df5325a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/df5325a7ef80de544e16783deec3ea183e02d6ba))
 
-core: fix type for hello message constant
-
 - Update deps ([#404](https://github.com/Bluetooth-Devices/dbus-fast/pull/404),
   [`6dca98d`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6dca98d68af494641c91cf53949fe207188b99a3))
-
-dependabot is still broken with poetry 2
-
-- Updating certifi (2024.12.14 -> 2025.1.31) - Updating babel (2.16.0 -> 2.17.0) - Updating jinja2
-  (3.1.5 -> 3.1.6) - Updating coverage (7.6.10 -> 7.6.12)
 
 
 ## v2.37.0 (2025-03-06)
@@ -309,13 +1494,12 @@ dependabot is still broken with poetry 2
 - Add covdefaults ([#401](https://github.com/Bluetooth-Devices/dbus-fast/pull/401),
   [`dc3d8e7`](https://github.com/Bluetooth-Devices/dbus-fast/commit/dc3d8e7609f37a2f064a45ae525c5ce5711ea272))
 
+- Typing fixes ([#402](https://github.com/Bluetooth-Devices/dbus-fast/pull/402),
+  [`640e1f8`](https://github.com/Bluetooth-Devices/dbus-fast/commit/640e1f8d87a753d6721dae77ee94ff8702a2f508))
+
 - Upgrade typing on private modules
   ([#402](https://github.com/Bluetooth-Devices/dbus-fast/pull/402),
   [`640e1f8`](https://github.com/Bluetooth-Devices/dbus-fast/commit/640e1f8d87a753d6721dae77ee94ff8702a2f508))
-
-* chore: upgrade typing on private modules
-
-* chore: typing fixes
 
 ### Features
 
@@ -331,38 +1515,18 @@ dependabot is still broken with poetry 2
 - Reduce size of wheels ([#399](https://github.com/Bluetooth-Devices/dbus-fast/pull/399),
   [`6531b93`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6531b93a5ba5447494818cf7f8c38454b1338052))
 
-first attempt failed to change the correct constant in build_ext.py
-
 
 ## v2.35.0 (2025-03-05)
 
 ### Chores
 
+- **deps-ci**: Bump python-semantic-release/python-semantic-release
+  ([#394](https://github.com/Bluetooth-Devices/dbus-fast/pull/394),
+  [`a7e1a90`](https://github.com/Bluetooth-Devices/dbus-fast/commit/a7e1a907e360c1f3fc01a62a414693782f536e61))
+
 - **deps-ci**: Bump python-semantic-release/python-semantic-release from 9.17.0 to 9.21.0 in the
   github-actions group ([#394](https://github.com/Bluetooth-Devices/dbus-fast/pull/394),
   [`a7e1a90`](https://github.com/Bluetooth-Devices/dbus-fast/commit/a7e1a907e360c1f3fc01a62a414693782f536e61))
-
-chore(deps-ci): bump python-semantic-release/python-semantic-release
-
-Bumps the github-actions group with 1 update:
-  [python-semantic-release/python-semantic-release](https://github.com/python-semantic-release/python-semantic-release).
-
-Updates `python-semantic-release/python-semantic-release` from 9.17.0 to 9.21.0 - [Release
-  notes](https://github.com/python-semantic-release/python-semantic-release/releases) -
-  [Changelog](https://github.com/python-semantic-release/python-semantic-release/blob/master/CHANGELOG.rst)
-  -
-  [Commits](https://github.com/python-semantic-release/python-semantic-release/compare/v9.17.0...v9.21.0)
-
---- updated-dependencies: - dependency-name: python-semantic-release/python-semantic-release
-  dependency-type: direct:production
-
-update-type: version-update:semver-minor
-
-dependency-group: github-actions ...
-
-Signed-off-by: dependabot[bot] <support@github.com>
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
 
 - **deps-dev**: Bump pytest from 8.3.4 to 8.3.5
   ([#395](https://github.com/Bluetooth-Devices/dbus-fast/pull/395),
@@ -373,28 +1537,17 @@ Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.c
   [`2623a74`](https://github.com/Bluetooth-Devices/dbus-fast/commit/2623a7412afeb906b2863b05fefb0d94e8881dcb))
 
 - **pre-commit.ci**: Pre-commit autoupdate
-  ([#392](https://github.com/Bluetooth-Devices/dbus-fast/pull/392),
-  [`3ef89bf`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3ef89bfbf45592401dae60bf93104e063f082160))
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
-- **pre-commit.ci**: Pre-commit autoupdate
   ([#397](https://github.com/Bluetooth-Devices/dbus-fast/pull/397),
   [`3dd7c35`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3dd7c358fad92ef7dcb42c361ebac367f10e3ce2))
 
-updates: - [github.com/commitizen-tools/commitizen: v4.2.2 →
-  v4.4.1](https://github.com/commitizen-tools/commitizen/compare/v4.2.2...v4.4.1) -
-  [github.com/astral-sh/ruff-pre-commit: v0.9.7 →
-  v0.9.9](https://github.com/astral-sh/ruff-pre-commit/compare/v0.9.7...v0.9.9)
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#392](https://github.com/Bluetooth-Devices/dbus-fast/pull/392),
+  [`3ef89bf`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3ef89bfbf45592401dae60bf93104e063f082160))
 
 ### Features
 
 - Reduce size of wheels ([#398](https://github.com/Bluetooth-Devices/dbus-fast/pull/398),
   [`a4c2743`](https://github.com/Bluetooth-Devices/dbus-fast/commit/a4c2743420f619d8808413d8877b2c9badc5f3f0))
-
-Compile with -g0 to reduce the binary size
 
 
 ## v2.34.0 (2025-02-24)
@@ -405,13 +1558,9 @@ Compile with -g0 to reduce the binary size
   ([#391](https://github.com/Bluetooth-Devices/dbus-fast/pull/391),
   [`5f26f5d`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5f26f5d58c5e0ed6251c66ab4724f27a383500a0))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **pre-commit.ci**: Pre-commit autoupdate
   ([#389](https://github.com/Bluetooth-Devices/dbus-fast/pull/389),
   [`c713bf3`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c713bf3de994564c92628f92bdf341fbf813c8f4))
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
 
 ### Features
 
@@ -434,8 +1583,6 @@ Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.gi
 - **pre-commit.ci**: Pre-commit autoupdate
   ([#386](https://github.com/Bluetooth-Devices/dbus-fast/pull/386),
   [`0a9e4c5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0a9e4c5a2140f20f580c67bed2a68ff0ac524b62))
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
 
 ### Features
 
@@ -482,10 +1629,6 @@ Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.gi
   ([#372](https://github.com/Bluetooth-Devices/dbus-fast/pull/372),
   [`94ba266`](https://github.com/Bluetooth-Devices/dbus-fast/commit/94ba26653987b7200cfb85ed92d46ea5d95a95a0))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
-
 - Bump upload/download artifact to v4
   ([#370](https://github.com/Bluetooth-Devices/dbus-fast/pull/370),
   [`29be224`](https://github.com/Bluetooth-Devices/dbus-fast/commit/29be224be7fd05970aa5473b8e86810c8978ab6c))
@@ -512,33 +1655,21 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
   ([#379](https://github.com/Bluetooth-Devices/dbus-fast/pull/379),
   [`1aab230`](https://github.com/Bluetooth-Devices/dbus-fast/commit/1aab2304398de8a3dd7789efe4f82fb04eb54e37))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **deps-dev**: Bump pytest from 7.4.4 to 8.3.4
   ([#334](https://github.com/Bluetooth-Devices/dbus-fast/pull/334),
   [`9ad3873`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9ad38730d57d92bf621d5ed799369b63e15aa1c0))
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
 
 - **deps-dev**: Bump pytest-asyncio from 0.23.8 to 0.25.2
   ([#373](https://github.com/Bluetooth-Devices/dbus-fast/pull/373),
   [`922840b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/922840ba9d537a60b139f5becfd993fe84b1d50d))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
-- **pre-commit.ci**: Pre-commit autoupdate
-  ([#369](https://github.com/Bluetooth-Devices/dbus-fast/pull/369),
-  [`9953959`](https://github.com/Bluetooth-Devices/dbus-fast/commit/995395953045969103361d08bf4f5de52ebe8790))
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
 - **pre-commit.ci**: Pre-commit autoupdate
   ([#378](https://github.com/Bluetooth-Devices/dbus-fast/pull/378),
   [`b58620a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b58620afd8e4981162677464689d2afd4474621d))
 
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#369](https://github.com/Bluetooth-Devices/dbus-fast/pull/369),
+  [`9953959`](https://github.com/Bluetooth-Devices/dbus-fast/commit/995395953045969103361d08bf4f5de52ebe8790))
 
 
 ## v2.30.2 (2025-01-17)
@@ -585,35 +1716,23 @@ Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.gi
   ([#362](https://github.com/Bluetooth-Devices/dbus-fast/pull/362),
   [`e7750ca`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e7750caed5791aef0cbb8c62e82ccabf02f65df7))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **deps-dev**: Bump pytest-cov from 5.0.0 to 6.0.0
   ([#363](https://github.com/Bluetooth-Devices/dbus-fast/pull/363),
   [`244ea83`](https://github.com/Bluetooth-Devices/dbus-fast/commit/244ea83a31631c54b3d97ad47b91786e1d02387f))
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
 
 - **deps-dev**: Bump setuptools from 75.7.0 to 75.8.0
   ([#364](https://github.com/Bluetooth-Devices/dbus-fast/pull/364),
   [`8eee3a8`](https://github.com/Bluetooth-Devices/dbus-fast/commit/8eee3a82fdf2f2fde2dac52c4854b16e8bf0ac8d))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **pre-commit.ci**: Pre-commit autoupdate
   ([#365](https://github.com/Bluetooth-Devices/dbus-fast/pull/365),
   [`e006a1e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e006a1e861df6c3368f10600f6c390becae15c5c))
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
 
 ### Features
 
 - **introspect**: Implement annotations
   ([#359](https://github.com/Bluetooth-Devices/dbus-fast/pull/359),
   [`5b61869`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5b61869baec88cd1382419f4580c345473543493))
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
 
 
 ## v2.28.0 (2025-01-07)
@@ -711,8 +1830,6 @@ Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.gi
   ([#338](https://github.com/Bluetooth-Devices/dbus-fast/pull/338),
   [`42a786b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/42a786b23ff519d653d8accf7950b18604f3070a))
 
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
 - Split wheel builds to speed up releases
   ([#341](https://github.com/Bluetooth-Devices/dbus-fast/pull/341),
   [`439b2da`](https://github.com/Bluetooth-Devices/dbus-fast/commit/439b2da8789d7e0ca0a70e4d4c074666248bd492))
@@ -720,37 +1837,25 @@ Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.gi
 - Switch to ruff ([#339](https://github.com/Bluetooth-Devices/dbus-fast/pull/339),
   [`eda3706`](https://github.com/Bluetooth-Devices/dbus-fast/commit/eda37061c4b4068a2fd6b051f9becfc8ae7bba10))
 
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+- **deps**: Bump sphinx-rtd-theme from 3.0.1 to 3.0.2
+  ([#335](https://github.com/Bluetooth-Devices/dbus-fast/pull/335),
+  [`663b371`](https://github.com/Bluetooth-Devices/dbus-fast/commit/663b37136f1b75245292d6bc6633e3184ff3d228))
 
 - **deps**: Bump sphinx-rtd-theme from 3.0.1 to 3.0.2
   ([#332](https://github.com/Bluetooth-Devices/dbus-fast/pull/332),
   [`42ef44a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/42ef44a4aa38491b7608f84d84a6349aa11703e6))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
-- **deps**: Bump sphinx-rtd-theme from 3.0.1 to 3.0.2
-  ([#335](https://github.com/Bluetooth-Devices/dbus-fast/pull/335),
-  [`663b371`](https://github.com/Bluetooth-Devices/dbus-fast/commit/663b37136f1b75245292d6bc6633e3184ff3d228))
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **pre-commit.ci**: Pre-commit autoupdate
-  ([#333](https://github.com/Bluetooth-Devices/dbus-fast/pull/333),
-  [`b5c01a9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b5c01a926c95d6e65c2c597846596373393c88a2))
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+  ([#337](https://github.com/Bluetooth-Devices/dbus-fast/pull/337),
+  [`471e680`](https://github.com/Bluetooth-Devices/dbus-fast/commit/471e68035470b2f6b29500347ec3e0443dc3648e))
 
 - **pre-commit.ci**: Pre-commit autoupdate
   ([#336](https://github.com/Bluetooth-Devices/dbus-fast/pull/336),
   [`ea24a86`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ea24a86c1b2bb2b25da8e892a641bcd4e6b24b30))
 
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
 - **pre-commit.ci**: Pre-commit autoupdate
-  ([#337](https://github.com/Bluetooth-Devices/dbus-fast/pull/337),
-  [`471e680`](https://github.com/Bluetooth-Devices/dbus-fast/commit/471e68035470b2f6b29500347ec3e0443dc3648e))
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+  ([#333](https://github.com/Bluetooth-Devices/dbus-fast/pull/333),
+  [`b5c01a9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b5c01a926c95d6e65c2c597846596373393c88a2))
 
 
 ## v2.24.4 (2024-11-15)
@@ -767,51 +1872,33 @@ Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.gi
   ([#319](https://github.com/Bluetooth-Devices/dbus-fast/pull/319),
   [`f30bc57`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f30bc57bbad6e3fa2c62956233d171dfc9e7f3d9))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **deps**: Bump sphinx-rtd-theme from 2.0.0 to 3.0.1
   ([#322](https://github.com/Bluetooth-Devices/dbus-fast/pull/322),
   [`3131841`](https://github.com/Bluetooth-Devices/dbus-fast/commit/31318414720ecaa4b86ac8afbdb20066c9f43e07))
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
 
 - **deps**: Bump sphinx-rtd-theme from 3.0.0 to 3.0.1
   ([#326](https://github.com/Bluetooth-Devices/dbus-fast/pull/326),
   [`2831f9c`](https://github.com/Bluetooth-Devices/dbus-fast/commit/2831f9cc3633d4c6e47232f741213da2adbaf71a))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **deps-dev**: Bump setuptools from 75.1.0 to 75.2.0
   ([#324](https://github.com/Bluetooth-Devices/dbus-fast/pull/324),
   [`fa3faa8`](https://github.com/Bluetooth-Devices/dbus-fast/commit/fa3faa86eec5568d74db2d1b8aa4c9af18b236f1))
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
 
 - **deps-dev**: Bump setuptools from 75.2.0 to 75.3.0
   ([#328](https://github.com/Bluetooth-Devices/dbus-fast/pull/328),
   [`83bb550`](https://github.com/Bluetooth-Devices/dbus-fast/commit/83bb5502ed17a1d8256d27ef86079c3688d5a3cd))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **pre-commit.ci**: Pre-commit autoupdate
-  ([#320](https://github.com/Bluetooth-Devices/dbus-fast/pull/320),
-  [`46bc330`](https://github.com/Bluetooth-Devices/dbus-fast/commit/46bc3304a31149c3a0c4fdc3aa2047ea2232a22d))
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
+  ([#327](https://github.com/Bluetooth-Devices/dbus-fast/pull/327),
+  [`4d3acc4`](https://github.com/Bluetooth-Devices/dbus-fast/commit/4d3acc49659779e6d3d2a57ed47ede49ce6b4208))
 
 - **pre-commit.ci**: Pre-commit autoupdate
   ([#323](https://github.com/Bluetooth-Devices/dbus-fast/pull/323),
   [`9e2f17a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9e2f17a974fa7b2defdccc5038ace446567bb0b0))
 
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
 - **pre-commit.ci**: Pre-commit autoupdate
-  ([#327](https://github.com/Bluetooth-Devices/dbus-fast/pull/327),
-  [`4d3acc4`](https://github.com/Bluetooth-Devices/dbus-fast/commit/4d3acc49659779e6d3d2a57ed47ede49ce6b4208))
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+  ([#320](https://github.com/Bluetooth-Devices/dbus-fast/pull/320),
+  [`46bc330`](https://github.com/Bluetooth-Devices/dbus-fast/commit/46bc3304a31149c3a0c4fdc3aa2047ea2232a22d))
 
 
 ## v2.24.3 (2024-10-05)
@@ -828,19 +1915,13 @@ Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.gi
   ([#312](https://github.com/Bluetooth-Devices/dbus-fast/pull/312),
   [`34d0d46`](https://github.com/Bluetooth-Devices/dbus-fast/commit/34d0d461c8764ae4aca0992909a22f03bf7d3133))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **deps-dev**: Bump setuptools from 74.1.2 to 75.1.0
   ([#314](https://github.com/Bluetooth-Devices/dbus-fast/pull/314),
   [`aaa1e1e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/aaa1e1e0ea5a399897eaf185ce696f03d17ff4a9))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **pre-commit.ci**: Pre-commit autoupdate
   ([#317](https://github.com/Bluetooth-Devices/dbus-fast/pull/317),
   [`f2de447`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f2de4472dde27ca7dc1a83f049fbb89e0b2c6bb9))
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
 
 
 ## v2.24.2 (2024-09-06)
@@ -865,19 +1946,13 @@ Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.gi
   ([#306](https://github.com/Bluetooth-Devices/dbus-fast/pull/306),
   [`8b3e95c`](https://github.com/Bluetooth-Devices/dbus-fast/commit/8b3e95c6cc6d9e8396d2ee6b1883df700fb3f23b))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **deps**: Bump sphinx from 5.2.3 to 7.1.2
   ([#307](https://github.com/Bluetooth-Devices/dbus-fast/pull/307),
   [`e393611`](https://github.com/Bluetooth-Devices/dbus-fast/commit/e393611fbf44f5f0598c8f7762034356a893cdbb))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **deps-dev**: Bump setuptools from 73.0.1 to 74.0.0
   ([#308](https://github.com/Bluetooth-Devices/dbus-fast/pull/308),
   [`757a742`](https://github.com/Bluetooth-Devices/dbus-fast/commit/757a7424d20efc61f2de1f5f447277fd17eb94ed))
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
 
 
 ## v2.24.0 (2024-08-26)
@@ -885,46 +1960,32 @@ Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.c
 ### Chores
 
 - **deps**: Bump myst-parser from 0.18.1 to 1.0.0
-  ([#296](https://github.com/Bluetooth-Devices/dbus-fast/pull/296),
-  [`b225cca`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b225cca97a60a8c05b892d438b461904efc42fa2))
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
-- **deps**: Bump myst-parser from 0.18.1 to 1.0.0
   ([#304](https://github.com/Bluetooth-Devices/dbus-fast/pull/304),
   [`0b372ea`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0b372eac98e962c349d1933472d37085fb5abad7))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+- **deps**: Bump myst-parser from 0.18.1 to 1.0.0
+  ([#296](https://github.com/Bluetooth-Devices/dbus-fast/pull/296),
+  [`b225cca`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b225cca97a60a8c05b892d438b461904efc42fa2))
 
 - **deps**: Bump myst-parser from 1.0.0 to 3.0.1
   ([#305](https://github.com/Bluetooth-Devices/dbus-fast/pull/305),
   [`dae0088`](https://github.com/Bluetooth-Devices/dbus-fast/commit/dae00881a7922af67a5d1076a31bc295d43f5e14))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **deps**: Bump sphinx from 5.2.3 to 6.2.1
   ([#300](https://github.com/Bluetooth-Devices/dbus-fast/pull/300),
   [`ad1e078`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ad1e078ee9d11ab8bcffe3df8e20f2d0337a2dd1))
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
-- **deps**: Bump sphinx-rtd-theme from 1.0.0 to 2.0.0
-  ([#293](https://github.com/Bluetooth-Devices/dbus-fast/pull/293),
-  [`95df9a6`](https://github.com/Bluetooth-Devices/dbus-fast/commit/95df9a6265b62d9e7f0c243f1cf5b0e64a18f369))
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
 
 - **deps**: Bump sphinx-rtd-theme from 1.0.0 to 2.0.0
   ([#302](https://github.com/Bluetooth-Devices/dbus-fast/pull/302),
   [`6e496eb`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6e496eb222ed3c20627c0fc7c2c3f2e5f0dfb807))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+- **deps**: Bump sphinx-rtd-theme from 1.0.0 to 2.0.0
+  ([#293](https://github.com/Bluetooth-Devices/dbus-fast/pull/293),
+  [`95df9a6`](https://github.com/Bluetooth-Devices/dbus-fast/commit/95df9a6265b62d9e7f0c243f1cf5b0e64a18f369))
 
 - **deps-dev**: Bump pytest-cov from 3.0.0 to 5.0.0
   ([#301](https://github.com/Bluetooth-Devices/dbus-fast/pull/301),
   [`84c7346`](https://github.com/Bluetooth-Devices/dbus-fast/commit/84c73467ac43218091320989b3e32f8a36840c23))
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
 
 ### Features
 
@@ -941,72 +2002,40 @@ Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.c
   ([#298](https://github.com/Bluetooth-Devices/dbus-fast/pull/298),
   [`705ad28`](https://github.com/Bluetooth-Devices/dbus-fast/commit/705ad28ce7bd5b455d643101ba9ad682d503360b))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **deps-dev**: Bump cython from 0.29.37 to 3.0.11
   ([#292](https://github.com/Bluetooth-Devices/dbus-fast/pull/292),
   [`8b4cdef`](https://github.com/Bluetooth-Devices/dbus-fast/commit/8b4cdefe3e20e8eccdbfbe6402e0593cc8134bbd))
-
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
 
 - **deps-dev**: Bump pytest-asyncio from 0.19.0 to 0.23.8
   ([#294](https://github.com/Bluetooth-Devices/dbus-fast/pull/294),
   [`f946183`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f9461831f49a1172af5a77df3138bdffbd94c61b))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
 - **deps-dev**: Bump setuptools from 65.7.0 to 73.0.1
   ([#295](https://github.com/Bluetooth-Devices/dbus-fast/pull/295),
   [`af4989b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/af4989b7f71eb9f77e92832901aeeeee4c7f8504))
 
-Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-
-- **pre-commit.ci**: Pre-commit autoupdate
-  ([#286](https://github.com/Bluetooth-Devices/dbus-fast/pull/286),
+- **pre-commit.ci**: Auto fixes ([#286](https://github.com/Bluetooth-Devices/dbus-fast/pull/286),
   [`5d9bb92`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5d9bb92da6e363320b8afa5942e6f0b4a4ecd4d0))
-
-* chore(pre-commit.ci): pre-commit autoupdate
-
-updates: - [github.com/commitizen-tools/commitizen: v2.32.4 →
-  v3.27.0](https://github.com/commitizen-tools/commitizen/compare/v2.32.4...v3.27.0) -
-  [github.com/pre-commit/pre-commit-hooks: v4.3.0 →
-  v4.6.0](https://github.com/pre-commit/pre-commit-hooks/compare/v4.3.0...v4.6.0) -
-  [github.com/pre-commit/mirrors-prettier: v2.7.1 →
-  v4.0.0-alpha.8](https://github.com/pre-commit/mirrors-prettier/compare/v2.7.1...v4.0.0-alpha.8) -
-  [github.com/asottile/pyupgrade: v2.37.3 →
-  v3.16.0](https://github.com/asottile/pyupgrade/compare/v2.37.3...v3.16.0) -
-  [github.com/PyCQA/isort: 5.12.0 → 5.13.2](https://github.com/PyCQA/isort/compare/5.12.0...5.13.2)
-  - [github.com/psf/black: 22.8.0 → 24.4.2](https://github.com/psf/black/compare/22.8.0...24.4.2)
-
-* chore(pre-commit.ci): auto fixes
-
----------
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
-- **pre-commit.ci**: Pre-commit autoupdate
-  ([#287](https://github.com/Bluetooth-Devices/dbus-fast/pull/287),
-  [`b508e1f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b508e1fc5fbd4f5200b1fa46c913569fc02f6f4e))
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
-- **pre-commit.ci**: Pre-commit autoupdate
-  ([#288](https://github.com/Bluetooth-Devices/dbus-fast/pull/288),
-  [`c960552`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c96055289d697b847e93ed4f4c7fc7c1893e1642))
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
-
-- **pre-commit.ci**: Pre-commit autoupdate
-  ([#289](https://github.com/Bluetooth-Devices/dbus-fast/pull/289),
-  [`398f643`](https://github.com/Bluetooth-Devices/dbus-fast/commit/398f643f718e15903183f480726d959e0d85c4da))
-
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
 
 - **pre-commit.ci**: Pre-commit autoupdate
   ([#290](https://github.com/Bluetooth-Devices/dbus-fast/pull/290),
   [`ee98f7c`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ee98f7c4536e9020f1b28fc916c2bfeb52cc31ac))
 
-Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#289](https://github.com/Bluetooth-Devices/dbus-fast/pull/289),
+  [`398f643`](https://github.com/Bluetooth-Devices/dbus-fast/commit/398f643f718e15903183f480726d959e0d85c4da))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#288](https://github.com/Bluetooth-Devices/dbus-fast/pull/288),
+  [`c960552`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c96055289d697b847e93ed4f4c7fc7c1893e1642))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#287](https://github.com/Bluetooth-Devices/dbus-fast/pull/287),
+  [`b508e1f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b508e1fc5fbd4f5200b1fa46c913569fc02f6f4e))
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#286](https://github.com/Bluetooth-Devices/dbus-fast/pull/286),
+  [`5d9bb92`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5d9bb92da6e363320b8afa5942e6f0b4a4ecd4d0))
 
 ### Features
 
@@ -1123,10 +2152,6 @@ Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.gi
   ([#269](https://github.com/Bluetooth-Devices/dbus-fast/pull/269),
   [`c6a8301`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c6a8301704162e1c4d07470c32ca0830f531b6d4))
 
-The DBusError exception stores the error type as string. This makes the exception not directly
-  compare to the ErrorType members (for example DBusError(ErrorType.FAILED, "").type !=
-  ErrorType.FAILED). This makes ErrorType also a string to make this comparision work.
-
 
 ## v2.14.0 (2023-11-10)
 
@@ -1190,11 +2215,11 @@ The DBusError exception stores the error type as string. This makes the exceptio
 - Add benchmark for GetValue ([#258](https://github.com/Bluetooth-Devices/dbus-fast/pull/258),
   [`2fc723e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/2fc723eacb24802b87ca712c89b76f6f95a64f1a))
 
-- Add more unmarshall tests ([#259](https://github.com/Bluetooth-Devices/dbus-fast/pull/259),
-  [`4d3b666`](https://github.com/Bluetooth-Devices/dbus-fast/commit/4d3b666564fae3b813f57b446fb43dd27691e16e))
-
 - Add more unmarshall tests ([#260](https://github.com/Bluetooth-Devices/dbus-fast/pull/260),
   [`f9e5d1d`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f9e5d1d02025fee50f641ee2bb82607a494c06dd))
+
+- Add more unmarshall tests ([#259](https://github.com/Bluetooth-Devices/dbus-fast/pull/259),
+  [`4d3b666`](https://github.com/Bluetooth-Devices/dbus-fast/commit/4d3b666564fae3b813f57b446fb43dd27691e16e))
 
 
 ## v2.11.0 (2023-09-27)
@@ -1322,10 +2347,6 @@ The DBusError exception stores the error type as string. This makes the exceptio
   ([#236](https://github.com/Bluetooth-Devices/dbus-fast/pull/236),
   [`14f52f2`](https://github.com/Bluetooth-Devices/dbus-fast/commit/14f52f216d49fb52bf223d5d96306465bb61e49c))
 
-Co-authored-by: Remy Noel <remy.noel@blade-group.com>
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
-
 
 ## v1.95.1 (2023-09-07)
 
@@ -1411,10 +2432,6 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
 
 - Subpath bad matching ([#202](https://github.com/Bluetooth-Devices/dbus-fast/pull/202),
   [`5d6f90b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5d6f90ba32c61b14368f80b91e1d3d9a6279126f))
-
-Co-authored-by: Remy Noel <remy.noel@blade-group.com>
-
-Co-authored-by: J. Nick Koston <nick@koston.org>
 
 
 ## v1.91.3 (2023-08-17)
@@ -1586,8 +2603,6 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
 - Corrects Variant documentation ([#197](https://github.com/Bluetooth-Devices/dbus-fast/pull/197),
   [`9c6a472`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9c6a472100a471c8f41d495707182eca8d5d25a1))
 
-Co-authored-by: J. Nick Koston <nick@koston.org>
-
 
 ## v1.84.1 (2023-02-14)
 
@@ -1631,8 +2646,6 @@ Co-authored-by: J. Nick Koston <nick@koston.org>
 
 - Allow hardcoding uid in auth ([#189](https://github.com/Bluetooth-Devices/dbus-fast/pull/189),
   [`091c262`](https://github.com/Bluetooth-Devices/dbus-fast/commit/091c262e2747be5170596ea9e84b2cd884d01762))
-
-Closes https://github.com/Bluetooth-Devices/dbus-fast/issues/188
 
 
 ## v1.82.0 (2022-12-09)
@@ -1724,8 +2737,6 @@ Closes https://github.com/Bluetooth-Devices/dbus-fast/issues/188
 - Fix remaining altdesktop links ([#169](https://github.com/Bluetooth-Devices/dbus-fast/pull/169),
   [`67255f7`](https://github.com/Bluetooth-Devices/dbus-fast/commit/67255f7e01f7970e4acdd57c9a399f9452fc1d0c))
 
-There were still a few links incorrectly pointing back to altdesktop/python-dbus-next on GitHub.
-
 
 ## v1.75.0 (2022-11-17)
 
@@ -1782,8 +2793,6 @@ There were still a few links incorrectly pointing back to altdesktop/python-dbus
 - Add big endian github workflow ([#155](https://github.com/Bluetooth-Devices/dbus-fast/pull/155),
   [`984738c`](https://github.com/Bluetooth-Devices/dbus-fast/commit/984738c8030aff5e0a614a2b398ec690d21636fb))
 
-thanks to https://til.simonwillison.net/docker/emulate-s390x-with-qemu
-
 - Make big endian workflow manual until we get it working properly
   ([#157](https://github.com/Bluetooth-Devices/dbus-fast/pull/157),
   [`9240bfd`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9240bfda6e280bc75d8f249ba3470202a0318913))
@@ -1797,8 +2806,6 @@ thanks to https://til.simonwillison.net/docker/emulate-s390x-with-qemu
 - Reduce latency to process messages
   ([#161](https://github.com/Bluetooth-Devices/dbus-fast/pull/161),
   [`113f0c9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/113f0c9a325d538592555ae89e1df1ea29398aa9))
-
-Improve `message_bus.py` `_process_message` performance with a `pxd` file
 
 
 ## v1.72.0 (2022-11-04)
@@ -2030,8 +3037,6 @@ Improve `message_bus.py` `_process_message` performance with a `pxd` file
 - Speed up unmarshaller with common signature trees
   ([#120](https://github.com/Bluetooth-Devices/dbus-fast/pull/120),
   [`5b32072`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5b32072934a7269ffc7186aaaed77a0eb6872cd9))
-
-Co-authored-by: David Lechner <david@lechnology.com>
 
 
 ## v1.53.0 (2022-10-28)
@@ -2782,48 +3787,4 @@ Co-authored-by: David Lechner <david@lechnology.com>
 
 ## v1.1.0 (2022-09-09)
 
-### Chores
-
-- Build fixes
-  ([`4927a1e`](https://github.com/Bluetooth-Devices/dbus-fast/commit/4927a1e79908dfc91b804475c80a59f13ded5c04))
-
-- Ci fixes
-  ([`fad09d6`](https://github.com/Bluetooth-Devices/dbus-fast/commit/fad09d60a8aea05efe1cf584da6c1b858227f272))
-
-- Disable some linters
-  ([`0ab9fab`](https://github.com/Bluetooth-Devices/dbus-fast/commit/0ab9fabe2fddec729dcac1bee1b2f671f6c3b539))
-
-- Fix ci
-  ([`d187573`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d18757378bb55112a0f39c4c6a8b86c29b60574e))
-
-- Fix ci
-  ([`988ff05`](https://github.com/Bluetooth-Devices/dbus-fast/commit/988ff0599454ac65e192bbbef6f61534c14bf346))
-
-- Fix ci
-  ([`6e10c51`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6e10c51d88b46e80fc9b10b082b5888167f9670b))
-
-- Fix ci
-  ([`2a2d486`](https://github.com/Bluetooth-Devices/dbus-fast/commit/2a2d486494bde0001891f71821f588c8a25d9c4c))
-
-- Fix ci
-  ([`61e00c1`](https://github.com/Bluetooth-Devices/dbus-fast/commit/61e00c1c0782288d1a12cefe784c4b860fd260d8))
-
-- Initial commit
-  ([`169581f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/169581f69121ef66a326fd100656756aee1baed9))
-
-- Initial port
-  ([`495bfac`](https://github.com/Bluetooth-Devices/dbus-fast/commit/495bfac17fd7e56d292ddfde42e7e6570e04ab01))
-
-- Rename
-  ([`60308e0`](https://github.com/Bluetooth-Devices/dbus-fast/commit/60308e0b0cb14e7a26631f632123db16e4cb09c0))
-
-- Rename
-  ([`36b08af`](https://github.com/Bluetooth-Devices/dbus-fast/commit/36b08afbff9ead520ec237f7259354185e513a0d))
-
-- Rename
-  ([`7e9609b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7e9609b0f5f95ba9e146bd73242de4e2fe5ad124))
-
-### Features
-
-- Speed up unmarshaller ([#1](https://github.com/Bluetooth-Devices/dbus-fast/pull/1),
-  [`eca1d31`](https://github.com/Bluetooth-Devices/dbus-fast/commit/eca1d317818d2b938ec3ed3172b1be76a44a93a4))
+- Initial Release

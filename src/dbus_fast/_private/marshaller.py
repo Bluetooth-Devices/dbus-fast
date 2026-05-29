@@ -6,7 +6,7 @@ from collections.abc import Callable
 from struct import Struct, error
 from typing import Any
 
-from ..errors import InternalError
+from ..errors import InternalError, InvalidMessageError
 from ..signature import SignatureType, Variant, get_signature_tree
 
 PACK_LITTLE_ENDIAN = "<"
@@ -15,6 +15,15 @@ PACK_UINT32 = Struct(f"{PACK_LITTLE_ENDIAN}I").pack
 PACKED_UINT32_ZERO = PACK_UINT32(0)
 PACKED_BOOL_FALSE = PACK_UINT32(0)
 PACKED_BOOL_TRUE = PACK_UINT32(1)
+
+# D-Bus spec sec 4.4 caps a single marshalled array at 64 MiB. A larger array
+# yields a frame the bus rejects by disconnecting, so fail fast with a clear
+# error instead of emitting an invalid message.
+#
+# MAX_ARRAY_LENGTH is the Python-importable form (used by tests);
+# _MAX_ARRAY_LENGTH is the cdef unsigned int form used internally per .pxd.
+MAX_ARRAY_LENGTH = 67_108_864
+_MAX_ARRAY_LENGTH = MAX_ARRAY_LENGTH
 
 _int = int
 _bytes = bytes
@@ -32,15 +41,8 @@ class Marshaller:
         self._buf = bytearray()
         self.body = body
 
-    @property
-    def buffer(self) -> bytearray:
-        return self._buf
-
     def _buffer(self) -> bytearray:
         return self._buf
-
-    def align(self, n: _int) -> int:
-        return self._align(n)
 
     def _align(self, n: _int) -> _int:
         offset = n - len(self._buf) % n
@@ -102,7 +104,6 @@ class Marshaller:
     def _write_array(
         self, array: bytes | list[Any] | dict[Any, Any], type_: SignatureType
     ) -> int:
-        # TODO max array size is 64MiB (67108864 bytes)
         written = self._align(4)
         # length placeholder
         buf: bytearray = self._buf
@@ -119,10 +120,9 @@ class Marshaller:
         array_len = 0
         if token == "{":
             for key, value in array.items():  # type: ignore[union-attr]
-                array_len += self.write_dict_entry([key, value], child_type)
+                array_len += self._write_dict_entry_kv(key, value, child_type)
         elif token == "y":
             array_len = len(array)
-            buf += array  # type: ignore[arg-type]
         elif token == "(":
             for value in array:
                 array_len += self._write_struct(value, child_type)
@@ -135,6 +135,16 @@ class Marshaller:
             else:
                 for value in array:
                     array_len += writer(self, value, child_type)
+
+        if array_len > _MAX_ARRAY_LENGTH:
+            raise InvalidMessageError(
+                f"array size {array_len} exceeds maximum {_MAX_ARRAY_LENGTH}"
+            )
+
+        # Byte arrays copy in bulk; defer it until the size guard has passed so
+        # an oversized payload is rejected without first being copied.
+        if token == "y":
+            buf += array  # type: ignore[arg-type]
 
         array_len_packed = PACK_UINT32(array_len)
         for i in range(offset, offset + 4):
@@ -152,9 +162,12 @@ class Marshaller:
         return written
 
     def write_dict_entry(self, dict_entry: list[Any], type_: SignatureType) -> int:
+        return self._write_dict_entry_kv(dict_entry[0], dict_entry[1], type_)
+
+    def _write_dict_entry_kv(self, key: Any, value: Any, type_: SignatureType) -> int:
         written = self._align(8)
-        written += self._write_single(type_.children[0], dict_entry[0])
-        written += self._write_single(type_.children[1], dict_entry[1])
+        written += self._write_single(type_.children[0], key)
+        written += self._write_single(type_.children[1], value)
         return written
 
     def _write_single(self, type_: SignatureType, body: Any) -> int:

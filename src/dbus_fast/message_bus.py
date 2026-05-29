@@ -8,7 +8,6 @@ import logging
 import socket
 import xml.etree.ElementTree as ET
 from collections.abc import Callable
-from contextlib import ExitStack
 from functools import partial
 from typing import TYPE_CHECKING, Any
 
@@ -171,8 +170,6 @@ class BaseMessageBus:
         self._sock: socket.socket | None = None
         self._fd: int | None = None
         self._stream: io.BufferedRWPair | None = None
-
-        self._setup_socket()
 
     @property
     def connected(self) -> bool:
@@ -526,7 +523,7 @@ class BaseMessageBus:
         All pending  and future calls will error with a connection error.
         """
         self._user_disconnect = True
-        if self._sock:
+        if self._sock and not self._disconnected:
             try:
                 self._sock.shutdown(socket.SHUT_RDWR)
             except Exception:
@@ -679,71 +676,53 @@ class BaseMessageBus:
 
         return node
 
-    def _setup_socket(self) -> None:
-        last_err: Exception | None = None
+    @staticmethod
+    def _create_socket_for_transport(
+        transport: str, options: dict[str, str]
+    ) -> tuple[socket.socket, io.BufferedRWPair, bytes | str | tuple[str, int]]:
+        """Create an unconnected socket for the given transport.
 
-        for transport, options in self._bus_address:
-            filename: bytes | str | None = None
-            ip_addr = ""
-            ip_port = 0
+        Returns a ``(sock, stream, address)`` tuple where ``address`` is the
+        target for :func:`socket.socket.connect`.
 
-            with ExitStack() as stack:
-                if transport == "unix":
-                    self._sock = stack.enter_context(
-                        socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-                    )
-                    self._stream = stack.enter_context(self._sock.makefile("rwb"))
-                    self._fd = self._sock.fileno()
+        :raises InvalidAddressError: if the transport is unknown or
+            malformed, including a tcp ``port`` option that is not a valid
+            integer.
+        """
+        if transport == "unix":
+            if "path" in options:
+                address: bytes | str | tuple[str, int] = options["path"]
+            elif "abstract" in options:
+                address = b"\0" + options["abstract"].encode()
+            else:
+                raise InvalidAddressError(
+                    "got unix transport with unknown path specifier"
+                )
+            sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            try:
+                stream = sock.makefile("rwb")
+            except BaseException:
+                sock.close()
+                raise
+            return sock, stream, address
 
-                    if "path" in options:
-                        filename = options["path"]
-                    elif "abstract" in options:
-                        filename = b"\0" + options["abstract"].encode()
-                    else:
-                        raise InvalidAddressError(
-                            "got unix transport with unknown path specifier"
-                        )
+        if transport == "tcp":
+            ip_addr = options.get("host", "")
+            try:
+                ip_port = int(options["port"]) if "port" in options else 0
+            except ValueError as e:
+                raise InvalidAddressError(
+                    f"got tcp transport with invalid port: {options['port']!r}"
+                ) from e
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            try:
+                stream = sock.makefile("rwb")
+            except BaseException:
+                sock.close()
+                raise
+            return sock, stream, (ip_addr, ip_port)
 
-                    try:
-                        self._sock.connect(filename)
-                        self._sock.setblocking(False)
-                    except Exception as e:
-                        last_err = e
-                    else:
-                        stack.pop_all()  # responsibility to close sockets is deferred
-                        return
-
-                elif transport == "tcp":
-                    self._sock = stack.enter_context(
-                        socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    )
-                    self._stream = stack.enter_context(self._sock.makefile("rwb"))
-                    self._fd = self._sock.fileno()
-
-                    if "host" in options:
-                        ip_addr = options["host"]
-                    if "port" in options:
-                        ip_port = int(options["port"])
-
-                    try:
-                        self._sock.connect((ip_addr, ip_port))
-                        self._sock.setblocking(False)
-                    except Exception as e:
-                        last_err = e
-                    else:
-                        stack.pop_all()
-                        return
-
-                else:
-                    raise InvalidAddressError(
-                        f"got unknown address transport: {transport}"
-                    )
-
-        if last_err is None:  # pragma: no branch
-            # Should not normally happen, but just in case
-            raise TypeError("empty list of bus addresses given")  # pragma: no cover
-
-        raise last_err
+        raise InvalidAddressError(f"got unknown address transport: {transport}")
 
     def _reply_notify(
         self,
@@ -864,7 +843,11 @@ class BaseMessageBus:
                     if handler:
                         handler(msg, BLOCK_UNEXPECTED_REPLY)  # type: ignore[arg-type]
                     else:
-                        _LOGGER.error(
+                        # NO_REPLY_EXPECTED is fire-and-forget; the sender
+                        # opted out of a response, so a missing handler is
+                        # benign, and inherently racy when an export is
+                        # torn down while remote calls are in flight.
+                        _LOGGER.debug(
                             '"%s.%s" with signature "%s" could not be found',
                             msg.interface,
                             msg.member,

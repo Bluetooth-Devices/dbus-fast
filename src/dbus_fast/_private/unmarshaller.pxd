@@ -24,6 +24,9 @@ cdef unsigned int LITTLE_ENDIAN
 cdef unsigned int BIG_ENDIAN
 cdef unsigned int PROTOCOL_VERSION
 cdef unsigned int _MAX_MESSAGE_SIZE
+cdef unsigned int _MAX_CONTAINER_DEPTH
+cdef unsigned int _MESSAGE_TYPE_MIN
+cdef unsigned int _MESSAGE_TYPE_MAX
 
 
 cdef unsigned int HEADER_PATH_IDX
@@ -35,6 +38,7 @@ cdef unsigned int HEADER_DESTINATION_IDX
 cdef unsigned int HEADER_SENDER_IDX
 cdef unsigned int HEADER_SIGNATURE_IDX
 cdef unsigned int HEADER_UNIX_FDS_IDX
+cdef unsigned int _HEADER_FIELDS_LEN
 
 cdef cython.list HEADER_IDX_TO_ARG_NAME
 
@@ -58,6 +62,7 @@ cdef object UINT16_UNPACK_LITTLE_ENDIAN
 cdef object UINT16_UNPACK_BIG_ENDIAN
 
 cdef cython.dict MESSAGE_TYPE_MAP
+cdef tuple _MESSAGE_TYPE_BY_VALUE
 cdef cython.dict MESSAGE_FLAG_MAP
 cdef dict HEADER_MESSAGE_ARG_NAME
 
@@ -142,7 +147,7 @@ cdef class Unmarshaller:
     cdef unsigned int _body_len
     cdef unsigned int _serial
     cdef unsigned int _header_len
-    cdef object _message_type
+    cdef unsigned int _message_type
     cdef object _flag
     cdef unsigned int _msg_len
     cdef object _uint32_unpack
@@ -154,6 +159,7 @@ cdef class Unmarshaller:
     cdef bint _negotiate_unix_fd
     cdef bint _read_complete
     cdef unsigned int _endian
+    cdef unsigned int _container_depth
 
     @cython.locals(to_clear=Py_ssize_t)
     cdef _next_message(self)
@@ -208,7 +214,7 @@ cdef class Unmarshaller:
         token_as_int=cython.uint,
         signature_len=cython.uint,
         o=cython.ulong,
-        var=Variant,
+        result=Variant,
     )
     cdef Variant _read_variant(self)
 
@@ -258,8 +264,10 @@ cdef class Unmarshaller:
     @cython.locals(
         beginning_pos=cython.ulong,
         o=cython.ulong,
+        field_0=cython.uint,
         token_as_int=cython.uint,
         signature_len=cython.uint,
+        value=cython.object,
         headers=cython.list
     )
     cdef cython.list _header_fields(self, unsigned int header_length)

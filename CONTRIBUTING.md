@@ -28,7 +28,7 @@ dbus-fast could always use more documentation, whether as part of the official d
 
 ### Submit Feedback
 
-The best way to send feedback [our issue page][gh-issues] on GitHub. If you are proposing a feature:
+The best way to send feedback is via [our issue page][gh-issues] on GitHub. If you are proposing a feature:
 
 - Explain in detail how it would work.
 - Keep the scope as narrow as possible, to make it easier to implement.

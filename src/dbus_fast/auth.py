@@ -35,7 +35,12 @@ class _AuthResponse(enum.Enum):
     @classmethod
     def parse(cls, line: str) -> tuple["_AuthResponse", list[str]]:
         args = line.split(" ")
-        response = cls(args[0])
+        try:
+            response = cls(args[0])
+        except ValueError:
+            raise AuthError(
+                f"authentication failed: unknown response from server: {line!r}"
+            ) from None
         return response, args[1:]
 
 

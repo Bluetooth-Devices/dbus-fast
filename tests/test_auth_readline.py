@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import socket
 from types import SimpleNamespace
 
@@ -35,16 +36,23 @@ async def test_auth_readline_rejects_oversize_line() -> None:
     server, client = socket.socketpair()
     try:
         client.setblocking(False)
-        server.setblocking(True)
+        server.setblocking(False)
         # Stream junk that never contains \r\n; cap is 16 KiB so 64 KiB is
-        # well past the limit but small enough to fit a socket buffer.
-        server.sendall(b"A" * 64 * 1024)
-        server.close()
-
-        coro = MessageBus._auth_readline(_fake_aio_self(client))
-        with pytest.raises(AuthError):
-            await asyncio.wait_for(coro, timeout=1.0)
+        # well past the limit. Drive the send from a background task so the
+        # peer write progresses as the reader drains, regardless of the
+        # socketpair send buffer size.
+        loop = asyncio.get_running_loop()
+        writer = asyncio.create_task(loop.sock_sendall(server, b"A" * 64 * 1024))
+        try:
+            coro = MessageBus._auth_readline(_fake_aio_self(client))
+            with pytest.raises(AuthError):
+                await asyncio.wait_for(coro, timeout=1.0)
+        finally:
+            writer.cancel()
+            with contextlib.suppress(asyncio.CancelledError, OSError):
+                await writer
     finally:
+        server.close()
         client.close()
 
 
@@ -53,13 +61,13 @@ async def test_auth_readline_returns_line() -> None:
     server, client = socket.socketpair()
     try:
         client.setblocking(False)
-        server.setblocking(True)
-        server.sendall(b"OK 1234\r\n")
-        server.close()
+        server.setblocking(False)
+        await asyncio.get_running_loop().sock_sendall(server, b"OK 1234\r\n")
 
         line = await asyncio.wait_for(
             MessageBus._auth_readline(_fake_aio_self(client)), timeout=1.0
         )
         assert line == "OK 1234"
     finally:
+        server.close()
         client.close()

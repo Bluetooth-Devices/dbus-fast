@@ -8,6 +8,8 @@ from .validators import assert_interface_name_valid, assert_member_name_valid
 
 # https://dbus.freedesktop.org/doc/dbus-specification.html#introspection-format
 
+_MAX_NODE_DEPTH = 32
+
 
 def _reject_internal_subset(
     _name: str,
@@ -60,8 +62,12 @@ def _fetch_annotations(element: ET.Element) -> dict[str, str]:
     for child in element:
         if child.tag != "annotation":
             continue
-        annotation_name = child.attrib["name"]
-        annotation_value = child.attrib["value"]
+        annotation_name = child.attrib.get("name")
+        annotation_value = child.attrib.get("value")
+        if not annotation_name:
+            raise InvalidIntrospectionError('annotations must have a "name" attribute')
+        if annotation_value is None:
+            raise InvalidIntrospectionError('annotations must have a "value" attribute')
         annotations[annotation_name] = annotation_value
 
     return annotations
@@ -284,7 +290,7 @@ class Method:
         """
         name = element.attrib.get("name")
         if not name:
-            raise InvalidIntrospectionError('interfaces must have a "name" attribute')
+            raise InvalidIntrospectionError('methods must have a "name" attribute')
 
         in_args: list[Arg] = []
         out_args: list[Arg] = []
@@ -546,6 +552,24 @@ class Node:
         :raises:
             - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the XML tree is not valid introspection data.
         """
+        return Node._from_xml(element, is_root, validate_property_names, 0)
+
+    @staticmethod
+    def _from_xml(
+        element: ET.Element,
+        is_root: bool,
+        validate_property_names: bool,
+        depth: int,
+    ) -> "Node":
+        # Real D-Bus object paths are at most a handful of components deep;
+        # 32 is well above any plausible legitimate nesting and keeps a
+        # hostile peer from exhausting the Python (or C) stack via a
+        # `<node><node>...</node></node>` payload.
+        if depth > _MAX_NODE_DEPTH:
+            raise InvalidIntrospectionError(
+                f"introspection node nesting exceeds {_MAX_NODE_DEPTH} levels"
+            )
+
         node = Node(element.attrib.get("name"), is_root=is_root)
 
         for child in element:
@@ -557,8 +581,11 @@ class Node:
                 )
             elif child.tag == "node":
                 node.nodes.append(
-                    Node.from_xml(
-                        child, validate_property_names=validate_property_names
+                    Node._from_xml(
+                        child,
+                        False,
+                        validate_property_names,
+                        depth + 1,
                     )
                 )
 

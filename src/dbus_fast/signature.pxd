@@ -3,6 +3,9 @@
 import cython
 
 
+cdef unsigned int _MAX_SIGNATURE_DEPTH
+
+
 cdef class SignatureType:
 
     cdef public str token

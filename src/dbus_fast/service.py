@@ -644,12 +644,6 @@ class ServiceInterface:
         return interface.__buses
 
     @staticmethod
-    def _get_handler(
-        interface: ServiceInterface, method: _Method, bus: BaseMessageBus
-    ) -> HandlerType:
-        return interface.__handlers[bus][method]
-
-    @staticmethod
     def _get_enabled_handler_by_name_signature(
         interface: ServiceInterface,
         bus: BaseMessageBus,

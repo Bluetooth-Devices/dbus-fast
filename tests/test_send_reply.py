@@ -1,6 +1,5 @@
 import os
 from collections.abc import Generator
-from unittest.mock import patch
 
 import pytest
 
@@ -33,18 +32,18 @@ def send_reply_setup() -> Generator[
             pass
 
     class MockBus(BaseMessageBus):
+        def connect(self) -> "MockBus":
+            self._sock = MockClosable()  # type: ignore
+            self._stream = MockClosable()  # type: ignore
+            return self
+
         def send(self, msg: Message) -> None:
             messages.append(msg)
 
         def send_message(self, msg: Message) -> None:
             messages.append(msg)
 
-        def _setup_socket(self) -> None:
-            self._sock = MockClosable()  # type: ignore
-            self._stream = MockClosable()  # type: ignore
-
-    with patch("socket.socket.connect"):
-        bus = MockBus()
+    bus = MockBus().connect()
     msg = Message(
         path="/test/path", interface="test.interface", member="test_member", serial=1
     )

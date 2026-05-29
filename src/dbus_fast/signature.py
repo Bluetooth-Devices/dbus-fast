@@ -7,6 +7,18 @@ from typing import Any
 from .errors import InternalError, InvalidSignatureError, SignatureBodyMismatchError
 from .validators import is_object_path_valid
 
+# D-Bus spec ("Valid Signatures") caps container nesting at 32 array codes +
+# 32 open parens, total <= 64. The 256-char signature cap bounds parser
+# recursion only incidentally; this makes the bound explicit so a future cap
+# change can't reintroduce unbounded recursion, and rejects over-nested
+# signatures at parse time the way a conformant daemon does. Mirrors the
+# runtime container-depth cap in the unmarshaller.
+#
+# MAX_SIGNATURE_DEPTH is the Python-importable form (used by tests);
+# _MAX_SIGNATURE_DEPTH is the cdef unsigned int form used internally per .pxd.
+MAX_SIGNATURE_DEPTH = 64
+_MAX_SIGNATURE_DEPTH = MAX_SIGNATURE_DEPTH
+
 
 class SignatureType:  # noqa: PLW1641
     """A class that represents a single complete type within a signature.
@@ -85,7 +97,7 @@ class SignatureType:  # noqa: PLW1641
         self.children.append(child)
 
     @staticmethod
-    def _parse_next(signature: str) -> tuple["SignatureType", str]:
+    def _parse_next(signature: str, depth: int = 0) -> tuple["SignatureType", str]:
         if not signature:
             raise InvalidSignatureError("Cannot parse an empty signature")
 
@@ -96,32 +108,40 @@ class SignatureType:  # noqa: PLW1641
 
         # container types
         if token == "a":
+            if depth >= _MAX_SIGNATURE_DEPTH:
+                raise InvalidSignatureError(
+                    f"container nesting exceeds maximum depth {_MAX_SIGNATURE_DEPTH}"
+                )
             self = SignatureType("a")
-            (child, signature) = SignatureType._parse_next(signature[1:])
-            if not child:
-                raise InvalidSignatureError("missing type for array")
+            (child, signature) = SignatureType._parse_next(signature[1:], depth + 1)
             self._add_child(child)
             return (self, signature)
         if token == "(":
+            if depth >= _MAX_SIGNATURE_DEPTH:
+                raise InvalidSignatureError(
+                    f"container nesting exceeds maximum depth {_MAX_SIGNATURE_DEPTH}"
+                )
             self = SignatureType("(")
             signature = signature[1:]
             while True:
-                (child, signature) = SignatureType._parse_next(signature)
+                (child, signature) = SignatureType._parse_next(signature, depth + 1)
                 if not signature:
                     raise InvalidSignatureError('missing closing ")" for struct')
                 self._add_child(child)
                 if signature[0] == ")":
                     return (self, signature[1:])
         elif token == "{":
+            if depth >= _MAX_SIGNATURE_DEPTH:
+                raise InvalidSignatureError(
+                    f"container nesting exceeds maximum depth {_MAX_SIGNATURE_DEPTH}"
+                )
             self = SignatureType("{")
             signature = signature[1:]
-            (key_child, signature) = SignatureType._parse_next(signature)
-            if not key_child or len(key_child.children):
+            (key_child, signature) = SignatureType._parse_next(signature, depth + 1)
+            if key_child.children:
                 raise InvalidSignatureError("expected a simple type for dict entry key")
             self._add_child(key_child)
-            (value_child, signature) = SignatureType._parse_next(signature)
-            if not value_child:
-                raise InvalidSignatureError("expected a value for dict entry")
+            (value_child, signature) = SignatureType._parse_next(signature, depth + 1)
             if not signature or signature[0] != "}":
                 raise InvalidSignatureError('missing closing "}" for dict entry')
             self._add_child(value_child)

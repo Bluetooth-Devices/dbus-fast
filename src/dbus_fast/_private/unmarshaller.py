@@ -11,11 +11,11 @@ from collections.abc import Callable, Iterable
 from struct import Struct
 from typing import TYPE_CHECKING, Any
 
-from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP, MessageFlag
+from ..constants import MESSAGE_FLAG_MAP, MESSAGE_TYPE_MAP, MessageFlag, MessageType
 from ..errors import InvalidMessageError
 from ..message import Message
 from ..signature import SignatureType, Variant, get_signature_tree
-from .constants import BIG_ENDIAN, LITTLE_ENDIAN, PROTOCOL_VERSION
+from .constants import BIG_ENDIAN, LITTLE_ENDIAN, MAX_MESSAGE_SIZE, PROTOCOL_VERSION
 
 MESSAGE_FLAG_INTENUM = MessageFlag
 
@@ -81,10 +81,42 @@ HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION = 12
 # the spec ceiling doesn't change that. Keeping the check on the raw fields
 # is simpler than computing the padded total here.
 #
-# MAX_MESSAGE_SIZE is the Python-importable form (used by tests);
-# _MAX_MESSAGE_SIZE is the cdef unsigned int form used internally per .pxd.
-MAX_MESSAGE_SIZE = 134_217_728
+# MAX_MESSAGE_SIZE (re-exported from .constants) is the Python-importable form
+# shared with the marshalling side; _MAX_MESSAGE_SIZE is the cdef unsigned int
+# form used internally per .pxd.
 _MAX_MESSAGE_SIZE = MAX_MESSAGE_SIZE
+
+# D-Bus spec sec 4.4 caps signature container nesting at 32 array + 32 struct
+# levels. Variants carry their own signature, so a variant containing a
+# variant containing... re-enters the reader at each level and bypasses that
+# per-signature limit. A 128 MiB message can pack ~40 million variant levels
+# (signature_len byte + 'v' + null = 3 bytes per level) and overflow the
+# Python C-recursion stack before the existing size cap saves us. Bound the
+# runtime container nesting across variants, arrays, structs, and dict
+# entries at the same 64 the spec already implies for any single signature.
+#
+# MAX_CONTAINER_DEPTH is the Python-importable form (used by tests);
+# _MAX_CONTAINER_DEPTH is the cdef unsigned int form used internally per .pxd.
+MAX_CONTAINER_DEPTH = 64
+_MAX_CONTAINER_DEPTH = MAX_CONTAINER_DEPTH
+
+# Valid message-type bytes span the contiguous MessageType enum (1-4 today).
+# Derive the bounds from the enum so a new member updates them automatically.
+# _read_header range-checks against these so it compiles to a C compare rather
+# than a PySequence_Contains call on MESSAGE_TYPE_MAP; the range compare only
+# matches "valid type" while the enum values stay contiguous. Declared cdef
+# unsigned int in the .pxd to match the unsigned local and stay sign-clean.
+_MESSAGE_TYPE_MIN = min(t.value for t in MessageType)
+_MESSAGE_TYPE_MAX = max(t.value for t in MessageType)
+
+# Value-indexed lookup paired with the uint self._message_type slot; _read_body
+# resolves the enum via _MESSAGE_TYPE_BY_VALUE[self._message_type], which
+# Cython emits as a C array index (__Pyx_GetItemInt_Tuple_Fast) instead of the
+# PyObject_GetItem + hash a dict lookup would cost. _read_header guarantees
+# the index is in range and non-None before _read_body runs.
+_MESSAGE_TYPE_BY_VALUE = tuple(
+    MESSAGE_TYPE_MAP.get(i) for i in range(_MESSAGE_TYPE_MAX + 1)
+)
 
 
 # Most common signatures
@@ -175,6 +207,9 @@ HEADER_SIGNATURE_IDX = HEADER_IDX_TO_ARG_NAME.index("signature")
 HEADER_UNIX_FDS_IDX = HEADER_IDX_TO_ARG_NAME.index("unix_fds")
 
 _EMPTY_HEADERS: list[Any | None] = [None] * len(HEADER_IDX_TO_ARG_NAME)
+
+HEADER_FIELDS_LEN = len(HEADER_IDX_TO_ARG_NAME)  # Python-importable
+_HEADER_FIELDS_LEN = HEADER_FIELDS_LEN  # cdef'd C int alias
 
 _SignatureType = SignatureType
 _int = int
@@ -289,6 +324,7 @@ class Unmarshaller:
         "_buf",
         "_buf_len",
         "_buf_ustr",
+        "_container_depth",
         "_endian",
         "_flag",
         "_header_len",
@@ -339,6 +375,7 @@ class Unmarshaller:
         self._uint16_unpack: Callable[[bytearray, int], tuple[int]] | None = None
         self._negotiate_unix_fd = negotiate_unix_fd
         self._read_complete = False
+        self._container_depth = 0
         if stream:
             if isinstance(stream, io.BufferedRWPair) and hasattr(stream, "reader"):
                 self._stream_reader = stream.reader.read
@@ -371,6 +408,7 @@ class Unmarshaller:
             self._buf_ustr = self._buf
         self._msg_len = 0  # used to check if we have ready the header
         self._read_complete = False  # used to check if we have ready the message
+        self._container_depth = 0
         # No need to reset the unpack functions, they are set in _read_header
         # every time a new message is processed.
 
@@ -558,9 +596,33 @@ class Unmarshaller:
         # Inline signature reading to avoid _read_signature() call,
         # .decode(), and ord() for the common single-byte case.
         # verify in Variant is only useful on construction not unmarshalling
+        #
+        # Single-return shape: every branch assigns `result`, then we
+        # decrement and return once at the bottom. The decrement has to come
+        # *after* any recursive read_array / self._readers[...] call, so an
+        # attacker can't pop the counter back to zero between siblings of a
+        # deeply nested variant. The pxd declares `result=Variant`.
+        #
+        # Inline += / -= rather than try/finally: try/finally in Cython
+        # compiles to setjmp-style cleanup that lands on the hot path,
+        # while a cdef unsigned int decrement is score-0 C. Skipping the
+        # decrement on the error path is safe because the only recoverable
+        # exception here is the BlockingIOError raised by _read_to_pos
+        # *before* any container reader runs; every other mid-parse error
+        # (IndexError, InvalidMessageError) means the message is corrupt
+        # and the bus connection tears down. As a backstop, _read_body
+        # resets _container_depth to 0 at the start of every message so a
+        # stale counter cannot leak across messages. The same pattern
+        # repeats in read_array, read_struct, and read_dict_entry.
+        self._container_depth += 1
+        if self._container_depth > _MAX_CONTAINER_DEPTH:
+            raise InvalidMessageError(
+                f"container nesting exceeds maximum {_MAX_CONTAINER_DEPTH}"
+            )
         if cython.compiled:
             if self._buf_len <= self._pos:
                 raise IndexError("Not enough data to read signature")
+        result: Variant | None = None
         signature_len = self._buf_ustr[self._pos]
         if signature_len == 1:
             self._pos += 3  # 1 len byte + 1 signature char + 1 null terminator
@@ -569,23 +631,28 @@ class Unmarshaller:
                     raise IndexError("Not enough data to read signature")
             token_as_int = self._buf_ustr[self._pos - 2]
             if token_as_int == TOKEN_N_AS_INT:
-                return Variant._factory(SIGNATURE_TREE_N, self._read_int16_unpack())
-            if token_as_int == TOKEN_S_AS_INT:
-                return Variant._factory(SIGNATURE_TREE_S, self._read_string_unpack())
-            if token_as_int == TOKEN_B_AS_INT:
-                return VARIANT_BOOL_TRUE if self._read_boolean() else VARIANT_BOOL_FALSE
-            if token_as_int == TOKEN_O_AS_INT:
-                return Variant._factory(SIGNATURE_TREE_O, self._read_string_unpack())
-            if token_as_int == TOKEN_U_AS_INT:
-                return Variant._factory(SIGNATURE_TREE_U, self._read_uint32_unpack())
-            if token_as_int == TOKEN_Y_AS_INT:
+                result = Variant._factory(SIGNATURE_TREE_N, self._read_int16_unpack())
+            elif token_as_int == TOKEN_S_AS_INT:
+                result = Variant._factory(SIGNATURE_TREE_S, self._read_string_unpack())
+            elif token_as_int == TOKEN_B_AS_INT:
+                result = (
+                    VARIANT_BOOL_TRUE if self._read_boolean() else VARIANT_BOOL_FALSE
+                )
+            elif token_as_int == TOKEN_O_AS_INT:
+                result = Variant._factory(SIGNATURE_TREE_O, self._read_string_unpack())
+            elif token_as_int == TOKEN_U_AS_INT:
+                result = Variant._factory(SIGNATURE_TREE_U, self._read_uint32_unpack())
+            elif token_as_int == TOKEN_Y_AS_INT:
                 self._pos += 1
                 if cython.compiled:
                     if self._buf_len < self._pos:
                         raise IndexError("Not enough data to read byte")
-                return Variant._factory(SIGNATURE_TREE_Y, self._buf_ustr[self._pos - 1])
-            # Uncommon single-byte type, decode for fallback
-            signature = chr(token_as_int)
+                result = Variant._factory(
+                    SIGNATURE_TREE_Y, self._buf_ustr[self._pos - 1]
+                )
+            else:
+                # Uncommon single-byte type, decode for fallback
+                signature = chr(token_as_int)
         else:
             o = self._pos + 1
             self._pos = o + signature_len + 1
@@ -594,47 +661,76 @@ class Unmarshaller:
                     raise IndexError("Not enough data to read signature")
             signature = self._buf_ustr[o : o + signature_len].decode()
             token_as_int = self._buf_ustr[o]
-        if token_as_int == TOKEN_A_AS_INT:
-            if signature == "ay":
-                return Variant._factory(
-                    SIGNATURE_TREE_AY, self.read_array(SIGNATURE_TREE_AY_TYPES_0)
+        if result is None:
+            if token_as_int == TOKEN_A_AS_INT:
+                if signature == "ay":
+                    result = Variant._factory(
+                        SIGNATURE_TREE_AY, self.read_array(SIGNATURE_TREE_AY_TYPES_0)
+                    )
+                elif signature == "a{qv}":
+                    result = Variant._factory(
+                        SIGNATURE_TREE_A_QV,
+                        self.read_array(SIGNATURE_TREE_A_QV_TYPES_0),
+                    )
+                elif signature == "as":
+                    result = Variant._factory(
+                        SIGNATURE_TREE_AS, self.read_array(SIGNATURE_TREE_AS_TYPES_0)
+                    )
+                elif signature == "a{sv}":
+                    result = Variant._factory(
+                        SIGNATURE_TREE_A_SV,
+                        self.read_array(SIGNATURE_TREE_A_SV_TYPES_0),
+                    )
+                elif signature == "ao":
+                    result = Variant._factory(
+                        SIGNATURE_TREE_AO, self.read_array(SIGNATURE_TREE_AO_TYPES_0)
+                    )
+            if result is None:
+                tree = get_signature_tree(signature)
+                signature_type = tree.root_type
+                result = Variant._factory(
+                    tree, self._readers[signature_type.token](self, signature_type)
                 )
-            if signature == "a{qv}":
-                return Variant._factory(
-                    SIGNATURE_TREE_A_QV, self.read_array(SIGNATURE_TREE_A_QV_TYPES_0)
-                )
-            if signature == "as":
-                return Variant._factory(
-                    SIGNATURE_TREE_AS, self.read_array(SIGNATURE_TREE_AS_TYPES_0)
-                )
-            if signature == "a{sv}":
-                return Variant._factory(
-                    SIGNATURE_TREE_A_SV, self.read_array(SIGNATURE_TREE_A_SV_TYPES_0)
-                )
-            if signature == "ao":
-                return Variant._factory(
-                    SIGNATURE_TREE_AO, self.read_array(SIGNATURE_TREE_AO_TYPES_0)
-                )
-        tree = get_signature_tree(signature)
-        signature_type = tree.root_type
-        return Variant._factory(
-            tree, self._readers[signature_type.token](self, signature_type)
-        )
+        self._container_depth -= 1
+        return result
 
     def read_struct(self, type_: _SignatureType) -> tuple[Any, ...]:
+        self._container_depth += 1
+        if self._container_depth > _MAX_CONTAINER_DEPTH:
+            raise InvalidMessageError(
+                f"container nesting exceeds maximum {_MAX_CONTAINER_DEPTH}"
+            )
         self._pos += -self._pos & 7  # align 8
         readers = self._readers
-        return tuple(
-            readers[child_type.token](self, child_type) for child_type in type_.children
+        result = tuple(
+            [
+                readers[child_type.token](self, child_type)
+                for child_type in type_.children
+            ]
         )
+        self._container_depth -= 1
+        return result
 
     def read_dict_entry(self, type_: _SignatureType) -> tuple[Any, Any]:
+        self._container_depth += 1
+        if self._container_depth > _MAX_CONTAINER_DEPTH:
+            raise InvalidMessageError(
+                f"container nesting exceeds maximum {_MAX_CONTAINER_DEPTH}"
+            )
         self._pos += -self._pos & 7  # align 8
-        return self._readers[type_.children[0].token](
-            self, type_.children[0]
-        ), self._readers[type_.children[1].token](self, type_.children[1])
+        key = self._readers[type_.children[0].token](self, type_.children[0])
+        value = self._readers[type_.children[1].token](self, type_.children[1])
+        self._container_depth -= 1
+        return key, value
 
     def read_array(self, type_: _SignatureType) -> Iterable[Any]:
+        # Single-return shape so the depth decrement runs once at the bottom,
+        # after any recursive read_* call has popped its own frame.
+        self._container_depth += 1
+        if self._container_depth > _MAX_CONTAINER_DEPTH:
+            raise InvalidMessageError(
+                f"container nesting exceeds maximum {_MAX_CONTAINER_DEPTH}"
+            )
         self._pos += -self._pos & 3  # align 4 for the array
         self._pos += (
             -self._pos & (UINT32_SIZE - 1)
@@ -665,9 +761,8 @@ class Unmarshaller:
             if cython.compiled:
                 if self._buf_len < self._pos:
                     raise IndexError("Not enough data to read byte")
-            return self._buf_ustr[self._pos - array_length : self._pos]
-
-        if token_as_int == TOKEN_LEFT_CURLY_AS_INT:
+            result = self._buf_ustr[self._pos - array_length : self._pos]
+        elif token_as_int == TOKEN_LEFT_CURLY_AS_INT:
             result_dict: dict[Any, Any] = {}
             key: str | int
             beginning_pos = self._pos
@@ -709,22 +804,22 @@ class Unmarshaller:
                     self._pos += -self._pos & 7  # align 8
                     key = reader_0(self, child_0)
                     result_dict[key] = reader_1(self, child_1)
-
-            return result_dict
-
-        if array_length == 0:
-            return []
-
-        result_list = []
-        beginning_pos = self._pos
-        if token_as_int == TOKEN_O_AS_INT or token_as_int == TOKEN_S_AS_INT:
-            while self._pos - beginning_pos < array_length:
-                result_list.append(self._read_string_unpack())
-            return result_list
-        reader = self._readers[child_type.token]
-        while self._pos - beginning_pos < array_length:
-            result_list.append(reader(self, child_type))
-        return result_list
+            result = result_dict
+        elif array_length == 0:
+            result = []
+        else:
+            result_list = []
+            beginning_pos = self._pos
+            if token_as_int == TOKEN_O_AS_INT or token_as_int == TOKEN_S_AS_INT:
+                while self._pos - beginning_pos < array_length:
+                    result_list.append(self._read_string_unpack())
+            else:
+                reader = self._readers[child_type.token]
+                while self._pos - beginning_pos < array_length:
+                    result_list.append(reader(self, child_type))
+            result = result_list
+        self._container_depth -= 1
+        return result
 
     def _header_fields(self, header_length: _int) -> list[Any]:
         """Header fields are always a(yv)."""
@@ -753,18 +848,22 @@ class Unmarshaller:
             # Strings and signatures are the most common types
             # so we inline them for performance
             if token_as_int == TOKEN_O_AS_INT or token_as_int == TOKEN_S_AS_INT:
-                headers[field_0] = self._read_string_unpack()
+                value = self._read_string_unpack()
             elif token_as_int == TOKEN_G_AS_INT:
-                headers[field_0] = self._read_signature()
+                value = self._read_signature()
             elif token_as_int == TOKEN_U_AS_INT:
-                headers[field_0] = self._read_uint32_unpack()
+                value = self._read_uint32_unpack()
             else:  # pragma: no cover
                 token = self._buf_ustr[o : o + signature_len].decode()
                 # There shouldn't be any other types in the header
                 # but just in case, we'll read it using the slow path
-                headers[field_0] = self._readers[token](
-                    self, get_signature_tree(token).root_type
-                )
+                value = self._readers[token](self, get_signature_tree(token).root_type)
+            # D-Bus spec: ignore header fields with an unrecognized code. Codes
+            # are defined only for 1..9; a forged frame can carry 0 or a code
+            # past the known range — consume the value to stay aligned, but
+            # don't store it (index 0 is a placeholder, >= len is out of range).
+            if 0 < field_0 < _HEADER_FIELDS_LEN:
+                headers[field_0] = value
         return headers
 
     def _read_header(self) -> None:
@@ -786,6 +885,12 @@ class Unmarshaller:
             raise InvalidMessageError(
                 f"Expecting endianness as the first byte, got {endian} from {self._buf}"
             )
+
+        if (
+            self._message_type < _MESSAGE_TYPE_MIN
+            or self._message_type > _MESSAGE_TYPE_MAX
+        ):
+            raise InvalidMessageError(f"got unknown message type: {self._message_type}")
 
         if cython.compiled:
             self._body_len = _ustr_uint32(self._buf_ustr, 4, endian)
@@ -828,13 +933,23 @@ class Unmarshaller:
         """Read the body of the message."""
         self._read_to_pos(HEADER_SIGNATURE_SIZE + self._msg_len)
         self._pos = HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION
+        self._container_depth = 0
         header_fields = self._header_fields(self._header_len)
         self._pos += -self._pos & 7  # align 8
-        signature: str = header_fields[HEADER_SIGNATURE_IDX]
+        header_signature = header_fields[HEADER_SIGNATURE_IDX]
         if not self._body_len:
             tree = SIGNATURE_TREE_EMPTY
             body: list[Any] = []
+        elif type(header_signature) is not str or not header_signature:
+            # A non-empty body requires a valid signature header field
+            # (spec §4.1). A forged frame may omit it (None), send it empty, or
+            # carry a non-'g' variant type (a non-str value) — each would
+            # otherwise leak a bare TypeError/IndexError out to the reader.
+            raise InvalidMessageError(
+                "message has a body but no valid signature header field"
+            )
         else:
+            signature: str = header_signature
             token_as_int = ord(signature[0])
             if len(signature) == 1:
                 if token_as_int == TOKEN_O_AS_INT:
@@ -882,7 +997,7 @@ class Unmarshaller:
             header_fields[HEADER_PATH_IDX],
             header_fields[HEADER_INTERFACE_IDX],
             header_fields[HEADER_MEMBER_IDX],
-            MESSAGE_TYPE_MAP[self._message_type],
+            _MESSAGE_TYPE_BY_VALUE[self._message_type],
             flags,
             header_fields[HEADER_ERROR_NAME_IDX],
             reply_serial if reply_serial is not None else 0,
