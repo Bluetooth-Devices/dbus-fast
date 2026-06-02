@@ -2,6 +2,35 @@
 
 <!-- version list -->
 
+## v5.0.17 (2026-06-02)
+
+### Bug Fixes
+
+- Gate cython import behind TYPE_CHECKING to avoid bundler bloat
+  ([#735](https://github.com/Bluetooth-Devices/dbus-fast/pull/735),
+  [`cdd49ee`](https://github.com/Bluetooth-Devices/dbus-fast/commit/cdd49ee807641c6c006f29bf3bc17658f960b6d6))
+
+### Chores
+
+- **pre-commit.ci**: Pre-commit autoupdate
+  ([#728](https://github.com/Bluetooth-Devices/dbus-fast/pull/728),
+  [`34b4b1a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/34b4b1a7bfe0386c6d4fe51e2c67969c79d7376f))
+
+### Documentation
+
+- Build installation page so README link resolves
+  ([#733](https://github.com/Bluetooth-Devices/dbus-fast/pull/733),
+  [`edf2b76`](https://github.com/Bluetooth-Devices/dbus-fast/commit/edf2b76fc3f456c9e4f72437ec634afdd1959a34))
+
+- Explain how to install without the Cython extension
+  ([#730](https://github.com/Bluetooth-Devices/dbus-fast/pull/730),
+  [`55c22f9`](https://github.com/Bluetooth-Devices/dbus-fast/commit/55c22f9a97846ddfc100aafa3fb6551231c3306f))
+
+- **readme**: Repair broken CI shields badge
+  ([#734](https://github.com/Bluetooth-Devices/dbus-fast/pull/734),
+  [`7e88421`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7e884212fe56a1e80b452afc85de068d80866115))
+
+
 ## v5.0.16 (2026-05-27)
 
 ### Bug Fixes
