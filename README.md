@@ -67,6 +67,21 @@ This library is available on PyPi as [dbus-fast](https://pypi.org/project/dbus-f
 pip3 install dbus-fast
 ```
 
+### Installing without the Cython extension
+
+The PyPI wheels bundle an optional Cython extension that speeds up the
+marshalling/unmarshalling hot paths but adds a few MB to the installed size.
+If you're bundling `dbus-fast` into a size-sensitive application and don't
+need the extra performance, install the pure-Python version by forcing a
+source build with `SKIP_CYTHON=1`:
+
+```
+SKIP_CYTHON=1 pip3 install --no-binary dbus-fast dbus-fast
+```
+
+See the [installation docs](https://dbus-fast.readthedocs.io/en/latest/installation.html)
+for details.
+
 ## The Client Interface
 
 To use a service on the bus, the library constructs a proxy object you can use to call methods, get and set properties, and listen to signals.
