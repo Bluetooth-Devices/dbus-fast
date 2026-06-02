@@ -245,10 +245,16 @@ def build_simple_parsers(
     return parsers
 
 
-try:
+# `import cython` is gated behind TYPE_CHECKING so static bundlers
+# (PyInstaller, Nuitka) don't follow it and drag the Cython package
+# (and its numpy bindings) into frozen apps. Cython still recognises
+# the import at compile time and keeps `cython.compiled` magic; the
+# else branch is what actually runs uncompiled.
+if TYPE_CHECKING:
     import cython
-except ImportError:
+else:
     from ._cython_compat import FAKE_CYTHON as cython
+
 int_ = int
 bytearray_ = bytearray
 
