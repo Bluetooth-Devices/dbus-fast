@@ -4,6 +4,12 @@ Python DBus-Fast Documentation
 .. module:: dbus_fast
 
 .. toctree::
+   :maxdepth: 2
+   :caption: Installation:
+
+   installation
+
+.. toctree::
    :maxdepth: 3
    :caption: Reference:
 
