@@ -11,10 +11,10 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
 import sys
+from pathlib import Path
 
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + "/.."))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from dbus_fast.__version__ import __author__, __copyright__, __title__, __version__
 

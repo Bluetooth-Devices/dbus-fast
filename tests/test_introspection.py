@@ -1,7 +1,7 @@
-import os
 import sys
 import threading
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 import pytest
 
@@ -18,10 +18,12 @@ from dbus_fast._private.cache import bounded_put
 from dbus_fast.aio.proxy_object import ProxyInterface
 from dbus_fast.signature import get_signature_tree
 
-with open(f"{os.path.dirname(__file__)}/data/strict-introspection.xml") as f:
+_DATA_DIR = Path(__file__).parent / "data"
+
+with (_DATA_DIR / "strict-introspection.xml").open() as f:
     strict_data = f.read()
 
-with open(f"{os.path.dirname(__file__)}/data/sloppy-introspection.xml") as f:
+with (_DATA_DIR / "sloppy-introspection.xml").open() as f:
     sloppy_data = f.read()
 
 
