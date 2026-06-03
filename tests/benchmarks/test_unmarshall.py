@@ -339,3 +339,55 @@ def test_unmarshall_bluez_service_data_message(
         seek(0)
         for _ in range(ITERATIONS):
             unmarshall()
+
+
+def _build_bluez_interfaces_removed_message() -> bytes:
+    """An ObjectManager.InterfacesRemoved signal carrying ``oas``.
+
+    InterfacesRemoved fires whenever BlueZ tears down a device entry —
+    a high-frequency event on a noisy 2.4 GHz channel. The body is an
+    object path plus a bare ``as`` of interface names, so the hot path
+    is the top-level string-array reader with several short-string
+    allocations per message. None of the existing fixtures exercise
+    ``as`` at the top level with non-empty entries (the ``as`` tail of
+    ``sa{sv}as`` in PropertiesChanged is always empty in the BlueZ
+    traffic), so a regression in the top-level string-array branch
+    would not show up on CodSpeed without a dedicated benchmark.
+    """
+    body = [
+        "/org/bluez/hci0/dev_5F_13_47_38_26_55",
+        [
+            "org.freedesktop.DBus.Properties",
+            "org.freedesktop.DBus.Introspectable",
+            "org.bluez.Device1",
+        ],
+    ]
+    return bytes(
+        Message(
+            path="/",
+            interface="org.freedesktop.DBus.ObjectManager",
+            member="InterfacesRemoved",
+            message_type=MessageType.SIGNAL,
+            signature="oas",
+            body=body,
+        )._marshall(False)
+    )
+
+
+bluez_interfaces_removed_message = _build_bluez_interfaces_removed_message()
+
+
+def test_unmarshall_bluez_interfaces_removed_message(
+    benchmark: BenchmarkFixture,
+) -> None:
+    stream = io.BytesIO(bluez_interfaces_removed_message * ITERATIONS)
+
+    unmarshaller = Unmarshaller(stream)
+    unmarshall = unmarshaller.unmarshall
+    seek = stream.seek
+
+    @benchmark
+    def _():
+        seek(0)
+        for _ in range(ITERATIONS):
+            unmarshall()
