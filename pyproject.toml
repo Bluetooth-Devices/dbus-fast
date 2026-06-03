@@ -206,6 +206,7 @@ select = [
     "FA",  # flake8-future-annotations
     "ICN", # flake8-import-conventions
     "ISC", # flake8-implicit-str-concat
+    "PTH", # flake8-use-pathlib
     "Q",   # flake8-quotes
     "YTT", # flake8-2020
     "TID", # Tidy imports

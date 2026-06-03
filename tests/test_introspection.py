@@ -1,5 +1,5 @@
-import os
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 import pytest
 
@@ -13,10 +13,12 @@ from dbus_fast import (
 from dbus_fast import introspection as intr
 from dbus_fast.signature import get_signature_tree
 
-with open(f"{os.path.dirname(__file__)}/data/strict-introspection.xml") as f:
+_DATA_DIR = Path(__file__).parent / "data"
+
+with (_DATA_DIR / "strict-introspection.xml").open() as f:
     strict_data = f.read()
 
-with open(f"{os.path.dirname(__file__)}/data/sloppy-introspection.xml") as f:
+with (_DATA_DIR / "sloppy-introspection.xml").open() as f:
     sloppy_data = f.read()
 
 
