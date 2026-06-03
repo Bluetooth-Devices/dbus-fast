@@ -149,3 +149,88 @@ constructor to use unix file descriptors.
         await bus.wait_for_disconnect()
 
     asyncio.run(main())
+
+Defining members dynamically
+----------------------------
+
+The decorators above are collected from the class when an interface is
+constructed, so the set of methods, properties, and signals is normally
+fixed at the time you write the class. Some services need a set of
+members that is only known at runtime — for example, a list of
+properties loaded from a configuration file. Mutating an interface's
+internal member lists after construction is not supported, but because
+the members are read from the *class*, you can build the class itself
+dynamically with a factory function.
+
+Define each member inside a closure so it captures the runtime value,
+attach it to a namespace, and create the class with :func:`type`. The
+getter must take only ``self`` and carry a DBus type annotation, exactly
+as it would if you had written it out by hand:
+
+.. code-block:: python3
+
+    from dbus_fast.service import ServiceInterface, dbus_property, PropertyAccess
+
+
+    def make_interface(property_names):
+        def make_getter(name):
+            def getter(self) -> "i":  # DBus int32
+                return self._values[name]
+
+            getter.__name__ = name
+            return getter
+
+        namespace = {}
+
+        def __init__(self, name="com.example.Dynamic"):
+            ServiceInterface.__init__(self, name)
+            self._values = {n: 0 for n in property_names}
+
+        namespace["__init__"] = __init__
+        for prop_name in property_names:
+            namespace[prop_name] = dbus_property(
+                access=PropertyAccess.READ, name=prop_name
+            )(make_getter(prop_name))
+
+        return type("DynamicInterface", (ServiceInterface,), namespace)
+
+
+    DynamicInterface = make_interface(["switch", "button", "lever"])
+    interface = DynamicInterface()
+    # interface now exposes switch, button, and lever as int32 properties.
+
+The resulting class behaves like any hand-written ``ServiceInterface``:
+``export()`` it, introspect it, and get its properties as usual. Build
+the class once and reuse it for every instance — there is no need to
+rebuild it per object.
+
+The same factory technique answers a related need: hiding *optional*
+members on some instances but not others. The ``disabled`` argument
+accepted by :func:`@dbus_method() <dbus_fast.service.dbus_method>`,
+:func:`@dbus_property() <dbus_fast.service.dbus_property>`, and
+:func:`@dbus_signal() <dbus_fast.service.dbus_signal>` is evaluated when
+the class is built, so pass it through the factory to produce variants
+of an interface with different members enabled:
+
+.. code-block:: python3
+
+    def make_advertisement(disabled_properties=()):
+        class Advertisement(ServiceInterface):
+            def __init__(self, name="org.example.Advertisement"):
+                super().__init__(name)
+                self._appearance = 0
+
+            @dbus_property(
+                PropertyAccess.READ,
+                disabled="Appearance" in disabled_properties,
+            )
+            def Appearance(self) -> "q":
+                return self._appearance
+
+        return Advertisement
+
+
+    # All properties enabled.
+    Advertisement = make_advertisement()
+    # A variant that does not expose Appearance.
+    MinimalAdvertisement = make_advertisement(disabled_properties=["Appearance"])
