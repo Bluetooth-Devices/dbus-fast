@@ -275,3 +275,67 @@ def test_unmarshall_bluez_manufacturer_data_message(
         seek(0)
         for _ in range(ITERATIONS):
             unmarshall()
+
+
+def _build_bluez_service_data_message() -> bytes:
+    """A BLE advertisement PropertiesChanged carrying ServiceData.
+
+    ServiceData is the string-keyed counterpart to ManufacturerData: a
+    ``Variant("a{sv}", {uuid_str: Variant("ay", bytes)})`` nested inside
+    the outer ``a{sv}`` property dict, exercising the string-keyed dict
+    fast path at two levels plus the ``ay`` variant unpack. The other
+    BlueZ fixtures only reach this shape bundled behind eight RSSI-only
+    messages, so a regression in the nested-a{sv}/ay-variant branch
+    would be diluted out of range — the same dilution argument that
+    motivated the dedicated ManufacturerData benchmark above.
+    """
+    body = [
+        "org.bluez.Device1",
+        {
+            "RSSI": Variant("n", -72),
+            "ServiceData": Variant(
+                "a{sv}",
+                {
+                    "0000fe95-0000-1000-8000-00805f9b34fb": Variant(
+                        "ay",
+                        b"\x30\x58\xd6\x03\x02\x36\x26\x60\x34\x2d\x58\x08",
+                    ),
+                    "0000fdcd-0000-1000-8000-00805f9b34fb": Variant(
+                        "ay",
+                        b"\x08\x12\x1f\xda\x60\x34\x2d\x58\x02\x01\x55\x0f"
+                        b"\x01\xcd\x09\x04\x05",
+                    ),
+                },
+            ),
+        },
+        [],
+    ]
+    return bytes(
+        Message(
+            path="/org/bluez/hci0/dev_58_2D_34_60_DA_1F",
+            interface="org.freedesktop.DBus.Properties",
+            member="PropertiesChanged",
+            message_type=MessageType.SIGNAL,
+            signature="sa{sv}as",
+            body=body,
+        )._marshall(False)
+    )
+
+
+bluez_service_data_message = _build_bluez_service_data_message()
+
+
+def test_unmarshall_bluez_service_data_message(
+    benchmark: BenchmarkFixture,
+) -> None:
+    stream = io.BytesIO(bluez_service_data_message * ITERATIONS)
+
+    unmarshaller = Unmarshaller(stream)
+    unmarshall = unmarshaller.unmarshall
+    seek = stream.seek
+
+    @benchmark
+    def _():
+        seek(0)
+        for _ in range(ITERATIONS):
+            unmarshall()
