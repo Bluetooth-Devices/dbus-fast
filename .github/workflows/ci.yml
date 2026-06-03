@@ -17,7 +17,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: "3.10"
@@ -41,7 +41,7 @@ jobs:
           - "use_cython"
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - name: Install libs
         uses: awalsh128/cache-apt-pkgs-action@acb598e5ddbc6f68a970c5da0688d2f3a9f04d05 # v1.6.0
         with:
@@ -76,7 +76,7 @@ jobs:
       - name: Test with Pytest
         run: dbus-run-session -- poetry run pytest --cov-report=xml --timeout=5 --durations=30 --ignore=tests/benchmarks
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
+        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
@@ -86,7 +86,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - name: Cache s390x apt + uv downloads
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
@@ -138,7 +138,7 @@ jobs:
   benchmark:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - name: Install libs
         uses: awalsh128/cache-apt-pkgs-action@acb598e5ddbc6f68a970c5da0688d2f3a9f04d05 # v1.6.0
         with:
@@ -170,7 +170,7 @@ jobs:
         with:
           extension: use_cython
       - name: Run benchmarks
-        uses: CodSpeedHQ/action@c381be0bfd20e844fb45594f6aa182ffcd94545c # v4.15.0
+        uses: CodSpeedHQ/action@9d332c4d90b43981c3e55ae8e38e68709996240f # v4.17.0
         with:
           mode: instrumentation
           token: ${{ secrets.CODSPEED_TOKEN }}
@@ -194,7 +194,7 @@ jobs:
       newest_release_tag: ${{ steps.release_tag.outputs.newest_release_tag }}
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
           ref: ${{ github.ref }}
@@ -298,14 +298,14 @@ jobs:
           - { os: ubuntu-latest, qemu: riscv64, musl: "", pyver: cp314 }
           - { os: ubuntu-latest, qemu: riscv64, musl: "", pyver: cp314t }
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           ref: "v${{ needs.release.outputs.newest_release_tag }}"
           fetch-depth: 0
 
       - name: Set up QEMU
         if: ${{ matrix.qemu }}
-        uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
+        uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
         with:
           platforms: all
           # xref https://github.com/docker/setup-qemu-action/issues/188
