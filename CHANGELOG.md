@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v5.0.19 (2026-06-04)
+
+### Performance Improvements
+
+- Skip fd substitution when a received message carries no fds
+  ([#747](https://github.com/Bluetooth-Devices/dbus-fast/pull/747),
+  [`035c64b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/035c64b78d122401f58f203be56ea538e1dc7766))
+
+
 ## v5.0.18 (2026-06-04)
 
 ### Bug Fixes
