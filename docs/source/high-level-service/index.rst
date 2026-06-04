@@ -5,6 +5,7 @@ The High Level Service
    :maxdepth: 2
 
    service-interface
+   optional-members
 
 The high level service interface provides everything you need to export
 interfaces on the bus. When you export an interface on your
