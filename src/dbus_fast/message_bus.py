@@ -332,15 +332,12 @@ class BaseMessageBus:
             e: Exception | None,
         ) -> None:
             if e is not None:
-                try:
-                    raise e
-                except Exception:
-                    _LOGGER.error(
-                        "An exception ocurred when emitting ObjectManager.InterfacesAdded for %s. "
-                        "Some properties will not be included in the signal.",
-                        interface.name,
-                        exc_info=True,
-                    )
+                _LOGGER.error(
+                    "An exception occurred when emitting ObjectManager.InterfacesAdded for %s. "
+                    "Some properties will not be included in the signal.",
+                    interface.name,
+                    exc_info=e,
+                )
 
             body = {interface.name: result}
 
