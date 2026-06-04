@@ -2,6 +2,41 @@
 
 <!-- version list -->
 
+## v5.0.18 (2026-06-04)
+
+### Bug Fixes
+
+- **service**: Log ObjectManager.InterfacesAdded callback exceptions cleanly
+  ([#739](https://github.com/Bluetooth-Devices/dbus-fast/pull/739),
+  [`eda4942`](https://github.com/Bluetooth-Devices/dbus-fast/commit/eda49425db632cc836ce268c8c6b183c75c33b41))
+
+### Chores
+
+- **deps-ci**: Bump the github-actions group with 4 updates
+  ([#737](https://github.com/Bluetooth-Devices/dbus-fast/pull/737),
+  [`f5398eb`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f5398ebf29c1b51be1d06b3e35d325e87f56a88b))
+
+### Documentation
+
+- **service**: Show how to define interface members dynamically
+  ([#742](https://github.com/Bluetooth-Devices/dbus-fast/pull/742),
+  [`b66893d`](https://github.com/Bluetooth-Devices/dbus-fast/commit/b66893de4a3be0d9754f8efeeea0eec372f7b4cc))
+
+### Testing
+
+- **benchmarks**: Add bluez InterfacesRemoved unmarshall benchmark
+  ([#741](https://github.com/Bluetooth-Devices/dbus-fast/pull/741),
+  [`ab0a15a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/ab0a15a8b0aa4f32bdc5f90ccf7fe6968673d9f6))
+
+- **benchmarks**: Add bluez ServiceData unmarshall benchmark
+  ([#740](https://github.com/Bluetooth-Devices/dbus-fast/pull/740),
+  [`fc2efff`](https://github.com/Bluetooth-Devices/dbus-fast/commit/fc2efff20b868f399001bcf0d8e660dc92c0ac7e))
+
+- **benchmarks**: Add signal dispatch benchmark
+  ([#746](https://github.com/Bluetooth-Devices/dbus-fast/pull/746),
+  [`c8295a4`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c8295a4831ee99cdf9002927a82d35dc76305035))
+
+
 ## v5.0.17 (2026-06-02)
 
 ### Bug Fixes
