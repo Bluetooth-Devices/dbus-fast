@@ -162,75 +162,96 @@ internal member lists after construction is not supported, but because
 the members are read from the *class*, you can build the class itself
 dynamically with a factory function.
 
-Define each member inside a closure so it captures the runtime value,
-attach it to a namespace, and create the class with :func:`type`. The
-getter must take only ``self`` and carry a DBus type annotation, exactly
-as it would if you had written it out by hand:
-
-.. code-block:: python3
-
-    from dbus_fast.service import ServiceInterface, dbus_property, PropertyAccess
-
-
-    def make_interface(property_names):
-        def make_getter(name):
-            def getter(self) -> "i":  # DBus int32
-                return self._values[name]
-
-            getter.__name__ = name
-            return getter
-
-        namespace = {}
-
-        def __init__(self, name="com.example.Dynamic"):
-            ServiceInterface.__init__(self, name)
-            self._values = {n: 0 for n in property_names}
-
-        namespace["__init__"] = __init__
-        for prop_name in property_names:
-            namespace[prop_name] = dbus_property(
-                access=PropertyAccess.READ, name=prop_name
-            )(make_getter(prop_name))
-
-        return type("DynamicInterface", (ServiceInterface,), namespace)
-
-
-    DynamicInterface = make_interface(["switch", "button", "lever"])
-    interface = DynamicInterface()
-    # interface now exposes switch, button, and lever as int32 properties.
-
-The resulting class behaves like any hand-written ``ServiceInterface``:
-``export()`` it, introspect it, and get its properties as usual. Build
-the class once and reuse it for every instance — there is no need to
-rebuild it per object.
-
-The same factory technique answers a related need: hiding *optional*
-members on some instances but not others. The ``disabled`` argument
-accepted by :func:`@dbus_method() <dbus_fast.service.dbus_method>`,
+The simplest case is choosing *which* members an instance exposes at
+construction time. The ``disabled`` argument accepted by
+:func:`@dbus_method() <dbus_fast.service.dbus_method>`,
 :func:`@dbus_property() <dbus_fast.service.dbus_property>`, and
 :func:`@dbus_signal() <dbus_fast.service.dbus_signal>` is evaluated when
-the class is built, so pass it through the factory to produce variants
-of an interface with different members enabled:
+the class is built, so wrapping a plain ``class`` body in a factory
+function lets you produce variants of an interface with different
+optional members enabled:
 
 .. code-block:: python3
+
+    from dbus_fast.annotations import DBusStr, DBusUInt16
+    from dbus_fast.service import ServiceInterface, dbus_property, PropertyAccess
+
 
     def make_advertisement(disabled_properties=()):
         class Advertisement(ServiceInterface):
             def __init__(self, name="org.example.Advertisement"):
                 super().__init__(name)
                 self._appearance = 0
+                self._local_name = ""
 
             @dbus_property(
                 PropertyAccess.READ,
                 disabled="Appearance" in disabled_properties,
             )
-            def Appearance(self) -> "q":
+            def Appearance(self) -> DBusUInt16:
                 return self._appearance
+
+            @dbus_property(PropertyAccess.READ)
+            def LocalName(self) -> DBusStr:
+                return self._local_name
 
         return Advertisement
 
 
     # All properties enabled.
     Advertisement = make_advertisement()
-    # A variant that does not expose Appearance.
+    # A variant that drops Appearance but keeps LocalName.
     MinimalAdvertisement = make_advertisement(disabled_properties=["Appearance"])
+
+A more advanced case is when the *member set* itself — not just its
+visibility — is only known at runtime, for example a list of properties
+loaded from a configuration file. Mutating an interface's internal member
+lists after construction is not supported, but because the members are
+read from the *class*, you can build the class itself: define each member
+inside a closure so it captures the runtime value, attach it to a
+namespace, and create the class with :func:`type`.
+
+When the signature is known at runtime you cannot write a literal return
+annotation, so assign it programmatically with :class:`typing.Annotated`
+and :class:`~dbus_fast.annotations.DBusSignature`:
+
+.. code-block:: python3
+
+    from typing import Annotated
+
+    from dbus_fast.annotations import DBusSignature
+    from dbus_fast.service import ServiceInterface, dbus_property, PropertyAccess
+
+
+    def make_interface(property_signatures):
+        def make_getter(name, sig):
+            def getter(self):
+                return self._values[name]
+
+            getter.__name__ = name
+            getter.__annotations__["return"] = Annotated[object, DBusSignature(sig)]
+            return getter
+
+        namespace = {}
+
+        def __init__(self, name="com.example.Dynamic"):
+            ServiceInterface.__init__(self, name)
+            self._values = {n: None for n in property_signatures}
+
+        namespace["__init__"] = __init__
+        for prop_name, sig in property_signatures.items():
+            namespace[prop_name] = dbus_property(
+                access=PropertyAccess.READ, name=prop_name
+            )(make_getter(prop_name, sig))
+
+        return type("DynamicInterface", (ServiceInterface,), namespace)
+
+
+    DynamicInterface = make_interface({"switch": "b", "level": "i", "label": "s"})
+    interface = DynamicInterface()
+    # interface now exposes switch (bool), level (int32), and label (str).
+
+The resulting class behaves like any hand-written ``ServiceInterface``:
+``export()`` it, introspect it, and get its properties as usual. Build
+the class once and reuse it for every instance — there is no need to
+rebuild it per object.

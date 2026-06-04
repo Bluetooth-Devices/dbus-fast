@@ -66,6 +66,15 @@ benchmarks track that path. See _Build conventions_ below.
   references** to old codepaths or issue numbers unless there's
   a clear reason a future reader needs that link.
 
+- **D-Bus type annotations: no signature strings.** Since v4.0.0
+  the supported form is the `Annotated` aliases in
+  `dbus_fast.annotations` (`DBusInt32`, `DBusUInt16`, `DBusStr`,
+  …) or `Annotated[..., DBusSignature(sig)]` for a runtime
+  signature. The old string form (`def m(self) -> "i":`) is
+  deprecated. No runtime `DeprecationWarning` is emitted, so
+  review feedback is the only signal — don't reintroduce it in
+  code or docs.
+
 - **Method order**: public API at the top, private helpers
   (`_underscore_prefixed`) at the bottom.
 
