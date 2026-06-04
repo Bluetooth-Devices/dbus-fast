@@ -85,6 +85,9 @@ def replace_idx_with_fds(
     """Take the low level body format and return the high level body format.
     Type 'h' refers to an index in the unix_fds array. Replace those with the
     actual file descriptor or `None` if one does not exist."""
+    if not unix_fds:
+        return body
+
     if type(signature) is str:
         signature = get_signature_tree(signature)
 
