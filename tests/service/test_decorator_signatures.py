@@ -113,6 +113,30 @@ def test_signature_must_be_string():
         dbus_property(signature=5)
 
 
+def test_method_without_signature_requires_annotations():
+    def no_annotation(self, value) -> None:
+        return None
+
+    with pytest.raises(ValueError, match="method parameters must specify"):
+        dbus_method()(no_annotation)
+
+
+def test_property_signature_must_be_single_complete_type():
+    def getter(self) -> int:
+        return 0
+
+    with pytest.raises(ValueError, match="single complete type"):
+        dbus_property(signature="ss")(getter)
+
+
+def test_property_without_signature_requires_return_annotation():
+    def getter(self):
+        return 0
+
+    with pytest.raises(ValueError, match="return annotation"):
+        dbus_property()(getter)
+
+
 @pytest.mark.asyncio
 async def test_decorator_signature_round_trip():
     bus1 = await MessageBus().connect()
