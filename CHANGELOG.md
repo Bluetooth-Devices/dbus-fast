@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v5.0.20 (2026-06-05)
+
+### Performance Improvements
+
+- **proxy**: Skip Coroutine ABC check for sync signal handlers
+  ([#749](https://github.com/Bluetooth-Devices/dbus-fast/pull/749),
+  [`6699b48`](https://github.com/Bluetooth-Devices/dbus-fast/commit/6699b48bc3a746d6e42594502f501fe07cb007b7))
+
+
 ## v5.0.19 (2026-06-04)
 
 ### Performance Improvements
