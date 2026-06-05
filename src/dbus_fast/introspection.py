@@ -221,9 +221,7 @@ class Signal:
 
         annotations = _fetch_annotations(element)
 
-        signal = Signal(name, args, annotations)
-
-        return signal
+        return Signal(name, args, annotations)
 
     def to_xml(self) -> ET.Element:
         """Convert this :class:`Signal` into an :class:`xml.etree.ElementTree.Element`."""
