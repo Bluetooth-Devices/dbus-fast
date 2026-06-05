@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v5.0.21 (2026-06-05)
+
+### Performance Improvements
+
+- **proxy**: Index signals by name to drop per-signal list scan
+  ([#748](https://github.com/Bluetooth-Devices/dbus-fast/pull/748),
+  [`5be18bd`](https://github.com/Bluetooth-Devices/dbus-fast/commit/5be18bd0fbed02a202d9d515041d0cfd90e766b2))
+
+
 ## v5.0.20 (2026-06-05)
 
 ### Performance Improvements
