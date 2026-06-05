@@ -67,6 +67,9 @@ class BaseProxyInterface:
         self.introspection = introspection
         self.bus = bus
         self._signal_handlers: dict[str, list[SignalHandler]] = {}
+        self._signals_by_name: dict[str, intr.Signal] = {}
+        for intr_signal in introspection.signals:
+            self._signals_by_name.setdefault(intr_signal.name, intr_signal)
         self._signal_match_rule = f"type='signal',sender={bus_name},interface={introspection.name},path={path}"
         self._background_tasks: set[asyncio.Task] = set()
 
@@ -119,10 +122,9 @@ class BaseProxyInterface:
             # on the bus for this purpose.
             return
 
-        match = [s for s in self.introspection.signals if s.name == msg.member]
-        if not match:
+        intr_signal = self._signals_by_name.get(msg.member)
+        if intr_signal is None:
             return
-        intr_signal = match[0]
         if intr_signal.signature != msg.signature:
             _LOGGER.warning(
                 f'got signal "{self.introspection.name}.{msg.member}" with unexpected signature "{msg.signature}"'

@@ -6,7 +6,7 @@ import pytest
 from dbus_fast import Message
 from dbus_fast.aio import MessageBus
 from dbus_fast.annotations import DBusDict, DBusSignature, DBusStr
-from dbus_fast.constants import RequestNameReply
+from dbus_fast.constants import MessageType, RequestNameReply
 from dbus_fast.introspection import Node
 from dbus_fast.service import ServiceInterface, dbus_signal
 from dbus_fast.signature import Variant
@@ -470,6 +470,51 @@ async def test_on_signal_type_error():
 
     with pytest.raises(TypeError):
         interface.on_some_signal(lambda a, b, *args: "Too many before varargs")
+
+    bus1.disconnect()
+    bus2.disconnect()
+    await asyncio.wait_for(bus1.wait_for_disconnect(), timeout=1)
+    await asyncio.wait_for(bus2.wait_for_disconnect(), timeout=1)
+
+
+@pytest.mark.asyncio
+async def test_signal_member_not_in_introspection():
+    """A signal whose member is absent from introspection fires no handler."""
+    bus1 = await MessageBus().connect()
+    bus2 = await MessageBus().connect()
+
+    await bus1.request_name("test.signals.name")
+    service_interface = ExampleInterface()
+    bus1.export("/test/path", service_interface)
+
+    obj = bus2.get_proxy_object(
+        "test.signals.name", "/test/path", bus1._introspect_export_path("/test/path")
+    )
+    interface = obj.get_interface(service_interface.name)
+
+    called = False
+
+    def handler(value):
+        nonlocal called
+        called = True
+
+    # Register a handler keyed on a member that does not exist in the
+    # interface's introspection, so dispatch reaches the `intr_signal is None`
+    # early return.
+    interface._signal_handlers["NotASignal"] = [handler]
+    assert "NotASignal" not in interface._signals_by_name
+
+    interface._message_handler(
+        Message(
+            message_type=MessageType.SIGNAL,
+            interface=interface.introspection.name,
+            path=interface.path,
+            member="NotASignal",
+            sender=interface.bus_name,
+        )
+    )
+
+    assert called is False
 
     bus1.disconnect()
     bus2.disconnect()
