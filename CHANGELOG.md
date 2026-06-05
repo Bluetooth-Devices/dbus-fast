@@ -2,6 +2,21 @@
 
 <!-- version list -->
 
+## v5.0.22 (2026-06-05)
+
+### Chores
+
+- **deps-dev**: Bump pytest-asyncio from 1.3.0 to 1.4.0
+  ([#736](https://github.com/Bluetooth-Devices/dbus-fast/pull/736),
+  [`f410394`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f410394d62d3542c024f081e4fba6ac0f6f4fc65))
+
+### Performance Improvements
+
+- **proxy**: Check path first in signal handler guard
+  ([#750](https://github.com/Bluetooth-Devices/dbus-fast/pull/750),
+  [`3625810`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3625810f0836baf00f94ed7bfe1f5819287ce62a))
+
+
 ## v5.0.21 (2026-06-05)
 
 ### Performance Improvements
