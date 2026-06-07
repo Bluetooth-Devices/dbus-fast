@@ -35,8 +35,7 @@ def signature_contains_type(
     if not contains_variants:
         return False
 
-    for member in body:
-        queue.append(member)
+    queue.extend(body)
 
     while True:
         if not queue:
@@ -185,13 +184,13 @@ def _replace_fds(
         elif st.token == "{":
             for key, value in list(body_obj.items()):  # type: ignore[union-attr]
                 body_obj.pop(key)
-                if st.children[0].signature == "h":
-                    key = replace_fn(key)
+                new_key = replace_fn(key) if st.children[0].signature == "h" else key
                 if st.children[1].signature == "h":
-                    value = replace_fn(value)
+                    new_value = replace_fn(value)
                 else:
                     _replace_fds([value], [st.children[1]], replace_fn)
-                body_obj[key] = value
+                    new_value = value
+                body_obj[new_key] = new_value
 
         elif st.signature == "v":
             if body_obj[index].signature == "h":

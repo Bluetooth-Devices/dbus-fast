@@ -104,8 +104,7 @@ def get_session_bus_address() -> str:
                 raise InvalidAddressError(
                     f"DBUS_SESSION_BUS_ADDRESS variable not set correctly in dbus info file: {dbus_info_file_name}"
                 )
-            addr = remove_quotes_re.search(addr).group(1)
-            return addr
+            return remove_quotes_re.search(addr).group(1)
 
     raise InvalidAddressError("could not find dbus session bus address")
 

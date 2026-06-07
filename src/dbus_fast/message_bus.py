@@ -173,9 +173,9 @@ class BaseMessageBus:
 
     @property
     def connected(self) -> bool:
-        if self.unique_name is None or self._disconnected or self._user_disconnect:
-            return False
-        return True
+        return not (
+            self.unique_name is None or self._disconnected or self._user_disconnect
+        )
 
     def export(self, path: str, interface: ServiceInterface) -> None:
         """Export the service interface on this message bus to make it available
@@ -1020,7 +1020,7 @@ class BaseMessageBus:
         def is_result_complete() -> bool:
             if not result:
                 return True
-            for n, interfaces in result.items():
+            for interfaces in result.values():
                 for value in interfaces.values():
                     if value is None:
                         return False

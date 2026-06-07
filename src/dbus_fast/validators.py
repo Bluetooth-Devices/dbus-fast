@@ -131,10 +131,7 @@ def is_member_name_valid(member: str) -> bool:
     if not member or len(member) > 255:
         return False
 
-    if _member_re.search(member) is None:
-        return False
-
-    return True
+    return _member_re.search(member) is not None
 
 
 @lru_cache(maxsize=32)

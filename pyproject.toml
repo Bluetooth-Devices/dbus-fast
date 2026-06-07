@@ -142,8 +142,6 @@ ignore = [
     "PYI034", # too many to fix
     "E721",  # many are as intended
     ## should fix these sooner
-    "B007", # too many to fix -- should fix sooner
-    "SIM103", # too many to fix -- should fix sooner
     "SIM110", # too many to fix -- should fix sooner
     "RUF012", # too many to fix -- should fix sooner
     "TRY002", # too many to fix -- should fix sooner
@@ -156,7 +154,6 @@ ignore = [
     "B011", # too many to fix -- should fix sooner
     "PLR1714", # too many to fix -- should fix sooner
     "PLR0915", # too many to fix -- should fix sooner
-    "PERF102", # too many to fix -- should fix sooner
     "TRY401", # too many to fix -- should fix sooner
     "PLR0913", # too many to fix -- should fix sooner
     "PLR0912", # too many to fix -- should fix sooner
@@ -165,11 +162,7 @@ ignore = [
     "TRY301", # too many to fix -- should fix sooner
     "B020", # too many to fix -- should fix sooner
     "S314", # too many to fix -- should fix sooner
-    "RET504", # too many to fix -- should fix sooner
-    "SIM105", # too many to fix -- should fix sooner
     "TRY300", # too many to fix -- should fix sooner
-    "PLW2901", # too many to fix -- should fix sooner
-    "PERF402", # too many to fix -- should fix sooner
 
 ]
 select = [

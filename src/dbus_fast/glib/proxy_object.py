@@ -1,3 +1,4 @@
+import contextlib
 import xml.etree.ElementTree as ET
 
 from .. import introspection as intr
@@ -10,10 +11,8 @@ from ..signature import Variant
 from ..unpack import unpack_variants as unpack
 
 # glib is optional
-try:
+with contextlib.suppress(ImportError):
     from gi.repository import GLib
-except ImportError:
-    pass
 
 
 class ProxyInterface(BaseProxyInterface):
