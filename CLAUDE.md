@@ -286,7 +286,7 @@ _MAX_X` succeeds in pure-Python but raises `ImportError` under
   wire-format hot paths regress. Trust the CodSpeed check on
   PRs that touch `TO_CYTHONIZE` files; before pushing perf-
   sensitive changes, run
-  `REQUIRE_CYTHON=1 python setup.py build_ext --inplace` and
+  `REQUIRE_CYTHON=1 pip install -e .` and
   `pytest tests/benchmarks/` locally.
 
 [aio-1651]: https://github.com/esphome/aioesphomeapi/pull/1651
