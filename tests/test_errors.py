@@ -27,6 +27,8 @@ from dbus_fast import (
     SignalDisabledError,
     SignatureBodyMismatchError,
 )
+from dbus_fast.constants import ErrorType, MessageType
+from dbus_fast.message import Message
 
 _ALL_ERRORS = [
     AuthError,
@@ -185,3 +187,76 @@ def test_dbus_fast_error_catches_internal_error() -> None:
 def test_internal_error_message_unchanged() -> None:
     err = InternalError("internal boom")
     assert str(err) == "internal boom"
+
+
+def test_dbus_error_accepts_error_type_enum() -> None:
+    err = DBusError(ErrorType.FAILED, "boom")
+    assert err.type == ErrorType.FAILED.value
+    assert err.text == "boom"
+    assert err.reply is None
+
+
+def test_dbus_error_accepts_string_type() -> None:
+    err = DBusError("org.freedesktop.DBus.Error.ServiceUnknown", "missing")
+    assert err.type == "org.freedesktop.DBus.Error.ServiceUnknown"
+
+
+def test_dbus_error_rejects_invalid_type_name() -> None:
+    with pytest.raises(InvalidInterfaceNameError):
+        DBusError("not a valid name!", "boom")
+
+
+def test_dbus_error_rejects_non_message_reply() -> None:
+    with pytest.raises(TypeError):
+        DBusError("org.freedesktop.DBus.Error.Failed", "boom", reply="not a message")
+
+
+def test_dbus_error_stores_valid_reply() -> None:
+    err_msg = Message(
+        message_type=MessageType.ERROR,
+        reply_serial=1,
+        error_name="org.freedesktop.DBus.Error.Failed",
+        signature="s",
+        body=["boom"],
+    )
+    err = DBusError("org.freedesktop.DBus.Error.Failed", "boom", reply=err_msg)
+    assert err.reply is err_msg
+
+
+def test_dbus_error_from_message_round_trip() -> None:
+    err_msg = Message(
+        message_type=MessageType.ERROR,
+        reply_serial=7,
+        error_name="org.freedesktop.DBus.Error.AccessDenied",
+        signature="s",
+        body=["denied"],
+    )
+    err = DBusError._from_message(err_msg)
+    assert err.type == "org.freedesktop.DBus.Error.AccessDenied"
+    assert err.text == "denied"
+    assert err.reply is err_msg
+
+
+def test_dbus_error_from_message_requires_error_type() -> None:
+    call = Message(
+        message_type=MessageType.METHOD_CALL,
+        path="/org/example",
+        member="Frobnicate",
+    )
+    with pytest.raises(AssertionError):
+        DBusError._from_message(call)
+
+
+def test_dbus_error_as_message_round_trip() -> None:
+    call = Message(
+        message_type=MessageType.METHOD_CALL,
+        path="/org/example",
+        member="Frobnicate",
+        serial=42,
+    )
+    err = DBusError("org.freedesktop.DBus.Error.Failed", "kaboom")
+    reply = err._as_message(call)
+    assert reply.message_type == MessageType.ERROR
+    assert reply.error_name == "org.freedesktop.DBus.Error.Failed"
+    assert reply.reply_serial == 42
+    assert reply.body == ["kaboom"]
