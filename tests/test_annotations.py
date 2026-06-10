@@ -47,9 +47,7 @@ ALIAS_TABLE: list[tuple[Any, Any, str]] = [
 
 
 @pytest.mark.parametrize(("alias", "base", "code"), ALIAS_TABLE)
-def test_alias_resolves_to_base_and_signature(
-    alias: Any, base: Any, code: str
-) -> None:
+def test_alias_resolves_to_base_and_signature(alias: Any, base: Any, code: str) -> None:
     resolved, sig = get_args(alias)
     assert resolved == base
     assert sig == DBusSignature(code)
