@@ -649,7 +649,7 @@ def test_unmarshall_multiple_messages():
     unpacked = unpack_variants(message.body)
     assert unpacked == ["org.bluez.Device1", {"RSSI": -94}, []]
 
-    with pytest.raises(EOFError):
+    with pytest.raises(EOFError, match=r".*"):
         unmarshaller.unmarshall()
 
 
@@ -954,7 +954,7 @@ def test_read_variant_truncated_signature() -> None:
     # Body is: 01 6e 00 <padding> <int16>
     # Keep only 1 byte of body (just the signature_len byte)
     trunc = _truncate_body(full, 1)
-    with pytest.raises(IndexError):
+    with pytest.raises(IndexError, match=r".*"):
         Unmarshaller(io.BytesIO(bytes(trunc))).unmarshall()
 
 
@@ -965,7 +965,7 @@ def test_read_variant_truncated_signature_no_null() -> None:
     # Body is: 01 6e 00 <padding> <int16>
     # Keep only 2 bytes (signature_len + signature char, no null terminator)
     trunc = _truncate_body(full, 2)
-    with pytest.raises(IndexError):
+    with pytest.raises(IndexError, match=r".*"):
         Unmarshaller(io.BytesIO(bytes(trunc))).unmarshall()
 
 
@@ -976,7 +976,7 @@ def test_read_variant_truncated_byte_value() -> None:
     # Body is: 01 79 00 2a (sig_len, 'y', null, value)
     # Keep only 3 bytes (signature complete, but no value byte)
     trunc = _truncate_body(full, 3)
-    with pytest.raises(IndexError):
+    with pytest.raises(IndexError, match=r".*"):
         Unmarshaller(io.BytesIO(bytes(trunc))).unmarshall()
 
 

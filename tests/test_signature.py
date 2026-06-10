@@ -50,7 +50,7 @@ def test_array():
     assert child.children[0].token == "s"
     assert child._child_0.signature == "s"
     assert child._child_1 is None
-    with pytest.raises(AttributeError):
+    with pytest.raises(AttributeError, match=r"has no attribute"):
         _ = child._child_1.signature
 
 
@@ -241,7 +241,7 @@ def test_invalid_variants():
         "ipv6": s_ip6,
     }
 
-    with pytest.raises(SignatureBodyMismatchError):
+    with pytest.raises(SignatureBodyMismatchError, match=r"must be Python type"):
         tree.verify([con])
 
 
@@ -252,7 +252,7 @@ def test_variant_signature_type():
     assert var.value == ["foo", "bar"]
     assert var.signature == "as"
 
-    with pytest.raises(SignatureBodyMismatchError):
+    with pytest.raises(SignatureBodyMismatchError, match=r"must be Python type"):
         Variant(tree.types[0], "wrong")
 
 
@@ -276,7 +276,7 @@ def test_parse_unknown_token_raises():
 
 
 def test_parse_array_with_unterminated_struct_child_raises():
-    with pytest.raises(InvalidSignatureError):
+    with pytest.raises(InvalidSignatureError, match=r"Cannot parse an empty signature"):
         SignatureTree("a(")
 
 
@@ -625,7 +625,7 @@ def test_variant_skip_verify_flag():
 def test_verify_raises_internal_error_when_validator_missing(monkeypatch):
     sig_type = SignatureType("i")
     monkeypatch.delitem(SignatureType.validators, "i")
-    with pytest.raises(InternalError):
+    with pytest.raises(InternalError, match=r"cannot verify type with token"):
         sig_type.verify(123)
 
 

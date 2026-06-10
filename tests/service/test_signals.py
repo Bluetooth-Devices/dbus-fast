@@ -158,7 +158,7 @@ async def test_signals():
             body=["hello", "world"],
         )
 
-    with pytest.raises(SignalDisabledError):
+    with pytest.raises(SignalDisabledError, match=r"disabled signal"):
         interface.signal_disabled()
 
     bus1.disconnect()

@@ -69,7 +69,9 @@ def test_signature_is_hashable() -> None:
 
 def test_signature_is_frozen() -> None:
     sig = DBusSignature("i")
-    with pytest.raises(dataclasses.FrozenInstanceError):
+    with pytest.raises(
+        dataclasses.FrozenInstanceError, match=r"cannot assign to field"
+    ):
         sig.signature = "u"
 
 

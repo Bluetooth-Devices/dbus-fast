@@ -205,6 +205,9 @@ select = [
     "TRY", # tryceratops
 ]
 
+[tool.ruff.lint.flake8-pytest-style]
+raises-require-match-for = ["*"]
+
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*" = [
@@ -218,11 +221,9 @@ select = [
     "SLF001",
     "PLW", # too many to fix
     "TRY",# too many to fix right now
-    "PT",# too many to fix right now
     "B",# too many to fix right now
     "RET",# too many to fix right now
     "PLR2004", # too many to fix right now
-    "PT011", # too many to fix right now
     "PT006", # too many to fix right now
     "PGH003", # too many to fix right now
     "PT007", # too many to fix right now
@@ -234,6 +235,9 @@ select = [
     "PLR0124", # too many to fix right now
     "SIM202" , # too many to fix right now
     "PT012" , # too many to fix right now
+    "PT017", # too many to fix right now
+    "PT030", # too many to fix right now
+    "PT031", # too many to fix right now
     "TID252", # too many to fix right now
     "PLR0913", # skip this one
     "SIM102" , # too many to fix right now

@@ -147,9 +147,9 @@ def test_assert_bus_name_valid() -> None:
     """assert_bus_name_valid returns None for valid names, raises for invalid."""
     assert assert_bus_name_valid("foo.bar") is None
     assert assert_bus_name_valid(":1.42") is None
-    with pytest.raises(InvalidBusNameError):
+    with pytest.raises(InvalidBusNameError, match=r"invalid bus name"):
         assert_bus_name_valid("5foo.bar")
-    with pytest.raises(InvalidBusNameError):
+    with pytest.raises(InvalidBusNameError, match=r"invalid bus name"):
         assert_bus_name_valid(".foo")
 
 
@@ -157,18 +157,18 @@ def test_assert_object_path_valid() -> None:
     """assert_object_path_valid returns None for valid paths, raises for invalid."""
     assert assert_object_path_valid("/") is None
     assert assert_object_path_valid("/foo/bar") is None
-    with pytest.raises(InvalidObjectPathError):
+    with pytest.raises(InvalidObjectPathError, match=r"invalid object path"):
         assert_object_path_valid("foo")
-    with pytest.raises(InvalidObjectPathError):
+    with pytest.raises(InvalidObjectPathError, match=r"invalid object path"):
         assert_object_path_valid("/foo/bar/")
 
 
 def test_assert_interface_name_valid() -> None:
     """assert_interface_name_valid returns None for valid names, raises for invalid."""
     assert assert_interface_name_valid("foo.bar") is None
-    with pytest.raises(InvalidInterfaceNameError):
+    with pytest.raises(InvalidInterfaceNameError, match=r"invalid interface name"):
         assert_interface_name_valid("foo")
-    with pytest.raises(InvalidInterfaceNameError):
+    with pytest.raises(InvalidInterfaceNameError, match=r"invalid interface name"):
         assert_interface_name_valid("5foo.bar")
 
 
@@ -176,7 +176,7 @@ def test_assert_member_name_valid() -> None:
     """assert_member_name_valid returns None for valid names, raises for invalid."""
     assert assert_member_name_valid("Foo") is None
     assert assert_member_name_valid("foo-bar") is None
-    with pytest.raises(InvalidMemberNameError):
+    with pytest.raises(InvalidMemberNameError, match=r"invalid member name"):
         assert_member_name_valid("5foo")
-    with pytest.raises(InvalidMemberNameError):
+    with pytest.raises(InvalidMemberNameError, match=r"invalid member name"):
         assert_member_name_valid("foo.bar")

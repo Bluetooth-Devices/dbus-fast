@@ -105,22 +105,22 @@ def test_type_error_subclass_mro_order() -> None:
 
 
 def test_dbus_fast_error_catches_value_error_subclass() -> None:
-    with pytest.raises(DBusFastError):
+    with pytest.raises(DBusFastError, match=r"body mismatch"):
         raise SignatureBodyMismatchError("body mismatch")
 
 
 def test_dbus_fast_error_catches_type_error_subclass() -> None:
-    with pytest.raises(DBusFastError):
+    with pytest.raises(DBusFastError, match=r"invalid bus name"):
         raise InvalidBusNameError("not.a.valid.bus.name!")
 
 
 def test_value_error_still_catches_signature_errors() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=r"bad signature"):
         raise InvalidSignatureError("bad signature")
 
 
 def test_type_error_still_catches_name_errors() -> None:
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match=r"invalid member name"):
         raise InvalidMemberNameError("1bad")
 
 
@@ -152,7 +152,7 @@ def test_dbus_error_inherits_dbus_fast_error() -> None:
 
 
 def test_dbus_fast_error_directly_raisable() -> None:
-    with pytest.raises(DBusFastError):
+    with pytest.raises(DBusFastError, match=r"plain base class"):
         raise DBusFastError("plain base class")
 
 
@@ -175,12 +175,12 @@ def test_internal_error_mro_order() -> None:
 
 
 def test_runtime_error_still_catches_internal_error() -> None:
-    with pytest.raises(RuntimeError):
+    with pytest.raises(RuntimeError, match=r"boom"):
         raise InternalError("boom")
 
 
 def test_dbus_fast_error_catches_internal_error() -> None:
-    with pytest.raises(DBusFastError):
+    with pytest.raises(DBusFastError, match=r"boom"):
         raise InternalError("boom")
 
 
@@ -202,12 +202,12 @@ def test_dbus_error_accepts_string_type() -> None:
 
 
 def test_dbus_error_rejects_invalid_type_name() -> None:
-    with pytest.raises(InvalidInterfaceNameError):
+    with pytest.raises(InvalidInterfaceNameError, match=r"invalid interface name"):
         DBusError("not a valid name!", "boom")
 
 
 def test_dbus_error_rejects_non_message_reply() -> None:
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match=r"reply must be of type Message"):
         DBusError("org.freedesktop.DBus.Error.Failed", "boom", reply="not a message")
 
 
@@ -243,7 +243,7 @@ def test_dbus_error_from_message_requires_error_type() -> None:
         path="/org/example",
         member="Frobnicate",
     )
-    with pytest.raises(AssertionError):
+    with pytest.raises(AssertionError, match=r".*"):
         DBusError._from_message(call)
 
 

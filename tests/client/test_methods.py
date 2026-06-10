@@ -117,7 +117,7 @@ async def test_aio_proxy_object():
 
     logger.addHandler(log_handler)
     try:
-        with pytest.raises(DBusError):
+        with pytest.raises(DBusError, match=r"something went wrong"):
             try:
                 await interface.call_throws_error()
             except DBusError as e:
@@ -179,7 +179,7 @@ def test_glib_proxy_object():
 
     logger.addHandler(log_handler)
     try:
-        with pytest.raises(DBusError):
+        with pytest.raises(DBusError, match=r"something went wrong"):
             try:
                 result = interface.call_throws_error_sync()
                 assert False, result

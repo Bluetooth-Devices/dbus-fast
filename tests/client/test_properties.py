@@ -75,7 +75,7 @@ async def test_aio_properties():
     prop = await interface.get_complex_property(unpack_variants=True)
     assert prop == {"hello": "world"}
 
-    with pytest.raises(DBusError):
+    with pytest.raises(DBusError, match=r"i am bad"):
         try:
             prop = await interface.get_error_throwing_property()
             assert False, prop
@@ -85,7 +85,7 @@ async def test_aio_properties():
             assert type(e.reply) is Message
             raise e
 
-    with pytest.raises(DBusError):
+    with pytest.raises(DBusError, match=r"i am bad"):
         try:
             await interface.set_error_throwing_property("different")
         except DBusError as e:
@@ -130,7 +130,7 @@ def test_glib_properties():
     prop = interface.get_complex_property_sync(unpack_variants=True)
     assert prop == {"hello": "world"}
 
-    with pytest.raises(DBusError):
+    with pytest.raises(DBusError, match=r"i am bad"):
         try:
             prop = interface.get_error_throwing_property_sync()
             assert False, prop
@@ -140,7 +140,7 @@ def test_glib_properties():
             assert type(e.reply) is Message
             raise e
 
-    with pytest.raises(DBusError):
+    with pytest.raises(DBusError, match=r"i am bad"):
         try:
             interface.set_error_throwing_property_sync("different2")
         except DBusError as e:

@@ -63,17 +63,17 @@ async def test_unexpected_disconnect():
             )
         )
 
-        with pytest.raises(OSError):
+        with pytest.raises(OSError, match=r".*"):
             await ping
 
         assert bus._disconnected
         assert not bus.connected
 
-    with pytest.raises(OSError):
+    with pytest.raises(OSError, match=r".*"):
         await asyncio.wait_for(bus.wait_for_disconnect(), timeout=1)
 
     bus.disconnect()
-    with pytest.raises(OSError):
+    with pytest.raises(OSError, match=r".*"):
         await asyncio.wait_for(bus.wait_for_disconnect(), timeout=1)
 
 
