@@ -64,7 +64,7 @@ def test_check_method_return_raises_on_error_message() -> None:
         signature="s",
         body=["boom"],
     )
-    with pytest.raises(DBusError) as exc:
+    with pytest.raises(DBusError, match=r"boom") as exc:
         BaseProxyInterface._check_method_return(msg)
     assert exc.value.type == "com.example.Boom"
 
@@ -76,14 +76,14 @@ def test_check_method_return_raises_on_non_return_type() -> None:
         interface="org.example.Iface",
         member="Tick",
     )
-    with pytest.raises(DBusError) as exc:
+    with pytest.raises(DBusError, match=r"didnt return a method return") as exc:
         BaseProxyInterface._check_method_return(msg)
     assert exc.value.type == ErrorType.CLIENT_ERROR.value
 
 
 def test_check_method_return_raises_on_signature_mismatch() -> None:
     msg = _method_return(signature="i", body=[1])
-    with pytest.raises(DBusError) as exc:
+    with pytest.raises(DBusError, match=r"unexpected signature") as exc:
         BaseProxyInterface._check_method_return(msg, "s")
     assert exc.value.type == ErrorType.CLIENT_ERROR.value
     assert 'unexpected signature: "i"' in exc.value.text
