@@ -36,6 +36,23 @@ def test_auth_line_source_rejects_oversize() -> None:
 
 
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
+def test_auth_line_source_rejects_invalid_utf8() -> None:
+    stream = io.BytesIO(b"OK \xff\xfe\r\n")
+    source = _AuthLineSource(stream)
+
+    captured: list[object] = []
+
+    def callback(arg: object) -> bool:
+        captured.append(arg)
+        return True
+
+    source.dispatch(callback, None)
+
+    assert len(captured) == 1
+    assert isinstance(captured[0], AuthError)
+
+
+@pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
 def test_auth_line_source_rejects_eof() -> None:
     stream = io.BytesIO(b"")
     source = _AuthLineSource(stream)
