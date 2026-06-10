@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import re
+from pathlib import Path
 from urllib.parse import unquote
 
 from ..constants import BusType
@@ -84,13 +85,13 @@ def get_session_bus_address() -> str:
     # should be fairly reliable. fix this by passing in an async func to read
     # the file for each io backend.
     machine_id = None
-    with open("/var/lib/dbus/machine-id") as f:
+    with Path("/var/lib/dbus/machine-id").open() as f:
         machine_id = f.read().rstrip()
 
     dbus_info_file_name = f"{home}/.dbus/session-bus/{machine_id}-{display}"
     dbus_info: str | None = None
     try:
-        with open(dbus_info_file_name) as f:
+        with Path(dbus_info_file_name).open() as f:
             dbus_info = f.read().rstrip()
     except Exception as ex:
         raise InvalidAddressError(
