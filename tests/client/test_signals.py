@@ -363,7 +363,9 @@ async def test_kwargs_callback():
     def kwarg_bad_handler(value, *, bad_kwarg):
         pass
 
-    with pytest.raises(TypeError):
+    with pytest.raises(
+        TypeError, match=r"reply_notify cannot have required keyword only parameters"
+    ):
         interface.on_some_signal(kwarg_bad_handler)
 
     bus1.disconnect()
@@ -435,7 +437,9 @@ async def test_coro_callback():
     def kwarg_bad_handler(value, *, bad_kwarg):
         pass
 
-    with pytest.raises(TypeError):
+    with pytest.raises(
+        TypeError, match=r"reply_notify cannot have required keyword only parameters"
+    ):
         interface.on_some_signal(kwarg_bad_handler)
 
     bus1.disconnect()
@@ -459,16 +463,16 @@ async def test_on_signal_type_error():
     )
     interface = obj.get_interface(service_interface.name)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match=r"is not a callable object"):
         interface.on_some_signal("not_a_callable")
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match=r"reply_notify must be a function with"):
         interface.on_some_signal(lambda a, b: "Too many parameters")
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match=r"reply_notify must be a function with"):
         interface.on_some_signal(lambda: "Too few parameters")
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match=r"reply_notify must be a function with"):
         interface.on_some_signal(lambda a, b, *args: "Too many before varargs")
 
     bus1.disconnect()

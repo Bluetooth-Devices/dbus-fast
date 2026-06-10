@@ -25,7 +25,7 @@ async def test_auth_readline_raises_on_eof() -> None:
         server.close()  # peer EOF before any data is sent
 
         coro = MessageBus._auth_readline(_fake_aio_self(client))
-        with pytest.raises(AuthError):
+        with pytest.raises(AuthError, match=r"connection closed during authentication"):
             await asyncio.wait_for(coro, timeout=1.0)
     finally:
         client.close()
@@ -45,7 +45,7 @@ async def test_auth_readline_rejects_oversize_line() -> None:
         writer = asyncio.create_task(loop.sock_sendall(server, b"A" * 64 * 1024))
         try:
             coro = MessageBus._auth_readline(_fake_aio_self(client))
-            with pytest.raises(AuthError):
+            with pytest.raises(AuthError, match=r"auth line exceeded maximum size"):
                 await asyncio.wait_for(coro, timeout=1.0)
         finally:
             writer.cancel()

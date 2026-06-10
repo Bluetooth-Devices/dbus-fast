@@ -31,7 +31,7 @@ async def test_export_unexport():
     bus = await MessageBus().connect()
     bus.export(export_path, interface)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=r"already exported"):
         # Already exported
         bus.export(export_path, interface)
 
@@ -73,7 +73,9 @@ async def test_export_unexport():
     assert not bus._path_exports
     assert not ServiceInterface._get_buses(interface)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(
+        TypeError, match=r"interface must be a ServiceInterface or interface name"
+    ):
         bus.unexport(export_path, object())
 
     node = bus._introspect_export_path("/path/doesnt/exist")

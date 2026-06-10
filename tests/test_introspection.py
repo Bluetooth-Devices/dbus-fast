@@ -221,13 +221,13 @@ def test_introspection_accepts_standard_doctype() -> None:
 
 def test_introspection_malformed_xml_raises_parse_error() -> None:
     """Malformed XML still raises ET.ParseError, not a silent failure."""
-    with pytest.raises(ET.ParseError):
+    with pytest.raises(ET.ParseError, match=r"unclosed token"):
         intr.Node.parse("<node><unclosed")
 
 
 def test_introspection_parse_error_preserves_code_and_position() -> None:
     """ET.ParseError still carries the expat code and position metadata."""
-    with pytest.raises(ET.ParseError) as excinfo:
+    with pytest.raises(ET.ParseError, match=r"unclosed token") as excinfo:
         intr.Node.parse("<bad")
     assert excinfo.value.code  # non-zero expat error code
     assert isinstance(excinfo.value.position, tuple)

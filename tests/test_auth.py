@@ -23,7 +23,10 @@ def test_auth_anonymous_start():
 
 def test_auth_anonymous_rejects_unix_fd_negotiation():
     auth = AuthAnonymous()
-    with pytest.raises(AuthError):
+    with pytest.raises(
+        AuthError,
+        match=r"anonymous authentication does not support negotiating unix fds",
+    ):
         auth._authentication_start(negotiate_unix_fd=True)
 
 
@@ -34,7 +37,7 @@ def test_auth_anonymous_ok_begins():
 
 def test_auth_anonymous_rejected_raises():
     auth = AuthAnonymous()
-    with pytest.raises(AuthError):
+    with pytest.raises(AuthError, match=r"authentication failed"):
         auth._receive_line("REJECTED EXTERNAL")
 
 
@@ -48,7 +51,7 @@ def test_auth_external_no_uid():
     auth = AuthExternal(uid=UID_NOT_SPECIFIED)
     assert auth._authentication_start() == "AUTH EXTERNAL"
     assert auth._receive_line("DATA") == "DATA"
-    with pytest.raises(AuthError):
+    with pytest.raises(AuthError, match=r"authentication failed"):
         auth._receive_line("REJECTED")
 
 

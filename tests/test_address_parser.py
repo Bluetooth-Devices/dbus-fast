@@ -42,13 +42,13 @@ def test_valid_addresses() -> None:
 
 
 def test_invalid_addresses() -> None:
-    with pytest.raises(InvalidAddressError):
+    with pytest.raises(InvalidAddressError, match=r"contained no addresses"):
         assert parse_address("")
-    with pytest.raises(InvalidAddressError):
+    with pytest.raises(InvalidAddressError, match=r"did not contain a transport"):
         assert parse_address("unix")
-    with pytest.raises(InvalidAddressError):
+    with pytest.raises(InvalidAddressError, match=r"did not contain a value"):
         assert parse_address("unix:tmpdir")
-    with pytest.raises(InvalidAddressError):
+    with pytest.raises(InvalidAddressError, match=r"invalid characters"):
         assert parse_address("unix:tmpdir=😁")
 
 
@@ -66,13 +66,13 @@ def test_get_session_bus_address() -> None:
         assert get_bus_address(BusType.SESSION) == "unix:path=/dog"
     with (
         patch.dict(os.environ, DBUS_SESSION_BUS_ADDRESS="", DISPLAY=""),
-        pytest.raises(InvalidAddressError),
+        pytest.raises(InvalidAddressError, match=r"could not parse DISPLAY"),
     ):
         assert get_session_bus_address()
 
 
 def test_invalid_bus_address() -> None:
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match=r"unknown bus type"):
         assert get_bus_address(-1)
 
 

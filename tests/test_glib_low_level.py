@@ -16,14 +16,14 @@ if has_gi:
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
 def test_glib_init_raises_on_single_transport_connect_failure() -> None:
     """glib MessageBus() surfaces the underlying connect error when the only transport fails."""
-    with pytest.raises(ConnectionRefusedError):
+    with pytest.raises(ConnectionRefusedError, match=r"Connection refused"):
         MessageBus("tcp:host=127.0.0.1,port=1")
 
 
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
 def test_glib_init_falls_back_between_transports() -> None:
     """glib MessageBus() tries each transport in turn and raises the last error if all fail."""
-    with pytest.raises(ConnectionRefusedError):
+    with pytest.raises(ConnectionRefusedError, match=r"Connection refused"):
         MessageBus(
             "unix:path=/there-is-no-way-that-this-file-should-exist;"
             "tcp:host=127.0.0.1,port=1"
