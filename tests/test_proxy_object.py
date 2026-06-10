@@ -90,14 +90,14 @@ def test_check_method_return_raises_on_signature_mismatch() -> None:
 
 
 def test_proxy_object_rejects_invalid_object_path() -> None:
-    with pytest.raises(InvalidObjectPathError):
+    with pytest.raises(InvalidObjectPathError, match="not a path"):
         BaseProxyObject(
             "org.example.Name", "not a path", _NODE_XML, object(), BaseProxyInterface
         )
 
 
 def test_proxy_object_rejects_invalid_bus_name() -> None:
-    with pytest.raises(InvalidBusNameError):
+    with pytest.raises(InvalidBusNameError, match="not a bus name"):
         BaseProxyObject(
             "not a bus name", "/org/example", _NODE_XML, object(), BaseProxyInterface
         )
