@@ -1,5 +1,9 @@
 """Behavioural tests for the :class:`Message` construction contract."""
 
+from __future__ import annotations
+
+from typing import Any
+
 import pytest
 
 from dbus_fast.constants import ErrorType, MessageFlag, MessageType
@@ -26,37 +30,37 @@ from dbus_fast.message import Message
         ({"message_type": MessageType.METHOD_RETURN}, "reply_serial"),
     ],
 )
-def test_missing_required_field_rejected(kwargs, missing):
+def test_missing_required_field_rejected(kwargs: dict[str, Any], missing: str) -> None:
     with pytest.raises(InvalidMessageError, match=f"missing required field: {missing}"):
         Message(**kwargs)
 
 
-def test_zero_reply_serial_counts_as_missing():
+def test_zero_reply_serial_counts_as_missing() -> None:
     with pytest.raises(
         InvalidMessageError, match="missing required field: reply_serial"
     ):
         Message(message_type=MessageType.METHOD_RETURN, reply_serial=0)
 
 
-def test_valid_messages_per_type():
+def test_valid_messages_per_type() -> None:
     Message(message_type=MessageType.METHOD_CALL, path="/x", member="M")
     Message(message_type=MessageType.METHOD_RETURN, reply_serial=5)
     Message(message_type=MessageType.ERROR, error_name="a.b", reply_serial=5)
     Message(message_type=MessageType.SIGNAL, path="/x", member="M", interface="a.b.C")
 
 
-def test_validate_false_skips_all_checks():
+def test_validate_false_skips_all_checks() -> None:
     msg = Message(message_type=MessageType.METHOD_CALL, validate=False)
     assert msg.path is None
     assert msg.member is None
 
 
-def test_validate_false_skips_field_validators():
+def test_validate_false_skips_field_validators() -> None:
     msg = Message(path="not a path", member="bad.member", validate=False)
     assert msg.path == "not a path"
 
 
-def test_error_name_enum_coerced_to_str():
+def test_error_name_enum_coerced_to_str() -> None:
     msg = Message(
         message_type=MessageType.ERROR,
         error_name=ErrorType.FAILED,
@@ -66,12 +70,12 @@ def test_error_name_enum_coerced_to_str():
     assert type(msg.error_name) is str
 
 
-def test_flags_int_coerced_to_enum():
+def test_flags_int_coerced_to_enum() -> None:
     msg = Message(message_type=MessageType.METHOD_CALL, path="/x", member="M", flags=1)
     assert msg.flags is MessageFlag.NO_REPLY_EXPECTED
 
 
-def test_defaults_for_optional_fields():
+def test_defaults_for_optional_fields() -> None:
     msg = Message(message_type=MessageType.METHOD_CALL, path="/x", member="M")
     assert msg.serial == 0
     assert msg.reply_serial == 0
@@ -106,12 +110,14 @@ def test_defaults_for_optional_fields():
         ),
     ],
 )
-def test_invalid_field_values_rejected(kwargs, error):
+def test_invalid_field_values_rejected(
+    kwargs: dict[str, Any], error: type[Exception]
+) -> None:
     with pytest.raises(error):
         Message(**kwargs)
 
 
-def _call(serial=42):
+def _call(serial: int = 42) -> Message:
     msg = Message(
         message_type=MessageType.METHOD_CALL,
         path="/x",
@@ -122,7 +128,7 @@ def _call(serial=42):
     return msg
 
 
-def test_new_error_builds_reply():
+def test_new_error_builds_reply() -> None:
     err = Message.new_error(_call(), "org.example.Err", "boom")
     assert err.message_type is MessageType.ERROR
     assert err.reply_serial == 42
@@ -132,12 +138,12 @@ def test_new_error_builds_reply():
     assert err.body == ["boom"]
 
 
-def test_new_error_accepts_error_type_enum():
+def test_new_error_accepts_error_type_enum() -> None:
     err = Message.new_error(_call(), ErrorType.FAILED, "boom")
     assert err.error_name == ErrorType.FAILED.value
 
 
-def test_new_method_return_builds_reply():
+def test_new_method_return_builds_reply() -> None:
     ret = Message.new_method_return(_call(), "s", ["hi"])
     assert ret.message_type is MessageType.METHOD_RETURN
     assert ret.reply_serial == 42
@@ -146,7 +152,7 @@ def test_new_method_return_builds_reply():
     assert ret.body == ["hi"]
 
 
-def test_new_signal_builds_signal():
+def test_new_signal_builds_signal() -> None:
     sig = Message.new_signal("/x", "a.b.C", "Sig")
     assert sig.message_type is MessageType.SIGNAL
     assert sig.path == "/x"
@@ -154,7 +160,7 @@ def test_new_signal_builds_signal():
     assert sig.member == "Sig"
 
 
-def test_repr_includes_key_fields():
+def test_repr_includes_key_fields() -> None:
     msg = Message(message_type=MessageType.METHOD_CALL, path="/x", member="M")
     text = repr(msg)
     assert "METHOD_CALL" in text
