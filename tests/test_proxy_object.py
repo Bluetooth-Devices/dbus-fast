@@ -28,17 +28,17 @@ _NODE_XML = "<node></node>"
         ("already_snake", "already_snake"),
     ],
 )
-def test_to_snake_case(member, expected):
+def test_to_snake_case(member: str, expected: str) -> None:
     assert BaseProxyInterface._to_snake_case(member) == expected
 
 
-def test_to_snake_case_is_cached():
+def test_to_snake_case_is_idempotent() -> None:
     first = BaseProxyInterface._to_snake_case("GetManagedObjects")
     second = BaseProxyInterface._to_snake_case("GetManagedObjects")
     assert first == second == "get_managed_objects"
 
 
-def _method_return(signature: str = "", body=None) -> Message:
+def _method_return(signature: str = "", body: list | None = None) -> Message:
     return Message(
         message_type=MessageType.METHOD_RETURN,
         reply_serial=1,
@@ -47,16 +47,16 @@ def _method_return(signature: str = "", body=None) -> Message:
     )
 
 
-def test_check_method_return_accepts_matching_return():
+def test_check_method_return_accepts_matching_return() -> None:
     assert BaseProxyInterface._check_method_return(_method_return()) is None
 
 
-def test_check_method_return_accepts_matching_signature():
+def test_check_method_return_accepts_matching_signature() -> None:
     msg = _method_return(signature="s", body=["ok"])
     assert BaseProxyInterface._check_method_return(msg, "s") is None
 
 
-def test_check_method_return_raises_on_error_message():
+def test_check_method_return_raises_on_error_message() -> None:
     msg = Message(
         message_type=MessageType.ERROR,
         error_name="com.example.Boom",
@@ -69,7 +69,7 @@ def test_check_method_return_raises_on_error_message():
     assert exc.value.type == "com.example.Boom"
 
 
-def test_check_method_return_raises_on_non_return_type():
+def test_check_method_return_raises_on_non_return_type() -> None:
     msg = Message(
         message_type=MessageType.SIGNAL,
         path="/org/example",
@@ -81,7 +81,7 @@ def test_check_method_return_raises_on_non_return_type():
     assert exc.value.type == ErrorType.CLIENT_ERROR.value
 
 
-def test_check_method_return_raises_on_signature_mismatch():
+def test_check_method_return_raises_on_signature_mismatch() -> None:
     msg = _method_return(signature="i", body=[1])
     with pytest.raises(DBusError) as exc:
         BaseProxyInterface._check_method_return(msg, "s")
@@ -89,21 +89,21 @@ def test_check_method_return_raises_on_signature_mismatch():
     assert 'unexpected signature: "i"' in exc.value.text
 
 
-def test_proxy_object_rejects_invalid_object_path():
+def test_proxy_object_rejects_invalid_object_path() -> None:
     with pytest.raises(InvalidObjectPathError):
         BaseProxyObject(
             "org.example.Name", "not a path", _NODE_XML, object(), BaseProxyInterface
         )
 
 
-def test_proxy_object_rejects_invalid_bus_name():
+def test_proxy_object_rejects_invalid_bus_name() -> None:
     with pytest.raises(InvalidBusNameError):
         BaseProxyObject(
             "not a bus name", "/org/example", _NODE_XML, object(), BaseProxyInterface
         )
 
 
-def test_proxy_object_rejects_non_bus():
+def test_proxy_object_rejects_non_bus() -> None:
     with pytest.raises(TypeError, match="bus must be an instance"):
         BaseProxyObject(
             "org.example.Name", "/org/example", _NODE_XML, object(), BaseProxyInterface
