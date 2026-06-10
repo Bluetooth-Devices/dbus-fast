@@ -83,6 +83,45 @@ connection is not recommended.
     await bus.wait_for_disconnect()
 
 :example:
+   Monitor signals across an object tree. Add a match rule for the
+   signals you care about, then inspect each message in a handler.
+   Use ``path_namespace`` to receive signals from every object under
+   a subtree (for example every link object exported by
+   ``systemd-networkd``) without knowing the paths in advance. The
+   handler runs for every matched message, so filter on
+   :attr:`message_type <dbus_fast.Message.message_type>`,
+   ``interface``, ``member``, and ``path`` as needed.
+
+.. code-block:: python3
+
+    bus = await MessageBus().connect()
+
+    await bus.call(
+        Message(destination='org.freedesktop.DBus',
+                path='/org/freedesktop/DBus',
+                interface='org.freedesktop.DBus',
+                member='AddMatch',
+                signature='s',
+                body=["type='signal',"
+                      "interface='org.freedesktop.DBus.Properties',"
+                      "member='PropertiesChanged',"
+                      "path_namespace='/org/freedesktop/network1/link'"]))
+
+    def message_handler(msg):
+        if (msg.message_type is MessageType.SIGNAL
+                and msg.member == 'PropertiesChanged'):
+            print(msg.path, msg.body)
+
+    bus.add_message_handler(message_handler)
+
+    await bus.wait_for_disconnect()
+
+For a single, known object path, registering a callback on the
+high-level :class:`ProxyInterface <dbus_fast.aio.ProxyInterface>` with
+``on_[signal_name]`` (snake case) adds the match rule for you and is
+usually more convenient than handling raw messages.
+
+:example:
    Emit a signal
 
 .. code-block:: python3
