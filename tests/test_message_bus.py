@@ -4,8 +4,10 @@ import socket
 import pytest
 
 from dbus_fast.aio import MessageBus
+from dbus_fast.constants import MessageFlag, MessageType
 from dbus_fast.errors import AuthError, DBusError, InternalError, InvalidAddressError
-from dbus_fast.message_bus import BaseMessageBus
+from dbus_fast.message import Message
+from dbus_fast.message_bus import BaseMessageBus, _expects_reply
 
 
 @pytest.mark.asyncio
@@ -237,3 +239,96 @@ async def test_aio_connect_hello_error_propagates_and_clears_state(
         assert bus._writer is None
     finally:
         listener.close()
+
+
+def _offline_bus() -> BaseMessageBus:
+    # Constructs a bus without touching DBUS_SESSION_BUS_ADDRESS or a socket;
+    # enough to exercise the pure registry/serial/reply-expectation contract.
+    return BaseMessageBus(bus_address="unix:path=/dev/null")
+
+
+def test_next_serial_increments_monotonically_from_one() -> None:
+    bus = _offline_bus()
+    assert [bus.next_serial() for _ in range(3)] == [1, 2, 3]
+
+
+def test_add_message_handler_registers_callable() -> None:
+    bus = _offline_bus()
+
+    def handler(msg: Message) -> None:
+        return None
+
+    bus.add_message_handler(handler)
+    assert bus._user_message_handlers == [handler]
+
+
+def test_add_message_handler_rejects_non_callable() -> None:
+    bus = _offline_bus()
+    with pytest.raises(TypeError, match="must be callable with a single parameter"):
+        bus.add_message_handler(object())  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    "handler",
+    [
+        lambda: None,
+        lambda a, b: None,
+    ],
+)
+def test_add_message_handler_rejects_wrong_arity(handler) -> None:
+    bus = _offline_bus()
+    with pytest.raises(TypeError, match="must be callable with a single parameter"):
+        bus.add_message_handler(handler)
+
+
+def test_remove_message_handler_removes_single_registration() -> None:
+    bus = _offline_bus()
+
+    def handler(msg: Message) -> None:
+        return None
+
+    bus.add_message_handler(handler)
+    bus.add_message_handler(handler)
+    bus.remove_message_handler(handler)
+    # remove_message_handler deletes only the first match, not every copy.
+    assert bus._user_message_handlers == [handler]
+
+
+def test_remove_message_handler_absent_is_noop() -> None:
+    bus = _offline_bus()
+
+    def handler(msg: Message) -> None:
+        return None
+
+    bus.remove_message_handler(handler)
+    assert bus._user_message_handlers == []
+
+
+def _method_call(flags: MessageFlag) -> Message:
+    return Message(
+        path="/test/path",
+        interface="test.interface",
+        member="Method",
+        message_type=MessageType.METHOD_CALL,
+        flags=flags,
+    )
+
+
+@pytest.mark.parametrize(
+    ("flags", "expected"),
+    [
+        (MessageFlag.NONE, True),
+        (MessageFlag.NO_REPLY_EXPECTED, False),
+        # Slow path: a combined flag is not identity-equal to either fast-path
+        # singleton, so the NO_REPLY_EXPECTED bit must be checked by mask.
+        (MessageFlag.ALLOW_INTERACTIVE_AUTHORIZATION, True),
+        (
+            MessageFlag.NO_REPLY_EXPECTED | MessageFlag.ALLOW_INTERACTIVE_AUTHORIZATION,
+            False,
+        ),
+    ],
+)
+def test_expects_reply_honours_no_reply_flag(
+    flags: MessageFlag, expected: bool
+) -> None:
+    assert _expects_reply(_method_call(flags)) is expected
