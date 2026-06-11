@@ -1,8 +1,19 @@
-"""Unit tests for the high/low-level fd body conversion in ``_private.util``."""
+"""Unit tests for the helpers in ``_private.util``."""
 
 import copy
+import inspect
+import types
+from typing import Annotated
 
-from dbus_fast._private.util import replace_fds_with_idx, replace_idx_with_fds
+import pytest
+
+from dbus_fast._private.util import (
+    parse_annotation,
+    replace_fds_with_idx,
+    replace_idx_with_fds,
+    signature_contains_type,
+)
+from dbus_fast.annotations import DBusInt32, DBusSignature, DBusStr
 from dbus_fast.signature import Variant, get_signature_tree
 
 
@@ -112,3 +123,85 @@ def test_string_signature_and_tree_signature_agree():
     low_tree, fds_tree = replace_fds_with_idx(tree, [[7, 8]])
     assert low_str == low_tree
     assert fds_str == fds_tree
+
+
+def test_signature_contains_type_token_in_tree():
+    assert signature_contains_type("h", [], "h") is True
+    assert signature_contains_type("(sih)", [], "h") is True
+
+
+def test_signature_contains_type_token_absent_without_variants():
+    # No variant in the signature means the body is never inspected.
+    assert signature_contains_type("ai", [1, 2, 3], "h") is False
+
+
+def test_signature_contains_type_descends_into_variant_body():
+    # 'h' is not in the static signature 'v', so the body must be walked to
+    # discover the fd hidden inside the variant.
+    assert signature_contains_type("v", [Variant("h", 5)], "h") is True
+
+
+def test_signature_contains_type_descends_into_list_of_variants():
+    assert signature_contains_type("av", [[Variant("h", 5)]], "h") is True
+
+
+def test_signature_contains_type_descends_into_dict_of_variants():
+    assert signature_contains_type("a{sv}", [{"k": Variant("h", 5)}], "h") is True
+
+
+def test_signature_contains_type_variant_without_token_is_false():
+    assert signature_contains_type("v", [Variant("s", "x")], "h") is False
+
+
+def test_signature_contains_type_accepts_signature_tree():
+    tree = get_signature_tree("v")
+    assert signature_contains_type(tree, [Variant("h", 5)], "h") is True
+
+
+def _module_with(**names):
+    mod = types.ModuleType("fake_annotations_module")
+    for key, value in names.items():
+        setattr(mod, key, value)
+    return mod
+
+
+def test_parse_annotation_empty_inputs_return_empty_string():
+    mod = _module_with()
+    assert parse_annotation(None, mod) == ""
+    assert parse_annotation(inspect.Signature.empty, mod) == ""
+
+
+@pytest.mark.parametrize("sig", ["s", "i", "a{sv}", "(ii)", "ah"])
+def test_parse_annotation_dbus_signature_string_returned_directly(sig):
+    assert parse_annotation(sig, _module_with()) == sig
+
+
+def test_parse_annotation_quoted_string_literal_is_stripped():
+    # ast.literal_eval turns the quoted forward-ref form into the bare code.
+    assert parse_annotation("'s'", _module_with()) == "s"
+
+
+def test_parse_annotation_forward_reference_is_evaluated():
+    mod = _module_with(DBusInt32=DBusInt32)
+    assert parse_annotation("DBusInt32", mod) == "i"
+
+
+def test_parse_annotation_annotated_alias_returns_signature():
+    mod = _module_with()
+    assert parse_annotation(DBusInt32, mod) == "i"
+    assert parse_annotation(DBusStr, mod) == "s"
+
+
+def test_parse_annotation_annotated_without_signature_raises():
+    with pytest.raises(ValueError, match="must include a DBusSignature"):
+        parse_annotation(Annotated[int, "not a signature"], _module_with())
+
+
+def test_parse_annotation_unsupported_type_raises():
+    with pytest.raises(ValueError, match="must be a string constant"):
+        parse_annotation(int, _module_with())
+
+
+def test_parse_annotation_runtime_signature_annotated_form():
+    mod = _module_with()
+    assert parse_annotation(Annotated[int, DBusSignature("u")], mod) == "u"
