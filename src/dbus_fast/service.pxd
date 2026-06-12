@@ -16,6 +16,7 @@ cdef class _Method:
     cdef public str out_signature
     cdef public SignatureTree in_signature_tree
     cdef public SignatureTree out_signature_tree
+    cdef public bint wants_message
 
 
 
