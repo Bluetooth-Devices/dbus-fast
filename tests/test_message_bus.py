@@ -274,6 +274,7 @@ def test_add_message_handler_rejects_non_callable() -> None:
         lambda: None,
         lambda a, b: None,
     ],
+    ids=["zero_args", "two_args"],
 )
 def test_add_message_handler_rejects_wrong_arity(handler) -> None:
     bus = _offline_bus()
@@ -328,6 +329,7 @@ def _method_call(flags: MessageFlag) -> Message:
             False,
         ),
     ],
+    ids=["none", "no_reply", "interactive", "combined"],
 )
 def test_expects_reply_honours_no_reply_flag(
     flags: MessageFlag, expected: bool
