@@ -21,7 +21,7 @@ cdef object assert_object_path_valid
 cdef object assert_bus_name_valid
 
 @cython.locals(flag_value=cython.uint)
-cdef bint _expects_reply(Message msg)
+cpdef bint _expects_reply(Message msg)
 
 
 cdef class BaseMessageBus:
