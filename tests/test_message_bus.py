@@ -319,8 +319,9 @@ def _method_call(flags: MessageFlag) -> Message:
     [
         (MessageFlag.NONE, True),
         (MessageFlag.NO_REPLY_EXPECTED, False),
-        # Slow path: a combined flag is not identity-equal to either fast-path
-        # singleton, so the NO_REPLY_EXPECTED bit must be checked by mask.
+        # Slow path: any flag that is not the NONE/NO_REPLY_EXPECTED singleton
+        # falls through to the mask check — both a lone third flag (this case)
+        # and a combined one (next case).
         (MessageFlag.ALLOW_INTERACTIVE_AUTHORIZATION, True),
         (
             MessageFlag.NO_REPLY_EXPECTED | MessageFlag.ALLOW_INTERACTIVE_AUTHORIZATION,
