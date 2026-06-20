@@ -78,9 +78,15 @@ class _Method:
                 for i, param in enumerate(inspection.parameters.values())
                 if i != 0
             ]
-            for i, type_ in enumerate(get_signature_tree(in_signature).types):
-                arg_name = param_names[i] if i < len(param_names) else None
-                in_args.append(intr.Arg(type_, intr.ArgDirection.IN, arg_name))
+            types = get_signature_tree(in_signature).types
+            if len(types) != len(param_names):
+                raise ValueError(
+                    "in_signature has "
+                    f"{len(types)} complete type(s) but the method takes "
+                    f"{len(param_names)} parameter(s)"
+                )
+            for i, type_ in enumerate(types):
+                in_args.append(intr.Arg(type_, intr.ArgDirection.IN, param_names[i]))
 
         out_args: list[intr.Arg] = []
         if out_signature is None:
