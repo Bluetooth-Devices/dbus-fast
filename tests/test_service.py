@@ -17,6 +17,7 @@ from dbus_fast import introspection as intr
 from dbus_fast.annotations import DBusInt32, DBusSignature, DBusStr
 from dbus_fast.constants import PropertyAccess
 from dbus_fast.errors import SignalDisabledError
+from dbus_fast.message_bus import BaseMessageBus
 from dbus_fast.service import (
     ServiceInterface,
     _Method,
@@ -377,7 +378,7 @@ def test_introspect_excludes_disabled_members() -> None:
     assert intro.properties == []
 
 
-class _RecordingBus:
+class _RecordingBus(BaseMessageBus):
     """Minimal stand-in capturing _interface_signal_notify calls."""
 
     def __init__(self) -> None:
@@ -390,6 +391,7 @@ class _RecordingBus:
         member: str,
         signature: str,
         body: list[Any],
+        unix_fds: list[int] = [],
     ) -> None:
         self.notifications.append((interface_name, member, signature, body))
 
