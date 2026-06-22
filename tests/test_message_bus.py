@@ -345,16 +345,17 @@ def test_expects_reply_honours_no_reply_flag(
     assert _expects_reply(_method_call(flags)) is expected
 
 
-def _capture_call(monkeypatch: pytest.MonkeyPatch) -> list[tuple]:
-    """Replace BaseMessageBus._call with a recorder so the reply_notify closure
-    can be driven directly, without a socket or session daemon."""
-    captured: list[tuple] = []
+class _RecordingCallBus(BaseMessageBus):
+    """Records (message, reply_notify) so the closure can be driven directly,
+    without a socket or session daemon. Subclassing overrides the cpdef _call
+    on both the pure-Python and compiled extension types."""
 
-    def recorder(self: BaseMessageBus, msg: Message, callback) -> None:
-        captured.append((msg, callback))
+    def __init__(self) -> None:
+        super().__init__(bus_address="unix:path=/dev/null")
+        self.captured: list[tuple] = []
 
-    monkeypatch.setattr(BaseMessageBus, "_call", recorder)
-    return captured
+    def _call(self, msg: Message, callback) -> None:
+        self.captured.append((msg, callback))
 
 
 def _return_msg(signature: str, body: list) -> Message:
@@ -366,114 +367,91 @@ def _return_msg(signature: str, body: list) -> Message:
     )
 
 
-def test_request_name_callback_receives_parsed_reply(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    bus = _offline_bus()
-    captured = _capture_call(monkeypatch)
+def test_request_name_callback_receives_parsed_reply() -> None:
+    bus = _RecordingCallBus()
     results: list = []
 
     bus.request_name("com.example.Name", callback=lambda r, e: results.append((r, e)))
 
-    _msg, reply_notify = captured[0]
+    _msg, reply_notify = bus.captured[0]
     reply_notify(_return_msg("u", [RequestNameReply.PRIMARY_OWNER.value]), None)
     assert results == [(RequestNameReply.PRIMARY_OWNER, None)]
 
 
-def test_request_name_callback_receives_error(monkeypatch: pytest.MonkeyPatch) -> None:
-    bus = _offline_bus()
-    captured = _capture_call(monkeypatch)
+def test_request_name_callback_receives_error() -> None:
+    bus = _RecordingCallBus()
     results: list = []
 
     bus.request_name("com.example.Name", callback=lambda r, e: results.append((r, e)))
 
     err = DBusError(ErrorType.FAILED, "nope", None)
-    captured[0][1](None, err)
+    bus.captured[0][1](None, err)
     assert results == [(None, err)]
 
 
-def test_request_name_coerces_integer_flags_to_nameflag(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    bus = _offline_bus()
-    captured = _capture_call(monkeypatch)
+def test_request_name_coerces_integer_flags_to_nameflag() -> None:
+    bus = _RecordingCallBus()
 
     bus.request_name("com.example.Name", flags=NameFlag.REPLACE_EXISTING.value)
 
-    sent_flags = captured[0][0].body[1]
+    sent_flags = bus.captured[0][0].body[1]
     assert sent_flags == NameFlag.REPLACE_EXISTING
     assert type(sent_flags) is NameFlag
 
 
-def test_request_name_without_callback_passes_none(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    bus = _offline_bus()
-    captured = _capture_call(monkeypatch)
+def test_request_name_without_callback_passes_none() -> None:
+    bus = _RecordingCallBus()
 
     bus.request_name("com.example.Name")
 
-    assert captured[0][1] is None
+    assert bus.captured[0][1] is None
 
 
-def test_release_name_callback_receives_parsed_reply(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    bus = _offline_bus()
-    captured = _capture_call(monkeypatch)
+def test_release_name_callback_receives_parsed_reply() -> None:
+    bus = _RecordingCallBus()
     results: list = []
 
     bus.release_name("com.example.Name", callback=lambda r, e: results.append((r, e)))
 
-    captured[0][1](_return_msg("u", [ReleaseNameReply.RELEASED.value]), None)
+    bus.captured[0][1](_return_msg("u", [ReleaseNameReply.RELEASED.value]), None)
     assert results == [(ReleaseNameReply.RELEASED, None)]
 
 
-def test_release_name_callback_receives_error(monkeypatch: pytest.MonkeyPatch) -> None:
-    bus = _offline_bus()
-    captured = _capture_call(monkeypatch)
+def test_release_name_callback_receives_error() -> None:
+    bus = _RecordingCallBus()
     results: list = []
 
     bus.release_name("com.example.Name", callback=lambda r, e: results.append((r, e)))
 
     err = DBusError(ErrorType.FAILED, "nope", None)
-    captured[0][1](None, err)
+    bus.captured[0][1](None, err)
     assert results == [(None, err)]
 
 
-def test_release_name_without_callback_passes_none(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    bus = _offline_bus()
-    captured = _capture_call(monkeypatch)
+def test_release_name_without_callback_passes_none() -> None:
+    bus = _RecordingCallBus()
 
     bus.release_name("com.example.Name")
 
-    assert captured[0][1] is None
+    assert bus.captured[0][1] is None
 
 
-def test_introspect_callback_receives_parsed_node(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    bus = _offline_bus()
-    captured = _capture_call(monkeypatch)
+def test_introspect_callback_receives_parsed_node() -> None:
+    bus = _RecordingCallBus()
     results: list = []
 
     bus.introspect(
         "com.example.Name", "/com/example", lambda r, e: results.append((r, e))
     )
 
-    captured[0][1](_return_msg("s", ["<node></node>"]), None)
+    bus.captured[0][1](_return_msg("s", ["<node></node>"]), None)
     node, err = results[0]
     assert err is None
     assert isinstance(node, intr.Node)
 
 
-def test_introspect_callback_receives_error_from_error_reply(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    bus = _offline_bus()
-    captured = _capture_call(monkeypatch)
+def test_introspect_callback_receives_error_from_error_reply() -> None:
+    bus = _RecordingCallBus()
     results: list = []
 
     bus.introspect(
@@ -487,7 +465,7 @@ def test_introspect_callback_receives_error_from_error_reply(
         signature="s",
         body=["boom"],
     )
-    captured[0][1](error_reply, None)
+    bus.captured[0][1](error_reply, None)
     node, err = results[0]
     assert node is None
     assert isinstance(err, DBusError)
