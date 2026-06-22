@@ -367,6 +367,38 @@ def _return_msg(signature: str, body: list) -> Message:
     )
 
 
+def _valid_callback(a, b) -> None:
+    return None
+
+
+def test_check_callback_type_accepts_two_param_callable() -> None:
+    assert BaseMessageBus._check_callback_type(_valid_callback) is None
+
+
+def test_check_callback_type_rejects_non_callable() -> None:
+    with pytest.raises(TypeError, match="callable with two parameters"):
+        BaseMessageBus._check_callback_type(object())  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    "callback",
+    [lambda: None, lambda a: None, lambda a, b, c: None],
+    ids=["zero", "one", "three"],
+)
+def test_check_callback_type_rejects_wrong_arity(callback) -> None:
+    with pytest.raises(TypeError, match="callable with two parameters"):
+        BaseMessageBus._check_callback_type(callback)
+
+
+def _method_return(signature: str, body) -> Message:
+    return Message(
+        message_type=MessageType.METHOD_RETURN,
+        reply_serial=1,
+        signature=signature,
+        body=body,
+    )
+
+
 def test_request_name_callback_receives_parsed_reply() -> None:
     bus = _RecordingCallBus()
     results: list = []
@@ -481,3 +513,97 @@ def test_introspect_rejects_invalid_callback(bad_callback) -> None:
     bus = _offline_bus()
     with pytest.raises(TypeError, match="must be callable with two parameters"):
         bus.introspect("com.example.Name", "/com/example", bad_callback)
+
+
+def test_check_method_return_passes_on_matching_signature() -> None:
+    assert (
+        BaseMessageBus._check_method_return(_method_return("s", ["ok"]), None, "s")
+        is None
+    )
+
+
+def test_check_method_return_reraises_supplied_error() -> None:
+    sentinel = RuntimeError("transport gone")
+    with pytest.raises(RuntimeError, match="transport gone"):
+        BaseMessageBus._check_method_return(None, sentinel, "s")
+
+
+def test_check_method_return_raises_internal_error_on_none_message() -> None:
+    with pytest.raises(DBusError, match="invalid message type") as exc:
+        BaseMessageBus._check_method_return(None, None, "s")
+    assert exc.value.type == ErrorType.INTERNAL_ERROR.value
+
+
+def test_check_method_return_raises_internal_error_on_signature_mismatch() -> None:
+    with pytest.raises(DBusError, match="invalid message type") as exc:
+        BaseMessageBus._check_method_return(_method_return("i", [1]), None, "s")
+    assert exc.value.type == ErrorType.INTERNAL_ERROR.value
+
+
+def test_check_method_return_surfaces_error_message() -> None:
+    err_msg = Message(
+        message_type=MessageType.ERROR,
+        reply_serial=1,
+        error_name="com.example.Failed",
+        signature="s",
+        body=["boom"],
+    )
+    with pytest.raises(DBusError, match="boom") as exc:
+        BaseMessageBus._check_method_return(err_msg, None, "s")
+    assert exc.value.type == "com.example.Failed"
+    assert exc.value.text == "boom"
+
+
+class _RecordingMatchBus(BaseMessageBus):
+    """Captures messages passed to the cpdef _call. Subclassing overrides it on
+    both the pure-Python and compiled extension types, where the class is
+    immutable and cannot be monkeypatched."""
+
+    def __init__(self) -> None:
+        super().__init__(bus_address="unix:path=/dev/null")
+        self.calls: list[Message] = []
+
+    def _call(self, msg: Message, callback=None) -> None:
+        self.calls.append(msg)
+
+
+def test_add_match_rule_skips_name_owner_rule() -> None:
+    bus = _RecordingMatchBus()
+    bus._add_match_rule(bus._name_owner_match_rule)
+    assert bus.calls == []
+    assert bus._name_owner_match_rule not in bus._match_rules
+
+
+def test_add_match_rule_sends_add_match_once_then_refcounts() -> None:
+    bus = _RecordingMatchBus()
+    rule = "type='signal',interface='com.example'"
+
+    bus._add_match_rule(rule)
+    bus._add_match_rule(rule)
+
+    assert bus._match_rules[rule] == 2
+    assert [m.member for m in bus.calls] == ["AddMatch"]
+    assert bus.calls[0].body == [rule]
+
+
+def test_remove_match_rule_decrements_before_removing() -> None:
+    bus = _RecordingMatchBus()
+    rule = "type='signal',interface='com.example'"
+    bus._add_match_rule(rule)
+    bus._add_match_rule(rule)
+    bus.calls.clear()
+
+    bus._remove_match_rule(rule)
+    assert bus._match_rules[rule] == 1
+    assert bus.calls == []
+
+    bus._remove_match_rule(rule)
+    assert rule not in bus._match_rules
+    assert [m.member for m in bus.calls] == ["RemoveMatch"]
+    assert bus.calls[0].body == [rule]
+
+
+def test_remove_match_rule_skips_name_owner_rule() -> None:
+    bus = _RecordingMatchBus()
+    bus._remove_match_rule(bus._name_owner_match_rule)
+    assert bus.calls == []
