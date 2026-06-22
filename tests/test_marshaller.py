@@ -1288,3 +1288,67 @@ def test_marshall_rejects_oversized_byte_array() -> None:
     marshaller = Marshaller("ay", [_OversizedBytes()])
     with pytest.raises(InvalidMessageError, match="exceeds maximum"):
         marshaller.marshall()
+
+
+def _valid_message_bytes() -> bytearray:
+    """A fully marshalled METHOD_CALL the unmarshaller round-trips cleanly."""
+    msg = Message(
+        destination="org.test",
+        path="/org/test",
+        interface="org.test.Iface",
+        member="Foo",
+        signature="s",
+        body=["hi"],
+    )
+    return bytearray(msg._marshall(False))
+
+
+def test_unmarshall_rejects_unknown_protocol_version() -> None:
+    """A header byte 3 other than the supported protocol version raises."""
+    header = bytearray(b"l" + bytes([1, 0, 9]))  # endian, type, flags, proto=9
+    header += struct.pack("<I", 0)  # body_len
+    header += struct.pack("<I", 1)  # serial
+    header += struct.pack("<I", 0)  # header_len
+    with pytest.raises(InvalidMessageError, match="unknown protocol version"):
+        Unmarshaller(io.BytesIO(bytes(header))).unmarshall()
+
+
+def test_unmarshall_rejects_invalid_endianness() -> None:
+    """A first byte that is neither 'l' nor 'B' raises after the proto check."""
+    header = bytearray(bytes([ord("X"), 1, 0, 1]))  # bad endian, valid proto
+    header += struct.pack("<I", 0)
+    header += struct.pack("<I", 1)
+    header += struct.pack("<I", 0)
+    with pytest.raises(InvalidMessageError, match="endianness"):
+        Unmarshaller(io.BytesIO(bytes(header))).unmarshall()
+
+
+def test_unmarshall_preserves_unknown_flag_bits() -> None:
+    """Flag bits with no named MessageFlag survive as an IntFlag value."""
+    data = _valid_message_bytes()
+    data[2] = 0x80  # bit not covered by the MessageFlag map
+    message = Unmarshaller(io.BytesIO(bytes(data))).unmarshall()
+    assert isinstance(message.flags, MessageFlag)
+    assert int(message.flags) == 0x80
+
+
+def test_unmarshall_returns_none_on_incomplete_header() -> None:
+    """A stream shorter than the fixed header yields None, not an error."""
+    data = _valid_message_bytes()
+    assert Unmarshaller(io.BytesIO(bytes(data[:10]))).unmarshall() is None
+
+
+def test_unmarshall_raises_eoferror_on_empty_stream() -> None:
+    """An immediately-closed stream surfaces EOFError."""
+    with pytest.raises(EOFError, match=r".*"):
+        Unmarshaller(io.BytesIO(b"")).unmarshall()
+
+
+def test_unmarshall_returns_none_when_reader_yields_no_data() -> None:
+    """A non-blocking reader returning None leaves the message incomplete."""
+
+    class _NoDataReader:
+        def read(self, n: int) -> None:
+            return None
+
+    assert Unmarshaller(_NoDataReader()).unmarshall() is None
