@@ -554,57 +554,56 @@ def test_check_method_return_surfaces_error_message() -> None:
     assert exc.value.text == "boom"
 
 
-def _record_calls(monkeypatch):
-    calls = []
-    monkeypatch.setattr(
-        BaseMessageBus,
-        "_call",
-        lambda self, msg, notify=None: calls.append(msg),
-    )
-    return calls
+class _RecordingMatchBus(BaseMessageBus):
+    """Captures messages passed to the cpdef _call. Subclassing overrides it on
+    both the pure-Python and compiled extension types, where the class is
+    immutable and cannot be monkeypatched."""
+
+    def __init__(self) -> None:
+        super().__init__(bus_address="unix:path=/dev/null")
+        self.calls: list[Message] = []
+
+    def _call(self, msg: Message, callback=None) -> None:
+        self.calls.append(msg)
 
 
-def test_add_match_rule_skips_name_owner_rule(monkeypatch) -> None:
-    bus = _offline_bus()
-    calls = _record_calls(monkeypatch)
+def test_add_match_rule_skips_name_owner_rule() -> None:
+    bus = _RecordingMatchBus()
     bus._add_match_rule(bus._name_owner_match_rule)
-    assert calls == []
+    assert bus.calls == []
     assert bus._name_owner_match_rule not in bus._match_rules
 
 
-def test_add_match_rule_sends_add_match_once_then_refcounts(monkeypatch) -> None:
-    bus = _offline_bus()
-    calls = _record_calls(monkeypatch)
+def test_add_match_rule_sends_add_match_once_then_refcounts() -> None:
+    bus = _RecordingMatchBus()
     rule = "type='signal',interface='com.example'"
 
     bus._add_match_rule(rule)
     bus._add_match_rule(rule)
 
     assert bus._match_rules[rule] == 2
-    assert [m.member for m in calls] == ["AddMatch"]
-    assert calls[0].body == [rule]
+    assert [m.member for m in bus.calls] == ["AddMatch"]
+    assert bus.calls[0].body == [rule]
 
 
-def test_remove_match_rule_decrements_before_removing(monkeypatch) -> None:
-    bus = _offline_bus()
-    calls = _record_calls(monkeypatch)
+def test_remove_match_rule_decrements_before_removing() -> None:
+    bus = _RecordingMatchBus()
     rule = "type='signal',interface='com.example'"
     bus._add_match_rule(rule)
     bus._add_match_rule(rule)
-    calls.clear()
+    bus.calls.clear()
 
     bus._remove_match_rule(rule)
     assert bus._match_rules[rule] == 1
-    assert calls == []
+    assert bus.calls == []
 
     bus._remove_match_rule(rule)
     assert rule not in bus._match_rules
-    assert [m.member for m in calls] == ["RemoveMatch"]
-    assert calls[0].body == [rule]
+    assert [m.member for m in bus.calls] == ["RemoveMatch"]
+    assert bus.calls[0].body == [rule]
 
 
-def test_remove_match_rule_skips_name_owner_rule(monkeypatch) -> None:
-    bus = _offline_bus()
-    calls = _record_calls(monkeypatch)
+def test_remove_match_rule_skips_name_owner_rule() -> None:
+    bus = _RecordingMatchBus()
     bus._remove_match_rule(bus._name_owner_match_rule)
-    assert calls == []
+    assert bus.calls == []
