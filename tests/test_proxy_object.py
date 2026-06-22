@@ -37,8 +37,22 @@ class _StubInterface(BaseProxyInterface):
         pass
 
 
-def _offline_bus() -> BaseMessageBus:
-    return BaseMessageBus(bus_address="unix:path=/dev/null")
+class _OfflineBus(BaseMessageBus):
+    """Records (message, callback) instead of dispatching, so the GetNameOwner
+    closure can be driven directly without a socket or session daemon.
+    Subclassing overrides the cpdef _call on both the pure-Python and compiled
+    extension types, where the class is immutable and cannot be monkeypatched."""
+
+    def __init__(self) -> None:
+        super().__init__(bus_address="unix:path=/dev/null")
+        self.captured: list = []
+
+    def _call(self, msg: Message, callback=None) -> None:
+        self.captured.append((msg, callback))
+
+
+def _offline_bus() -> _OfflineBus:
+    return _OfflineBus()
 
 
 @pytest.mark.parametrize(
@@ -205,53 +219,42 @@ def test_get_interface_unknown_raises() -> None:
         obj.get_interface("org.example.Missing")
 
 
-def test_get_interface_requests_name_owner_for_well_known_name(monkeypatch) -> None:
-    captured: list = []
-
-    def record(self, message, callback=None):
-        captured.append((message, callback))
-
-    monkeypatch.setattr(BaseMessageBus, "_call", record)
-    obj = BaseProxyObject(
-        "org.example.Name", "/org/example", _IFACE_XML, _offline_bus(), _StubInterface
-    )
-    obj.get_interface(_IFACE_NAME)
-
-    assert len(captured) == 1
-    message, _notify = captured[0]
-    assert message.member == "GetNameOwner"
-    assert message.body == ["org.example.Name"]
-
-
-def _owner_notify(monkeypatch):
-    captured: list = []
-
-    def record(self, message, callback=None):
-        captured.append((message, callback))
-
-    monkeypatch.setattr(BaseMessageBus, "_call", record)
+def test_get_interface_requests_name_owner_for_well_known_name() -> None:
     bus = _offline_bus()
     obj = BaseProxyObject(
         "org.example.Name", "/org/example", _IFACE_XML, bus, _StubInterface
     )
     obj.get_interface(_IFACE_NAME)
-    return bus, captured[0][1]
+
+    assert len(bus.captured) == 1
+    message, _notify = bus.captured[0]
+    assert message.member == "GetNameOwner"
+    assert message.body == ["org.example.Name"]
 
 
-def test_owner_notify_records_owner_on_success(monkeypatch) -> None:
-    bus, notify = _owner_notify(monkeypatch)
+def _owner_notify():
+    bus = _offline_bus()
+    obj = BaseProxyObject(
+        "org.example.Name", "/org/example", _IFACE_XML, bus, _StubInterface
+    )
+    obj.get_interface(_IFACE_NAME)
+    return bus, bus.captured[0][1]
+
+
+def test_owner_notify_records_owner_on_success() -> None:
+    bus, notify = _owner_notify()
     notify(_method_return(signature="s", body=[":1.5"]), None)
     assert bus._name_owners["org.example.Name"] == ":1.5"
 
 
-def test_owner_notify_ignores_transport_error(monkeypatch) -> None:
-    bus, notify = _owner_notify(monkeypatch)
+def test_owner_notify_ignores_transport_error() -> None:
+    bus, notify = _owner_notify()
     notify(None, RuntimeError("boom"))
     assert "org.example.Name" not in bus._name_owners
 
 
-def test_owner_notify_ignores_name_has_no_owner(monkeypatch) -> None:
-    bus, notify = _owner_notify(monkeypatch)
+def test_owner_notify_ignores_name_has_no_owner() -> None:
+    bus, notify = _owner_notify()
     msg = Message(
         message_type=MessageType.ERROR,
         error_name=ErrorType.NAME_HAS_NO_OWNER.value,
@@ -263,8 +266,8 @@ def test_owner_notify_ignores_name_has_no_owner(monkeypatch) -> None:
     assert "org.example.Name" not in bus._name_owners
 
 
-def test_owner_notify_logs_other_error(monkeypatch) -> None:
-    bus, notify = _owner_notify(monkeypatch)
+def test_owner_notify_logs_other_error() -> None:
+    bus, notify = _owner_notify()
     msg = Message(
         message_type=MessageType.ERROR,
         error_name="com.example.Boom",
@@ -288,8 +291,7 @@ def _signal(signature: str = "s", body: list | None = None) -> Message:
     )
 
 
-def test_message_handler_dispatches_to_all_handlers(monkeypatch) -> None:
-    monkeypatch.setattr(BaseMessageBus, "_call", lambda *a, **k: None)
+def test_message_handler_dispatches_to_all_handlers() -> None:
     obj = _unique_name_object()
     iface = obj.get_interface(_IFACE_NAME)
 
@@ -307,8 +309,7 @@ def test_message_handler_dispatches_to_all_handlers(monkeypatch) -> None:
     assert unpacked2 == ["hello"]
 
 
-def test_message_handler_ignores_signature_mismatch(monkeypatch) -> None:
-    monkeypatch.setattr(BaseMessageBus, "_call", lambda *a, **k: None)
+def test_message_handler_ignores_signature_mismatch() -> None:
     obj = _unique_name_object()
     iface = obj.get_interface(_IFACE_NAME)
 
@@ -319,8 +320,7 @@ def test_message_handler_ignores_signature_mismatch(monkeypatch) -> None:
     assert seen == []
 
 
-def test_off_signal_removes_handler_and_match_rule(monkeypatch) -> None:
-    monkeypatch.setattr(BaseMessageBus, "_call", lambda *a, **k: None)
+def test_off_signal_removes_handler_and_match_rule() -> None:
     obj = _unique_name_object()
     iface = obj.get_interface(_IFACE_NAME)
 
@@ -334,8 +334,7 @@ def test_off_signal_removes_handler_and_match_rule(monkeypatch) -> None:
     assert "Tick" not in iface._signal_handlers
 
 
-def test_off_signal_unregistered_handler_is_noop(monkeypatch) -> None:
-    monkeypatch.setattr(BaseMessageBus, "_call", lambda *a, **k: None)
+def test_off_signal_unregistered_handler_is_noop() -> None:
     obj = _unique_name_object()
     iface = obj.get_interface(_IFACE_NAME)
     # Never registered — off must swallow the KeyError/ValueError.
@@ -343,8 +342,7 @@ def test_off_signal_unregistered_handler_is_noop(monkeypatch) -> None:
     assert iface._signal_handlers == {}
 
 
-def test_off_signal_keeps_other_handlers(monkeypatch) -> None:
-    monkeypatch.setattr(BaseMessageBus, "_call", lambda *a, **k: None)
+def test_off_signal_keeps_other_handlers() -> None:
     obj = _unique_name_object()
     iface = obj.get_interface(_IFACE_NAME)
 
@@ -360,8 +358,7 @@ def test_off_signal_keeps_other_handlers(monkeypatch) -> None:
     assert len(iface._signal_handlers["Tick"]) == 1
 
 
-def test_message_handler_ignores_unmatched_message(monkeypatch) -> None:
-    monkeypatch.setattr(BaseMessageBus, "_call", lambda *a, **k: None)
+def test_message_handler_ignores_unmatched_message() -> None:
     obj = _unique_name_object()
     iface = obj.get_interface(_IFACE_NAME)
 
@@ -374,8 +371,7 @@ def test_message_handler_ignores_unmatched_message(monkeypatch) -> None:
     assert seen == []
 
 
-def test_message_handler_ignores_foreign_sender(monkeypatch) -> None:
-    monkeypatch.setattr(BaseMessageBus, "_call", lambda *a, **k: None)
+def test_message_handler_ignores_foreign_sender() -> None:
     obj = _unique_name_object()
     iface = obj.get_interface(_IFACE_NAME)
 
@@ -388,8 +384,7 @@ def test_message_handler_ignores_foreign_sender(monkeypatch) -> None:
     assert seen == []
 
 
-def test_message_handler_ignores_unknown_signal_name(monkeypatch) -> None:
-    monkeypatch.setattr(BaseMessageBus, "_call", lambda *a, **k: None)
+def test_message_handler_ignores_unknown_signal_name() -> None:
     obj = _unique_name_object()
     iface = obj.get_interface(_IFACE_NAME)
 
@@ -402,8 +397,7 @@ def test_message_handler_ignores_unknown_signal_name(monkeypatch) -> None:
     assert called == []
 
 
-def test_on_signal_rejects_required_keyword_only_param(monkeypatch) -> None:
-    monkeypatch.setattr(BaseMessageBus, "_call", lambda *a, **k: None)
+def test_on_signal_rejects_required_keyword_only_param() -> None:
     obj = _unique_name_object()
     iface = obj.get_interface(_IFACE_NAME)
 
@@ -414,8 +408,7 @@ def test_on_signal_rejects_required_keyword_only_param(monkeypatch) -> None:
         iface.on_tick(handler)
 
 
-def test_on_signal_rejects_wrong_positional_count(monkeypatch) -> None:
-    monkeypatch.setattr(BaseMessageBus, "_call", lambda *a, **k: None)
+def test_on_signal_rejects_wrong_positional_count() -> None:
     obj = _unique_name_object()
     iface = obj.get_interface(_IFACE_NAME)
 
