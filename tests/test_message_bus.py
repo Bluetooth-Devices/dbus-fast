@@ -14,10 +14,17 @@ from dbus_fast.constants import (
     ReleaseNameReply,
     RequestNameReply,
 )
-from dbus_fast.errors import AuthError, DBusError, InternalError, InvalidAddressError
+from dbus_fast.errors import (
+    AuthError,
+    DBusError,
+    InternalError,
+    InvalidAddressError,
+    InvalidObjectPathError,
+)
 from dbus_fast.message import Message
 from dbus_fast.message_bus import BaseMessageBus, _expects_reply
 from dbus_fast.send_reply import SendReply
+from dbus_fast.service import PropertyAccess, ServiceInterface, dbus_property
 
 
 @pytest.mark.asyncio
@@ -1070,3 +1077,108 @@ async def test_finalize_warns_when_writer_removal_fails(caplog, monkeypatch) -> 
 
     assert "could not remove message writer" in caplog.text
     assert bus._disconnect_future.done()
+
+
+class _ExampleInterface(ServiceInterface):
+    @dbus_property(access=PropertyAccess.READ)
+    def Foo(self) -> "s":
+        return "bar"
+
+
+def _interfaces_signal(sent: list[Message], member: str) -> Message:
+    return next(m for m in sent if m.member == member)
+
+
+def test_export_rejects_non_service_interface() -> None:
+    bus = _SendCapturingBus()
+    with pytest.raises(TypeError, match="must be a ServiceInterface"):
+        bus.export("/com/example/Test", object())
+
+
+def test_export_rejects_invalid_object_path() -> None:
+    bus = _SendCapturingBus()
+    with pytest.raises(InvalidObjectPathError, match="invalid object path"):
+        bus.export("not a path", _ExampleInterface("com.example.Test"))
+
+
+def test_export_rejects_duplicate_interface_name() -> None:
+    bus = _SendCapturingBus()
+    bus.export("/com/example/Test", _ExampleInterface("com.example.Test"))
+    with pytest.raises(ValueError, match="already exported"):
+        bus.export("/com/example/Test", _ExampleInterface("com.example.Test"))
+
+
+def test_export_registers_interface_and_emits_interfaces_added() -> None:
+    bus = _SendCapturingBus()
+    iface = _ExampleInterface("com.example.Test")
+    bus.export("/com/example/Test", iface)
+    assert bus._path_exports["/com/example/Test"]["com.example.Test"] is iface
+    added = _interfaces_signal(bus.sent, "InterfacesAdded")
+    assert added.interface == "org.freedesktop.DBus.ObjectManager"
+    assert added.body[0] == "/com/example/Test"
+    assert added.body[1]["com.example.Test"]["Foo"].value == "bar"
+
+
+def test_export_skips_emit_when_disconnected() -> None:
+    bus = _SendCapturingBus()
+    bus._disconnected = True
+    bus.export("/com/example/Test", _ExampleInterface("com.example.Test"))
+    assert bus.sent == []
+
+
+def test_unexport_rejects_invalid_object_path() -> None:
+    bus = _SendCapturingBus()
+    with pytest.raises(InvalidObjectPathError, match="invalid object path"):
+        bus.unexport("not a path")
+
+
+def test_unexport_rejects_bad_interface_type() -> None:
+    bus = _SendCapturingBus()
+    with pytest.raises(TypeError, match="must be a ServiceInterface or interface name"):
+        bus.unexport("/com/example/Test", 123)
+
+
+def test_unexport_unknown_path_is_noop() -> None:
+    bus = _SendCapturingBus()
+    bus.unexport("/com/example/Absent")
+    assert bus.sent == []
+
+
+def test_unexport_unknown_interface_name_is_noop() -> None:
+    bus = _SendCapturingBus()
+    bus.export("/com/example/Test", _ExampleInterface("com.example.Test"))
+    bus.sent.clear()
+    bus.unexport("/com/example/Test", "com.example.Other")
+    assert "com.example.Test" in bus._path_exports["/com/example/Test"]
+    assert bus.sent == []
+
+
+def test_unexport_by_name_removes_and_emits_interfaces_removed() -> None:
+    bus = _SendCapturingBus()
+    bus.export("/com/example/Test", _ExampleInterface("com.example.Test"))
+    bus.sent.clear()
+    bus.unexport("/com/example/Test", "com.example.Test")
+    assert "/com/example/Test" not in bus._path_exports
+    removed = _interfaces_signal(bus.sent, "InterfacesRemoved")
+    assert removed.body == ["/com/example/Test", ["com.example.Test"]]
+
+
+def test_unexport_by_instance_removes_interface() -> None:
+    bus = _SendCapturingBus()
+    iface = _ExampleInterface("com.example.Test")
+    bus.export("/com/example/Test", iface)
+    bus.sent.clear()
+    bus.unexport("/com/example/Test", iface)
+    assert "/com/example/Test" not in bus._path_exports
+    assert _interfaces_signal(bus.sent, "InterfacesRemoved")
+
+
+def test_unexport_all_interfaces_on_path() -> None:
+    bus = _SendCapturingBus()
+    bus.export("/com/example/Test", _ExampleInterface("com.example.One"))
+    bus.export("/com/example/Test", _ExampleInterface("com.example.Two"))
+    bus.sent.clear()
+    bus.unexport("/com/example/Test")
+    assert "/com/example/Test" not in bus._path_exports
+    removed = _interfaces_signal(bus.sent, "InterfacesRemoved")
+    assert set(removed.body[1]) == {"com.example.One", "com.example.Two"}
