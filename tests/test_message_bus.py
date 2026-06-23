@@ -680,9 +680,7 @@ def test_default_properties_handler_rejects_unknown_object() -> None:
 def test_default_properties_handler_standard_interface_get_unknown_property() -> None:
     bus = _SendCapturingBus()
     bus._path_exports["/com/example/Test"] = {}
-    msg = _props_message(
-        "Get", "ss", ["org.freedesktop.DBus.Peer", "SomeProp"]
-    )
+    msg = _props_message("Get", "ss", ["org.freedesktop.DBus.Peer", "SomeProp"])
     with pytest.raises(DBusError, match="does not have property") as exc:
         bus._default_properties_handler(msg, SendReply(bus, msg))
     assert exc.value.type == ErrorType.UNKNOWN_PROPERTY.value
