@@ -14,6 +14,7 @@ from typing import Annotated, Any
 import pytest
 
 from dbus_fast import introspection as intr
+from dbus_fast._private.unmarshaller import is_compiled
 from dbus_fast.annotations import DBusInt32, DBusSignature, DBusStr
 from dbus_fast.constants import PropertyAccess
 from dbus_fast.errors import SignalDisabledError
@@ -514,6 +515,10 @@ def test_msg_body_to_args_returns_body_without_fd_type() -> None:
     assert ServiceInterface._msg_body_to_args(msg) == ["v"]
 
 
+@pytest.mark.skipif(
+    is_compiled(),
+    reason="_get_enabled_handler_by_name_signature is a cdef staticmethod when Cython-compiled",
+)
 def test_enabled_handler_lookup_matches_signature_and_skips_disabled() -> None:
     """Handler lookup matches by signature, and disabled/unknown names yield None."""
 
