@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import socket
 
 import pytest
@@ -754,3 +755,181 @@ def test_default_get_machine_id_swallows_disconnect() -> None:
     reply_handler = bus.call_callbacks[0]
     reply_handler(None, ConnectionError("disconnected"))
     assert bus.sent == []
+
+
+def _method_call_msg(serial: int = 1) -> Message:
+    return Message(
+        message_type=MessageType.METHOD_CALL,
+        path="/com/example",
+        interface="com.example.Iface",
+        member="DoThing",
+        serial=serial,
+    )
+
+
+def _name_owner_changed(name: str, old: str, new: str) -> Message:
+    return Message(
+        message_type=MessageType.SIGNAL,
+        sender="org.freedesktop.DBus",
+        path="/org/freedesktop/DBus",
+        interface="org.freedesktop.DBus",
+        member="NameOwnerChanged",
+        signature="sss",
+        body=[name, old, new],
+    )
+
+
+def _error_reply(error_name: str = "com.example.Boom", text: str = "boom") -> Message:
+    return Message(
+        message_type=MessageType.ERROR,
+        error_name=error_name,
+        reply_serial=1,
+        signature="s",
+        body=[text],
+    )
+
+
+def test_process_message_sends_handler_returned_message() -> None:
+    bus = _SendCapturingBus()
+    reply = Message(
+        message_type=MessageType.METHOD_RETURN,
+        reply_serial=1,
+        signature="s",
+        body=["ok"],
+    )
+    seen_by_second: list = []
+    bus.add_message_handler(lambda m: reply)
+    bus.add_message_handler(lambda m: seen_by_second.append(m))
+    bus._process_message(_method_call_msg())
+    assert bus.sent == [reply]
+    assert seen_by_second == []
+
+
+def test_process_message_truthy_non_message_marks_handled_without_send() -> None:
+    bus = _SendCapturingBus()
+    seen_by_second: list = []
+    bus.add_message_handler(lambda m: True)
+    bus.add_message_handler(lambda m: seen_by_second.append(m))
+    bus._process_message(_method_call_msg())
+    assert bus.sent == []
+    assert seen_by_second == []
+
+
+def test_process_message_handler_dbus_error_on_call_sends_error_reply() -> None:
+    bus = _SendCapturingBus()
+
+    def boom(_msg: Message) -> None:
+        raise DBusError(ErrorType.FAILED, "handler said no", None)
+
+    bus.add_message_handler(boom)
+    bus._process_message(_method_call_msg())
+    assert len(bus.sent) == 1
+    assert bus.sent[0].message_type == MessageType.ERROR
+    assert bus.sent[0].error_name == ErrorType.FAILED.value
+
+
+def test_process_message_handler_dbus_error_on_signal_is_swallowed() -> None:
+    bus = _SendCapturingBus()
+
+    def boom(_msg: Message) -> None:
+        raise DBusError(ErrorType.FAILED, "handler said no", None)
+
+    bus.add_message_handler(boom)
+    bus._process_message(_name_owner_changed("com.example", "", ":1.5"))
+    assert bus.sent == []
+
+
+def test_process_message_name_owner_changed_records_owner() -> None:
+    bus = _SendCapturingBus()
+    bus._process_message(_name_owner_changed("com.example", "", ":1.42"))
+    assert bus._name_owners["com.example"] == ":1.42"
+
+
+def test_process_message_name_owner_changed_drops_owner_on_empty() -> None:
+    bus = _SendCapturingBus()
+    bus._name_owners["com.example"] = ":1.42"
+    bus._process_message(_name_owner_changed("com.example", ":1.42", ""))
+    assert "com.example" not in bus._name_owners
+
+
+def test_process_message_name_owner_changed_empty_owner_unknown_name_noop() -> None:
+    bus = _SendCapturingBus()
+    bus._process_message(_name_owner_changed("com.example", "", ""))
+    assert bus._name_owners == {}
+
+
+def test_init_high_level_client_logs_add_match_error(caplog) -> None:
+    bus = _SendCapturingBus()
+    bus._init_high_level_client()
+    notify = bus.call_callbacks[0]
+    with caplog.at_level(logging.ERROR, logger="dbus_fast.message_bus"):
+        notify(None, DBusError(ErrorType.FAILED, "nope", None))
+    assert "add match request failed" in caplog.text
+
+
+def test_init_high_level_client_logs_add_match_error_reply(caplog) -> None:
+    bus = _SendCapturingBus()
+    bus._init_high_level_client()
+    notify = bus.call_callbacks[0]
+    with caplog.at_level(logging.ERROR, logger="dbus_fast.message_bus"):
+        notify(_error_reply(), None)
+    assert "add match request failed" in caplog.text
+
+
+def test_init_high_level_client_runs_once() -> None:
+    bus = _SendCapturingBus()
+    bus._init_high_level_client()
+    bus._init_high_level_client()
+    assert len(bus.call_callbacks) == 1
+
+
+def test_add_match_rule_notify_logs_error(caplog) -> None:
+    bus = _SendCapturingBus()
+    bus._add_match_rule("type='signal',interface='com.example'")
+    notify = bus.call_callbacks[0]
+    with caplog.at_level(logging.ERROR, logger="dbus_fast.message_bus"):
+        notify(None, DBusError(ErrorType.FAILED, "nope", None))
+    assert "add match request failed" in caplog.text
+
+
+def test_add_match_rule_notify_logs_error_reply(caplog) -> None:
+    bus = _SendCapturingBus()
+    bus._add_match_rule("type='signal',interface='com.example'")
+    notify = bus.call_callbacks[0]
+    with caplog.at_level(logging.ERROR, logger="dbus_fast.message_bus"):
+        notify(_error_reply(), None)
+    assert "add match request failed" in caplog.text
+
+
+def test_remove_match_rule_notify_logs_error(caplog) -> None:
+    bus = _SendCapturingBus()
+    rule = "type='signal',interface='com.example'"
+    bus._add_match_rule(rule)
+    bus._remove_match_rule(rule)
+    notify = bus.call_callbacks[-1]
+    with caplog.at_level(logging.ERROR, logger="dbus_fast.message_bus"):
+        notify(None, DBusError(ErrorType.FAILED, "nope", None))
+    assert "remove match request failed" in caplog.text
+
+
+def test_remove_match_rule_notify_logs_error_reply(caplog) -> None:
+    bus = _SendCapturingBus()
+    rule = "type='signal',interface='com.example'"
+    bus._add_match_rule(rule)
+    bus._remove_match_rule(rule)
+    notify = bus.call_callbacks[-1]
+    with caplog.at_level(logging.ERROR, logger="dbus_fast.message_bus"):
+        notify(_error_reply(), None)
+    assert "remove match request failed" in caplog.text
+
+
+def test_remove_match_rule_notify_skips_when_disconnected(caplog) -> None:
+    bus = _SendCapturingBus()
+    rule = "type='signal',interface='com.example'"
+    bus._add_match_rule(rule)
+    bus._remove_match_rule(rule)
+    notify = bus.call_callbacks[-1]
+    bus._disconnected = True
+    with caplog.at_level(logging.ERROR, logger="dbus_fast.message_bus"):
+        notify(None, DBusError(ErrorType.FAILED, "nope", None))
+    assert "remove match request failed" not in caplog.text
