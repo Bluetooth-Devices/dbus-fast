@@ -17,6 +17,7 @@ from dbus_fast import introspection as intr
 from dbus_fast.annotations import DBusInt32, DBusSignature, DBusStr
 from dbus_fast.constants import PropertyAccess
 from dbus_fast.errors import SignalDisabledError
+from dbus_fast.message import Message
 from dbus_fast.message_bus import BaseMessageBus
 from dbus_fast.service import (
     ServiceInterface,
@@ -28,6 +29,7 @@ from dbus_fast.service import (
     method,
     signal,
 )
+from dbus_fast.signature import SignatureBodyMismatchError, get_signature_tree
 
 
 def _method_meta(cls: type, attr: str) -> _Method:
@@ -453,3 +455,89 @@ def test_invalidated_properties_passed_through() -> None:
 
     body = bus.notifications[0][3]
     assert body[2] == ["Prop"]
+
+
+def test_decorated_method_invokes_underlying_function() -> None:
+    """Calling the wrapped method runs the body and returns None."""
+    calls: list[str] = []
+
+    class Iface(ServiceInterface):
+        def __init__(self) -> None:
+            super().__init__("com.example.M")
+
+        @dbus_method()
+        def Do(self, val: DBusStr) -> DBusStr:
+            calls.append(val)
+            return val
+
+    assert Iface().Do("hi") is None
+    assert calls == ["hi"]
+
+
+def test_fn_result_none_yields_empty_body() -> None:
+    body, fds = ServiceInterface._fn_result_to_body(None, get_signature_tree(""))
+    assert body == []
+    assert fds == []
+
+
+def test_fn_result_single_value_wrapped_in_list() -> None:
+    body, fds = ServiceInterface._fn_result_to_body(
+        "x", get_signature_tree("s"), replace_fds=False
+    )
+    assert body == ["x"]
+    assert fds == []
+
+
+def test_fn_result_tuple_converted_to_list() -> None:
+    body, _ = ServiceInterface._fn_result_to_body(
+        ("a", "b"), get_signature_tree("ss"), replace_fds=False
+    )
+    assert body == ["a", "b"]
+    assert type(body) is list
+
+
+def test_fn_result_non_sequence_for_multiarg_raises() -> None:
+    with pytest.raises(SignatureBodyMismatchError, match="list or tuple"):
+        ServiceInterface._fn_result_to_body("x", get_signature_tree("ss"))
+
+
+def test_fn_result_length_mismatch_raises() -> None:
+    with pytest.raises(SignatureBodyMismatchError, match="return mismatch"):
+        ServiceInterface._fn_result_to_body(["only-one"], get_signature_tree("ss"))
+
+
+def test_msg_body_to_args_returns_body_without_fd_type() -> None:
+    """A body with no 'h' type is returned unchanged (no fd substitution)."""
+    msg = Message(
+        path="/x", interface="com.example.I", member="M", signature="s", body=["v"]
+    )
+    assert ServiceInterface._msg_body_to_args(msg) == ["v"]
+
+
+def test_enabled_handler_lookup_matches_signature_and_skips_disabled() -> None:
+    """Handler lookup matches by signature, and disabled/unknown names yield None."""
+
+    def maker(interface: ServiceInterface, method: _Method) -> Any:
+        return f"handler:{method.name}"
+
+    class Iface(ServiceInterface):
+        def __init__(self) -> None:
+            super().__init__("com.example.H")
+
+        @dbus_method()
+        def Echo(self, val: DBusStr) -> DBusStr:
+            return val
+
+        @dbus_method(disabled=True)
+        def Hidden(self, val: DBusStr) -> DBusStr:
+            return val
+
+    iface = Iface()
+    bus = BaseMessageBus(bus_address="unix:path=/dev/null")
+    ServiceInterface._add_bus(iface, bus, maker)
+
+    lookup = ServiceInterface._get_enabled_handler_by_name_signature
+    assert lookup(iface, bus, "Echo", "s") == "handler:Echo"
+    assert lookup(iface, bus, "Echo", "i") is None
+    assert lookup(iface, bus, "Hidden", "s") is None
+    assert lookup(iface, bus, "Nonexistent", "s") is None
