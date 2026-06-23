@@ -16,6 +16,7 @@ from dbus_fast.constants import (
 from dbus_fast.errors import AuthError, DBusError, InternalError, InvalidAddressError
 from dbus_fast.message import Message
 from dbus_fast.message_bus import BaseMessageBus, _expects_reply
+from dbus_fast.send_reply import SendReply
 
 
 @pytest.mark.asyncio
@@ -607,3 +608,151 @@ def test_remove_match_rule_skips_name_owner_rule() -> None:
     bus = _RecordingMatchBus()
     bus._remove_match_rule(bus._name_owner_match_rule)
     assert bus.calls == []
+
+
+class _SendCapturingBus(BaseMessageBus):
+    """Records replies sent through SendReply and callbacks queued via _call."""
+
+    def __init__(self) -> None:
+        super().__init__(bus_address="unix:path=/dev/null")
+        self.sent: list[Message] = []
+        self.call_callbacks: list = []
+
+    def send(self, msg: Message) -> None:
+        self.sent.append(msg)
+
+    def _call(self, msg: Message, callback=None) -> None:
+        self.call_callbacks.append(callback)
+
+
+def _props_message(member: str, signature: str, body: list) -> Message:
+    return Message(
+        path="/com/example/Test",
+        interface="org.freedesktop.DBus.Properties",
+        member=member,
+        signature=signature,
+        body=body,
+        serial=1,
+    )
+
+
+def _get_machine_id_message() -> Message:
+    return Message(
+        path="/com/example/Test",
+        interface="org.freedesktop.DBus.Peer",
+        member="GetMachineId",
+        serial=1,
+    )
+
+
+def test_default_properties_handler_rejects_unknown_method() -> None:
+    bus = _SendCapturingBus()
+    msg = _props_message("Frobnicate", "", [])
+    with pytest.raises(DBusError, match="doesn't have method") as exc:
+        bus._default_properties_handler(msg, SendReply(bus, msg))
+    assert exc.value.type == ErrorType.UNKNOWN_METHOD.value
+
+
+def test_default_properties_handler_rejects_signature_mismatch() -> None:
+    bus = _SendCapturingBus()
+    msg = _props_message("Get", "s", ["com.example.Foo"])
+    with pytest.raises(DBusError, match="doesn't have method") as exc:
+        bus._default_properties_handler(msg, SendReply(bus, msg))
+    assert exc.value.type == ErrorType.UNKNOWN_METHOD.value
+
+
+def test_default_properties_handler_rejects_empty_interface() -> None:
+    bus = _SendCapturingBus()
+    msg = _props_message("GetAll", "s", [""])
+    with pytest.raises(DBusError, match="empty interface") as exc:
+        bus._default_properties_handler(msg, SendReply(bus, msg))
+    assert exc.value.type == ErrorType.NOT_SUPPORTED.value
+
+
+def test_default_properties_handler_rejects_unknown_object() -> None:
+    bus = _SendCapturingBus()
+    msg = _props_message("GetAll", "s", ["com.example.Foo"])
+    with pytest.raises(DBusError, match="no interfaces at path") as exc:
+        bus._default_properties_handler(msg, SendReply(bus, msg))
+    assert exc.value.type == ErrorType.UNKNOWN_OBJECT.value
+
+
+def test_default_properties_handler_standard_interface_get_unknown_property() -> None:
+    bus = _SendCapturingBus()
+    bus._path_exports["/com/example/Test"] = {}
+    msg = _props_message(
+        "Get", "ss", ["org.freedesktop.DBus.Peer", "SomeProp"]
+    )
+    with pytest.raises(DBusError, match="does not have property") as exc:
+        bus._default_properties_handler(msg, SendReply(bus, msg))
+    assert exc.value.type == ErrorType.UNKNOWN_PROPERTY.value
+
+
+def test_default_properties_handler_standard_interface_getall_returns_empty() -> None:
+    bus = _SendCapturingBus()
+    bus._path_exports["/com/example/Test"] = {}
+    msg = _props_message("GetAll", "s", ["org.freedesktop.DBus.Peer"])
+    bus._default_properties_handler(msg, SendReply(bus, msg))
+    assert len(bus.sent) == 1
+    assert bus.sent[0].message_type == MessageType.METHOD_RETURN
+    assert bus.sent[0].body == [{}]
+
+
+def test_default_properties_handler_rejects_unknown_interface() -> None:
+    bus = _SendCapturingBus()
+    bus._path_exports["/com/example/Test"] = {}
+    msg = _props_message("GetAll", "s", ["com.example.NotExported"])
+    with pytest.raises(DBusError, match="could not find an interface") as exc:
+        bus._default_properties_handler(msg, SendReply(bus, msg))
+    assert exc.value.type == ErrorType.UNKNOWN_INTERFACE.value
+
+
+def test_default_get_machine_id_replies_from_cache_without_call() -> None:
+    bus = _SendCapturingBus()
+    bus._machine_id = "cached-machine-id"
+    msg = _get_machine_id_message()
+    bus._default_get_machine_id_handler(msg, SendReply(bus, msg))
+    assert bus.call_callbacks == []
+    assert bus.sent[0].body == ["cached-machine-id"]
+
+
+def test_default_get_machine_id_caches_and_replies_on_method_return() -> None:
+    bus = _SendCapturingBus()
+    msg = _get_machine_id_message()
+    bus._default_get_machine_id_handler(msg, SendReply(bus, msg))
+    reply_handler = bus.call_callbacks[0]
+    reply = Message(
+        message_type=MessageType.METHOD_RETURN,
+        reply_serial=1,
+        signature="s",
+        body=["fresh-machine-id"],
+    )
+    reply_handler(reply, None)
+    assert bus._machine_id == "fresh-machine-id"
+    assert bus.sent[0].body == ["fresh-machine-id"]
+
+
+def test_default_get_machine_id_forwards_error_reply() -> None:
+    bus = _SendCapturingBus()
+    msg = _get_machine_id_message()
+    bus._default_get_machine_id_handler(msg, SendReply(bus, msg))
+    reply_handler = bus.call_callbacks[0]
+    err_reply = Message(
+        message_type=MessageType.ERROR,
+        reply_serial=1,
+        error_name="com.example.Failed",
+        signature="s",
+        body=["nope"],
+    )
+    reply_handler(err_reply, None)
+    assert bus.sent[0].message_type == MessageType.ERROR
+    assert bus.sent[0].error_name == "com.example.Failed"
+
+
+def test_default_get_machine_id_swallows_disconnect() -> None:
+    bus = _SendCapturingBus()
+    msg = _get_machine_id_message()
+    bus._default_get_machine_id_handler(msg, SendReply(bus, msg))
+    reply_handler = bus.call_callbacks[0]
+    reply_handler(None, ConnectionError("disconnected"))
+    assert bus.sent == []
