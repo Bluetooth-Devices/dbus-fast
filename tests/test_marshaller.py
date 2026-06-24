@@ -20,7 +20,7 @@ from dbus_fast._private.unmarshaller import (
     buffer_to_uint32,
     is_compiled,
 )
-from dbus_fast.errors import InvalidMessageError
+from dbus_fast.errors import InvalidMessageError, SignatureBodyMismatchError
 from dbus_fast.signature import SignatureType
 from dbus_fast.unpack import unpack_variants
 
@@ -1217,6 +1217,50 @@ def test_marshaller_write_dict_entry_matches_array_path() -> None:
     # full array = 4-byte length + 4-byte alignment pad + dict-entry bytes
     assert bytes(buf) == bytes(full[8:])
     assert written == len(full) - 8
+
+
+def _roundtrip_body(signature: str, body: list[Any]) -> list[Any]:
+    """Marshall a SIGNAL body then unmarshall it back, returning the decoded body."""
+    msg = Message(
+        message_type=MessageType.SIGNAL,
+        path="/test",
+        interface="test.iface",
+        member="Member",
+        signature=signature,
+        body=body,
+    )
+    frame = msg._marshall(False)
+    unmarshaller = Unmarshaller(io.BytesIO(bytes(frame)))
+    assert unmarshaller.unmarshall()
+    return unmarshaller.message.body
+
+
+def test_marshall_array_of_booleans_round_trips() -> None:
+    """An array whose element type is bool routes through the write_boolean delegate."""
+    assert _roundtrip_body("ab", [[True, False, True]]) == [[True, False, True]]
+    # Exact wire bytes: 4-byte length (12) then three 4-byte booleans.
+    assert (
+        bytes(Marshaller("ab", [[True, False]]).marshall())
+        == b"\x08\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00"
+    )
+
+
+def test_marshall_array_of_variants_round_trips() -> None:
+    """An array whose element type is variant routes through the write_variant delegate."""
+    body = [[Variant("u", 5), Variant("s", "x")]]
+    decoded = _roundtrip_body("av", body)
+    assert [(v.signature, v.value) for v in decoded[0]] == [("u", 5), ("s", "x")]
+
+
+def test_marshall_array_of_arrays_round_trips() -> None:
+    """A nested array routes the inner array through the write_array delegate."""
+    assert _roundtrip_body("aab", [[[True], [False, True]]]) == [[[True], [False, True]]]
+
+
+def test_marshall_struct_error_reraised_as_body_mismatch() -> None:
+    """A pack failure is re-raised as SignatureBodyMismatchError via verify()."""
+    with pytest.raises(SignatureBodyMismatchError, match="UINT32"):
+        Marshaller("u", ["not-an-int"]).marshall()
 
 
 def test_unmarshall_ignores_unknown_header_field_code() -> None:
