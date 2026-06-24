@@ -46,6 +46,14 @@ class _MethodCallbackProtocol(Protocol):
 _background_tasks: set[asyncio.Task[Any]] = set()
 
 
+_KEYWORD_ONLY = inspect.Parameter.KEYWORD_ONLY
+
+# The single keyword-only parameter a ``@dbus_method`` handler may declare to
+# receive the inbound :class:`~dbus_fast.message.Message`. It is not part of
+# the D-Bus signature.
+_MESSAGE_KWARG = "message"
+
+
 class _Method:
     def __init__(
         self, fn: _MethodCallbackProtocol, name: str, disabled: bool = False
@@ -57,9 +65,19 @@ class _Method:
         module = inspect.getmodule(fn)
 
         in_args: list[intr.Arg] = []
+        wants_message = False
         for i, param in enumerate(inspection.parameters.values()):
             if i == 0:
                 # first is self
+                continue
+            if param.kind is _KEYWORD_ONLY:
+                if param.name != _MESSAGE_KWARG:
+                    raise ValueError(
+                        f"unknown keyword-only parameter {param.name!r} on DBus "
+                        f"method; the only supported keyword-only parameter is "
+                        f"{_MESSAGE_KWARG!r}"
+                    )
+                wants_message = True
                 continue
             annotation = parse_annotation(param.annotation, module)
             if not annotation:
@@ -83,6 +101,7 @@ class _Method:
         self.out_signature = out_signature
         self.in_signature_tree = get_signature_tree(in_signature)
         self.out_signature_tree = get_signature_tree(out_signature)
+        self.wants_message = wants_message
 
 
 def dbus_method(
@@ -142,6 +161,23 @@ def dbus_method(
 
     .. versionadded:: v2.46.0
         In older versions, this was named ``@method``. The old name still exists.
+
+    A handler may declare a single keyword-only parameter named ``message``
+    (after ``*``) to receive the inbound :class:`~dbus_fast.message.Message`.
+    It is not part of the D-Bus signature. Read header fields such as
+    ``message.sender`` and ``message.flags`` off it, for caller-identity
+    authorisation (e.g. polkit) or to honour ``ALLOW_INTERACTIVE_AUTHORIZATION``::
+
+        @dbus_method()
+        def Foo(self, bar: 's', *, message: Message) -> '':
+            if not self._authorize(message.sender, message.flags):
+                raise DBusError(...)
+
+    Any other keyword-only parameter name raises :class:`ValueError` at
+    decoration time.
+
+    .. versionadded:: next
+        The ``message`` keyword-only parameter.
     """
     if name is not None and type(name) is not str:
         raise TypeError("name must be a string")
