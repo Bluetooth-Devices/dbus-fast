@@ -1254,7 +1254,9 @@ def test_marshall_array_of_variants_round_trips() -> None:
 
 def test_marshall_array_of_arrays_round_trips() -> None:
     """A nested array routes the inner array through the write_array delegate."""
-    assert _roundtrip_body("aab", [[[True], [False, True]]]) == [[[True], [False, True]]]
+    assert _roundtrip_body("aab", [[[True], [False, True]]]) == [
+        [[True], [False, True]]
+    ]
 
 
 def test_marshall_struct_error_reraised_as_body_mismatch() -> None:
