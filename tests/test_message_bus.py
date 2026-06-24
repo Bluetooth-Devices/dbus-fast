@@ -1004,3 +1004,69 @@ def test_finalize_is_idempotent_when_already_disconnected() -> None:
     bus._method_return_handlers[1] = lambda reply, e: None
     bus._finalize(None)
     assert bus._method_return_handlers == {1: bus._method_return_handlers[1]}
+
+
+@pytest.mark.asyncio
+async def test_future_exception_no_reply_logs_and_discards(caplog) -> None:
+    bus = MessageBus("unix:path=/dev/null")
+    fut = bus._loop.create_future()
+    fut.set_exception(ValueError("boom"))
+    bus._pending_futures.add(fut)
+
+    with caplog.at_level(logging.ERROR, logger="dbus_fast.aio.message_bus"):
+        bus._future_exception_no_reply(fut)
+
+    assert fut not in bus._pending_futures
+    assert "unexpected exception in future" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_future_exception_no_reply_swallows_cancelled(caplog) -> None:
+    bus = MessageBus("unix:path=/dev/null")
+    fut = bus._loop.create_future()
+    fut.cancel()
+    bus._pending_futures.add(fut)
+
+    with caplog.at_level(logging.ERROR, logger="dbus_fast.aio.message_bus"):
+        bus._future_exception_no_reply(fut)
+
+    assert fut not in bus._pending_futures
+    assert "unexpected exception in future" not in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_finalize_warns_when_reader_removal_fails(caplog, monkeypatch) -> None:
+    bus = MessageBus("unix:path=/dev/null")
+    bus._fd = 0
+    bus._stream = _Closable()
+    bus._sock = _Closable()
+
+    def _raise(fd: int) -> None:
+        raise RuntimeError("no reader")
+
+    monkeypatch.setattr(bus._loop, "remove_reader", _raise)
+
+    with caplog.at_level(logging.WARNING, logger="dbus_fast.aio.message_bus"):
+        bus._finalize(None)
+
+    assert "could not remove message reader" in caplog.text
+    assert bus._disconnect_future.done()
+
+
+@pytest.mark.asyncio
+async def test_finalize_warns_when_writer_removal_fails(caplog, monkeypatch) -> None:
+    bus = MessageBus("unix:path=/dev/null")
+    bus._fd = 0
+    bus._stream = _Closable()
+    bus._sock = _Closable()
+
+    def _raise(fd: int) -> None:
+        raise RuntimeError("no writer")
+
+    monkeypatch.setattr(bus._loop, "remove_writer", _raise)
+
+    with caplog.at_level(logging.WARNING, logger="dbus_fast.aio.message_bus"):
+        bus._finalize(None)
+
+    assert "could not remove message writer" in caplog.text
+    assert bus._disconnect_future.done()
