@@ -933,3 +933,74 @@ def test_remove_match_rule_notify_skips_when_disconnected(caplog) -> None:
     with caplog.at_level(logging.ERROR, logger="dbus_fast.message_bus"):
         notify(None, DBusError(ErrorType.FAILED, "nope", None))
     assert "remove match request failed" not in caplog.text
+
+
+class _SendOnlyBus(BaseMessageBus):
+    """Captures sent messages while exercising the real _call/_finalize paths."""
+
+    def __init__(self) -> None:
+        super().__init__(bus_address="unix:path=/dev/null")
+        self.sent: list[Message] = []
+
+    def send(self, msg: Message) -> None:
+        self.sent.append(msg)
+
+
+class _Closable:
+    def __init__(self) -> None:
+        self.closed = False
+
+    def close(self) -> None:
+        self.closed = True
+
+
+def test_call_no_reply_expected_invokes_callback_immediately() -> None:
+    bus = _SendOnlyBus()
+    msg = _method_call(MessageFlag.NO_REPLY_EXPECTED)
+    calls: list[tuple] = []
+    bus._call(msg, lambda reply, err: calls.append((reply, err)))
+    assert len(bus.sent) == 1
+    assert calls == [(None, None)]
+    assert bus._method_return_handlers == {}
+
+
+def test_call_reply_expected_installs_handler_and_defers_callback() -> None:
+    bus = _SendOnlyBus()
+    msg = _method_call(MessageFlag.NONE)
+    calls: list[tuple] = []
+    bus._call(msg, lambda reply, err: calls.append((reply, err)))
+    assert len(bus.sent) == 1
+    assert calls == []
+    assert msg.serial in bus._method_return_handlers
+
+
+def test_finalize_drains_return_handlers_with_error(caplog) -> None:
+    bus = _SendOnlyBus()
+    bus._stream = _Closable()
+    bus._sock = _Closable()
+    err = DBusError(ErrorType.FAILED, "bus gone", None)
+    received: list[tuple] = []
+    bus._method_return_handlers[1] = lambda reply, e: received.append((reply, e))
+
+    def _raising(reply, e):
+        raise RuntimeError("handler boom")
+
+    bus._method_return_handlers[2] = _raising
+
+    with caplog.at_level(logging.WARNING, logger="dbus_fast.message_bus"):
+        bus._finalize(err)
+
+    assert received == [(None, err)]
+    assert "threw an exception on shutdown" in caplog.text
+    assert bus._method_return_handlers == {}
+    assert bus._disconnected is True
+    assert bus._stream.closed is True
+    assert bus._sock.closed is True
+
+
+def test_finalize_is_idempotent_when_already_disconnected() -> None:
+    bus = _SendOnlyBus()
+    bus._disconnected = True
+    bus._method_return_handlers[1] = lambda reply, e: None
+    bus._finalize(None)
+    assert bus._method_return_handlers == {1: bus._method_return_handlers[1]}
