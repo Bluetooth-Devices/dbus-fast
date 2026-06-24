@@ -1,11 +1,12 @@
 import io
 import timeit
+from pathlib import Path
 
 from dbus_fast._private.unmarshaller import Unmarshaller
 
 #  cythonize -X language_level=3 -a -i  src/dbus_fast/_private/unmarshaller.py
 
-with open("tests/data/get_managed_objects.hex") as fp:
+with Path("tests/data/get_managed_objects.hex").open() as fp:
     msg = fp.read()
 
 
