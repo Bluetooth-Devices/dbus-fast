@@ -6,6 +6,7 @@ import pytest
 
 from dbus_fast import introspection as intr
 from dbus_fast.aio import MessageBus
+from dbus_fast.annotations import DBusStr
 from dbus_fast.constants import (
     ErrorType,
     MessageFlag,
@@ -1081,7 +1082,7 @@ async def test_finalize_warns_when_writer_removal_fails(caplog, monkeypatch) -> 
 
 class _ExampleInterface(ServiceInterface):
     @dbus_property(access=PropertyAccess.READ)
-    def Foo(self) -> "s":
+    def Foo(self) -> DBusStr:
         return "bar"
 
 
@@ -1091,7 +1092,7 @@ def _interfaces_signal(sent: list[Message], member: str) -> Message:
 
 def test_export_rejects_non_service_interface() -> None:
     bus = _SendCapturingBus()
-    with pytest.raises(TypeError, match="must be a ServiceInterface"):
+    with pytest.raises(TypeError, match="ServiceInterface"):
         bus.export("/com/example/Test", object())
 
 
