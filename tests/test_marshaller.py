@@ -1238,7 +1238,7 @@ def _roundtrip_body(signature: str, body: list[Any]) -> list[Any]:
 def test_marshall_array_of_booleans_round_trips() -> None:
     """An array whose element type is bool routes through the write_boolean delegate."""
     assert _roundtrip_body("ab", [[True, False, True]]) == [[True, False, True]]
-    # Exact wire bytes: 4-byte length (12) then three 4-byte booleans.
+    # Exact wire bytes: 4-byte length (8) then two 4-byte booleans.
     assert (
         bytes(Marshaller("ab", [[True, False]]).marshall())
         == b"\x08\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00"
