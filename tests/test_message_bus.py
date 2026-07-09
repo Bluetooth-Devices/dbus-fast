@@ -6,6 +6,7 @@ import pytest
 
 from dbus_fast import introspection as intr
 from dbus_fast.aio import MessageBus
+from dbus_fast.auth import MAX_AUTH_LINE, AuthExternal
 from dbus_fast.constants import (
     ErrorType,
     MessageFlag,
@@ -1070,3 +1071,100 @@ async def test_finalize_warns_when_writer_removal_fails(caplog, monkeypatch) -> 
 
     assert "could not remove message writer" in caplog.text
     assert bus._disconnect_future.done()
+
+
+class _FakeAuth:
+    """Drives _authenticate with scripted start/response lines."""
+
+    def __init__(self, start, responses):
+        self._start = start
+        self._responses = list(responses)
+
+    def _authentication_start(self, negotiate_unix_fd=False):
+        return self._start
+
+    def _receive_line(self, line):
+        return self._responses.pop(0)
+
+
+class _AuthLoop:
+    """Minimal loop stub capturing sock_sendall and feeding sock_recv lines."""
+
+    def __init__(self, reads=()):
+        self.sent: list[bytes] = []
+        self._reads = list(reads)
+
+    async def sock_sendall(self, sock, data):
+        self.sent.append(data)
+
+    async def sock_recv(self, sock, n):
+        return self._reads.pop(0)
+
+
+@pytest.mark.asyncio
+async def test_message_bus_uses_provided_authenticator() -> None:
+    auth = AuthExternal()
+    bus = MessageBus("unix:path=/dev/null", auth=auth)
+    assert bus._auth is auth
+
+
+@pytest.mark.asyncio
+async def test_authenticate_rejects_non_str_start_line() -> None:
+    bus = MessageBus("unix:path=/dev/null")
+    bus._loop = _AuthLoop()
+    bus._sock = object()
+    bus._auth = _FakeAuth(start=b"not-a-str", responses=[])
+
+    with pytest.raises(AuthError, match="not type str"):
+        await bus._authenticate()
+
+
+@pytest.mark.asyncio
+async def test_authenticate_sends_responses_until_begin() -> None:
+    bus = MessageBus("unix:path=/dev/null")
+    loop = _AuthLoop(reads=[b"line1\r\n", b"line2\r\n"])
+    bus._loop = loop
+    bus._sock = object()
+    # start=None skips the initial auth line; first response is None (no send),
+    # second is BEGIN (send + break).
+    bus._auth = _FakeAuth(start=None, responses=[None, "BEGIN"])
+
+    await bus._authenticate()
+
+    assert loop.sent[0] == b"\0"
+    assert any(b"BEGIN" in data for data in loop.sent)
+
+
+@pytest.mark.asyncio
+async def test_authenticate_sends_str_start_line() -> None:
+    bus = MessageBus("unix:path=/dev/null")
+    loop = _AuthLoop(reads=[b"OK 1234\r\n"])
+    bus._loop = loop
+    bus._sock = object()
+    bus._auth = _FakeAuth(start="AUTH EXTERNAL 30", responses=["BEGIN"])
+
+    await bus._authenticate()
+
+    assert loop.sent[0] == b"\0"
+    assert any(b"AUTH EXTERNAL 30" in data for data in loop.sent)
+
+
+@pytest.mark.asyncio
+async def test_auth_readline_raises_when_connection_closed() -> None:
+    bus = MessageBus("unix:path=/dev/null")
+    bus._loop = _AuthLoop(reads=[b""])
+    bus._sock = object()
+
+    with pytest.raises(AuthError, match="connection closed during authentication"):
+        await bus._auth_readline()
+
+
+@pytest.mark.asyncio
+async def test_auth_readline_raises_when_line_too_long() -> None:
+    bus = MessageBus("unix:path=/dev/null")
+    # A single CRLF-less chunk over the cap trips the size guard.
+    bus._loop = _AuthLoop(reads=[b"x" * (MAX_AUTH_LINE + 1)])
+    bus._sock = object()
+
+    with pytest.raises(AuthError, match="auth line exceeded maximum size"):
+        await bus._auth_readline()
