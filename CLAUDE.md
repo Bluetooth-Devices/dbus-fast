@@ -216,7 +216,7 @@ _MAX_X` succeeds in pure-Python but raises `ImportError` under
 
   ```python
   # in .py
-  MAX_MESSAGE_SIZE = 134_217_728      # Python-importable
+  MAX_MESSAGE_SIZE = 134_217_728  # Python-importable
   _MAX_MESSAGE_SIZE = MAX_MESSAGE_SIZE  # cdef'd C int alias
   ```
 

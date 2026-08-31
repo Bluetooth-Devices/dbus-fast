@@ -381,8 +381,8 @@ class BaseMessageBus:
         self,
         name: str,
         flags: NameFlag = NameFlag.NONE,
-        callback: None
-        | (Callable[[RequestNameReply | None, Exception | None], None]) = None,
+        callback: Callable[[RequestNameReply | None, Exception | None], None]
+        | None = None,
         check_callback_type: bool = True,
     ) -> None:
         """Request that this message bus owns the given name.
@@ -434,8 +434,8 @@ class BaseMessageBus:
     def release_name(
         self,
         name: str,
-        callback: None
-        | (Callable[[ReleaseNameReply | None, Exception | None], None]) = None,
+        callback: Callable[[ReleaseNameReply | None, Exception | None], None]
+        | None = None,
         check_callback_type: bool = True,
     ) -> None:
         """Request that this message bus release the given name.
