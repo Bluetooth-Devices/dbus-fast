@@ -100,28 +100,35 @@ async def main():
     bus = await MessageBus().connect()
     # the introspection xml would normally be included in your project, but
     # this is convenient for development
-    introspection = await bus.introspect('org.mpris.MediaPlayer2.vlc', '/org/mpris/MediaPlayer2')
+    introspection = await bus.introspect(
+        "org.mpris.MediaPlayer2.vlc", "/org/mpris/MediaPlayer2"
+    )
 
-    obj = bus.get_proxy_object('org.mpris.MediaPlayer2.vlc', '/org/mpris/MediaPlayer2', introspection)
-    player = obj.get_interface('org.mpris.MediaPlayer2.Player')
-    properties = obj.get_interface('org.freedesktop.DBus.Properties')
+    obj = bus.get_proxy_object(
+        "org.mpris.MediaPlayer2.vlc", "/org/mpris/MediaPlayer2", introspection
+    )
+    player = obj.get_interface("org.mpris.MediaPlayer2.Player")
+    properties = obj.get_interface("org.freedesktop.DBus.Properties")
 
     # call methods on the interface (this causes the media player to play)
     await player.call_play()
 
     volume = await player.get_volume()
-    print(f'current volume: {volume}, setting to 0.5')
+    print(f"current volume: {volume}, setting to 0.5")
 
     await player.set_volume(0.5)
 
     # listen to signals
-    def on_properties_changed(interface_name, changed_properties, invalidated_properties):
+    def on_properties_changed(
+        interface_name, changed_properties, invalidated_properties
+    ):
         for changed, variant in changed_properties.items():
-            print(f'property changed: {changed} - {variant.value}')
+            print(f"property changed: {changed} - {variant.value}")
 
     properties.on_properties_changed(on_properties_changed)
 
     await asyncio.Event().wait()
+
 
 asyncio.run(main())
 ```
@@ -140,10 +147,11 @@ from dbus_fast.aio import MessageBus
 
 import asyncio
 
+
 class ExampleInterface(ServiceInterface):
     def __init__(self, name):
         super().__init__(name)
-        self._string_prop = 'kevin'
+        self._string_prop = "kevin"
 
     @dbus_method()
     def Echo(self, what: DBusStr) -> DBusStr:
@@ -152,9 +160,9 @@ class ExampleInterface(ServiceInterface):
     @dbus_method()
     def GetVariantDict(self) -> DBusDict:
         return {
-            'foo': Variant('s', 'bar'),
-            'bat': Variant('x', -55),
-            'a_list': Variant('as', ['hello', 'world'])
+            "foo": Variant("s", "bar"),
+            "bat": Variant("x", -55),
+            "a_list": Variant("as", ["hello", "world"]),
         }
 
     @dbus_property()
@@ -167,16 +175,18 @@ class ExampleInterface(ServiceInterface):
 
     @dbus_signal()
     def signal_simple(self) -> DBusStr:
-        return 'hello'
+        return "hello"
+
 
 async def main():
     bus = await MessageBus().connect()
-    interface = ExampleInterface('test.interface')
-    bus.export('/test/path', interface)
+    interface = ExampleInterface("test.interface")
+    bus.export("/test/path", interface)
     # now that we are ready to handle requests, we can request name from D-Bus
-    await bus.request_name('test.name')
+    await bus.request_name("test.name")
     # wait indefinitely
     await asyncio.Event().wait()
+
 
 asyncio.run(main())
 ```
@@ -199,10 +209,13 @@ async def main():
     bus = await MessageBus().connect()
 
     reply = await bus.call(
-        Message(destination='org.freedesktop.DBus',
-                path='/org/freedesktop/DBus',
-                interface='org.freedesktop.DBus',
-                member='ListNames'))
+        Message(
+            destination="org.freedesktop.DBus",
+            path="/org/freedesktop/DBus",
+            interface="org.freedesktop.DBus",
+            member="ListNames",
+        )
+    )
 
     if reply.message_type == MessageType.ERROR:
         raise Exception(reply.body[0])
