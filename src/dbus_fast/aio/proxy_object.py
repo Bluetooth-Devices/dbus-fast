@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
+from collections.abc import Callable
+from types import MethodType
 from typing import TYPE_CHECKING, Any
 
 from .. import introspection as intr
@@ -83,9 +85,13 @@ class ProxyInterface(BaseProxyInterface):
 
     bus: AioMessageBus
 
-    def _add_method(self, intr_method: intr.Method) -> None:
+    @staticmethod
+    def _make_method(intr_method: intr.Method) -> Callable[..., Any]:
         async def method_fn(
-            *args, flags=MessageFlag.NONE, unpack_variants: bool = False
+            self: ProxyInterface,
+            *args,
+            flags=MessageFlag.NONE,
+            unpack_variants: bool = False,
         ):
             input_body, unix_fds = replace_fds_with_idx(
                 intr_method.in_signature, list(args)
@@ -124,15 +130,21 @@ class ProxyInterface(BaseProxyInterface):
                 return body[0]
             return body
 
-        method_name = f"call_{BaseProxyInterface._to_snake_case(intr_method.name)}"
-        setattr(self, method_name, method_fn)
+        return method_fn
 
-    def _add_property(
-        self,
+    def _add_method(self, intr_method: intr.Method) -> None:
+        method_name = f"call_{BaseProxyInterface._to_snake_case(intr_method.name)}"
+        setattr(self, method_name, MethodType(self._make_method(intr_method), self))
+
+    @staticmethod
+    def _make_property(
         intr_property: intr.Property,
-    ) -> None:
+    ) -> tuple[Callable[..., Any], Callable[..., Any]]:
         async def property_getter(
-            *, flags=MessageFlag.NONE, unpack_variants: bool = False
+            self: ProxyInterface,
+            *,
+            flags=MessageFlag.NONE,
+            unpack_variants: bool = False,
         ):
             msg = await self.bus.call(
                 Message(
@@ -160,7 +172,7 @@ class ProxyInterface(BaseProxyInterface):
                 return unpack(body)
             return body
 
-        async def property_setter(val: Any) -> None:
+        async def property_setter(self: ProxyInterface, val: Any) -> None:
             variant = Variant(intr_property.signature, val)
 
             body, unix_fds = replace_fds_with_idx(
@@ -181,9 +193,19 @@ class ProxyInterface(BaseProxyInterface):
 
             BaseProxyInterface._check_method_return(msg)
 
+        return property_getter, property_setter
+
+    def _add_property(
+        self,
+        intr_property: intr.Property,
+    ) -> None:
+        property_getter, property_setter = self._make_property(intr_property)
         snake_case = BaseProxyInterface._to_snake_case(intr_property.name)
-        setattr(self, f"get_{snake_case}", property_getter)
-        setattr(self, f"set_{snake_case}", property_setter)
+        setattr(self, f"get_{snake_case}", MethodType(property_getter, self))
+        setattr(self, f"set_{snake_case}", MethodType(property_setter, self))
+
+
+ProxyInterface._member_factory_owner = ProxyInterface
 
 
 class ProxyObject(BaseProxyObject):
