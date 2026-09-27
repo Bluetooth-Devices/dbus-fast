@@ -388,3 +388,26 @@ def test_introspection_ignores_unknown_node_children() -> None:
     node = intr.Node.parse("<node><foo/></node>")
     assert node.interfaces == []
     assert node.nodes == []
+
+
+def test_introspection_parse_shares_identical_interfaces() -> None:
+    """Identical interface XML parses to one shared Interface object."""
+    first = intr.Node.parse(strict_data)
+    second = intr.Node.parse(strict_data)
+    assert first is not second
+    assert first.nodes[0] is not second.nodes[0]
+    assert first.interfaces is not second.interfaces
+    assert first.interfaces[0] is second.interfaces[0]
+
+    first.nodes.clear()
+    first.interfaces.clear()
+    third = intr.Node.parse(strict_data)
+    assert len(third.nodes) == 2
+    assert len(third.interfaces) == 1
+
+
+def test_introspection_parse_sharing_respects_validation_flag() -> None:
+    """Strict and sloppy parses of the same document are cached separately."""
+    intr.Node.parse(sloppy_data, validate_property_names=False)
+    with pytest.raises(InvalidMemberNameError, match="invalid member name"):
+        intr.Node.parse(sloppy_data)

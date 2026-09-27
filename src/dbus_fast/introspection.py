@@ -1,3 +1,4 @@
+import hashlib
 import xml.etree.ElementTree as ET
 import xml.parsers.expat as _expat
 
@@ -491,6 +492,30 @@ class Interface:
         return element
 
 
+# Services such as NetworkManager and UDisks2 export dozens of objects with
+# byte-identical interface XML (every access point, connection, block device),
+# so parsed interfaces are shared between nodes instead of rebuilt per object.
+# Node.parse also skips re-parsing documents it has already seen.
+_SHARED_INTERFACES: dict[tuple[bytes, bool], Interface] = {}
+_PARSED_NODES: dict[tuple[bytes, bool], "Node"] = {}
+_SHARED_INTERFACES_MAX = 256
+
+
+def _interface_from_xml_shared(
+    element: ET.Element, validate_property_names: bool
+) -> Interface:
+    key = (hashlib.sha256(ET.tostring(element)).digest(), validate_property_names)
+    interface = _SHARED_INTERFACES.get(key)
+    if interface is None:
+        interface = Interface.from_xml(
+            element, validate_property_names=validate_property_names
+        )
+        if len(_SHARED_INTERFACES) >= _SHARED_INTERFACES_MAX:
+            del _SHARED_INTERFACES[next(iter(_SHARED_INTERFACES))]
+        _SHARED_INTERFACES[key] = interface
+    return interface
+
+
 class Node:
     """A class that represents a node in an object path in introspection data.
 
@@ -573,9 +598,7 @@ class Node:
         for child in element:
             if child.tag == "interface":
                 node.interfaces.append(
-                    Interface.from_xml(
-                        child, validate_property_names=validate_property_names
-                    )
+                    _interface_from_xml_shared(child, validate_property_names)
                 )
             elif child.tag == "node":
                 node.nodes.append(
@@ -595,6 +618,9 @@ class Node:
 
         The string must be valid DBus introspection XML.
 
+        Interfaces with identical XML are shared between parsed nodes, so the
+        returned :class:`Interface` objects should be treated as read-only.
+
         :param data: The XMl string.
         :type data: str
         :param validate_property_names: Whether to validate property names or not
@@ -603,15 +629,27 @@ class Node:
         :raises:
             - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the string is not valid introspection data.
         """
-        element = _parse_introspection_xml(data)
-        if element.tag != "node":
-            raise InvalidIntrospectionError(
-                'introspection data must have a "node" for the root element'
+        key = (hashlib.sha256(data.encode()).digest(), validate_property_names)
+        template = _PARSED_NODES.get(key)
+        if template is None:
+            element = _parse_introspection_xml(data)
+            if element.tag != "node":
+                raise InvalidIntrospectionError(
+                    'introspection data must have a "node" for the root element'
+                )
+            template = Node.from_xml(
+                element, is_root=True, validate_property_names=validate_property_names
             )
+            if len(_PARSED_NODES) >= _SHARED_INTERFACES_MAX:
+                del _PARSED_NODES[next(iter(_PARSED_NODES))]
+            _PARSED_NODES[key] = template
 
-        return Node.from_xml(
-            element, is_root=True, validate_property_names=validate_property_names
-        )
+        return template._copy()
+
+    def _copy(self) -> "Node":
+        node = Node(self.name, list(self.interfaces), self.is_root)
+        node.nodes = [child._copy() for child in self.nodes]
+        return node
 
     def to_xml(self) -> ET.Element:
         """Convert this :class:`Node` into an :class:`xml.etree.ElementTree.Element`."""
