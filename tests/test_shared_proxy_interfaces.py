@@ -242,3 +242,34 @@ async def test_members_can_be_patched_per_instance() -> None:
         assert await second.call_echo("y") == "y"
     assert "call_echo" not in vars(first)
     assert await first.call_echo("z") == "z"
+
+
+async def test_shared_class_cache_is_bounded(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(proxy_object, "_SHARED_PROXY_CLASSES_MAX", 2)
+    monkeypatch.setattr(proxy_object, "_SHARED_PROXY_CLASSES", {})
+    # Three shapes that differ only in the Echo argument type.
+    xml = (
+        "<node>"
+        + "".join(
+            f'<interface name="org.example.S{i}"><method name="Echo">'
+            f'<arg type="{t}" direction="in"/><arg type="{t}" direction="out"/>'
+            "</method></interface>"
+            for i, t in enumerate("sui")
+        )
+        + "</node>"
+    )
+    bus = _Bus()
+    obj = ProxyObject("org.example", "/a", intr.Node.parse(xml), bus)
+    first = obj.get_interface("org.example.S0")
+    obj.get_interface("org.example.S1")
+    obj.get_interface("org.example.S2")
+    assert len(proxy_object._SHARED_PROXY_CLASSES) == 2
+
+    # The evicted class stays alive and working for the proxy already using it.
+    assert await first.call_echo("x") == "x"
+    again = ProxyObject("org.example", "/b", intr.Node.parse(xml), bus).get_interface(
+        "org.example.S0"
+    )
+    assert type(again) is not type(first)
+    assert await again.call_echo("y") == "y"
+    assert len(proxy_object._SHARED_PROXY_CLASSES) == 2

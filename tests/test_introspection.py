@@ -406,6 +406,34 @@ def test_introspection_parse_shares_identical_interfaces() -> None:
     assert len(third.interfaces) == 1
 
 
+def test_introspection_parse_caches_are_bounded(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The document and interface caches evict their oldest entry at the bound."""
+    monkeypatch.setattr(intr, "_SHARED_INTERFACES_MAX", 2)
+    monkeypatch.setattr(intr, "_SHARED_INTERFACES", {})
+    monkeypatch.setattr(intr, "_PARSED_NODES", {})
+
+    def doc(i: int) -> str:
+        return (
+            f'<node><interface name="org.example.I{i}">'
+            f'<method name="M{i}"/></interface></node>'
+        )
+
+    first = intr.Node.parse(doc(0))
+    intr.Node.parse(doc(1))
+    intr.Node.parse(doc(2))
+    assert len(intr._PARSED_NODES) == 2
+    assert len(intr._SHARED_INTERFACES) == 2
+
+    again = intr.Node.parse(doc(0))
+    assert again.interfaces[0] is not first.interfaces[0]
+    assert again.interfaces[0].name == "org.example.I0"
+    assert [m.name for m in again.interfaces[0].methods] == ["M0"]
+    assert len(intr._PARSED_NODES) == 2
+    assert len(intr._SHARED_INTERFACES) == 2
+
+
 def test_introspection_parse_sharing_respects_validation_flag() -> None:
     """Strict and sloppy parses of the same document are cached separately."""
     intr.Node.parse(sloppy_data, validate_property_names=False)
