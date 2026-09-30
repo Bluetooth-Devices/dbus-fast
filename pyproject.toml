@@ -156,6 +156,7 @@ ignore = [
     "PLR0915", # too many to fix -- should fix sooner
     "TRY401", # too many to fix -- should fix sooner
     "PLR0913", # too many to fix -- should fix sooner
+    "PLR0917", # api is public
     "PLR0912", # too many to fix -- should fix sooner
     "PERF203", # too many to fix -- should fix sooner
     "G201", # too many to fix -- should fix sooner
