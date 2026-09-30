@@ -1,4 +1,6 @@
 import os
+import sys
+import threading
 import xml.etree.ElementTree as ET
 
 import pytest
@@ -9,8 +11,11 @@ from dbus_fast import (
     InvalidMemberNameError,
     PropertyAccess,
     SignatureType,
+    proxy_object,
 )
 from dbus_fast import introspection as intr
+from dbus_fast._private.cache import bounded_put
+from dbus_fast.aio.proxy_object import ProxyInterface
 from dbus_fast.signature import get_signature_tree
 
 with open(f"{os.path.dirname(__file__)}/data/strict-introspection.xml") as f:
@@ -388,3 +393,170 @@ def test_introspection_ignores_unknown_node_children() -> None:
     node = intr.Node.parse("<node><foo/></node>")
     assert node.interfaces == []
     assert node.nodes == []
+
+
+def test_introspection_parse_shares_identical_interfaces() -> None:
+    """Identical interface XML parses to one shared Interface object."""
+    first = intr.Node.parse(strict_data)
+    second = intr.Node.parse(strict_data)
+    assert first is not second
+    assert first.nodes[0] is not second.nodes[0]
+    assert first.interfaces is not second.interfaces
+    assert first.interfaces[0] is second.interfaces[0]
+
+    first.nodes.clear()
+    first.interfaces.clear()
+    third = intr.Node.parse(strict_data)
+    assert len(third.nodes) == 2
+    assert len(third.interfaces) == 1
+
+
+def test_introspection_parse_shares_reformatted_interfaces() -> None:
+    """Interfaces that differ only in whitespace share one parsed Interface."""
+    compact = (
+        '<node><interface name="org.example.Same">'
+        '<method name="M"><arg type="s" direction="in"/></method>'
+        "</interface></node>"
+    )
+    pretty = (
+        "<node>\n"
+        '  <interface name="org.example.Same">\n'
+        '    <method name="M">\n'
+        '      <arg type="s" direction="in"/>\n'
+        "    </method>\n"
+        "  </interface>\n"
+        "</node>\n"
+    )
+    first = intr.Node.parse(compact)
+    second = intr.Node.parse(pretty)
+    assert first.interfaces[0] is second.interfaces[0]
+
+
+def test_introspection_parse_caches_are_bounded(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The document and interface caches evict their oldest entry at the bound."""
+    monkeypatch.setattr(intr, "_SHARED_INTERFACES_MAX", 2)
+    monkeypatch.setattr(intr, "_PARSED_NODES_MAX", 2)
+    monkeypatch.setattr(intr, "_SHARED_INTERFACES", {})
+    monkeypatch.setattr(intr, "_PARSED_NODES", {})
+
+    def doc(i: int) -> str:
+        return (
+            f'<node><interface name="org.example.I{i}">'
+            f'<method name="M{i}"/></interface></node>'
+        )
+
+    first = intr.Node.parse(doc(0))
+    intr.Node.parse(doc(1))
+    intr.Node.parse(doc(2))
+    assert len(intr._PARSED_NODES) == 2
+    assert len(intr._SHARED_INTERFACES) == 2
+
+    again = intr.Node.parse(doc(0))
+    assert again.interfaces[0] is not first.interfaces[0]
+    assert again.interfaces[0].name == "org.example.I0"
+    assert [m.name for m in again.interfaces[0].methods] == ["M0"]
+    assert len(intr._PARSED_NODES) == 2
+    assert len(intr._SHARED_INTERFACES) == 2
+
+
+def test_introspection_parse_sharing_respects_validation_flag() -> None:
+    """Strict and sloppy parses of the same document are cached separately."""
+    intr.Node.parse(sloppy_data, validate_property_names=False)
+    with pytest.raises(InvalidMemberNameError, match="invalid member name"):
+        intr.Node.parse(sloppy_data)
+
+
+def test_introspection_parse_skips_caching_large_documents(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Documents above the size limit are parsed but not kept; interfaces still share."""
+    monkeypatch.setattr(intr, "_SHARED_INTERFACES", {})
+    monkeypatch.setattr(intr, "_PARSED_NODES", {})
+    doc = (
+        '<node><interface name="org.example.Big"><method name="M"/></interface></node>'
+    )
+    monkeypatch.setattr(intr, "_MAX_CACHED_SIZE", len(doc) - 1)
+
+    first = intr.Node.parse(doc)
+    second = intr.Node.parse(doc)
+    assert intr._PARSED_NODES == {}
+    assert first.interfaces[0] is second.interfaces[0]
+    assert [m.name for m in second.interfaces[0].methods] == ["M"]
+
+
+def test_introspection_oversized_interface_is_not_cached(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Interfaces above the size limit are parsed but never enter the cache."""
+    monkeypatch.setattr(intr, "_SHARED_INTERFACES", {})
+    monkeypatch.setattr(intr, "_PARSED_NODES", {})
+    monkeypatch.setattr(intr, "_MAX_CACHED_SIZE", 10)
+    doc = (
+        '<node><interface name="org.example.Big"><method name="M"/></interface></node>'
+    )
+
+    first = intr.Node.parse(doc)
+    second = intr.Node.parse(doc)
+    assert intr._SHARED_INTERFACES == {}
+    assert first.interfaces[0] is not second.interfaces[0]
+    assert [m.name for m in second.interfaces[0].methods] == ["M"]
+
+
+class _AlwaysFull(dict):
+    def __len__(self) -> int:
+        return 1_000_000
+
+
+class _MutatedDuringIteration(_AlwaysFull):
+    def __iter__(self):
+        raise RuntimeError("dictionary changed size during iteration")
+
+
+@pytest.mark.parametrize("cache_type", [_AlwaysFull, _MutatedDuringIteration])
+def test_bounded_put_tolerates_losing_the_eviction_race(cache_type: type) -> None:
+    """Eviction that finds its victim gone or the dict mutated still inserts."""
+    cache = cache_type()
+    bounded_put(cache, "key", "value", 2)
+    assert dict.__getitem__(cache, "key") == "value"
+
+
+def test_caches_tolerate_concurrent_eviction(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Threads filling the bounded caches past their limit never raise."""
+    monkeypatch.setattr(intr, "_SHARED_INTERFACES_MAX", 4)
+    monkeypatch.setattr(intr, "_PARSED_NODES_MAX", 4)
+    monkeypatch.setattr(intr, "_SHARED_INTERFACES", {})
+    monkeypatch.setattr(intr, "_PARSED_NODES", {})
+    monkeypatch.setattr(proxy_object, "_SHARED_PROXY_CLASSES_MAX", 4)
+    monkeypatch.setattr(proxy_object, "_SHARED_PROXY_CLASSES", {})
+    interval = sys.getswitchinterval()
+    sys.setswitchinterval(1e-6)
+    threads, rounds = 8, 150
+    errors: list[BaseException] = []
+    start = threading.Barrier(threads)
+
+    def work(t: int) -> None:
+        start.wait()
+        try:
+            for i in range(rounds):
+                node = intr.Node.parse(
+                    f'<node><interface name="org.example.T{t}I{i}">'
+                    f'<method name="M{t}x{i}"/></interface></node>'
+                )
+                proxy_object._shared_proxy_class(ProxyInterface, node.interfaces[0])
+        except BaseException as err:
+            errors.append(err)
+
+    try:
+        workers = [threading.Thread(target=work, args=(t,)) for t in range(threads)]
+        for worker in workers:
+            worker.start()
+        for worker in workers:
+            worker.join()
+    finally:
+        sys.setswitchinterval(interval)
+    assert errors == []
+    assert len(intr._PARSED_NODES) <= 4 + threads
+    assert len(intr._SHARED_INTERFACES) <= 4 + threads
+    assert len(proxy_object._SHARED_PROXY_CLASSES) <= 4 + threads

@@ -350,6 +350,10 @@ class MessageBus(BaseMessageBus):
         Calls the standard ``org.freedesktop.DBus.Introspectable.Introspect``
         on the bus for the path.
 
+        Interfaces on the returned node may be shared with other nodes parsed
+        from identical introspection data, so they must be treated as
+        read-only.
+
         :param bus_name: The name to introspect.
         :type bus_name: str
         :param path: The path to introspect.

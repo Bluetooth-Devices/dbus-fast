@@ -8,9 +8,12 @@ import xml.etree.ElementTree as ET
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from functools import lru_cache
+from types import MethodType
+from typing import Any, ClassVar
 
 from . import introspection as intr
 from . import message_bus
+from ._private.cache import bounded_put
 from ._private.util import replace_idx_with_fds
 from .constants import ErrorType, MessageType
 from .errors import DBusError, InterfaceNotFoundError
@@ -54,6 +57,11 @@ class BaseProxyInterface:
     :ivar bus: The message bus this proxy interface is connected to.
     :vartype bus: :class:`BaseMessageBus <dbus_fast.message_bus.BaseMessageBus>`
     """
+
+    # Set by implementations that build their members with ``_make_method`` /
+    # ``_make_property``. Their members can then be defined once on a class
+    # shared by every proxy of the same interface, instead of per instance.
+    _member_factory_owner: ClassVar[type[BaseProxyInterface] | None] = None
 
     def __init__(
         self,
@@ -149,8 +157,44 @@ class BaseProxyInterface:
                 self._background_tasks.add(task)
                 task.add_done_callback(self._background_tasks.remove)
 
-    def _add_signal(self, intr_signal: intr.Signal, interface: intr.Interface) -> None:
-        def on_signal_fn(fn: Callable | Coroutine, *, unpack_variants: bool = False):
+    @classmethod
+    def _shares_members(cls) -> bool:
+        """Whether members can live on a shared per-interface class.
+
+        Only when the member hooks are the implementation's own: a subclass
+        that overrides ``_add_method``, ``_add_property`` or ``_add_signal``
+        gets them called per instance, as before.
+        """
+        owner = cls._member_factory_owner
+        return (
+            owner is not None
+            and cls._add_method is owner._add_method
+            and cls._add_property is owner._add_property
+            and cls._add_signal is BaseProxyInterface._add_signal
+        )
+
+    @staticmethod
+    def _make_method(intr_method: intr.Method) -> Callable[..., Any]:
+        raise NotImplementedError("this must be implemented in the inheriting class")
+
+    @staticmethod
+    def _make_property(
+        intr_property: intr.Property,
+    ) -> tuple[Callable[..., Any], Callable[..., Any]]:
+        raise NotImplementedError("this must be implemented in the inheriting class")
+
+    @staticmethod
+    def _make_signal(
+        intr_signal: intr.Signal,
+    ) -> tuple[Callable[..., None], Callable[..., None]]:
+        """Return the ``on_*`` and ``off_*`` functions for a signal, taking the proxy interface as first argument."""
+
+        def on_signal_fn(
+            self: BaseProxyInterface,
+            fn: Callable | Coroutine,
+            *,
+            unpack_variants: bool = False,
+        ) -> None:
             fn_signature = inspect.signature(fn)
             if (
                 len(
@@ -193,7 +237,10 @@ class BaseProxyInterface:
             )
 
         def off_signal_fn(
-            fn: Callable | Coroutine, *, unpack_variants: bool = False
+            self: BaseProxyInterface,
+            fn: Callable | Coroutine,
+            *,
+            unpack_variants: bool = False,
         ) -> None:
             try:
                 i = self._signal_handlers[intr_signal.name].index(
@@ -209,9 +256,68 @@ class BaseProxyInterface:
                 self.bus._remove_match_rule(self._signal_match_rule)
                 self.bus.remove_message_handler(self._message_handler)
 
+        return on_signal_fn, off_signal_fn
+
+    def _add_signal(self, intr_signal: intr.Signal, interface: intr.Interface) -> None:
+        on_signal_fn, off_signal_fn = self._make_signal(intr_signal)
         snake_case = BaseProxyInterface._to_snake_case(intr_signal.name)
-        setattr(interface, f"on_{snake_case}", on_signal_fn)
-        setattr(interface, f"off_{snake_case}", off_signal_fn)
+        setattr(interface, f"on_{snake_case}", MethodType(on_signal_fn, self))
+        setattr(interface, f"off_{snake_case}", MethodType(off_signal_fn, self))
+
+
+# Classes shared by proxy interfaces with the same member shape, keyed by the
+# proxy interface implementation and every field the generated members read.
+# Bounded: an evicted class stays alive for the proxies already using it.
+_SHARED_PROXY_CLASSES: dict[tuple, type[BaseProxyInterface]] = {}
+_SHARED_PROXY_CLASSES_MAX = 256
+
+
+def _member_shape(intr_interface: intr.Interface) -> tuple:
+    return (
+        tuple(
+            (m.name, m.in_signature, m.out_signature, len(m.out_args))
+            for m in intr_interface.methods
+        ),
+        tuple((p.name, p.signature) for p in intr_interface.properties),
+        tuple((s.name, len(s.args)) for s in intr_interface.signals),
+    )
+
+
+def _shared_proxy_class(
+    proxy_cls: type[BaseProxyInterface], intr_interface: intr.Interface
+) -> type[BaseProxyInterface]:
+    """Return a subclass of ``proxy_cls`` with the interface's members defined on the class."""
+    key = (proxy_cls, _member_shape(intr_interface))
+    cls = _SHARED_PROXY_CLASSES.get(key)
+    if cls is not None:
+        return cls
+
+    to_snake_case = BaseProxyInterface._to_snake_case
+    namespace: dict[str, Any] = {
+        "__module__": proxy_cls.__module__,
+        "__qualname__": proxy_cls.__qualname__,
+        "__doc__": proxy_cls.__doc__,
+    }
+    # Same order as the per-instance hooks, so a later member with the same
+    # snake-case name wins in both paths.
+    for intr_method in intr_interface.methods:
+        namespace[f"call_{to_snake_case(intr_method.name)}"] = proxy_cls._make_method(
+            intr_method
+        )
+    for intr_property in intr_interface.properties:
+        getter, setter = proxy_cls._make_property(intr_property)
+        snake_case = to_snake_case(intr_property.name)
+        namespace[f"get_{snake_case}"] = getter
+        namespace[f"set_{snake_case}"] = setter
+    for intr_signal in intr_interface.signals:
+        on_signal_fn, off_signal_fn = proxy_cls._make_signal(intr_signal)
+        snake_case = to_snake_case(intr_signal.name)
+        namespace[f"on_{snake_case}"] = on_signal_fn
+        namespace[f"off_{snake_case}"] = off_signal_fn
+
+    cls = type(proxy_cls.__name__, (proxy_cls,), namespace)
+    bounded_put(_SHARED_PROXY_CLASSES, key, cls, _SHARED_PROXY_CLASSES_MAX)
+    return cls
 
 
 class BaseProxyObject:
@@ -308,16 +414,20 @@ class BaseProxyObject:
                 f"interface not found on this object: {name}"
             ) from ex
 
-        interface = self.ProxyInterface(
-            self.bus_name, self.path, intr_interface, self.bus
-        )
-
-        for intr_method in intr_interface.methods:
-            interface._add_method(intr_method)
-        for intr_property in intr_interface.properties:
-            interface._add_property(intr_property)
-        for intr_signal in intr_interface.signals:
-            interface._add_signal(intr_signal, interface)
+        if self.ProxyInterface._shares_members():
+            interface = _shared_proxy_class(self.ProxyInterface, intr_interface)(
+                self.bus_name, self.path, intr_interface, self.bus
+            )
+        else:
+            interface = self.ProxyInterface(
+                self.bus_name, self.path, intr_interface, self.bus
+            )
+            for intr_method in intr_interface.methods:
+                interface._add_method(intr_method)
+            for intr_property in intr_interface.properties:
+                interface._add_property(intr_property)
+            for intr_signal in intr_interface.signals:
+                interface._add_signal(intr_signal, interface)
 
         def get_owner_notify(msg: Message, err: Exception | None) -> None:
             if err:

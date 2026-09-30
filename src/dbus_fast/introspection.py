@@ -1,6 +1,8 @@
+import hashlib
 import xml.etree.ElementTree as ET
 import xml.parsers.expat as _expat
 
+from ._private.cache import bounded_put
 from .constants import ArgDirection, PropertyAccess
 from .errors import InvalidIntrospectionError
 from .signature import SignatureType, get_signature_tree
@@ -491,6 +493,68 @@ class Interface:
         return element
 
 
+# Services such as NetworkManager and UDisks2 export dozens of objects with
+# identical interface XML (every access point, connection, block device),
+# so parsed interfaces are shared between nodes instead of rebuilt per object.
+# Node.parse also skips re-parsing documents it has already seen.
+_SHARED_INTERFACES: dict[tuple[bytes, bool], Interface] = {}
+_PARSED_NODES: dict[tuple[bytes, bool], "Node"] = {}
+_SHARED_INTERFACES_MAX = 256
+_PARSED_NODES_MAX = 256
+# Real replies are a few KiB (NetworkManager, UDisks2) to a few tens of KiB
+# (systemd's manager object); larger documents and interfaces are parsed but
+# not kept.
+_MAX_CACHED_SIZE = 64 * 1024
+
+
+# The key covers exactly what Interface.from_xml reads: tags and attributes,
+# never text. A from_xml change that starts reading more must extend this walk
+# too. The separators cannot appear in XML 1.0 content, so the encoding is
+# unambiguous.
+def _element_structure(element: ET.Element, parts: list[str]) -> None:
+    parts.append("\x00")
+    parts.append(element.tag)
+    for name, value in element.attrib.items():
+        parts.append("\x01")
+        parts.append(name)
+        parts.append("\x02")
+        parts.append(value)
+    for child in element:
+        _element_structure(child, parts)
+    parts.append("\x03")
+
+
+def _interface_from_xml_shared(
+    element: ET.Element, validate_property_names: bool
+) -> Interface:
+    parts: list[str] = []
+    _element_structure(element, parts)
+    structure = "".join(parts)
+    if len(structure) > _MAX_CACHED_SIZE:
+        return Interface.from_xml(
+            element, validate_property_names=validate_property_names
+        )
+    key = (hashlib.sha256(structure.encode()).digest(), validate_property_names)
+    interface = _SHARED_INTERFACES.get(key)
+    if interface is None:
+        interface = Interface.from_xml(
+            element, validate_property_names=validate_property_names
+        )
+        bounded_put(_SHARED_INTERFACES, key, interface, _SHARED_INTERFACES_MAX)
+    return interface
+
+
+def _parse_uncached(data: str, validate_property_names: bool) -> "Node":
+    element = _parse_introspection_xml(data)
+    if element.tag != "node":
+        raise InvalidIntrospectionError(
+            'introspection data must have a "node" for the root element'
+        )
+    return Node.from_xml(
+        element, is_root=True, validate_property_names=validate_property_names
+    )
+
+
 class Node:
     """A class that represents a node in an object path in introspection data.
 
@@ -573,9 +637,7 @@ class Node:
         for child in element:
             if child.tag == "interface":
                 node.interfaces.append(
-                    Interface.from_xml(
-                        child, validate_property_names=validate_property_names
-                    )
+                    _interface_from_xml_shared(child, validate_property_names)
                 )
             elif child.tag == "node":
                 node.nodes.append(
@@ -595,6 +657,9 @@ class Node:
 
         The string must be valid DBus introspection XML.
 
+        Interfaces with identical XML are shared between parsed nodes, so the
+        returned :class:`Interface` objects should be treated as read-only.
+
         :param data: The XMl string.
         :type data: str
         :param validate_property_names: Whether to validate property names or not
@@ -603,15 +668,19 @@ class Node:
         :raises:
             - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the string is not valid introspection data.
         """
-        element = _parse_introspection_xml(data)
-        if element.tag != "node":
-            raise InvalidIntrospectionError(
-                'introspection data must have a "node" for the root element'
-            )
+        if len(data) > _MAX_CACHED_SIZE:
+            return _parse_uncached(data, validate_property_names)
+        key = (hashlib.sha256(data.encode()).digest(), validate_property_names)
+        template = _PARSED_NODES.get(key)
+        if template is None:
+            template = _parse_uncached(data, validate_property_names)
+            bounded_put(_PARSED_NODES, key, template, _PARSED_NODES_MAX)
+        return template._copy()
 
-        return Node.from_xml(
-            element, is_root=True, validate_property_names=validate_property_names
-        )
+    def _copy(self) -> "Node":
+        node = Node(self.name, list(self.interfaces), self.is_root)
+        node.nodes = [child._copy() for child in self.nodes]
+        return node
 
     def to_xml(self) -> ET.Element:
         """Convert this :class:`Node` into an :class:`xml.etree.ElementTree.Element`."""
