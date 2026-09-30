@@ -516,10 +516,25 @@ def _bounded_put(cache: dict, key: object, value: object, maximum: int) -> None:
     cache[key] = value
 
 
+# Parsing reads only tags and attributes, so the digest covers just those:
+# cheaper than serialising the element, and interfaces that differ only in
+# formatting or text share an entry. The framing bytes cannot appear in XML
+# content, so the encoding is unambiguous.
+def _hash_element_structure(element: ET.Element, h: "hashlib._Hash") -> None:
+    h.update(b"\x00" + element.tag.encode())
+    for name, value in element.attrib.items():
+        h.update(b"\x01" + name.encode() + b"\x02" + value.encode())
+    for child in element:
+        _hash_element_structure(child, h)
+    h.update(b"\x03")
+
+
 def _interface_from_xml_shared(
     element: ET.Element, validate_property_names: bool
 ) -> Interface:
-    key = (hashlib.sha256(ET.tostring(element)).digest(), validate_property_names)
+    h = hashlib.sha256()
+    _hash_element_structure(element, h)
+    key = (h.digest(), validate_property_names)
     interface = _SHARED_INTERFACES.get(key)
     if interface is None:
         interface = Interface.from_xml(
