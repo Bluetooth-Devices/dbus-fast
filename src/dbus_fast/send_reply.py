@@ -44,7 +44,7 @@ class SendReply:
                 # the caller — it discloses install paths, line numbers,
                 # locals and version fingerprints to any peer that can
                 # invoke a method on this service.
-                _LOGGER.exception(
+                _LOGGER.error(
                     "Service interface raised an exception",
                     exc_info=(exc_type, exc_value, tb),
                 )
