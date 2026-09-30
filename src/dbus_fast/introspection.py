@@ -500,6 +500,7 @@ class Interface:
 _SHARED_INTERFACES: dict[tuple[bytes, bool], Interface] = {}
 _PARSED_NODES: dict[tuple[bytes, bool], "Node"] = {}
 _SHARED_INTERFACES_MAX = 256
+_PARSED_NODES_MAX = 256
 # Real replies are a few KiB (NetworkManager, UDisks2) to a few tens of KiB
 # (systemd's manager object); larger documents are parsed but not kept.
 _PARSED_NODES_MAX_DOCUMENT = 64 * 1024
@@ -507,23 +508,27 @@ _PARSED_NODES_MAX_DOCUMENT = 64 * 1024
 
 # Parsing reads only tags and attributes, so the digest covers just those:
 # cheaper than serialising the element, and interfaces that differ only in
-# formatting or text share an entry. The framing bytes cannot appear in XML
+# formatting or text share an entry. The separators cannot appear in XML 1.0
 # content, so the encoding is unambiguous.
-def _hash_element_structure(element: ET.Element, h: "hashlib._Hash") -> None:
-    h.update(b"\x00" + element.tag.encode())
+def _element_structure(element: ET.Element, parts: list[str]) -> None:
+    parts.append("\x00")
+    parts.append(element.tag)
     for name, value in element.attrib.items():
-        h.update(b"\x01" + name.encode() + b"\x02" + value.encode())
+        parts.append("\x01")
+        parts.append(name)
+        parts.append("\x02")
+        parts.append(value)
     for child in element:
-        _hash_element_structure(child, h)
-    h.update(b"\x03")
+        _element_structure(child, parts)
+    parts.append("\x03")
 
 
 def _interface_from_xml_shared(
     element: ET.Element, validate_property_names: bool
 ) -> Interface:
-    h = hashlib.sha256()
-    _hash_element_structure(element, h)
-    key = (h.digest(), validate_property_names)
+    parts: list[str] = []
+    _element_structure(element, parts)
+    key = (hashlib.sha256("".join(parts).encode()).digest(), validate_property_names)
     interface = _SHARED_INTERFACES.get(key)
     if interface is None:
         interface = Interface.from_xml(
@@ -646,20 +651,24 @@ class Node:
         :raises:
             - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the string is not valid introspection data.
         """
-        key = (hashlib.sha256(data.encode()).digest(), validate_property_names)
-        template = _PARSED_NODES.get(key)
-        if template is None:
-            element = _parse_introspection_xml(data)
-            if element.tag != "node":
-                raise InvalidIntrospectionError(
-                    'introspection data must have a "node" for the root element'
-                )
-            template = Node.from_xml(
-                element, is_root=True, validate_property_names=validate_property_names
-            )
-            if len(data) <= _PARSED_NODES_MAX_DOCUMENT:
-                bounded_put(_PARSED_NODES, key, template, _SHARED_INTERFACES_MAX)
+        cacheable = len(data) <= _PARSED_NODES_MAX_DOCUMENT
+        if cacheable:
+            key = (hashlib.sha256(data.encode()).digest(), validate_property_names)
+            template = _PARSED_NODES.get(key)
+            if template is not None:
+                return template._copy()
 
+        element = _parse_introspection_xml(data)
+        if element.tag != "node":
+            raise InvalidIntrospectionError(
+                'introspection data must have a "node" for the root element'
+            )
+        template = Node.from_xml(
+            element, is_root=True, validate_property_names=validate_property_names
+        )
+        if not cacheable:
+            return template
+        bounded_put(_PARSED_NODES, key, template, _PARSED_NODES_MAX)
         return template._copy()
 
     def _copy(self) -> "Node":

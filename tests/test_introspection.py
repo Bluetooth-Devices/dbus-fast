@@ -437,6 +437,7 @@ def test_introspection_parse_caches_are_bounded(
 ) -> None:
     """The document and interface caches evict their oldest entry at the bound."""
     monkeypatch.setattr(intr, "_SHARED_INTERFACES_MAX", 2)
+    monkeypatch.setattr(intr, "_PARSED_NODES_MAX", 2)
     monkeypatch.setattr(intr, "_SHARED_INTERFACES", {})
     monkeypatch.setattr(intr, "_PARSED_NODES", {})
 
@@ -506,6 +507,7 @@ def test_bounded_put_tolerates_losing_the_eviction_race(cache_type: type) -> Non
 def test_caches_tolerate_concurrent_eviction(monkeypatch: pytest.MonkeyPatch) -> None:
     """Threads filling the bounded caches past their limit never raise."""
     monkeypatch.setattr(intr, "_SHARED_INTERFACES_MAX", 4)
+    monkeypatch.setattr(intr, "_PARSED_NODES_MAX", 4)
     monkeypatch.setattr(intr, "_SHARED_INTERFACES", {})
     monkeypatch.setattr(intr, "_PARSED_NODES", {})
     monkeypatch.setattr(proxy_object, "_SHARED_PROXY_CLASSES_MAX", 4)
