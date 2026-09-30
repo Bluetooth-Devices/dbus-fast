@@ -13,6 +13,7 @@ from typing import Any, ClassVar
 
 from . import introspection as intr
 from . import message_bus
+from ._private.cache import bounded_put
 from ._private.util import replace_idx_with_fds
 from .constants import ErrorType, MessageType
 from .errors import DBusError, InterfaceNotFoundError
@@ -315,7 +316,7 @@ def _shared_proxy_class(
         namespace[f"off_{snake_case}"] = off_signal_fn
 
     cls = type(proxy_cls.__name__, (proxy_cls,), namespace)
-    intr._bounded_put(_SHARED_PROXY_CLASSES, key, cls, _SHARED_PROXY_CLASSES_MAX)
+    bounded_put(_SHARED_PROXY_CLASSES, key, cls, _SHARED_PROXY_CLASSES_MAX)
     return cls
 
 

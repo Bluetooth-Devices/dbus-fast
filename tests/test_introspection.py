@@ -14,6 +14,7 @@ from dbus_fast import (
     proxy_object,
 )
 from dbus_fast import introspection as intr
+from dbus_fast._private.cache import bounded_put
 from dbus_fast.aio.proxy_object import ProxyInterface
 from dbus_fast.signature import get_signature_tree
 
@@ -498,7 +499,7 @@ class _MutatedDuringIteration(_AlwaysFull):
 def test_bounded_put_tolerates_losing_the_eviction_race(cache_type: type) -> None:
     """Eviction that finds its victim gone or the dict mutated still inserts."""
     cache = cache_type()
-    intr._bounded_put(cache, "key", "value", 2)
+    bounded_put(cache, "key", "value", 2)
     assert dict.__getitem__(cache, "key") == "value"
 
 

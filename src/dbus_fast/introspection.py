@@ -2,6 +2,7 @@ import hashlib
 import xml.etree.ElementTree as ET
 import xml.parsers.expat as _expat
 
+from ._private.cache import bounded_put
 from .constants import ArgDirection, PropertyAccess
 from .errors import InvalidIntrospectionError
 from .signature import SignatureType, get_signature_tree
@@ -504,18 +505,6 @@ _SHARED_INTERFACES_MAX = 256
 _PARSED_NODES_MAX_DOCUMENT = 64 * 1024
 
 
-def _bounded_put(cache: dict, key: object, value: object, maximum: int) -> None:
-    """Insert into a FIFO cache bounded at ``maximum``, evicting the oldest entry."""
-    # Other threads may evict or insert concurrently: a lost race must not
-    # raise, and evicting until below the bound keeps the size from drifting.
-    while len(cache) >= maximum:
-        try:
-            cache.pop(next(iter(cache)), None)
-        except (RuntimeError, StopIteration):
-            break
-    cache[key] = value
-
-
 # Parsing reads only tags and attributes, so the digest covers just those:
 # cheaper than serialising the element, and interfaces that differ only in
 # formatting or text share an entry. The framing bytes cannot appear in XML
@@ -540,7 +529,7 @@ def _interface_from_xml_shared(
         interface = Interface.from_xml(
             element, validate_property_names=validate_property_names
         )
-        _bounded_put(_SHARED_INTERFACES, key, interface, _SHARED_INTERFACES_MAX)
+        bounded_put(_SHARED_INTERFACES, key, interface, _SHARED_INTERFACES_MAX)
     return interface
 
 
@@ -669,7 +658,7 @@ class Node:
                 element, is_root=True, validate_property_names=validate_property_names
             )
             if len(data) <= _PARSED_NODES_MAX_DOCUMENT:
-                _bounded_put(_PARSED_NODES, key, template, _SHARED_INTERFACES_MAX)
+                bounded_put(_PARSED_NODES, key, template, _SHARED_INTERFACES_MAX)
 
         return template._copy()
 
