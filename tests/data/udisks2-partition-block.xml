@@ -1,0 +1,181 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+    "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="org.freedesktop.DBus.Properties">
+    <method name="Get">
+      <arg type="s" name="interface_name" direction="in" />
+      <arg type="s" name="property_name" direction="in" />
+      <arg type="v" name="value" direction="out" />
+    </method>
+    <method name="GetAll">
+      <arg type="s" name="interface_name" direction="in" />
+      <arg type="a{sv}" name="properties" direction="out" />
+    </method>
+    <method name="Set">
+      <arg type="s" name="interface_name" direction="in" />
+      <arg type="s" name="property_name" direction="in" />
+      <arg type="v" name="value" direction="in" />
+    </method>
+    <signal name="PropertiesChanged">
+      <arg type="s" name="interface_name" />
+      <arg type="a{sv}" name="changed_properties" />
+      <arg type="as" name="invalidated_properties" />
+    </signal>
+  </interface>
+  <interface name="org.freedesktop.DBus.Introspectable">
+    <method name="Introspect">
+      <arg type="s" name="xml_data" direction="out" />
+    </method>
+  </interface>
+  <interface name="org.freedesktop.DBus.Peer">
+    <method name="Ping" />
+    <method name="GetMachineId">
+      <arg type="s" name="machine_uuid" direction="out" />
+    </method>
+  </interface>
+  <interface name="org.freedesktop.UDisks2.Block">
+    <property name="Device" type="ay" access="read" />
+    <property name="PreferredDevice" type="ay" access="read" />
+    <property name="Symlinks" type="aay" access="read" />
+    <property name="DeviceNumber" type="t" access="read" />
+    <property name="Id" type="s" access="read" />
+    <property name="Size" type="t" access="read" />
+    <property name="ReadOnly" type="b" access="read" />
+    <property name="Drive" type="o" access="read" />
+    <property name="MDRaid" type="o" access="read" />
+    <property name="MDRaidMember" type="o" access="read" />
+    <property name="IdUsage" type="s" access="read" />
+    <property name="IdType" type="s" access="read" />
+    <property name="IdVersion" type="s" access="read" />
+    <property name="IdLabel" type="s" access="read" />
+    <property name="IdUUID" type="s" access="read" />
+    <property name="Configuration" type="a(sa{sv})" access="read" />
+    <property name="CryptoBackingDevice" type="o" access="read" />
+    <property name="HintPartitionable" type="b" access="read" />
+    <property name="HintSystem" type="b" access="read" />
+    <property name="HintIgnore" type="b" access="read" />
+    <property name="HintAuto" type="b" access="read" />
+    <property name="HintName" type="s" access="read" />
+    <property name="HintIconName" type="s" access="read" />
+    <property name="HintSymbolicIconName" type="s" access="read" />
+    <property name="UserspaceMountOptions" type="as" access="read" />
+    <method name="AddConfigurationItem">
+      <arg name="item" direction="in" type="(sa{sv})" />
+      <arg name="options" direction="in" type="a{sv}" />
+    </method>
+    <method name="RemoveConfigurationItem">
+      <arg name="item" direction="in" type="(sa{sv})" />
+      <arg name="options" direction="in" type="a{sv}" />
+    </method>
+    <method name="UpdateConfigurationItem">
+      <arg name="old_item" direction="in" type="(sa{sv})" />
+      <arg name="new_item" direction="in" type="(sa{sv})" />
+      <arg name="options" direction="in" type="a{sv}" />
+    </method>
+    <method name="GetSecretConfiguration">
+      <arg name="options" direction="in" type="a{sv}" />
+      <arg name="configuration" direction="out" type="a(sa{sv})" />
+    </method>
+    <method name="Format">
+      <arg name="type" direction="in" type="s" />
+      <arg name="options" direction="in" type="a{sv}" />
+    </method>
+    <method name="OpenForBackup">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="1" />
+      <arg name="options" direction="in" type="a{sv}" />
+      <arg name="fd" direction="out" type="h" />
+    </method>
+    <method name="OpenForRestore">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="1" />
+      <arg name="options" direction="in" type="a{sv}" />
+      <arg name="fd" direction="out" type="h" />
+    </method>
+    <method name="OpenForBenchmark">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="1" />
+      <arg name="options" direction="in" type="a{sv}" />
+      <arg name="fd" direction="out" type="h" />
+    </method>
+    <method name="OpenDevice">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="1" />
+      <arg name="mode" direction="in" type="s" />
+      <arg name="options" direction="in" type="a{sv}" />
+      <arg name="fd" direction="out" type="h" />
+    </method>
+    <method name="Rescan">
+      <arg name="options" direction="in" type="a{sv}" />
+    </method>
+    <method name="RestoreEncryptedHeader">
+      <arg name="backup_file" direction="in" type="s" />
+      <arg name="options" direction="in" type="a{sv}" />
+    </method>
+  </interface>
+  <interface name="org.freedesktop.UDisks2.Partition">
+    <property name="Number" type="u" access="read" />
+    <property name="Type" type="s" access="read" />
+    <property name="Flags" type="t" access="read" />
+    <property name="Offset" type="t" access="read" />
+    <property name="Size" type="t" access="read" />
+    <property name="Name" type="s" access="read" />
+    <property name="UUID" type="s" access="read" />
+    <property name="Table" type="o" access="read" />
+    <property name="IsContainer" type="b" access="read" />
+    <property name="IsContained" type="b" access="read" />
+    <method name="SetType">
+      <arg name="type" direction="in" type="s" />
+      <arg name="options" direction="in" type="a{sv}" />
+    </method>
+    <method name="SetName">
+      <arg name="name" direction="in" type="s" />
+      <arg name="options" direction="in" type="a{sv}" />
+    </method>
+    <method name="SetUUID">
+      <arg name="uuid" direction="in" type="s" />
+      <arg name="options" direction="in" type="a{sv}" />
+    </method>
+    <method name="SetFlags">
+      <arg name="flags" direction="in" type="t" />
+      <arg name="options" direction="in" type="a{sv}" />
+    </method>
+    <method name="Resize">
+      <arg name="size" direction="in" type="t" />
+      <arg name="options" direction="in" type="a{sv}" />
+    </method>
+    <method name="Delete">
+      <arg name="options" direction="in" type="a{sv}" />
+    </method>
+  </interface>
+  <interface name="org.freedesktop.UDisks2.Filesystem">
+    <method name="SetLabel">
+      <arg name="label" direction="in" type="s" />
+      <arg name="options" direction="in" type="a{sv}" />
+    </method>
+    <method name="SetUUID">
+      <arg name="uuid" direction="in" type="s" />
+      <arg name="options" direction="in" type="a{sv}" />
+    </method>
+    <property name="MountPoints" type="aay" access="read" />
+    <method name="Mount">
+      <arg name="options" direction="in" type="a{sv}" />
+      <arg name="mount_path" direction="out" type="s" />
+    </method>
+    <method name="Unmount">
+      <arg name="options" direction="in" type="a{sv}" />
+    </method>
+    <property name="Size" type="t" access="read" />
+    <method name="Resize">
+      <arg name="size" direction="in" type="t" />
+      <arg name="options" direction="in" type="a{sv}" />
+    </method>
+    <method name="Check">
+      <arg name="options" direction="in" type="a{sv}" />
+      <arg name="consistent" direction="out" type="b" />
+    </method>
+    <method name="Repair">
+      <arg name="options" direction="in" type="a{sv}" />
+      <arg name="repaired" direction="out" type="b" />
+    </method>
+    <method name="TakeOwnership">
+      <arg name="options" direction="in" type="a{sv}" />
+    </method>
+  </interface>
+</node>
