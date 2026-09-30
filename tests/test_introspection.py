@@ -406,6 +406,27 @@ def test_introspection_parse_shares_identical_interfaces() -> None:
     assert len(third.interfaces) == 1
 
 
+def test_introspection_parse_shares_reformatted_interfaces() -> None:
+    """Interfaces that differ only in whitespace share one parsed Interface."""
+    compact = (
+        '<node><interface name="org.example.Same">'
+        '<method name="M"><arg type="s" direction="in"/></method>'
+        "</interface></node>"
+    )
+    pretty = (
+        "<node>\n"
+        '  <interface name="org.example.Same">\n'
+        '    <method name="M">\n'
+        '      <arg type="s" direction="in"/>\n'
+        "    </method>\n"
+        "  </interface>\n"
+        "</node>\n"
+    )
+    first = intr.Node.parse(compact)
+    second = intr.Node.parse(pretty)
+    assert first.interfaces[0] is second.interfaces[0]
+
+
 def test_introspection_parse_caches_are_bounded(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
