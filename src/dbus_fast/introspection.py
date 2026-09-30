@@ -494,7 +494,7 @@ class Interface:
 
 
 # Services such as NetworkManager and UDisks2 export dozens of objects with
-# byte-identical interface XML (every access point, connection, block device),
+# identical interface XML (every access point, connection, block device),
 # so parsed interfaces are shared between nodes instead of rebuilt per object.
 # Node.parse also skips re-parsing documents it has already seen.
 _SHARED_INTERFACES: dict[tuple[bytes, bool], Interface] = {}
@@ -502,14 +502,15 @@ _PARSED_NODES: dict[tuple[bytes, bool], "Node"] = {}
 _SHARED_INTERFACES_MAX = 256
 _PARSED_NODES_MAX = 256
 # Real replies are a few KiB (NetworkManager, UDisks2) to a few tens of KiB
-# (systemd's manager object); larger documents are parsed but not kept.
-_PARSED_NODES_MAX_DOCUMENT = 64 * 1024
+# (systemd's manager object); larger documents and interfaces are parsed but
+# not kept.
+_MAX_CACHED_SIZE = 64 * 1024
 
 
-# Parsing reads only tags and attributes, so the digest covers just those:
-# cheaper than serialising the element, and interfaces that differ only in
-# formatting or text share an entry. The separators cannot appear in XML 1.0
-# content, so the encoding is unambiguous.
+# The key covers exactly what Interface.from_xml reads: tags and attributes,
+# never text. A from_xml change that starts reading more must extend this walk
+# too. The separators cannot appear in XML 1.0 content, so the encoding is
+# unambiguous.
 def _element_structure(element: ET.Element, parts: list[str]) -> None:
     parts.append("\x00")
     parts.append(element.tag)
@@ -528,7 +529,12 @@ def _interface_from_xml_shared(
 ) -> Interface:
     parts: list[str] = []
     _element_structure(element, parts)
-    key = (hashlib.sha256("".join(parts).encode()).digest(), validate_property_names)
+    structure = "".join(parts)
+    if len(structure) > _MAX_CACHED_SIZE:
+        return Interface.from_xml(
+            element, validate_property_names=validate_property_names
+        )
+    key = (hashlib.sha256(structure.encode()).digest(), validate_property_names)
     interface = _SHARED_INTERFACES.get(key)
     if interface is None:
         interface = Interface.from_xml(
@@ -536,6 +542,17 @@ def _interface_from_xml_shared(
         )
         bounded_put(_SHARED_INTERFACES, key, interface, _SHARED_INTERFACES_MAX)
     return interface
+
+
+def _parse_uncached(data: str, validate_property_names: bool) -> "Node":
+    element = _parse_introspection_xml(data)
+    if element.tag != "node":
+        raise InvalidIntrospectionError(
+            'introspection data must have a "node" for the root element'
+        )
+    return Node.from_xml(
+        element, is_root=True, validate_property_names=validate_property_names
+    )
 
 
 class Node:
@@ -651,24 +668,13 @@ class Node:
         :raises:
             - :class:`InvalidIntrospectionError <dbus_fast.InvalidIntrospectionError>` - If the string is not valid introspection data.
         """
-        cacheable = len(data) <= _PARSED_NODES_MAX_DOCUMENT
-        if cacheable:
-            key = (hashlib.sha256(data.encode()).digest(), validate_property_names)
-            template = _PARSED_NODES.get(key)
-            if template is not None:
-                return template._copy()
-
-        element = _parse_introspection_xml(data)
-        if element.tag != "node":
-            raise InvalidIntrospectionError(
-                'introspection data must have a "node" for the root element'
-            )
-        template = Node.from_xml(
-            element, is_root=True, validate_property_names=validate_property_names
-        )
-        if not cacheable:
-            return template
-        bounded_put(_PARSED_NODES, key, template, _PARSED_NODES_MAX)
+        if len(data) > _MAX_CACHED_SIZE:
+            return _parse_uncached(data, validate_property_names)
+        key = (hashlib.sha256(data.encode()).digest(), validate_property_names)
+        template = _PARSED_NODES.get(key)
+        if template is None:
+            template = _parse_uncached(data, validate_property_names)
+            bounded_put(_PARSED_NODES, key, template, _PARSED_NODES_MAX)
         return template._copy()
 
     def _copy(self) -> "Node":

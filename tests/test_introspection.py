@@ -477,12 +477,30 @@ def test_introspection_parse_skips_caching_large_documents(
     doc = (
         '<node><interface name="org.example.Big"><method name="M"/></interface></node>'
     )
-    monkeypatch.setattr(intr, "_PARSED_NODES_MAX_DOCUMENT", len(doc) - 1)
+    monkeypatch.setattr(intr, "_MAX_CACHED_SIZE", len(doc) - 1)
 
     first = intr.Node.parse(doc)
     second = intr.Node.parse(doc)
     assert intr._PARSED_NODES == {}
     assert first.interfaces[0] is second.interfaces[0]
+    assert [m.name for m in second.interfaces[0].methods] == ["M"]
+
+
+def test_introspection_oversized_interface_is_not_cached(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Interfaces above the size limit are parsed but never enter the cache."""
+    monkeypatch.setattr(intr, "_SHARED_INTERFACES", {})
+    monkeypatch.setattr(intr, "_PARSED_NODES", {})
+    monkeypatch.setattr(intr, "_MAX_CACHED_SIZE", 10)
+    doc = (
+        '<node><interface name="org.example.Big"><method name="M"/></interface></node>'
+    )
+
+    first = intr.Node.parse(doc)
+    second = intr.Node.parse(doc)
+    assert intr._SHARED_INTERFACES == {}
+    assert first.interfaces[0] is not second.interfaces[0]
     assert [m.name for m in second.interfaces[0].methods] == ["M"]
 
 
