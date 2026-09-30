@@ -164,11 +164,13 @@ async def test_different_shapes_get_different_classes() -> None:
     assert inspect.signature(iface.call_echo) == inspect.signature(other.call_echo)
 
 
-async def test_equal_shapes_share_a_class_without_shared_introspection() -> None:
+async def test_equal_shapes_share_a_class_without_shared_introspection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     bus = _Bus()
     node_a = intr.Node.parse(_XML)
-    intr._SHARED_INTERFACES.clear()
-    intr._PARSED_NODES.clear()
+    monkeypatch.setattr(intr, "_SHARED_INTERFACES", {})
+    monkeypatch.setattr(intr, "_PARSED_NODES", {})
     node_b = intr.Node.parse(_XML)
     assert node_a.interfaces[0] is not node_b.interfaces[0]
 

@@ -315,9 +315,7 @@ def _shared_proxy_class(
         namespace[f"off_{snake_case}"] = off_signal_fn
 
     cls = type(proxy_cls.__name__, (proxy_cls,), namespace)
-    if len(_SHARED_PROXY_CLASSES) >= _SHARED_PROXY_CLASSES_MAX:
-        del _SHARED_PROXY_CLASSES[next(iter(_SHARED_PROXY_CLASSES))]
-    _SHARED_PROXY_CLASSES[key] = cls
+    intr._bounded_put(_SHARED_PROXY_CLASSES, key, cls, _SHARED_PROXY_CLASSES_MAX)
     return cls
 
 

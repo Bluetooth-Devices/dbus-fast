@@ -499,6 +499,21 @@ class Interface:
 _SHARED_INTERFACES: dict[tuple[bytes, bool], Interface] = {}
 _PARSED_NODES: dict[tuple[bytes, bool], "Node"] = {}
 _SHARED_INTERFACES_MAX = 256
+# Real replies are a few KiB (NetworkManager, UDisks2) to a few tens of KiB
+# (systemd's manager object); larger documents are parsed but not kept.
+_PARSED_NODES_MAX_DOCUMENT = 64 * 1024
+
+
+def _bounded_put(cache: dict, key: object, value: object, maximum: int) -> None:
+    """Insert into a FIFO cache bounded at ``maximum``, evicting the oldest entry."""
+    # Other threads may evict or insert concurrently: a lost race must not
+    # raise, and evicting until below the bound keeps the size from drifting.
+    while len(cache) >= maximum:
+        try:
+            cache.pop(next(iter(cache)), None)
+        except (RuntimeError, StopIteration):
+            break
+    cache[key] = value
 
 
 def _interface_from_xml_shared(
@@ -510,9 +525,7 @@ def _interface_from_xml_shared(
         interface = Interface.from_xml(
             element, validate_property_names=validate_property_names
         )
-        if len(_SHARED_INTERFACES) >= _SHARED_INTERFACES_MAX:
-            del _SHARED_INTERFACES[next(iter(_SHARED_INTERFACES))]
-        _SHARED_INTERFACES[key] = interface
+        _bounded_put(_SHARED_INTERFACES, key, interface, _SHARED_INTERFACES_MAX)
     return interface
 
 
@@ -640,9 +653,8 @@ class Node:
             template = Node.from_xml(
                 element, is_root=True, validate_property_names=validate_property_names
             )
-            if len(_PARSED_NODES) >= _SHARED_INTERFACES_MAX:
-                del _PARSED_NODES[next(iter(_PARSED_NODES))]
-            _PARSED_NODES[key] = template
+            if len(data) <= _PARSED_NODES_MAX_DOCUMENT:
+                _bounded_put(_PARSED_NODES, key, template, _SHARED_INTERFACES_MAX)
 
         return template._copy()
 
