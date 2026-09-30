@@ -1,0 +1,99 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+    "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="org.freedesktop.DBus.Properties">
+    <method name="Get">
+      <arg type="s" name="interface_name" direction="in" />
+      <arg type="s" name="property_name" direction="in" />
+      <arg type="v" name="value" direction="out" />
+    </method>
+    <method name="GetAll">
+      <arg type="s" name="interface_name" direction="in" />
+      <arg type="a{sv}" name="properties" direction="out" />
+    </method>
+    <method name="Set">
+      <arg type="s" name="interface_name" direction="in" />
+      <arg type="s" name="property_name" direction="in" />
+      <arg type="v" name="value" direction="in" />
+    </method>
+    <signal name="PropertiesChanged">
+      <arg type="s" name="interface_name" />
+      <arg type="a{sv}" name="changed_properties" />
+      <arg type="as" name="invalidated_properties" />
+    </signal>
+  </interface>
+  <interface name="org.freedesktop.DBus.Introspectable">
+    <method name="Introspect">
+      <arg type="s" name="xml_data" direction="out" />
+    </method>
+  </interface>
+  <interface name="org.freedesktop.DBus.Peer">
+    <method name="Ping" />
+    <method name="GetMachineId">
+      <arg type="s" name="machine_uuid" direction="out" />
+    </method>
+  </interface>
+  <interface name="org.freedesktop.NetworkManager.Device">
+    <property name="Udi" type="s" access="read" />
+    <property name="Path" type="s" access="read" />
+    <property name="Interface" type="s" access="read" />
+    <property name="IpInterface" type="s" access="read" />
+    <property name="Driver" type="s" access="read" />
+    <property name="DriverVersion" type="s" access="read" />
+    <property name="FirmwareVersion" type="s" access="read" />
+    <property name="Capabilities" type="u" access="read" />
+    <property name="Ip4Address" type="u" access="read" />
+    <property name="State" type="u" access="read" />
+    <property name="StateReason" type="(uu)" access="read" />
+    <property name="ActiveConnection" type="o" access="read" />
+    <property name="Ip4Config" type="o" access="read" />
+    <property name="Dhcp4Config" type="o" access="read" />
+    <property name="Ip6Config" type="o" access="read" />
+    <property name="Dhcp6Config" type="o" access="read" />
+    <property name="Managed" type="b" access="readwrite" />
+    <property name="Autoconnect" type="b" access="readwrite" />
+    <property name="FirmwareMissing" type="b" access="read" />
+    <property name="NmPluginMissing" type="b" access="read" />
+    <property name="DeviceType" type="u" access="read" />
+    <property name="AvailableConnections" type="ao" access="read" />
+    <property name="PhysicalPortId" type="s" access="read" />
+    <property name="Mtu" type="u" access="read" />
+    <property name="Metered" type="u" access="read" />
+    <property name="LldpNeighbors" type="aa{sv}" access="read" />
+    <property name="Real" type="b" access="read" />
+    <property name="Ip4Connectivity" type="u" access="read" />
+    <property name="Ip6Connectivity" type="u" access="read" />
+    <property name="InterfaceFlags" type="u" access="read" />
+    <property name="HwAddress" type="s" access="read" />
+    <property name="Ports" type="ao" access="read" />
+    <method name="Reapply">
+      <arg name="connection" type="a{sa{sv}}" direction="in" />
+      <arg name="version_id" type="t" direction="in" />
+      <arg name="flags" type="u" direction="in" />
+    </method>
+    <method name="GetAppliedConnection">
+      <arg name="flags" type="u" direction="in" />
+      <arg name="connection" type="a{sa{sv}}" direction="out" />
+      <arg name="version_id" type="t" direction="out" />
+    </method>
+    <method name="Disconnect" />
+    <method name="Delete" />
+    <method name="SetManaged">
+      <arg name="managed" type="u" direction="in" />
+      <arg name="flags" type="u" direction="in" />
+    </method>
+    <signal name="StateChanged">
+      <arg name="new_state" type="u" />
+      <arg name="old_state" type="u" />
+      <arg name="reason" type="u" />
+    </signal>
+  </interface>
+  <interface name="org.freedesktop.NetworkManager.Device.Wired">
+    <annotation name="org.gtk.GDBus.C.Name" value="DeviceEthernet" />
+    <property name="HwAddress" type="s" access="read" />
+    <property name="PermHwAddress" type="s" access="read" />
+    <property name="Speed" type="u" access="read" />
+    <property name="S390Subchannels" type="as" access="read" />
+    <property name="Carrier" type="b" access="read" />
+  </interface>
+</node>
