@@ -15,7 +15,7 @@ from ..constants import (
     ReleaseNameReply,
     RequestNameReply,
 )
-from ..errors import AuthError
+from ..errors import AuthError, AuthTimeoutError
 from ..message import Message
 from ..message_bus import BaseMessageBus
 from .proxy_object import ProxyObject
@@ -160,6 +160,11 @@ class MessageBus(BaseMessageBus):
     :param auth: The authenticator to use, defaults to an instance of
         :class:`AuthExternal <dbus_fast.auth.AuthExternal>`.
     :type auth: :class:`Authenticator <dbus_fast.auth.Authenticator>`
+    :param auth_timeout:
+        Seconds to wait for the SASL authentication handshake to complete
+        before raising :class:`AuthTimeoutError <dbus_fast.AuthTimeoutError>`.
+        ``None`` disables the timeout entirely.
+    :type auth_timeout: float or None
 
     :ivar connected: True if this message bus is expected to be able to send
         and receive messages.
@@ -174,6 +179,7 @@ class MessageBus(BaseMessageBus):
         bus_address: str | None = None,
         bus_type: BusType = BusType.SESSION,
         auth: Authenticator | None = None,
+        auth_timeout: float | None = None,
     ):
         if _import_error:
             raise _import_error
@@ -219,6 +225,8 @@ class MessageBus(BaseMessageBus):
         else:
             self._auth = auth
 
+        self._auth_timeout = auth_timeout
+
     def _on_message(self, msg: Message) -> None:
         try:
             self._process_message(msg)
@@ -239,8 +247,10 @@ class MessageBus(BaseMessageBus):
         message bus can be used.
 
         :param connect_notify: A callback that will be called with this message
-            bus. May return an :class:`Exception` on connection errors or
-            :class:`AuthError <dbus_fast.AuthError>` on authorization errors.
+            bus. May return an :class:`Exception` on connection errors,
+            :class:`AuthError <dbus_fast.AuthError>` on authorization errors,
+            or :class:`AuthTimeoutError <dbus_fast.AuthTimeoutError>` if the
+            SASL handshake does not complete within ``auth_timeout``.
         :type callback: :class:`Callable`
         """
 
@@ -539,7 +549,12 @@ class MessageBus(BaseMessageBus):
             self._stream.write(f"{first_line}\r\n".encode())
             self._stream.flush()
 
+        auth_timeout_id: list[int] = []
+
         def line_notify(line):
+            if auth_timeout_id:
+                GLib.source_remove(auth_timeout_id[0])
+                auth_timeout_id.clear()
             try:
                 if isinstance(line, Exception):
                     raise line
@@ -560,3 +575,14 @@ class MessageBus(BaseMessageBus):
         readline_source.attach(self._main_context)
         # make sure it doesnt get cleaned up
         self._readline_source = readline_source
+
+        if self._auth_timeout is not None:
+
+            def _on_auth_timeout():
+                self._readline_source = None
+                authenticate_notify(AuthTimeoutError("authentication timed out"))
+                return GLib.SOURCE_REMOVE
+
+            auth_timeout_id.append(
+                GLib.timeout_add(int(self._auth_timeout * 1000), _on_auth_timeout)
+            )

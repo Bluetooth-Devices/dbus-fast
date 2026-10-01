@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import io
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from dbus_fast.auth import AuthExternal
-from dbus_fast.errors import AuthError
+from dbus_fast.errors import AuthError, AuthTimeoutError
 from dbus_fast.glib import message_bus as glib_message_bus
 from dbus_fast.glib.message_bus import MessageBus, _AuthLineSource
 from tests.util import check_gi_repository, skip_reason_no_gi
@@ -143,3 +144,81 @@ def test_line_notify_forwards_auth_error_to_notify(glib_bus: MessageBus) -> None
 
     assert notifications == [err]
     assert result is True
+
+
+@pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
+def test_line_notify_cancels_auth_timeout_when_auth_completes(
+    glib_bus: MessageBus,
+) -> None:
+    """line_notify cancels the GLib timer when auth finishes before the timeout fires."""
+    bus = glib_bus
+    bus._auth_timeout = 5.0
+
+    captured_line_notify: list[object] = []
+
+    class CapturingSource:
+        def __init__(self, stream: object) -> None:
+            self.stream = stream
+
+        def set_callback(self, cb: object) -> None:
+            captured_line_notify.append(cb)
+
+        def add_unix_fd(self, fd: int, mask: object) -> None:
+            pass
+
+        def attach(self, ctx: object) -> None:
+            pass
+
+    FAKE_TIMER_ID = 42
+    notifications: list[object] = []
+    removed_ids: list[int] = []
+
+    # Authentication state is managed with local functions and variables,
+    # (as opposed to using instance variables or methods).
+    # To confirm behavior, it's necessary to mock a number of methods
+    # that are called while the `._authenticate()` method is executing.
+    with (
+        patch.object(glib_message_bus, "_AuthLineSource", CapturingSource),
+        patch.object(glib_message_bus.GLib, "timeout_add", return_value=FAKE_TIMER_ID),
+        patch.object(
+            glib_message_bus.GLib, "source_remove", side_effect=removed_ids.append
+        ),
+    ):
+        bus._authenticate(lambda exc: notifications.append(exc))
+        assert len(captured_line_notify) == 1
+        line_notify = captured_line_notify[0]
+
+        err = AuthError("connection closed during authentication")
+        line_notify(err)
+
+    assert removed_ids == [FAKE_TIMER_ID], "Expected the timer ID to be removed"
+    assert notifications == [err]
+
+
+@pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
+def test_authenticate_notifies_on_auth_timeout_errors(glib_bus: MessageBus) -> None:
+    """Verify auth timeouts call `authenticate_notify()` if the timeout fires."""
+    bus = glib_bus
+    bus._readline_source = None
+    bus._auth_timeout = 0.05
+
+    notifications = []
+    timeout_callbacks = []
+
+    def track_callback(ms, cb) -> int:
+        timeout_callbacks.append(cb)
+        return 1
+
+    with (
+        patch.object(glib_message_bus, "_AuthLineSource", MagicMock()),
+        patch.object(glib_message_bus.GLib, "timeout_add", side_effect=track_callback),
+    ):
+        bus._authenticate(lambda exc: notifications.append(exc))
+
+    error_message = "expected _authenticate to register a GLib timeout"
+    assert len(timeout_callbacks) == 1, error_message
+
+    timeout_callbacks[0]()
+
+    assert len(notifications) == 1
+    assert isinstance(notifications[0], AuthTimeoutError)

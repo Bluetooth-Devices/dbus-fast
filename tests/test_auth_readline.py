@@ -11,7 +11,8 @@ from types import SimpleNamespace
 import pytest
 
 from dbus_fast.aio.message_bus import MessageBus
-from dbus_fast.errors import AuthError
+from dbus_fast.auth import AuthExternal
+from dbus_fast.errors import AuthError, AuthTimeoutError
 
 
 def _fake_aio_self(sock: socket.socket) -> SimpleNamespace:
@@ -74,3 +75,20 @@ async def test_auth_readline_returns_line(
         MessageBus._auth_readline(_fake_aio_self(client)), timeout=1.0
     )
     assert line == "OK 1234"
+
+
+@pytest.mark.asyncio
+async def test_authenticate_raises_auth_timeout_error_when_server_silent(
+    socket_pair: tuple[socket.socket, socket.socket],
+) -> None:
+    """Verify authentication timeouts raise AuthTimeoutError."""
+    _, client = socket_pair
+    bus = MessageBus.__new__(MessageBus)
+    bus._loop = asyncio.get_running_loop()
+    bus._sock = client
+    bus._auth = AuthExternal()
+    bus._negotiate_unix_fd = False
+    bus._auth_timeout = 0.05
+
+    with pytest.raises(AuthTimeoutError, match="authentication timed out"):
+        await asyncio.wait_for(MessageBus._authenticate(bus), timeout=1.0)

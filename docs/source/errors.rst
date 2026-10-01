@@ -10,6 +10,7 @@ Errors
 .. autoclass:: dbus_fast.InvalidSignatureError
 .. autoclass:: dbus_fast.InvalidAddressError
 .. autoclass:: dbus_fast.AuthError
+.. autoclass:: dbus_fast.AuthTimeoutError
 .. autoclass:: dbus_fast.InternalError
 .. autoclass:: dbus_fast.InvalidMessageError
 .. autoclass:: dbus_fast.InvalidIntrospectionError
