@@ -2,6 +2,33 @@
 
 <!-- version list -->
 
+## v5.0.24 (2026-10-01)
+
+### Bug Fixes
+
+- Remove the duplicated `debug-statements` pre-commit hook
+  ([#805](https://github.com/Bluetooth-Devices/dbus-fast/pull/805),
+  [`f9ec2c5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f9ec2c5f7f8807ddf671104f07f9494d11fe6597))
+
+### Chores
+
+- **deps-dev**: Bump pycairo from 1.29.0 to 1.29.1
+  ([#793](https://github.com/Bluetooth-Devices/dbus-fast/pull/793),
+  [`c178b27`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c178b277067b435f81ccc6a138ae96691ea4e7c9))
+
+### Continuous Integration
+
+- Build only the sdist in the release job
+  ([#802](https://github.com/Bluetooth-Devices/dbus-fast/pull/802),
+  [`3c4fa81`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3c4fa813fb653ae2d2beae4a337e1f477a41f9b2))
+
+### Testing
+
+- **benchmarks**: Build the offline bus from a dummy address
+  ([#803](https://github.com/Bluetooth-Devices/dbus-fast/pull/803),
+  [`1c7227a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/1c7227a82cddc3068c815e64fda96a5fdba9262a))
+
+
 ## v5.0.23 (2026-09-30)
 
 ### Chores
