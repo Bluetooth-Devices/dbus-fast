@@ -37,6 +37,8 @@ def parse_address(address_str: str_) -> list[tuple[str, dict[str, str]]]:
                 raise InvalidAddressError("address contains invalid characters")
             # XXX the actual unquote rules are simpler than this
             options[k] = unquote(v)
+            if k != "abstract" and "\x00" in options[k]:
+                raise InvalidAddressError("address contains a NUL byte after decoding")
 
         addresses.append((transport, options))
 
