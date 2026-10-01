@@ -90,28 +90,23 @@ def test_auth_line_source_continues_when_read_returns_none() -> None:
     assert result == GLib.SOURCE_CONTINUE
 
 
+@pytest.fixture
+def glib_bus() -> MessageBus:
+    bus = MessageBus.__new__(MessageBus)
+    bus._auth = AuthExternal()
+    bus._auth_timeout = None
+    bus._fd = -1
+    bus._main_context = None
+    bus._stream = io.BytesIO()
+    return bus
+
+
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
-def test_line_notify_forwards_auth_error_to_notify() -> None:
+def test_line_notify_forwards_auth_error_to_notify(glib_bus: MessageBus) -> None:
     # When _AuthLineSource hands line_notify an Exception instead of a line
     # (EOF / oversize), line_notify must surface it via authenticate_notify
     # rather than crash.
-    bus = MessageBus.__new__(MessageBus)
-    bus._auth = AuthExternal()
-    bus._fd = -1
-    bus._main_context = None
-
-    class FakeStream:
-        def __init__(self) -> None:
-            self.written = bytearray()
-
-        def write(self, data: bytes) -> int:
-            self.written.extend(data)
-            return len(data)
-
-        def flush(self) -> None:
-            pass
-
-    bus._stream = FakeStream()
+    bus = glib_bus
 
     captured_callbacks: list[object] = []
 
