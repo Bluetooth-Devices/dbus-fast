@@ -61,6 +61,7 @@ class Marshaller:
         return written + 4
 
     def write_signature(self, signature: str, type_: SignatureType) -> int:
+        get_signature_tree(signature)
         return self._write_signature(signature.encode())
 
     def _write_signature(self, signature_bytes: _bytes) -> int:

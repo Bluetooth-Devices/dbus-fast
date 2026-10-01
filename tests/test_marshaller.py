@@ -20,7 +20,7 @@ from dbus_fast._private.unmarshaller import (
     buffer_to_uint32,
     is_compiled,
 )
-from dbus_fast.errors import InvalidMessageError
+from dbus_fast.errors import InvalidMessageError, InvalidSignatureError
 from dbus_fast.signature import SignatureType
 from dbus_fast.unpack import unpack_variants
 
@@ -1352,3 +1352,41 @@ def test_unmarshall_returns_none_when_reader_yields_no_data() -> None:
             return None
 
     assert Unmarshaller(_NoDataReader()).unmarshall() is None
+
+
+@pytest.mark.parametrize(
+    "bad_sig, match",
+    [
+        pytest.param("z", r'got unexpected token: "z"', id="unknown-type-code"),
+        pytest.param("a{", "Cannot parse an empty signature", id="unclosed-dict"),
+        pytest.param("(s", r'missing closing "\)" for struct', id="unclosed-struct"),
+        pytest.param(
+            "a", "Cannot parse an empty signature", id="array-with-no-element-type"
+        ),
+        pytest.param(
+            "s" * 256,
+            "A signature must be less than 256 characters",
+            id="exceeds-length-limit",
+        ),
+    ],
+)
+def test_marshall_rejects_invalid_signature_type_g(bad_sig: str, match: str) -> None:
+    """Marshalling a g-typed field with an invalid signature raises InvalidSignatureError."""
+    m = Marshaller("g", [bad_sig])
+    with pytest.raises(InvalidSignatureError, match=match):
+        m.marshall()
+
+
+@pytest.mark.parametrize(
+    "sig, expected_bytes",
+    [
+        pytest.param("si", b"\x02si\x00", id="two-type-signature"),
+        pytest.param("", b"\x00\x00", id="empty-signature"),
+    ],
+)
+def test_marshall_accepts_valid_signature_type_g(
+    sig: str, expected_bytes: bytes
+) -> None:
+    """Marshalling a g-typed field encodes length byte + signature + NUL."""
+    m = Marshaller("g", [sig])
+    assert m.marshall() == expected_bytes
