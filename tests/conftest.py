@@ -42,7 +42,8 @@ _RUNNING_COMPILED = is_compiled()
 # The same frame walk has segfaulted intermittently on Python 3.11
 # even on the skip_cython leg; restrict blockbuster to 3.12+ where
 # the frame APIs are stable enough for it to coexist with coverage.
-_PY_SUPPORTS_BLOCKBUSTER = sys.version_info >= (3, 12)
+# On 3.15 blockbuster fails to patch the now immutable ScandirIterator.
+_PY_SUPPORTS_BLOCKBUSTER = (3, 12) <= sys.version_info < (3, 15)
 
 _BENCHMARKS_DIR = "tests/benchmarks"
 
