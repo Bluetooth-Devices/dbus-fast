@@ -79,6 +79,18 @@ async def test_auth_readline_returns_line(
 
 
 @pytest.mark.asyncio
+async def test_auth_readline_rejects_invalid_utf8(
+    socket_pair: tuple[socket.socket, socket.socket],
+) -> None:
+    server, client = socket_pair
+    await asyncio.get_running_loop().sock_sendall(server, b"OK \xff\xfe\r\n")
+
+    coro = MessageBus._auth_readline(_fake_aio_self(client))
+    with pytest.raises(AuthError):
+        await asyncio.wait_for(coro, timeout=1.0)
+
+
+@pytest.mark.asyncio
 async def test_authenticate_raises_auth_timeout_error_when_server_silent(
     socket_pair: tuple[socket.socket, socket.socket],
 ) -> None:

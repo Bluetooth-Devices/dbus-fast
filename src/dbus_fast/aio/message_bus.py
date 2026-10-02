@@ -604,7 +604,10 @@ class MessageBus(BaseMessageBus):
             buf += chunk
             if len(buf) > _MAX_AUTH_LINE:
                 raise AuthError("auth line exceeded maximum size")
-        return buf[:-2].decode()
+        try:
+            return buf[:-2].decode()
+        except UnicodeDecodeError as e:
+            raise AuthError("auth line contained invalid UTF-8") from e
 
     async def _inner_authenticate(self) -> None:
         await self._loop.sock_sendall(self._sock, b"\0")
