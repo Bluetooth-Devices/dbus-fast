@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from dbus_fast.auth import AuthExternal
+from dbus_fast.auth import UID_NOT_SPECIFIED, AuthExternal
 from dbus_fast.errors import AuthError, AuthTimeoutError
 from dbus_fast.glib import message_bus as glib_message_bus
 from dbus_fast.glib.message_bus import MessageBus, _AuthLineSource
@@ -222,3 +222,53 @@ def test_authenticate_notifies_on_auth_timeout_errors(glib_bus: MessageBus) -> N
 
     assert len(notifications) == 1
     assert isinstance(notifications[0], AuthTimeoutError)
+
+
+@pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
+def test_line_notify_keeps_auth_timeout_for_intermediate_lines(
+    glib_bus: MessageBus,
+) -> None:
+    """A non-final auth line leaves the GLib timer armed."""
+    bus = glib_bus
+    bus._auth = AuthExternal(uid=UID_NOT_SPECIFIED)
+    bus._auth_timeout = 5.0
+    source = MagicMock()
+    removed_ids: list[int] = []
+
+    with (
+        patch.object(glib_message_bus, "_AuthLineSource", return_value=source),
+        patch.object(glib_message_bus.GLib, "timeout_add", return_value=42),
+        patch.object(
+            glib_message_bus.GLib, "source_remove", side_effect=removed_ids.append
+        ),
+    ):
+        bus._authenticate(lambda exc: None)
+        line_notify = source.set_callback.call_args.args[0]
+        assert not line_notify("DATA")
+        assert removed_ids == []
+        assert line_notify("OK 1234")
+
+    assert removed_ids == [42]
+
+
+@pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
+def test_auth_timeout_destroys_readline_source(glib_bus: MessageBus) -> None:
+    """The auth timeout detaches the readline source so late replies are ignored."""
+    bus = glib_bus
+    bus._auth_timeout = 0.05
+    source = MagicMock()
+    timeout_callbacks = []
+
+    with (
+        patch.object(glib_message_bus, "_AuthLineSource", return_value=source),
+        patch.object(
+            glib_message_bus.GLib,
+            "timeout_add",
+            side_effect=lambda ms, cb: timeout_callbacks.append(cb) or 1,
+        ),
+    ):
+        bus._authenticate(lambda exc: None)
+
+    assert timeout_callbacks[0]() == GLib.SOURCE_REMOVE
+    source.destroy.assert_called_once_with()
+    assert bus._readline_source is None

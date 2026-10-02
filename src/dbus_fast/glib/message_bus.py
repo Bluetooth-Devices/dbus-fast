@@ -551,10 +551,11 @@ class MessageBus(BaseMessageBus):
 
         auth_timeout_id: list[int] = []
 
-        def line_notify(line):
+        def cancel_auth_timeout():
             if auth_timeout_id:
-                GLib.source_remove(auth_timeout_id[0])
-                auth_timeout_id.clear()
+                GLib.source_remove(auth_timeout_id.pop())
+
+        def line_notify(line):
             try:
                 if isinstance(line, Exception):
                     raise line
@@ -562,10 +563,12 @@ class MessageBus(BaseMessageBus):
                 self._stream.write(Authenticator._format_line(resp))
                 self._stream.flush()
                 if resp == "BEGIN":
+                    cancel_auth_timeout()
                     self._readline_source = None
                     authenticate_notify(None)
                     return True
             except Exception as e:
+                cancel_auth_timeout()
                 authenticate_notify(e)
                 return True
 
@@ -579,6 +582,8 @@ class MessageBus(BaseMessageBus):
         if self._auth_timeout is not None:
 
             def _on_auth_timeout():
+                auth_timeout_id.clear()
+                readline_source.destroy()
                 self._readline_source = None
                 authenticate_notify(AuthTimeoutError("authentication timed out"))
                 return GLib.SOURCE_REMOVE

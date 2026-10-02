@@ -7,6 +7,7 @@ import contextlib
 import socket
 from collections.abc import Generator
 from types import SimpleNamespace
+from unittest.mock import patch
 
 import pytest
 
@@ -92,3 +93,20 @@ async def test_authenticate_raises_auth_timeout_error_when_server_silent(
 
     with pytest.raises(AuthTimeoutError, match="authentication timed out"):
         await asyncio.wait_for(MessageBus._authenticate(bus), timeout=1.0)
+
+
+@pytest.mark.asyncio
+async def test_authenticate_does_not_wrap_unrelated_timeout_error() -> None:
+    """A TimeoutError from the handshake itself is not reported as AuthTimeoutError."""
+    bus = MessageBus.__new__(MessageBus)
+    bus._auth_timeout = 5.0
+
+    async def _raise(self: MessageBus) -> None:
+        raise TimeoutError("socket stalled")
+
+    with (
+        patch.object(MessageBus, "_inner_authenticate", _raise),
+        pytest.raises(TimeoutError, match="socket stalled") as exc_info,
+    ):
+        await MessageBus._authenticate(bus)
+    assert not isinstance(exc_info.value, AuthTimeoutError)
