@@ -52,6 +52,40 @@ def test_invalid_addresses() -> None:
         assert parse_address("unix:tmpdir=😁")
 
 
+@pytest.mark.parametrize(
+    "address",
+    [
+        pytest.param("unix:path=/run/dbus%00injected", id="null"),
+        # "%%" is an invalid escape sequence and will be ignored,
+        # but `unquote()` will still produce a NUL byte.
+        pytest.param("unix:path=/run/dbus%%00injected", id="invalid-escape"),
+        # socket.connect() truncates at NUL
+        # and will try connecting to a different host.
+        pytest.param("tcp:host=127.0.0%001,port=12345", id="tcp-host-truncated"),
+    ],
+)
+def test_percent_encoded_nul_in_address_raises(address: str) -> None:
+    """Verify NUL bytes raise InvalidAddressError."""
+    with pytest.raises(InvalidAddressError, match=r"NUL"):
+        parse_address(address)
+
+
+def test_percent_encoded_percent_zero_zero_is_valid() -> None:
+    """Verify '%2500' decodes to literal '%00' and is not rejected."""
+    result = parse_address("unix:path=/run/dbus%2500socket")
+    assert result == [("unix", {"path": "/run/dbus%00socket"})]
+
+
+def test_abstract_socket_name_with_nul_is_accepted() -> None:
+    """
+    Verify 'unix:abstract' allows NUL bytes.
+
+    Abstract socket names use length, not null-termination, and may contain NULs.
+    """
+    result = parse_address("unix:abstract=/tmp/dbus%00suffix")
+    assert result == [("unix", {"abstract": "/tmp/dbus\x00suffix"})]
+
+
 def test_get_system_bus_address() -> None:
     with patch.dict(os.environ, DBUS_SYSTEM_BUS_ADDRESS="unix:path=/dog"):
         assert get_system_bus_address() == "unix:path=/dog"

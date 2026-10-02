@@ -77,6 +77,8 @@ class Marshaller:
 
     def _write_string(self, value: _str) -> int:
         value_bytes = value.encode()
+        if 0 in value_bytes:
+            raise InvalidMessageError("string value contains a NUL byte")
         value_len = len(value_bytes)
         written = self._align(4) + 4
         buf = self._buf

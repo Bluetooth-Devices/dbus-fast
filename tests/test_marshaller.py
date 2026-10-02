@@ -1354,6 +1354,42 @@ def test_unmarshall_returns_none_when_reader_yields_no_data() -> None:
     assert Unmarshaller(_NoDataReader()).unmarshall() is None
 
 
+def test_marshaller_string_with_nul_raises() -> None:
+    """Marshaller._write_string must raise for a literal NUL."""
+    with pytest.raises(InvalidMessageError, match="NUL"):
+        Marshaller("s", ["hello\x00world"]).marshall()
+
+
+def test_marshaller_signature_type_with_nul_raises() -> None:
+    """A NUL byte in a 'g' body value is rejected as an invalid signature."""
+    with pytest.raises(InvalidSignatureError, match="unexpected token"):
+        Marshaller("g", ["s\x00s"]).marshall()
+
+
+def test_message_marshall_string_with_nul_raises() -> None:
+    """A NUL byte inside a string body value must raise InvalidMessageError."""
+    msg = Message(
+        path="/test",
+        member="test",
+        signature="s",
+        body=["hello\x00world"],
+    )
+    with pytest.raises(InvalidMessageError, match="NUL"):
+        msg._marshall(False)
+
+
+def test_message_marshall_object_path_with_nul_raises() -> None:
+    """A NUL byte inside an object-path body value must raise InvalidMessageError."""
+    msg = Message(
+        path="/test",
+        member="test",
+        signature="o",
+        body=["/valid/path\x00injected"],
+    )
+    with pytest.raises(InvalidMessageError, match="NUL"):
+        msg._marshall(False)
+
+
 @pytest.mark.parametrize(
     "bad_sig, match",
     [
