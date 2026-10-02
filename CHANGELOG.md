@@ -2,6 +2,29 @@
 
 <!-- version list -->
 
+## v5.2.0 (2026-10-02)
+
+### Bug Fixes
+
+- Guard against null characters ([#804](https://github.com/Bluetooth-Devices/dbus-fast/pull/804),
+  [`d9ec130`](https://github.com/Bluetooth-Devices/dbus-fast/commit/d9ec130d5a291181ccd910241b071b8121a2b0c5))
+
+### Chores
+
+- Ignore .DS_Store files ([#811](https://github.com/Bluetooth-Devices/dbus-fast/pull/811),
+  [`edc7f16`](https://github.com/Bluetooth-Devices/dbus-fast/commit/edc7f1639769a5f67d1955767df4ad2f4cbaaf63))
+
+- **deps-dev**: Bump setuptools from 82.0.1 to 83.0.0 in the pip group across 1 directory
+  ([#795](https://github.com/Bluetooth-Devices/dbus-fast/pull/795),
+  [`70cad9b`](https://github.com/Bluetooth-Devices/dbus-fast/commit/70cad9bd6da6b0d6073c356100dde4f541af36d4))
+
+### Features
+
+- Allow developers to set authentication timeouts
+  ([#807](https://github.com/Bluetooth-Devices/dbus-fast/pull/807),
+  [`7ae761f`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7ae761f73cf502ff317db6129d9d22b3a8ae8870))
+
+
 ## v5.1.0 (2026-10-02)
 
 ### Features
