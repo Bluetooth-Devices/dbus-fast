@@ -116,7 +116,7 @@ CI runs:
 - `pr-title` — PR-title Conventional Commits check (the only
   commit-format gate; individual commits are squashed away on
   merge).
-- `test` matrix — Python 3.10–3.14 + `3.14t`, each in both
+- `test` matrix — Python 3.11–3.15 + `3.14t` and `3.15t`, each in both
   `SKIP_CYTHON=1` and `REQUIRE_CYTHON=1` modes.
 - `test_big_endian` — s390x via `uraimo/run-on-arch-action`,
   catches endian regressions in the marshaller/unmarshaller.
