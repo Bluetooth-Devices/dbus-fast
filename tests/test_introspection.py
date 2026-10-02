@@ -20,11 +20,9 @@ from dbus_fast.signature import get_signature_tree
 
 _DATA_DIR = Path(__file__).parent / "data"
 
-with (_DATA_DIR / "strict-introspection.xml").open() as f:
-    strict_data = f.read()
+strict_data = (_DATA_DIR / "strict-introspection.xml").read_text()
 
-with (_DATA_DIR / "sloppy-introspection.xml").open() as f:
-    sloppy_data = f.read()
+sloppy_data = (_DATA_DIR / "sloppy-introspection.xml").read_text()
 
 
 def test_introspection_from_xml_sloppy():

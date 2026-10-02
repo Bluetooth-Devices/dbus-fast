@@ -86,15 +86,12 @@ def get_session_bus_address() -> str:
     # XXX: this will block but they're very small files and fs operations
     # should be fairly reliable. fix this by passing in an async func to read
     # the file for each io backend.
-    machine_id = None
-    with Path("/var/lib/dbus/machine-id").open() as f:
-        machine_id = f.read().rstrip()
+    machine_id = Path("/var/lib/dbus/machine-id").read_text().rstrip()
 
     dbus_info_file_name = f"{home}/.dbus/session-bus/{machine_id}-{display}"
     dbus_info: str | None = None
     try:
-        with Path(dbus_info_file_name).open() as f:
-            dbus_info = f.read().rstrip()
+        dbus_info = Path(dbus_info_file_name).read_text().rstrip()
     except Exception as ex:
         raise InvalidAddressError(
             f"could not open dbus info file: {dbus_info_file_name}"

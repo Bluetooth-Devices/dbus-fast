@@ -136,11 +136,9 @@ def print_buf(buf):
 # these messages have been verified with another library
 _DATA_DIR = Path(__file__).parent / "data"
 
-with (_DATA_DIR / "messages.json").open() as f:
-    table = json.load(f)
+table = json.loads((_DATA_DIR / "messages.json").read_text())
 
-with (_DATA_DIR / "get_managed_objects.hex").open() as fp:
-    get_managed_objects_msg = fp.read()
+get_managed_objects_msg = (_DATA_DIR / "get_managed_objects.hex").read_text()
 
 
 def json_to_message(message: dict[str, Any]) -> Message:

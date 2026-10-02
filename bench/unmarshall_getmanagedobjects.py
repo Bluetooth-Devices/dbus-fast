@@ -6,8 +6,7 @@ from dbus_fast._private.unmarshaller import Unmarshaller
 
 #  cythonize -X language_level=3 -a -i  src/dbus_fast/_private/unmarshaller.py
 
-with Path("tests/data/get_managed_objects.hex").open() as fp:
-    msg = fp.read()
+msg = Path("tests/data/get_managed_objects.hex").read_text()
 
 
 stream = io.BytesIO(bytes.fromhex(msg))

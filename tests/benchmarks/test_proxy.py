@@ -1,7 +1,7 @@
 import asyncio
 import itertools
 import json
-import os
+from pathlib import Path
 
 from pytest_codspeed import BenchmarkFixture
 
@@ -13,7 +13,7 @@ from dbus_fast.introspection import Node
 OBJECTS = 20
 
 _BUS_NAME = ":1.5"
-_DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
+_DATA_DIR = Path(__file__).parent.parent / "data"
 _STANDARD_INTERFACES = (
     "org.freedesktop.DBus.Properties",
     "org.freedesktop.DBus.Introspectable",
@@ -22,8 +22,7 @@ _STANDARD_INTERFACES = (
 
 
 def _read(name: str) -> str:
-    with open(os.path.join(_DATA_DIR, name)) as f:
-        return f.read()
+    return (_DATA_DIR / name).read_text()
 
 
 NM_WIRED_DEVICE = _read("networkmanager-wired-device.xml")
