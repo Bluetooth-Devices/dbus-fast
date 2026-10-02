@@ -2,6 +2,61 @@
 
 <!-- version list -->
 
+## v5.0.26 (2026-10-02)
+
+### Bug Fixes
+
+- Remove local annotations conflicting with .pxd under Cython 3.3
+  ([#809](https://github.com/Bluetooth-Devices/dbus-fast/pull/809),
+  [`92e79a7`](https://github.com/Bluetooth-Devices/dbus-fast/commit/92e79a799c7469156b46ba456810f0eff348af14))
+
+
+## v5.0.25 (2026-10-01)
+
+### Bug Fixes
+
+- Catch and reject invalid signatures
+  ([#806](https://github.com/Bluetooth-Devices/dbus-fast/pull/806),
+  [`2c727f5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/2c727f52f292f9e26dc6d87b43bcfd6fec436da0))
+
+### Chores
+
+- **deps-ci**: Bump the github-actions group across 1 directory with 13 updates
+  ([#797](https://github.com/Bluetooth-Devices/dbus-fast/pull/797),
+  [`7b583e0`](https://github.com/Bluetooth-Devices/dbus-fast/commit/7b583e056734e34ffd3a7abdafb619e34c8615ad))
+
+- **deps-dev**: Bump cython from 3.2.5 to 3.2.9
+  ([#791](https://github.com/Bluetooth-Devices/dbus-fast/pull/791),
+  [`96364a2`](https://github.com/Bluetooth-Devices/dbus-fast/commit/96364a21c28a56e863dbb5965a2039da4fd09ca1))
+
+
+## v5.0.24 (2026-10-01)
+
+### Bug Fixes
+
+- Remove the duplicated `debug-statements` pre-commit hook
+  ([#805](https://github.com/Bluetooth-Devices/dbus-fast/pull/805),
+  [`f9ec2c5`](https://github.com/Bluetooth-Devices/dbus-fast/commit/f9ec2c5f7f8807ddf671104f07f9494d11fe6597))
+
+### Chores
+
+- **deps-dev**: Bump pycairo from 1.29.0 to 1.29.1
+  ([#793](https://github.com/Bluetooth-Devices/dbus-fast/pull/793),
+  [`c178b27`](https://github.com/Bluetooth-Devices/dbus-fast/commit/c178b277067b435f81ccc6a138ae96691ea4e7c9))
+
+### Continuous Integration
+
+- Build only the sdist in the release job
+  ([#802](https://github.com/Bluetooth-Devices/dbus-fast/pull/802),
+  [`3c4fa81`](https://github.com/Bluetooth-Devices/dbus-fast/commit/3c4fa813fb653ae2d2beae4a337e1f477a41f9b2))
+
+### Testing
+
+- **benchmarks**: Build the offline bus from a dummy address
+  ([#803](https://github.com/Bluetooth-Devices/dbus-fast/pull/803),
+  [`1c7227a`](https://github.com/Bluetooth-Devices/dbus-fast/commit/1c7227a82cddc3068c815e64fda96a5fdba9262a))
+
+
 ## v5.0.23 (2026-09-30)
 
 ### Chores

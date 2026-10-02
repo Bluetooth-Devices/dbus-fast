@@ -956,7 +956,7 @@ class BaseMessageBus:
         return None
 
     def _find_any_message_handler_matching_signature(
-        self, interfaces: dict[str, ServiceInterface], msg: _Message
+        self, interfaces, msg: _Message
     ) -> HandlerType | None:
         # No interface, so we need to search all interfaces for the method
         # with a matching signature
