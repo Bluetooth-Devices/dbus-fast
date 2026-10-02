@@ -83,8 +83,6 @@ async def test_auth_readline_rejects_invalid_utf8(
     socket_pair: tuple[socket.socket, socket.socket],
 ) -> None:
     server, client = socket_pair
-    # Non-UTF-8 bytes terminated by CRLF must surface as AuthError, not a
-    # raw UnicodeDecodeError.
     await asyncio.get_running_loop().sock_sendall(server, b"OK \xff\xfe\r\n")
 
     coro = MessageBus._auth_readline(_fake_aio_self(client))
