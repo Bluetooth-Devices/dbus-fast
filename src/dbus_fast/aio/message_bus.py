@@ -638,7 +638,7 @@ class MessageBus(BaseMessageBus):
                 await asyncio.wait_for(
                     self._inner_authenticate(), timeout=self._auth_timeout
                 )
-            except asyncio.TimeoutError as e:
+            except TimeoutError as e:
                 raise AuthTimeoutError("authentication timed out") from e
 
     def _finalize(self, err: Exception | None = None) -> None:
