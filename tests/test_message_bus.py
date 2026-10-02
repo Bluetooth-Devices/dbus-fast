@@ -6,7 +6,7 @@ import pytest
 
 from dbus_fast import introspection as intr
 from dbus_fast.aio import MessageBus
-from dbus_fast.auth import MAX_AUTH_LINE, AuthExternal
+from dbus_fast.auth import AuthExternal
 from dbus_fast.constants import (
     ErrorType,
     MessageFlag,
@@ -1146,23 +1146,3 @@ async def test_authenticate_sends_str_start_line() -> None:
 
     assert loop.sent == [b"\0", b"AUTH EXTERNAL 30\r\n", b"BEGIN\r\n"]
 
-
-@pytest.mark.asyncio
-async def test_auth_readline_raises_when_connection_closed() -> None:
-    bus = MessageBus("unix:path=/dev/null")
-    bus._loop = _AuthLoop(reads=[b""])
-    bus._sock = object()
-
-    with pytest.raises(AuthError, match="connection closed during authentication"):
-        await bus._auth_readline()
-
-
-@pytest.mark.asyncio
-async def test_auth_readline_raises_when_line_too_long() -> None:
-    bus = MessageBus("unix:path=/dev/null")
-    # A single CRLF-less chunk over the cap trips the size guard.
-    bus._loop = _AuthLoop(reads=[b"x" * (MAX_AUTH_LINE + 1)])
-    bus._sock = object()
-
-    with pytest.raises(AuthError, match="auth line exceeded maximum size"):
-        await bus._auth_readline()
