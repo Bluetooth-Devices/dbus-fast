@@ -35,7 +35,7 @@ repos:
     rev: v3.21.2
     hooks:
       - id: pyupgrade
-        args: [--py310-plus]
+        args: [--py311-plus]
         exclude: tests/service/test_methods.py
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.16.9

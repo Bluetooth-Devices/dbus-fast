@@ -39,8 +39,8 @@ from dbus_fast._private.unmarshaller import is_compiled
 # still exercises blockbuster, so blocking-call detection is preserved.
 _RUNNING_COMPILED = is_compiled()
 
-# The same frame walk has segfaulted intermittently on Python 3.10 and
-# 3.11 even on the skip_cython leg; restrict blockbuster to 3.12+ where
+# The same frame walk has segfaulted intermittently on Python 3.11
+# even on the skip_cython leg; restrict blockbuster to 3.12+ where
 # the frame APIs are stable enough for it to coexist with coverage.
 _PY_SUPPORTS_BLOCKBUSTER = sys.version_info >= (3, 12)
 

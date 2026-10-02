@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.10"
+          python-version: "3.11"
       - uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
 
   test:
@@ -28,12 +28,13 @@ jobs:
       fail-fast: false
       matrix:
         python-version:
-          - "3.10"
           - "3.11"
           - "3.12"
           - "3.13"
           - "3.14"
           - "3.14t"
+          - "3.15"
+          - "3.15t"
         os:
           - ubuntu-latest
         extension:
@@ -282,12 +283,6 @@ jobs:
               os: ubuntu-latest,
               qemu: riscv64,
               musl: "musllinux",
-              pyver: cp310,
-            }
-          - {
-              os: ubuntu-latest,
-              qemu: riscv64,
-              musl: "musllinux",
               pyver: cp311,
             }
           - {
@@ -314,12 +309,25 @@ jobs:
               musl: "musllinux",
               pyver: cp314t,
             }
-          - { os: ubuntu-latest, qemu: riscv64, musl: "", pyver: cp310 }
+          - {
+              os: ubuntu-latest,
+              qemu: riscv64,
+              musl: "musllinux",
+              pyver: cp315,
+            }
+          - {
+              os: ubuntu-latest,
+              qemu: riscv64,
+              musl: "musllinux",
+              pyver: cp315t,
+            }
           - { os: ubuntu-latest, qemu: riscv64, musl: "", pyver: cp311 }
           - { os: ubuntu-latest, qemu: riscv64, musl: "", pyver: cp312 }
           - { os: ubuntu-latest, qemu: riscv64, musl: "", pyver: cp313 }
           - { os: ubuntu-latest, qemu: riscv64, musl: "", pyver: cp314 }
           - { os: ubuntu-latest, qemu: riscv64, musl: "", pyver: cp314t }
+          - { os: ubuntu-latest, qemu: riscv64, musl: "", pyver: cp315 }
+          - { os: ubuntu-latest, qemu: riscv64, musl: "", pyver: cp315t }
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -343,7 +351,7 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@e090b81e30c4d855ea63bf4b6e59204c09a101ae # v4.2.1
         env:
-          CIBW_SKIP: "*p38-* ${{ matrix.musl == 'musllinux' && '*manylinux*' || '*musllinux*' }}"
+          CIBW_SKIP: "*p38-* cp310-* ${{ matrix.musl == 'musllinux' && '*manylinux*' || '*musllinux*' }}"
           CIBW_BEFORE_ALL_LINUX: apt-get install -y gcc || yum install -y gcc || apk add gcc
           CIBW_BUILD_VERBOSITY: 3
           REQUIRE_CYTHON: 1
