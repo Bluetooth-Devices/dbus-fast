@@ -110,3 +110,11 @@ async def test_authenticate_does_not_wrap_unrelated_timeout_error() -> None:
     ):
         await MessageBus._authenticate(bus)
     assert not isinstance(exc_info.value, AuthTimeoutError)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("auth_timeout", [0, -1.0])
+async def test_aio_bus_rejects_non_positive_auth_timeout(auth_timeout: float) -> None:
+    """auth_timeout must be greater than zero."""
+    with pytest.raises(ValueError, match="greater than 0"):
+        MessageBus(auth_timeout=auth_timeout)

@@ -230,6 +230,8 @@ class MessageBus(BaseMessageBus):
         negotiate_unix_fd: bool = False,
         auth_timeout: float | None = None,
     ) -> None:
+        if auth_timeout is not None and auth_timeout <= 0:
+            raise ValueError("auth_timeout must be greater than 0")
         super().__init__(bus_address, bus_type, ProxyObject, negotiate_unix_fd)
         self._loop = asyncio.get_running_loop()
 

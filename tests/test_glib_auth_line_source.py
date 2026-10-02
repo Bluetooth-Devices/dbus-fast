@@ -272,3 +272,45 @@ def test_auth_timeout_destroys_readline_source(glib_bus: MessageBus) -> None:
     assert timeout_callbacks[0]() == GLib.SOURCE_REMOVE
     source.destroy.assert_called_once_with()
     assert bus._readline_source is None
+
+
+@pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
+def test_connect_finalizes_bus_when_auth_fails(glib_bus: MessageBus) -> None:
+    """An auth failure closes the bus before connect_notify is called."""
+    bus = glib_bus
+    notifies = []
+    results = []
+    err = AuthTimeoutError("authentication timed out")
+
+    with (
+        patch.object(MessageBus, "_authenticate", lambda self, cb: notifies.append(cb)),
+        patch.object(MessageBus, "_finalize") as finalize,
+    ):
+        bus.connect(lambda b, e: results.append((b, e)))
+        notifies[0](err)
+
+    finalize.assert_called_once_with(err)
+    assert results == [(None, err)]
+
+
+@pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
+def test_auth_timeout_rounds_up_to_one_millisecond(glib_bus: MessageBus) -> None:
+    """Sub-millisecond auth timeouts are not truncated to zero."""
+    bus = glib_bus
+    bus._auth_timeout = 0.0004
+
+    with (
+        patch.object(glib_message_bus, "_AuthLineSource", MagicMock()),
+        patch.object(glib_message_bus.GLib, "timeout_add", return_value=1) as add,
+    ):
+        bus._authenticate(lambda exc: None)
+
+    assert add.call_args.args[0] == 1
+
+
+@pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
+@pytest.mark.parametrize("auth_timeout", [0, -1.0])
+def test_glib_bus_rejects_non_positive_auth_timeout(auth_timeout: float) -> None:
+    """auth_timeout must be greater than zero."""
+    with pytest.raises(ValueError, match="greater than 0"):
+        MessageBus(auth_timeout=auth_timeout)

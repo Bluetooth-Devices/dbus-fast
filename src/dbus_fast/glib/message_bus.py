@@ -183,6 +183,8 @@ class MessageBus(BaseMessageBus):
     ):
         if _import_error:
             raise _import_error
+        if auth_timeout is not None and auth_timeout <= 0:
+            raise ValueError("auth_timeout must be greater than 0")
 
         super().__init__(bus_address, bus_type, ProxyObject)
 
@@ -256,6 +258,7 @@ class MessageBus(BaseMessageBus):
 
         def authenticate_notify(exc):
             if exc is not None:
+                self._finalize(exc)
                 if connect_notify is not None:
                     connect_notify(None, exc)
                 return
@@ -307,6 +310,9 @@ class MessageBus(BaseMessageBus):
         :raises:
             - :class:`AuthError <dbus_fast.AuthError>` - If authorization to \
               the DBus daemon failed.
+            - :class:`AuthTimeoutError <dbus_fast.AuthTimeoutError>` - \
+              If ``auth_timeout`` is set and the SASL handshake does not complete \
+              within the deadline.
             - :class:`Exception` - If there was a connection error.
         """
         main = GLib.MainLoop()
@@ -589,5 +595,7 @@ class MessageBus(BaseMessageBus):
                 return GLib.SOURCE_REMOVE
 
             auth_timeout_id.append(
-                GLib.timeout_add(int(self._auth_timeout * 1000), _on_auth_timeout)
+                GLib.timeout_add(
+                    max(1, round(self._auth_timeout * 1000)), _on_auth_timeout
+                )
             )
