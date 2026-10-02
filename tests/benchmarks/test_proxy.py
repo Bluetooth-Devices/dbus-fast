@@ -2,7 +2,6 @@ import asyncio
 import itertools
 import json
 import os
-from typing import Any
 
 from pytest_codspeed import BenchmarkFixture
 
@@ -57,20 +56,15 @@ def _replies(data: str) -> list[str]:
 
 
 class _OfflineBus(MessageBus):
-    """A bus that drops the AddMatch and GetNameOwner calls get_interface makes."""
+    """An unconnected bus that skips the AddMatch rules get_interface would send."""
 
     def _init_high_level_client(self) -> None:
-        pass
-
-    def _call(self, *args: Any, **kwargs: Any) -> None:
         pass
 
 
 def _build_bus() -> MessageBus:
     async def _setup() -> MessageBus:
-        bus = _OfflineBus()
-        bus._name_owners[_BUS_NAME] = _BUS_NAME
-        return bus
+        return _OfflineBus(bus_address="unix:path=/dev/null")
 
     loop = asyncio.new_event_loop()
     try:

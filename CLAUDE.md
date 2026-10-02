@@ -79,9 +79,9 @@ benchmarks track that path. See _Build conventions_ below.
   (`_underscore_prefixed`) at the bottom.
 
 - **Line length**: 88 (ruff default with overrides — see
-  `pyproject.toml`). `python_requires = ">=3.10"`,
-  `target-version = "py310"` for ruff and `--py310-plus` for
-  pyupgrade. Don't introduce 3.11+-only syntax.
+  `pyproject.toml`). `python_requires = ">=3.11"`,
+  `target-version = "py311"` for ruff and `--py311-plus` for
+  pyupgrade. Don't introduce 3.12+-only syntax.
 
 - **Imports**: ruff/isort sorted (`profile = "black"`,
   `known_first_party = ["dbus_fast", "tests"]`). Prefer absolute
@@ -133,7 +133,7 @@ benchmarks track that path. See _Build conventions_ below.
   exists. The `pr-workflow` skill (under
   `.claude/skills/pr-workflow/`) summarises this end-to-end.
 - **Pre-commit auto-fixes; re-stage.** `ruff --fix`, `ruff
-format`, `pyupgrade --py310-plus`, and the
+format`, `pyupgrade --py311-plus`, and the
   `pre-commit-hooks` set (trailing-whitespace, end-of-file-fixer,
   etc.) run on commit and will modify files in place. When a hook
   rewrites a file, the commit aborts — re-stage the auto-fixed
@@ -149,7 +149,7 @@ poetry install
 dbus-run-session -- poetry run pytest --timeout=5
 ```
 
-CI runs the matrix across Python 3.10–3.14 plus `3.14t` (free-
+CI runs the matrix across Python 3.11–3.15 plus `3.14t` and `3.15t` (free-
 threaded), each in both `SKIP_CYTHON=1` and `REQUIRE_CYTHON=1`
 modes, on `ubuntu-latest`, with an additional `s390x` big-endian
 run via `uraimo/run-on-arch-action`. Tests must pass on every
@@ -329,8 +329,8 @@ or commit that names the bug class and the affected code path.
 
 ## Things not to do
 
-- **Don't introduce 3.11+-only syntax** — the package supports
-  3.10+ and pyupgrade is pinned to `--py310-plus`.
+- **Don't introduce 3.12+-only syntax** — the package supports
+  3.11+ and pyupgrade is pinned to `--py311-plus`.
 - **Don't change a Cythonized module's public signature
   without updating its `.pxd`** — the extension will silently
   pick up a stale declaration or fall back to pure Python.

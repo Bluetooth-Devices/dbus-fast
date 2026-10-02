@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dbus-fast"
-version = "5.0.23"
+version = "5.0.26"
 description = "A faster version of dbus-next"
 authors = ["Bluetooth Devices Authors <bluetooth@koston.org>"]
 license = "MIT"
@@ -13,11 +13,11 @@ classifiers = [
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Topic :: Software Development :: Libraries",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
 ]
 packages = [
     { include = "dbus_fast", from = "src" },
@@ -34,7 +34,7 @@ script = "build_ext.py"
 "Changelog" = "https://github.com/bluetooth-devices/dbus-fast/blob/main/CHANGELOG.md"
 
 [tool.poetry.dependencies]
-python = ">=3.10"
+python = ">=3.11"
 
 # duplicated in docs/requirements.txt for readthedocs compatibility
 [tool.poetry.group.docs.dependencies]
@@ -50,7 +50,7 @@ pytest-cov = ">=3,<8"
 pytest-asyncio = ">=0.19,<1.5"
 pycairo = "^1.21.0"
 PyGObject = {version = ">=3.50,<3.57", python = "<4"}
-Cython = ">=3,<3.3.0"
+Cython = ">=3,<3.4"
 setuptools = ">=65.4.1,<83.0.0"
 pytest-timeout = "^2.1.0"
 pytest-codspeed = ">=3.1.1,<6.0.0"
@@ -61,7 +61,7 @@ blockbuster = ">=1.5.5,<2.0.0"
 branch = "main"
 version_toml = ["pyproject.toml:tool.poetry.version"]
 version_variables = ["src/dbus_fast/__version__.py:__version__"]
-build_command = "pip install poetry && poetry build"
+build_command = "pip install poetry && poetry build --format sdist"
 
 [tool.pytest.ini_options]
 addopts = "-v --cov=dbus_fast --cov-report=term-missing:skip-covered"
@@ -117,11 +117,11 @@ module = "docs.*"
 ignore_errors = true
 
 [build-system]
-requires = ['setuptools>=65.4.1', 'wheel', 'Cython>=3,<3.3.0', "poetry-core>=1.0.0"]
+requires = ['setuptools>=65.4.1', 'wheel', 'Cython>=3,<3.4', "poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py311"
 line-length = 88
 
 [tool.ruff.lint]
@@ -164,6 +164,8 @@ ignore = [
     "B020", # too many to fix -- should fix sooner
     "S314", # too many to fix -- should fix sooner
     "TRY300", # too many to fix -- should fix sooner
+    "ASYNC109", # api is public
+    "UP042", # StrEnum changes str() output
 
 ]
 select = [

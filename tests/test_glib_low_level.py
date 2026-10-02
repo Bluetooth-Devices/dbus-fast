@@ -39,8 +39,8 @@ def test_glib_init_raises_on_unknown_transport() -> None:
 
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
 @pytest.mark.skipif(
-    sys.version_info[:3][1] in (10, 11, 12, 13),
-    reason="segfaults on py3.10,py3.11,py3.12,py3.13",
+    sys.version_info[:3][1] in (11, 12, 13),
+    reason="segfaults on py3.11,py3.12,py3.13",
 )
 def test_standard_interfaces():
     bus = MessageBus().connect_sync()
@@ -83,8 +83,8 @@ def test_standard_interfaces():
 
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
 @pytest.mark.skipif(
-    sys.version_info[:3][1] in (10, 11, 12, 13),
-    reason="segfaults on py3.10,py3.11,py3.12,py3.13",
+    sys.version_info[:3][1] in (11, 12, 13),
+    reason="segfaults on py3.11,py3.12,py3.13",
 )
 def test_sending_messages_between_buses():
     bus1 = MessageBus().connect_sync()
@@ -152,8 +152,8 @@ def test_sending_messages_between_buses():
 
 @pytest.mark.skipif(not has_gi, reason=skip_reason_no_gi)
 @pytest.mark.skipif(
-    sys.version_info[:3][1] in (10, 11, 12, 13),
-    reason="segfaults on py3.10,py3.11,py3.12,py3.13",
+    sys.version_info[:3][1] in (11, 12, 13),
+    reason="segfaults on py3.11,py3.12,py3.13",
 )
 def test_sending_signals_between_buses():
     bus1 = MessageBus().connect_sync()
