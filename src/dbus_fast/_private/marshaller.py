@@ -61,8 +61,6 @@ class Marshaller:
         return written + 4
 
     def write_signature(self, signature: str, type_: SignatureType) -> int:
-        if "\x00" in signature:
-            raise InvalidMessageError("signature value contains a NUL byte")
         get_signature_tree(signature)
         return self._write_signature(signature.encode())
 
@@ -78,9 +76,9 @@ class Marshaller:
         return self._write_string(value)
 
     def _write_string(self, value: _str) -> int:
-        if "\x00" in value:
-            raise InvalidMessageError("string value contains a NUL byte")
         value_bytes = value.encode()
+        if 0 in value_bytes:
+            raise InvalidMessageError("string value contains a NUL byte")
         value_len = len(value_bytes)
         written = self._align(4) + 4
         buf = self._buf

@@ -39,6 +39,7 @@ cdef class Marshaller:
 
     @cython.locals(
         buf=cython.bytearray,
+        value_bytes=cython.bytes,
         value_len=cython.uint,
         signature_len=cython.uint,
         written=cython.uint,

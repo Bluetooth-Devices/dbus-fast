@@ -1361,8 +1361,8 @@ def test_marshaller_string_with_nul_raises() -> None:
 
 
 def test_marshaller_signature_type_with_nul_raises() -> None:
-    """Marshaller._write_signature must raise for a NUL byte in a 'g' body value."""
-    with pytest.raises(InvalidMessageError, match="NUL"):
+    """A NUL byte in a 'g' body value is rejected as an invalid signature."""
+    with pytest.raises(InvalidSignatureError, match="unexpected token"):
         Marshaller("g", ["s\x00s"]).marshall()
 
 
