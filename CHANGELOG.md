@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v5.0.26 (2026-10-02)
+
+### Bug Fixes
+
+- Remove local annotations conflicting with .pxd under Cython 3.3
+  ([#809](https://github.com/Bluetooth-Devices/dbus-fast/pull/809),
+  [`92e79a7`](https://github.com/Bluetooth-Devices/dbus-fast/commit/92e79a799c7469156b46ba456810f0eff348af14))
+
+
 ## v5.0.25 (2026-10-01)
 
 ### Bug Fixes
