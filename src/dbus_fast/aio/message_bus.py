@@ -29,7 +29,7 @@ from ..constants import (
     ReleaseNameReply,
     RequestNameReply,
 )
-from ..errors import AuthError
+from ..errors import AuthError, AuthTimeoutError
 from ..message import Message
 from ..message_bus import BaseMessageBus, _block_unexpected_reply
 from ..service import ServiceInterface, _Method
@@ -194,6 +194,11 @@ class MessageBus(BaseMessageBus):
     :param negotiate_unix_fd: Allow the bus to send and receive Unix file
         descriptors (DBus type 'h'). This must be supported by the transport.
     :type negotiate_unix_fd: bool
+    :param auth_timeout:
+        Seconds to wait for the SASL authentication handshake to complete
+        before raising :class:`AuthTimeoutError <dbus_fast.AuthTimeoutError>`.
+        ``None`` disables the timeout entirely.
+    :type auth_timeout: float or None
 
     :ivar unique_name: The unique name of the message bus connection. It will
         be :class:`None` until the message bus connects.
@@ -208,7 +213,14 @@ class MessageBus(BaseMessageBus):
         raised from :func:`connect() <dbus_fast.aio.MessageBus.connect>`.
     """
 
-    __slots__ = ("_auth", "_disconnect_future", "_loop", "_pending_futures", "_writer")
+    __slots__ = (
+        "_auth",
+        "_auth_timeout",
+        "_disconnect_future",
+        "_loop",
+        "_pending_futures",
+        "_writer",
+    )
 
     def __init__(
         self,
@@ -216,7 +228,10 @@ class MessageBus(BaseMessageBus):
         bus_type: BusType = BusType.SESSION,
         auth: Authenticator | None = None,
         negotiate_unix_fd: bool = False,
+        auth_timeout: float | None = None,
     ) -> None:
+        if auth_timeout is not None and auth_timeout <= 0:
+            raise ValueError("auth_timeout must be greater than 0")
         super().__init__(bus_address, bus_type, ProxyObject, negotiate_unix_fd)
         self._loop = asyncio.get_running_loop()
 
@@ -230,6 +245,7 @@ class MessageBus(BaseMessageBus):
         else:
             self._auth = auth
 
+        self._auth_timeout = auth_timeout
         self._disconnect_future = self._loop.create_future()
         self._pending_futures: set[asyncio.Future] = set()
 
@@ -244,6 +260,9 @@ class MessageBus(BaseMessageBus):
         :raises:
             - :class:`AuthError <dbus_fast.AuthError>` - If authorization to \
               the DBus daemon failed.
+            - :class:`AuthTimeoutError <dbus_fast.AuthTimeoutError>` - \
+              If ``auth_timeout`` is set and the SASL handshake does not complete \
+              within the deadline.
             - :class:`OSError` - If the socket could not be connected (e.g. \
               :class:`ConnectionRefusedError`, :class:`FileNotFoundError`). \
               When multiple transports are given, the error from the last \
@@ -587,7 +606,7 @@ class MessageBus(BaseMessageBus):
                 raise AuthError("auth line exceeded maximum size")
         return buf[:-2].decode()
 
-    async def _authenticate(self) -> None:
+    async def _inner_authenticate(self) -> None:
         await self._loop.sock_sendall(self._sock, b"\0")
 
         first_line = self._auth._authentication_start(
@@ -612,6 +631,16 @@ class MessageBus(BaseMessageBus):
                 # from the client must be the first octet of the authenticated/encrypted stream
                 # of D-Bus messages.
                 break
+
+    async def _authenticate(self) -> None:
+        timeout = asyncio.timeout(self._auth_timeout)
+        try:
+            async with timeout:
+                await self._inner_authenticate()
+        except TimeoutError as e:
+            if not timeout.expired():
+                raise
+            raise AuthTimeoutError("authentication timed out") from e
 
     def _finalize(self, err: Exception | None = None) -> None:
         try:

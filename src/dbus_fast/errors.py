@@ -24,6 +24,10 @@ class AuthError(ValueError, DBusFastError):
     pass
 
 
+class AuthTimeoutError(AuthError):
+    pass
+
+
 class InternalError(RuntimeError, DBusFastError):
     """Indicates a bug inside dbus-fast itself."""
 

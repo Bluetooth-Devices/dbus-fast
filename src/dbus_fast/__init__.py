@@ -12,6 +12,7 @@ from .constants import (
 )
 from .errors import (
     AuthError,
+    AuthTimeoutError,
     DBusError,
     DBusFastError,
     InterfaceNotFoundError,
@@ -44,6 +45,7 @@ from .validators import (
 __all__ = [
     "ArgDirection",
     "AuthError",
+    "AuthTimeoutError",
     "BusType",
     "DBusError",
     "DBusFastError",
