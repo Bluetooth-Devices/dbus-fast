@@ -2,6 +2,21 @@
 
 <!-- version list -->
 
+## v5.1.0 (2026-10-02)
+
+### Features
+
+- Drop python 3.10 and add python 3.15 support
+  ([#810](https://github.com/Bluetooth-Devices/dbus-fast/pull/810),
+  [`317a07c`](https://github.com/Bluetooth-Devices/dbus-fast/commit/317a07c5b7061740a740a8323ca69f3b88415627))
+
+### Testing
+
+- **message_bus**: Cover auth handshake and readline guards
+  ([#790](https://github.com/Bluetooth-Devices/dbus-fast/pull/790),
+  [`9b46182`](https://github.com/Bluetooth-Devices/dbus-fast/commit/9b461824086aaede94588788a28ec5a7fb1dc0df))
+
+
 ## v5.0.26 (2026-10-02)
 
 ### Bug Fixes
