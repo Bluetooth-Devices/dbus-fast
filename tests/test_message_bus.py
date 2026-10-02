@@ -1131,8 +1131,7 @@ async def test_authenticate_sends_responses_until_begin() -> None:
 
     await bus._authenticate()
 
-    assert loop.sent[0] == b"\0"
-    assert any(b"BEGIN" in data for data in loop.sent)
+    assert loop.sent == [b"\0", b"BEGIN\r\n"]
 
 
 @pytest.mark.asyncio
@@ -1145,8 +1144,7 @@ async def test_authenticate_sends_str_start_line() -> None:
 
     await bus._authenticate()
 
-    assert loop.sent[0] == b"\0"
-    assert any(b"AUTH EXTERNAL 30" in data for data in loop.sent)
+    assert loop.sent == [b"\0", b"AUTH EXTERNAL 30\r\n", b"BEGIN\r\n"]
 
 
 @pytest.mark.asyncio
