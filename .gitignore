@@ -141,3 +141,6 @@ cython_debug/
 
 # Cython generated files
 *.c
+
+# macOS Finder metadata
+.DS_Store
