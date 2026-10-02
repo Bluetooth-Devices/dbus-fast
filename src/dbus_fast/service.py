@@ -48,29 +48,49 @@ _background_tasks: set[asyncio.Task[Any]] = set()
 
 class _Method:
     def __init__(
-        self, fn: _MethodCallbackProtocol, name: str, disabled: bool = False
+        self,
+        fn: _MethodCallbackProtocol,
+        name: str,
+        disabled: bool = False,
+        in_signature: str | None = None,
+        out_signature: str | None = None,
     ) -> None:
-        in_signature = ""
-        out_signature = ""
-
         inspection = inspect.signature(fn)
         module = inspect.getmodule(fn)
 
         in_args: list[intr.Arg] = []
-        for i, param in enumerate(inspection.parameters.values()):
-            if i == 0:
-                # first is self
-                continue
-            annotation = parse_annotation(param.annotation, module)
-            if not annotation:
+        if in_signature is None:
+            in_signature = ""
+            for i, param in enumerate(inspection.parameters.values()):
+                if i == 0:
+                    # first is self
+                    continue
+                annotation = parse_annotation(param.annotation, module)
+                if not annotation:
+                    raise ValueError(
+                        "method parameters must specify the dbus type string as an annotation"
+                    )
+                in_args.append(intr.Arg(annotation, intr.ArgDirection.IN, param.name))
+                in_signature += annotation
+        else:
+            param_names = [
+                param.name
+                for i, param in enumerate(inspection.parameters.values())
+                if i != 0
+            ]
+            types = get_signature_tree(in_signature).types
+            if len(types) != len(param_names):
                 raise ValueError(
-                    "method parameters must specify the dbus type string as an annotation"
+                    "in_signature has "
+                    f"{len(types)} complete type(s) but the method takes "
+                    f"{len(param_names)} parameter(s)"
                 )
-            in_args.append(intr.Arg(annotation, intr.ArgDirection.IN, param.name))
-            in_signature += annotation
+            for i, type_ in enumerate(types):
+                in_args.append(intr.Arg(type_, intr.ArgDirection.IN, param_names[i]))
 
         out_args: list[intr.Arg] = []
-        out_signature = parse_annotation(inspection.return_annotation, module)
+        if out_signature is None:
+            out_signature = parse_annotation(inspection.return_annotation, module)
         if out_signature:
             for type_ in get_signature_tree(out_signature).types:
                 out_args.append(intr.Arg(type_, intr.ArgDirection.OUT))
@@ -86,7 +106,10 @@ class _Method:
 
 
 def dbus_method(
-    name: str | None = None, disabled: bool = False
+    name: str | None = None,
+    disabled: bool = False,
+    in_signature: str | None = None,
+    out_signature: str | None = None,
 ) -> Callable[[Callable[_P, Any]], Callable[_P, None]]:
     """A decorator to mark a class method of a :class:`ServiceInterface` to be a DBus service method.
 
@@ -107,6 +130,13 @@ def dbus_method(
     :type name: str
     :param disabled: If set to true, the method will not be visible to clients.
     :type disabled: bool
+    :param in_signature: The D-Bus signature of the input arguments. When
+        given, the parameter annotations are not inspected, so plain Python
+        type hints may be used instead.
+    :type in_signature: str
+    :param out_signature: The D-Bus signature of the return value. When given,
+        the return annotation is not inspected.
+    :type out_signature: str
 
     :example:
 
@@ -135,6 +165,14 @@ def dbus_method(
         ) -> Annotated[tuple[str, int], DBusSignature("su")]:
             return val1, val2
 
+    Alternatively, the signatures can be specified directly on the decorator,
+    leaving the parameters and return value free for ordinary Python type
+    hints::
+
+        @dbus_method(in_signature="su", out_signature="s")
+        def echo_two(self, val1: str, val2: int) -> str:
+            return f"{val1}{val2}"
+
     .. versionchanged:: v4.0.0
         :class:`typing.Annotated` can now be used to provide type hints and the
         D-Bus signature at the same time. Older versions require D-Bus signature
@@ -147,6 +185,10 @@ def dbus_method(
         raise TypeError("name must be a string")
     if type(disabled) is not bool:
         raise TypeError("disabled must be a bool")
+    if in_signature is not None and type(in_signature) is not str:
+        raise TypeError("in_signature must be a string")
+    if out_signature is not None and type(out_signature) is not str:
+        raise TypeError("out_signature must be a string")
 
     def decorator(fn: Callable[_P, Any]) -> Callable[_P, None]:
         @wraps(fn)
@@ -155,7 +197,11 @@ def dbus_method(
 
         fn_name = name or fn.__name__
         wrapped.__dict__["__DBUS_METHOD"] = _Method(
-            cast(_MethodCallbackProtocol, fn), fn_name, disabled=disabled
+            cast(_MethodCallbackProtocol, fn),
+            fn_name,
+            disabled=disabled,
+            in_signature=in_signature,
+            out_signature=out_signature,
         )
 
         return wrapped
@@ -168,19 +214,21 @@ method = dbus_method  # backward compatibility alias
 
 class _Signal:
     def __init__(
-        self, fn: Callable[..., Any], name: str, disabled: bool = False
+        self,
+        fn: Callable[..., Any],
+        name: str,
+        disabled: bool = False,
+        signature: str | None = None,
     ) -> None:
         inspection = inspect.signature(fn)
         module = inspect.getmodule(fn)
 
         args: list[intr.Arg] = []
-        signature = ""
-        signature_tree = None
 
-        return_annotation = parse_annotation(inspection.return_annotation, module)
+        if signature is None:
+            signature = parse_annotation(inspection.return_annotation, module)
 
-        if return_annotation:
-            signature = return_annotation
+        if signature:
             signature_tree = get_signature_tree(signature)
             for type_ in signature_tree.types:
                 args.append(intr.Arg(type_, intr.ArgDirection.OUT))
@@ -196,7 +244,9 @@ class _Signal:
 
 
 def dbus_signal(
-    name: str | None = None, disabled: bool = False
+    name: str | None = None,
+    disabled: bool = False,
+    signature: str | None = None,
 ) -> Callable[
     [Callable[Concatenate[_TInterface, _P], Any]],
     Callable[Concatenate[_TInterface, _P], Any],
@@ -217,6 +267,9 @@ def dbus_signal(
     :type name: str
     :param disabled: If set to true, the signal will not be visible to clients.
     :type disabled: bool
+    :param signature: The D-Bus signature of the signal arguments. When given,
+        the return annotation is not inspected.
+    :type signature: str
 
     :example:
 
@@ -245,6 +298,12 @@ def dbus_signal(
         ) -> Annotated[tuple[str, str], DBusSignature("ss")]:
             return val1, val2
 
+    Alternatively, the signature can be specified directly on the decorator::
+
+        @dbus_signal(signature="as")
+        def list_signal(self) -> list[str]:
+            return ["a", "b"]
+
     .. versionchanged:: v4.0.0
         :class:`typing.Annotated` can now be used to provide type hints and the
         D-Bus signature at the same time. Older versions require D-Bus signature
@@ -257,12 +316,14 @@ def dbus_signal(
         raise TypeError("name must be a string")
     if type(disabled) is not bool:
         raise TypeError("disabled must be a bool")
+    if signature is not None and type(signature) is not str:
+        raise TypeError("signature must be a string")
 
     def decorator(
         fn: Callable[Concatenate[_TInterface, _P], Any],
     ) -> Callable[Concatenate[_TInterface, _P], Any]:
         fn_name = name or fn.__name__
-        signal = _Signal(fn, fn_name, disabled)
+        signal = _Signal(fn, fn_name, disabled, signature)
 
         @wraps(fn)
         def wrapped(self: _TInterface, *args: _P.args, **kwargs: _P.kwargs) -> Any:
@@ -283,10 +344,23 @@ signal = dbus_signal  # backward compatibility alias
 
 
 class _Property(property):
+    def _set_signature(self, signature: str) -> None:
+        tree = get_signature_tree(signature)
+        if len(tree.types) != 1:
+            raise ValueError("the property signature must be a single complete type")
+        self.signature = signature
+        self.type = tree.types[0]
+
     def set_options(self, options: dict[str, Any]) -> None:
         self.options = getattr(self, "options", {})
         for k, v in options.items():
             self.options[k] = v
+
+        # When the signature is given on the decorator it must be restored here:
+        # property.setter() recreates the instance through __init__ without the
+        # options, leaving the getter's plain type hint unusable.
+        if options.get("signature") is not None:
+            self._set_signature(options["signature"])
 
         if "name" in options and options["name"] is not None:
             self.name = options["name"]
@@ -313,20 +387,29 @@ class _Property(property):
 
         module = inspect.getmodule(fn)
 
-        return_annotation = parse_annotation(inspection.return_annotation, module)
+        explicit_signature = None
+        if "options" in kwargs:
+            explicit_signature = kwargs["options"].get("signature")
 
-        if not return_annotation:
-            raise ValueError(
-                "the property must specify the dbus type string as a return annotation string"
-            )
-
-        self.signature = return_annotation
-        tree = get_signature_tree(return_annotation)
-
-        if len(tree.types) != 1:
-            raise ValueError("the property signature must be a single complete type")
-
-        self.type = tree.types[0]
+        if explicit_signature is not None:
+            self._set_signature(explicit_signature)
+        elif "options" in kwargs:
+            signature = parse_annotation(inspection.return_annotation, module)
+            if not signature:
+                raise ValueError(
+                    "the property must specify the dbus type string as a return annotation string"
+                )
+            self._set_signature(signature)
+        else:
+            # property.setter() recreation path: the original property carried an
+            # explicit decorator signature, so the getter's type hint cannot be
+            # parsed. set_options() (called by setter()) restores the signature.
+            try:
+                signature = parse_annotation(inspection.return_annotation, module)
+            except ValueError:
+                signature = ""
+            if signature:
+                self._set_signature(signature)
 
         if "options" in kwargs:
             options = kwargs["options"]
@@ -349,6 +432,7 @@ def dbus_property(
     access: PropertyAccess = PropertyAccess.READWRITE,
     name: str | None = None,
     disabled: bool = False,
+    signature: str | None = None,
 ) -> Callable[[Callable[..., Any]], _Property]:
     """A decorator to mark a class method of a :class:`ServiceInterface` to be a DBus property.
 
@@ -374,6 +458,9 @@ def dbus_property(
     :param disabled: If set to true, the property will not be visible to
         clients.
     :type disabled: bool
+    :param signature: The D-Bus signature of the property. When given, the
+        getter return annotation is not inspected.
+    :type signature: str
 
     :example:
 
@@ -400,6 +487,16 @@ def dbus_property(
         def string_prop(self, val: DBusStr):
             self._string_prop = val
 
+    Alternatively, the signature can be specified directly on the decorator::
+
+        @dbus_property(signature="u")
+        def int_prop(self) -> int:
+            return self._int_prop
+
+        @int_prop.setter
+        def int_prop(self, val: int):
+            self._int_prop = val
+
     .. versionchanged:: v4.0.0
         :class:`typing.Annotated` can now be used to provide type hints and the
         D-Bus signature at the same time. Older versions require D-Bus signature
@@ -411,9 +508,16 @@ def dbus_property(
         raise TypeError("name must be a string")
     if type(disabled) is not bool:
         raise TypeError("disabled must be a bool")
+    if signature is not None and type(signature) is not str:
+        raise TypeError("signature must be a string")
 
     def decorator(fn: Callable[..., Any]) -> _Property:
-        options: dict[str, Any] = {"name": name, "access": access, "disabled": disabled}
+        options: dict[str, Any] = {
+            "name": name,
+            "access": access,
+            "disabled": disabled,
+            "signature": signature,
+        }
         return _Property(fn, options=options)
 
     return decorator
