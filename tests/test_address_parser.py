@@ -136,8 +136,7 @@ def test_session_bus_address_unparseable_display_raises() -> None:
 def _read_real_machine_id() -> str:
     """Return the host's real ``/var/lib/dbus/machine-id`` or skip the test."""
     try:
-        with open("/var/lib/dbus/machine-id") as f:
-            return f.read().rstrip()
+        return Path("/var/lib/dbus/machine-id").read_text().rstrip()
     except OSError:
         pytest.skip("/var/lib/dbus/machine-id is not available on this host")
 

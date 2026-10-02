@@ -1,8 +1,8 @@
 import io
 import json
-import os
 import struct
 from enum import Enum
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -138,11 +138,11 @@ def print_buf(buf):
 
 
 # these messages have been verified with another library
-with open(os.path.dirname(__file__) + "/data/messages.json") as f:
-    table = json.load(f)
+_DATA_DIR = Path(__file__).parent / "data"
 
-with open(os.path.dirname(__file__) + "/data/get_managed_objects.hex") as fp:
-    get_managed_objects_msg = fp.read()
+table = json.loads((_DATA_DIR / "messages.json").read_text())
+
+get_managed_objects_msg = (_DATA_DIR / "get_managed_objects.hex").read_text()
 
 
 def json_to_message(message: dict[str, Any]) -> Message:

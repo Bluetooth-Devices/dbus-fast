@@ -8,10 +8,10 @@
 # be a further problem. More information here:
 # https://dbus.freedesktop.org/doc/dbus-specification.html#auth-mechanisms
 
-import os
 import sys
+from pathlib import Path
 
-sys.path.append(os.path.abspath(os.path.dirname(__file__) + "/.."))
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 import asyncio
 
