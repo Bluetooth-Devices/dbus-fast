@@ -1145,4 +1145,3 @@ async def test_authenticate_sends_str_start_line() -> None:
     await bus._authenticate()
 
     assert loop.sent == [b"\0", b"AUTH EXTERNAL 30\r\n", b"BEGIN\r\n"]
-
