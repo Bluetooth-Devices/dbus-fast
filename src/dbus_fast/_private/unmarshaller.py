@@ -628,7 +628,7 @@ class Unmarshaller:
         if cython.compiled:
             if self._buf_len <= self._pos:
                 raise IndexError("Not enough data to read signature")
-        result: Variant | None = None
+        result = None
         signature_len = self._buf_ustr[self._pos]
         if signature_len == 1:
             self._pos += 3  # 1 len byte + 1 signature char + 1 null terminator
@@ -945,7 +945,7 @@ class Unmarshaller:
         header_signature = header_fields[HEADER_SIGNATURE_IDX]
         if not self._body_len:
             tree = SIGNATURE_TREE_EMPTY
-            body: list[Any] = []
+            body = []
         elif type(header_signature) is not str or not header_signature:
             # A non-empty body requires a valid signature header field
             # (spec §4.1). A forged frame may omit it (None), send it empty, or
@@ -955,7 +955,7 @@ class Unmarshaller:
                 "message has a body but no valid signature header field"
             )
         else:
-            signature: str = header_signature
+            signature = header_signature
             token_as_int = ord(signature[0])
             if len(signature) == 1:
                 if token_as_int == TOKEN_O_AS_INT:

@@ -107,7 +107,7 @@ class Marshaller:
     ) -> int:
         written = self._align(4)
         # length placeholder
-        buf: bytearray = self._buf
+        buf = self._buf
         offset = len(buf)
         written += self._align(4) + 4
         buf += PACKED_UINT32_ZERO
