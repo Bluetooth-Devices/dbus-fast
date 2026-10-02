@@ -96,7 +96,7 @@ connection is not recommended.
 
     bus = await MessageBus().connect()
 
-    await bus.call(
+    reply = await bus.call(
         Message(destination='org.freedesktop.DBus',
                 path='/org/freedesktop/DBus',
                 interface='org.freedesktop.DBus',
@@ -107,9 +107,13 @@ connection is not recommended.
                       "member='PropertiesChanged',"
                       "path_namespace='/org/freedesktop/network1/link'"]))
 
+    assert reply.message_type == MessageType.METHOD_RETURN
+
     def message_handler(msg):
-        if (msg.message_type is MessageType.SIGNAL
-                and msg.member == 'PropertiesChanged'):
+        if (msg.message_type == MessageType.SIGNAL
+                and msg.interface == 'org.freedesktop.DBus.Properties'
+                and msg.member == 'PropertiesChanged'
+                and msg.path.startswith('/org/freedesktop/network1/link')):
             print(msg.path, msg.body)
 
     bus.add_message_handler(message_handler)
