@@ -49,7 +49,7 @@ pytest = ">=7,<10"
 pytest-cov = ">=3,<8"
 pytest-asyncio = ">=0.19,<1.5"
 pycairo = "^1.21.0"
-PyGObject = {version = ">=3.50,<3.57", python = "<4"}
+PyGObject = {version = ">=3.50,<3.59", python = "<4"}
 Cython = ">=3,<3.4"
 setuptools = ">=65.4.1,<85.0.0"
 pytest-timeout = "^2.1.0"
