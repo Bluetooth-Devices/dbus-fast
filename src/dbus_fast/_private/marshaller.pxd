@@ -8,12 +8,12 @@ from ..signature cimport SignatureTree, SignatureType, Variant
 cdef object PACK_UINT32
 
 cdef bytes PACKED_UINT32_ZERO
-cdef bytes PACKED_BOOL_TRUE
-cdef bytes PACKED_BOOL_FALSE
 
 cdef unsigned int _MAX_ARRAY_LENGTH
 
 cdef get_signature_tree
+
+cdef dict _WRITERS
 
 cdef class Marshaller:
 
@@ -32,6 +32,7 @@ cdef class Marshaller:
 
     @cython.locals(
         written=cython.uint,
+        buf=cython.bytearray,
     )
     cdef unsigned int _write_boolean(self, bint boolean)
 
@@ -55,6 +56,7 @@ cdef class Marshaller:
 
     @cython.locals(
         array_len=cython.ulonglong,
+        offset=cython.Py_ssize_t,
         buf=cython.bytearray,
         written=cython.uint,
         token=cython.str,
@@ -81,6 +83,7 @@ cdef class Marshaller:
         written=cython.uint,
         signature=cython.str,
         signature_bytes=cython.bytes,
+        buf=cython.bytearray,
     )
     cdef unsigned int _write_variant(self, Variant variant, SignatureType type_)
 
