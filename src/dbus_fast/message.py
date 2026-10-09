@@ -1,5 +1,6 @@
 # cython: freethreading_compatible = True
 
+from struct import Struct
 from typing import Any
 
 from ._private.constants import (
@@ -8,10 +9,10 @@ from ._private.constants import (
     PROTOCOL_VERSION,
     HeaderField,
 )
-from ._private.marshaller import Marshaller
+from ._private.marshaller import MAX_ARRAY_LENGTH, Marshaller
 from .constants import ErrorType, MessageFlag, MessageType
 from .errors import InvalidMessageError
-from .signature import SignatureTree, Variant, get_signature_tree
+from .signature import SignatureTree, get_signature_tree
 from .validators import (
     assert_bus_name_valid,
     assert_interface_name_valid,
@@ -40,15 +41,37 @@ MESSAGE_FLAG = MessageFlag
 MESSAGE_FLAG_NONE = MessageFlag.NONE
 MESSAGE_TYPE_METHOD_CALL = MessageType.METHOD_CALL
 
-SIGNATURE_TREE_G = get_signature_tree("g")
-SIGNATURE_TREE_O = get_signature_tree("o")
-SIGNATURE_TREE_S = get_signature_tree("s")
-SIGNATURE_TREE_U = get_signature_tree("u")
+
+def _header_field_prefix(field: int, signature: str) -> bytes:
+    """Return the field code and one-char variant signature of a header field."""
+    return bytes((field, 1, ord(signature), 0))
+
+
+# Each header field is an 8-aligned (yv) struct; its code plus a one-char
+# variant signature fill exactly 4 bytes, so uint32/string values that follow
+# are already 4-aligned and need no padding.
+HEADER_FIELD_PATH = _header_field_prefix(HEADER_PATH, "o")
+HEADER_FIELD_INTERFACE = _header_field_prefix(HEADER_INTERFACE, "s")
+HEADER_FIELD_MEMBER = _header_field_prefix(HEADER_MEMBER, "s")
+HEADER_FIELD_ERROR_NAME = _header_field_prefix(HEADER_ERROR_NAME, "s")
+HEADER_FIELD_REPLY_SERIAL = _header_field_prefix(HEADER_REPLY_SERIAL, "u")
+HEADER_FIELD_DESTINATION = _header_field_prefix(HEADER_DESTINATION, "s")
+HEADER_FIELD_SIGNATURE = _header_field_prefix(HEADER_SIGNATURE, "g")
+HEADER_FIELD_UNIX_FDS = _header_field_prefix(HEADER_UNIX_FDS, "u")
+
+# Fixed 16-byte header start: endianness, type, flags, version, body length,
+# serial and a placeholder for the header-field array length.
+HEADER_FIELDS_OFFSET = 16
+PACK_HEADER_START = Struct("<BBBBIII").pack
+PACK_UINT32 = Struct("<I").pack
+PACK_UINT32_INTO = Struct("<I").pack_into
+ZERO_PADDING = tuple(bytes(n) for n in range(8))
 
 # _MAX_MESSAGE_SIZE is the cdef alias of MAX_MESSAGE_SIZE used in the marshall
 # path. Typed Py_ssize_t (per message.pxd), not unsigned int, to match the
 # signed len(body_buffer) it is compared against and stay sign-compare clean.
 _MAX_MESSAGE_SIZE = MAX_MESSAGE_SIZE
+_MAX_ARRAY_LENGTH = MAX_ARRAY_LENGTH
 
 _int = int
 _str = str
@@ -341,67 +364,56 @@ class Message:
                 f"body={len(body_buffer)}"
             )
 
-        fields = []
-
-        # No verify here since the marshaller will raise an exception if the
-        # Variant is invalid.
-
+        # The header is a fixed "yyyyuua(yv)" layout, so write it directly
+        # instead of building Variants for the generic Marshaller.
+        header_buffer = bytearray(
+            PACK_HEADER_START(
+                LITTLE_ENDIAN,
+                self.message_type.value,
+                self.flags.value,
+                PROTOCOL_VERSION,
+                len(body_buffer),
+                self.serial,
+                0,
+            )
+        )
         if self.path:
-            fields.append((HEADER_PATH, Variant._factory(SIGNATURE_TREE_O, self.path)))
+            _write_header_string(header_buffer, HEADER_FIELD_PATH, self.path)
         if self.interface:
-            fields.append(
-                (HEADER_INTERFACE, Variant._factory(SIGNATURE_TREE_S, self.interface))
-            )
+            _write_header_string(header_buffer, HEADER_FIELD_INTERFACE, self.interface)
         if self.member:
-            fields.append(
-                (HEADER_MEMBER, Variant._factory(SIGNATURE_TREE_S, self.member))
-            )
+            _write_header_string(header_buffer, HEADER_FIELD_MEMBER, self.member)
         if self.error_name:
-            fields.append(
-                (
-                    HEADER_ERROR_NAME,
-                    Variant._factory(SIGNATURE_TREE_S, self.error_name),
-                )
+            _write_header_string(
+                header_buffer, HEADER_FIELD_ERROR_NAME, self.error_name
             )
         if self.reply_serial:
-            fields.append(
-                (
-                    HEADER_REPLY_SERIAL,
-                    Variant._factory(SIGNATURE_TREE_U, self.reply_serial),
-                )
+            _write_header_uint32(
+                header_buffer, HEADER_FIELD_REPLY_SERIAL, self.reply_serial
             )
         if self.destination:
-            fields.append(
-                (
-                    HEADER_DESTINATION,
-                    Variant._factory(SIGNATURE_TREE_S, self.destination),
-                )
+            _write_header_string(
+                header_buffer, HEADER_FIELD_DESTINATION, self.destination
             )
         if self.signature:
-            fields.append(
-                (HEADER_SIGNATURE, Variant._factory(SIGNATURE_TREE_G, self.signature))
-            )
+            signature_bytes = self.signature.encode()
+            _align8(header_buffer)
+            header_buffer += HEADER_FIELD_SIGNATURE
+            header_buffer.append(len(signature_bytes))
+            header_buffer += signature_bytes
+            header_buffer.append(0)
         if self.unix_fds and negotiate_unix_fd:
-            fields.append(
-                (
-                    HEADER_UNIX_FDS,
-                    Variant._factory(SIGNATURE_TREE_U, len(self.unix_fds)),
-                )
+            _write_header_uint32(
+                header_buffer, HEADER_FIELD_UNIX_FDS, len(self.unix_fds)
             )
 
-        header_body = [
-            LITTLE_ENDIAN,
-            self.message_type.value,
-            self.flags.value,
-            PROTOCOL_VERSION,
-            len(body_buffer),
-            self.serial,
-            fields,
-        ]
-        header_block = Marshaller("yyyyuua(yv)", header_body)
-        header_block._marshall()
-        header_block._align(8)
-        header_buffer = header_block._buffer()
+        fields_len = len(header_buffer) - HEADER_FIELDS_OFFSET
+        if fields_len > _MAX_ARRAY_LENGTH:
+            raise InvalidMessageError(
+                f"array size {fields_len} exceeds maximum {_MAX_ARRAY_LENGTH}"
+            )
+        PACK_UINT32_INTO(header_buffer, HEADER_FIELDS_OFFSET - 4, fields_len)
+        _align8(header_buffer)
         # The bus measures header + body against the 128 MiB ceiling, so a body
         # that fits alone can still overflow once the header is added. Mirror the
         # unmarshaller's combined check (and its error format).
@@ -411,3 +423,27 @@ class Message:
                 f"header={len(header_buffer)}, body={len(body_buffer)}"
             )
         return header_buffer + body_buffer
+
+
+def _align8(buf: bytearray) -> None:
+    """Pad buf with NUL bytes to an 8-byte boundary."""
+    buf += ZERO_PADDING[-len(buf) & 7]
+
+
+def _write_header_uint32(buf: bytearray, field: bytes, value: _int) -> None:
+    """Append a uint32 header field."""
+    _align8(buf)
+    buf += field
+    buf += PACK_UINT32(value)
+
+
+def _write_header_string(buf: bytearray, field: bytes, value: _str) -> None:
+    """Append a string or object path header field."""
+    value_bytes = value.encode()
+    if 0 in value_bytes:
+        raise InvalidMessageError("string value contains a NUL byte")
+    _align8(buf)
+    buf += field
+    buf += PACK_UINT32(len(value_bytes))
+    buf += value_bytes
+    buf.append(0)
