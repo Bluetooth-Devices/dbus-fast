@@ -473,7 +473,8 @@ class ServiceInterface:
         self.__methods: list[_Method] = []
         self.__properties: list[_Property] = []
         self.__signals: list[_Signal] = []
-        self.__buses: set[BaseMessageBus] = set()
+        # Map of bus -> object path this interface is exported at
+        self.__buses: dict[BaseMessageBus, str] = {}
         self.__handlers: dict[BaseMessageBus, dict[_Method, HandlerType]] = {}
         # Map of methods by bus of name -> method, handler
         self.__handlers_by_name_signature: dict[
@@ -534,9 +535,9 @@ class ServiceInterface:
                 )
 
         body: list[Any] = [self.name, variant_dict, invalidated_properties]
-        for bus in ServiceInterface._get_buses(self):
+        for bus, path in self.__buses.items():
             bus._interface_signal_notify(
-                self,
+                path,
                 "org.freedesktop.DBus.Properties",
                 "PropertiesChanged",
                 "sa{sv}as",
@@ -584,7 +585,7 @@ class ServiceInterface:
         return interface.__signals
 
     @staticmethod
-    def _get_buses(interface: ServiceInterface) -> set[BaseMessageBus]:
+    def _get_buses(interface: ServiceInterface) -> dict[BaseMessageBus, str]:
         return interface.__buses
 
     @staticmethod
@@ -606,13 +607,14 @@ class ServiceInterface:
     def _add_bus(
         interface: ServiceInterface,
         bus: BaseMessageBus,
+        path: str,
         maker: Callable[[ServiceInterface, _Method], HandlerType],
     ) -> None:
         if bus in interface.__buses:
             raise ValueError(
                 "Same interface instance cannot be added to the same bus twice"
             )
-        interface.__buses.add(bus)
+        interface.__buses[bus] = path
         interface.__handlers[bus] = {
             method: maker(interface, method) for method in interface.__methods
         }
@@ -623,7 +625,7 @@ class ServiceInterface:
 
     @staticmethod
     def _remove_bus(interface: ServiceInterface, bus: BaseMessageBus) -> None:
-        interface.__buses.remove(bus)
+        del interface.__buses[bus]
         del interface.__handlers[bus]
 
     @staticmethod
@@ -668,9 +670,9 @@ class ServiceInterface:
         interface: ServiceInterface, signal: _Signal, result: Any | None
     ) -> None:
         body, fds = ServiceInterface._fn_result_to_body(result, signal.signature_tree)
-        for bus in ServiceInterface._get_buses(interface):
+        for bus, path in interface.__buses.items():
             bus._interface_signal_notify(
-                interface, interface.name, signal.name, signal.signature, body, fds
+                path, interface.name, signal.name, signal.signature, body, fds
             )
 
     @staticmethod

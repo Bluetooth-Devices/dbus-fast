@@ -389,7 +389,7 @@ class _RecordingBus(BaseMessageBus):
 
     def _interface_signal_notify(
         self,
-        interface: ServiceInterface,
+        path: str,
         interface_name: str,
         member: str,
         signature: str,
@@ -418,7 +418,7 @@ def _emit_iface() -> ServiceInterface:
 
 def _attach(iface: ServiceInterface) -> _RecordingBus:
     bus = _RecordingBus()
-    ServiceInterface._add_bus(iface, bus, lambda i, m: lambda msg, sr: None)
+    ServiceInterface._add_bus(iface, bus, "/", lambda i, m: lambda msg, sr: None)
     return bus
 
 
@@ -539,10 +539,82 @@ def test_enabled_handler_lookup_matches_signature_and_skips_disabled() -> None:
 
     iface = Iface()
     bus = BaseMessageBus(bus_address="unix:path=/dev/null")
-    ServiceInterface._add_bus(iface, bus, maker)
+    ServiceInterface._add_bus(iface, bus, "/", maker)
 
     lookup = ServiceInterface._get_enabled_handler_by_name_signature
     assert lookup(iface, bus, "Echo", "s") == "handler:Echo"
     assert lookup(iface, bus, "Echo", "i") is None
     assert lookup(iface, bus, "Hidden", "s") is None
     assert lookup(iface, bus, "Nonexistent", "s") is None
+
+
+class _SendCapturingBus(BaseMessageBus):
+    def __init__(self) -> None:
+        super().__init__(bus_address="unix:path=/dev/null")
+        self.sent: list[Message] = []
+
+    def send(self, msg: Message) -> None:
+        self.sent.append(msg)
+
+
+class _Emitter(ServiceInterface):
+    def __init__(self) -> None:
+        super().__init__("com.example.Emitter")
+
+    @dbus_property()
+    def Prop(self) -> DBusStr:
+        return "v"
+
+    @Prop.setter
+    def Prop(self, v: DBusStr) -> None:
+        pass
+
+    @dbus_signal()
+    def Ping(self) -> DBusInt32:
+        return 1
+
+
+def _emitted_paths(bus: _SendCapturingBus, iface: _Emitter) -> list[str | None]:
+    bus.sent.clear()
+    iface.Ping()
+    iface.emit_properties_changed({"Prop": "x"})
+    assert [m.member for m in bus.sent] == ["Ping", "PropertiesChanged"]
+    return [m.path for m in bus.sent]
+
+
+def test_signals_use_export_path_among_many_exports() -> None:
+    """Signals go out on the emitting interface's own export path."""
+    bus = _SendCapturingBus()
+    ifaces = [_Emitter() for _ in range(4)]
+    for i, iface in enumerate(ifaces):
+        bus.export(f"/com/example/obj{i}", iface)
+
+    assert _emitted_paths(bus, ifaces[2]) == ["/com/example/obj2"] * 2
+
+
+def test_signals_follow_reexport_to_new_path() -> None:
+    """After unexport and re-export, signals use the new path; in between, none."""
+    bus = _SendCapturingBus()
+    iface = _Emitter()
+    bus.export("/com/example/old", iface)
+    bus.unexport("/com/example/old", iface)
+
+    bus.sent.clear()
+    iface.Ping()
+    assert bus.sent == []
+
+    bus.export("/com/example/new", iface)
+    assert _emitted_paths(bus, iface) == ["/com/example/new"] * 2
+
+
+def test_signals_use_per_bus_export_path() -> None:
+    """An interface exported on two buses emits on each bus's own path."""
+    bus_a = _SendCapturingBus()
+    bus_b = _SendCapturingBus()
+    iface = _Emitter()
+    bus_a.export("/com/example/a", iface)
+    bus_b.export("/com/example/b", iface)
+
+    iface.Ping()
+    assert [m.path for m in bus_a.sent if m.member == "Ping"] == ["/com/example/a"]
+    assert [m.path for m in bus_b.sent if m.member == "Ping"] == ["/com/example/b"]
