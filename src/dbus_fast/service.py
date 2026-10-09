@@ -625,6 +625,7 @@ class ServiceInterface:
     def _remove_bus(interface: ServiceInterface, bus: BaseMessageBus) -> None:
         interface.__buses.remove(bus)
         del interface.__handlers[bus]
+        del interface.__handlers_by_name_signature[bus]
 
     @staticmethod
     def _msg_body_to_args(msg: Message) -> list[Any]:
