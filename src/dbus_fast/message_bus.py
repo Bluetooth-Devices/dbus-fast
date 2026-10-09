@@ -202,7 +202,7 @@ class BaseMessageBus:
                 f'An interface with this name is already exported on this bus at path "{path}": "{interface.name}"'
             )
 
-        ServiceInterface._add_bus(interface, self, self._make_method_handler)
+        ServiceInterface._add_bus(interface, self, path, self._make_method_handler)
         self._path_exports[path][interface.name] = interface
         self._emit_interface_added(path, interface)
 
@@ -619,24 +619,13 @@ class BaseMessageBus:
 
     def _interface_signal_notify(
         self,
-        interface: ServiceInterface,
+        path: str,
         interface_name: str,
         member: str,
         signature: str,
         body: list[Any],
         unix_fds: list[int] = [],
     ) -> None:
-        path: str | None = None
-        for p, ifaces in self._path_exports.items():
-            for i in ifaces.values():
-                if i is interface:
-                    path = p
-
-        if path is None:  # pragma: no cover
-            raise InternalError(
-                "Could not find interface on bus (this is a bug in dbus-fast)"
-            )
-
         self.send(
             Message.new_signal(
                 path=path,
