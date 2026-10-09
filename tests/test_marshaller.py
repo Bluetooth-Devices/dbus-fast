@@ -1441,6 +1441,72 @@ def test_message_marshall_object_path_with_nul_raises() -> None:
 
 
 @pytest.mark.parametrize(
+    "field", ["path", "interface", "member", "error_name", "destination"]
+)
+def test_message_marshall_header_string_with_nul_raises(field: str) -> None:
+    """A NUL byte in an unvalidated header string field raises InvalidMessageError."""
+    msg = Message(path="/test", member="test", validate=False)
+    setattr(msg, field, "bad\x00value")
+    with pytest.raises(InvalidMessageError, match="NUL"):
+        msg._marshall(False)
+
+
+def test_message_marshall_round_trips_every_header_field() -> None:
+    """Every header field the marshaller writes is read back unchanged."""
+    msg = Message(
+        message_type=MessageType.ERROR,
+        flags=MessageFlag.NO_REPLY_EXPECTED | MessageFlag.NO_AUTOSTART,
+        destination=":1.42",
+        path="/org/bluez/hci0/dev_AA_BB_CC_DD_EE_FF",
+        interface="org.bluez.Device1",
+        member="Connect",
+        error_name="org.bluez.Error.Failed",
+        reply_serial=0xFFFFFFFF,
+        signature="s",
+        body=["failed"],
+        serial=12345,
+    )
+    result = Unmarshaller(io.BytesIO(msg._marshall(False))).unmarshall()
+    assert result is not None
+    for field in (
+        "message_type",
+        "flags",
+        "destination",
+        "path",
+        "interface",
+        "member",
+        "error_name",
+        "reply_serial",
+        "signature",
+        "body",
+        "serial",
+    ):
+        assert getattr(result, field) == getattr(msg, field), field
+
+
+def test_message_marshall_unix_fds_header_only_when_negotiated() -> None:
+    """The UNIX_FDS header field carries the fd count only if fds are negotiated."""
+    msg = Message(path="/test", member="test", unix_fds=[3, 4, 5])
+    unix_fds_field = bytes((9, 1, ord("u"), 0)) + struct.pack("<I", 3)
+    assert unix_fds_field in msg._marshall(True)
+    assert unix_fds_field not in msg._marshall(False)
+
+
+@pytest.mark.skipif(
+    is_compiled(),
+    reason="_MAX_ARRAY_LENGTH is a compiled-in C constant that can't be patched",
+)
+def test_marshall_rejects_oversized_header_fields(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A header-field array over the array cap raises InvalidMessageError."""
+    monkeypatch.setattr(message, "_MAX_ARRAY_LENGTH", 8)
+    msg = Message(path="/test", member="test")
+    with pytest.raises(InvalidMessageError, match="array size"):
+        msg._marshall(False)
+
+
+@pytest.mark.parametrize(
     "bad_sig, match",
     [
         pytest.param("z", r'got unexpected token: "z"', id="unknown-type-code"),
