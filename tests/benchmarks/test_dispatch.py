@@ -3,11 +3,9 @@ import asyncio
 from pytest_codspeed import BenchmarkFixture
 
 from dbus_fast.aio import MessageBus
-from dbus_fast.aio.proxy_object import ProxyInterface
 from dbus_fast.constants import MessageType
-from dbus_fast.introspection import Arg, Interface, Signal
+from dbus_fast.introspection import Arg, Interface, Node, Signal
 from dbus_fast.message import Message
-from dbus_fast.proxy_object import SignalHandler
 from dbus_fast.signature import Variant
 
 ITERATIONS = 1000
@@ -22,12 +20,22 @@ _BUS_NAME = ":1.5"
 _PROPERTIES_INTERFACE = "org.freedesktop.DBus.Properties"
 
 
-def _build_properties_interface() -> Interface:
+class _OfflineBus(MessageBus):
+    """An unconnected bus that skips the AddMatch calls subscribing would send."""
+
+    def _init_high_level_client(self) -> None:
+        pass
+
+    def _add_match_rule(self, match_rule: str) -> None:
+        pass
+
+
+def _build_properties_node() -> Node:
     intf = Interface(_PROPERTIES_INTERFACE)
     intf.signals = [
         Signal("PropertiesChanged", args=[Arg("s"), Arg("a{sv}"), Arg("as")])
     ]
-    return intf
+    return Node(interfaces=[intf])
 
 
 def _build_signal(path: str) -> Message:
@@ -45,14 +53,10 @@ def _build_signal(path: str) -> Message:
 def _build_dispatch_fixture(subscribers: int) -> tuple[MessageBus, Message]:
     """A bus with ``subscribers`` proxy interfaces subscribed to PropertiesChanged.
 
-    Mirrors the high-level client signal path: each
-    :class:`ProxyInterface` registers one ``_message_handler`` into the
-    bus's user-handler list. The returned signal targets the *last*
-    subscriber's object path, so dispatching it walks the whole handler
-    list — ``subscribers - 1`` path-mismatch rejects plus one match and
-    callback. This is the per-signal cost that scales with the number of
-    tracked devices, and nothing under ``tests/benchmarks/`` exercised the
-    routing/dispatch layer before — only marshalling and unmarshalling.
+    Each subscriber is a proxy interface on its own object path, subscribed
+    through ``on_properties_changed``. The returned signal targets the
+    *last* subscriber's path; the other subscribers model the tracked
+    devices a signal must not be delivered to.
 
     The bus is built inside a throwaway event loop because
     :class:`MessageBus` binds the running loop at construction; the signal
@@ -60,17 +64,16 @@ def _build_dispatch_fixture(subscribers: int) -> tuple[MessageBus, Message]:
     """
 
     async def _setup() -> tuple[MessageBus, Message]:
-        bus = MessageBus()
+        bus = _OfflineBus(bus_address="unix:path=/dev/null")
         bus._name_owners[_BUS_NAME] = _BUS_NAME
-        intf = _build_properties_interface()
+        node = _build_properties_node()
         last_path = ""
         for i in range(subscribers):
             last_path = f"/org/bluez/hci0/dev_{i:012X}"
-            proxy = ProxyInterface(_BUS_NAME, last_path, intf, bus)
-            proxy._signal_handlers["PropertiesChanged"] = [
-                SignalHandler(lambda *args: None, False)
-            ]
-            bus.add_message_handler(proxy._message_handler)
+            proxy = bus.get_proxy_object(_BUS_NAME, last_path, node)
+            proxy.get_interface(_PROPERTIES_INTERFACE).on_properties_changed(
+                lambda *args: None
+            )
         return bus, _build_signal(last_path)
 
     loop = asyncio.new_event_loop()
