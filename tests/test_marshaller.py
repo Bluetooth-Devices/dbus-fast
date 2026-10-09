@@ -1476,3 +1476,30 @@ def test_marshall_accepts_valid_signature_type_g(
     """Marshalling a g-typed field encodes length byte + signature + NUL."""
     m = Marshaller("g", [sig])
     assert m.marshall() == expected_bytes
+
+
+@pytest.mark.parametrize("length", [0, 1, 0x1FF, 0x10203])
+def test_marshall_length_prefixes_are_little_endian_uint32(length: int) -> None:
+    """String and array length prefixes encode every byte of the uint32."""
+    prefix = struct.pack("<I", length)
+    assert Marshaller("s", ["a" * length]).marshall()[:4] == prefix
+    assert Marshaller("ay", [bytes(length)]).marshall()[:4] == prefix
+
+
+@pytest.mark.parametrize(
+    "variant, expected_bytes",
+    [
+        pytest.param(Variant("b", True), b"\x01b\x00\x00\x01\x00\x00\x00", id="b"),
+        pytest.param(
+            Variant(SignatureTree("as").types[0], ["x"]),
+            b"\x02as\x00\x06\x00\x00\x00\x01\x00\x00\x00x\x00",
+            id="as",
+        ),
+        pytest.param(Variant("(y)", [7]), b"\x03(y)\x00\x00\x00\x00\x07", id="struct"),
+    ],
+)
+def test_marshall_variant_signature_bytes(
+    variant: Variant, expected_bytes: bytes
+) -> None:
+    """A variant writes its signature then its value at the right alignment."""
+    assert bytes(Marshaller("v", [variant]).marshall()) == expected_bytes
