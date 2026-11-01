@@ -9,7 +9,12 @@ from dbus_fast.aio.message_bus import MessageBus, _MessageWriter
 
 
 def message():
-    return Message(destination="org.bluez", path="/device", interface="org.bluez.Device1", member="Disconnect")
+    return Message(
+        destination="org.bluez",
+        path="/device",
+        interface="org.bluez.Device1",
+        member="Disconnect",
+    )
 
 
 def test_call_does_not_leave_send_failure_unobserved():
@@ -47,11 +52,17 @@ def test_call_does_not_leave_send_failure_unobserved():
 def test_call_success_and_cancellation_keep_reply_semantics():
     async def scenario():
         bus = MessageBus(bus_address="unix:path=/nonexistent")
-        bus._writer = type("Writer", (), {"schedule_write": lambda self, msg, future: future.set_result(None)})()
+        bus._writer = type(
+            "Writer",
+            (),
+            {"schedule_write": lambda self, msg, future: future.set_result(None)},
+        )()
         call = asyncio.create_task(bus.call(message()))
         await asyncio.sleep(0)
         serial, callback = next(iter(bus._method_return_handlers.items()))
-        reply = Message.new_method_return(Message(serial=serial, path="/device", member="Disconnect"))
+        reply = Message.new_method_return(
+            Message(serial=serial, path="/device", member="Disconnect")
+        )
         callback(reply, None)
         assert await call is reply
         call = asyncio.create_task(bus.call(message()))
