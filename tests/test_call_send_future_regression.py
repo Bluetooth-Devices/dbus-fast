@@ -106,3 +106,62 @@ def test_synchronous_send_failure_does_not_orphan_futures():
         assert not errors
 
     asyncio.run(scenario())
+
+
+def test_send_failure_before_future_completion_cleans_up_pending_futures():
+    async def scenario():
+        loop = asyncio.get_running_loop()
+        errors = []
+        loop.set_exception_handler(lambda _loop, context: errors.append(context))
+        bus = MessageBus(bus_address="unix:path=/nonexistent")
+        pending = []
+
+        class FailingWriter:
+            def schedule_write(self, msg, future):
+                pending.append(future)
+                raise OSError("writer registration failed")
+
+        bus._writer = FailingWriter()
+        try:
+            await bus.call(message())
+        except OSError as error:
+            assert str(error) == "writer registration failed"
+        else:
+            raise AssertionError("writer failure must propagate")
+        assert pending[0].cancelled()
+        assert not bus._method_return_handlers
+        del bus
+        gc.collect()
+        await asyncio.sleep(0)
+        assert not errors
+
+    asyncio.run(scenario())
+
+
+def test_cancelled_send_and_call_leave_no_unhandled_exception():
+    async def scenario():
+        loop = asyncio.get_running_loop()
+        errors = []
+        loop.set_exception_handler(lambda _loop, context: errors.append(context))
+        bus = MessageBus(bus_address="unix:path=/nonexistent")
+        pending = []
+
+        class PendingWriter:
+            def schedule_write(self, msg, future):
+                pending.append(future)
+
+        bus._writer = PendingWriter()
+        call = asyncio.create_task(bus.call(message()))
+        await asyncio.sleep(0)
+        pending[0].cancel()
+        call.cancel()
+        try:
+            await call
+        except asyncio.CancelledError:
+            pass
+        else:
+            raise AssertionError("cancellation must propagate")
+        await asyncio.sleep(0)
+        assert not errors
+
+    asyncio.run(scenario())
