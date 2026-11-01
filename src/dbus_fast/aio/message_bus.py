@@ -66,6 +66,11 @@ def _future_set_result(fut: asyncio.Future, result: Any) -> None:
         fut.set_result(result)
 
 
+def _consume_send_result(future: asyncio.Future) -> None:
+    if not future.cancelled():
+        future.exception()
+
+
 class _MessageWriter:
     """A class to handle writing messages to the message bus."""
 
@@ -496,7 +501,15 @@ class MessageBus(BaseMessageBus):
 
         future = self._loop.create_future()
 
-        self._call(msg, partial(self._reply_handler, future))
+        try:
+            send_future = self._call(msg, partial(self._reply_handler, future))
+        except BaseException:
+            if future.done():
+                _consume_send_result(future)
+            else:
+                future.cancel()
+            raise
+        send_future.add_done_callback(_consume_send_result)
 
         await future
 
@@ -519,7 +532,14 @@ class MessageBus(BaseMessageBus):
             msg.serial = self.next_serial()
 
         future = self._loop.create_future()
-        self._writer.schedule_write(msg, future)
+        try:
+            self._writer.schedule_write(msg, future)
+        except BaseException:
+            if future.done():
+                _consume_send_result(future)
+            else:
+                future.cancel()
+            raise
         return future
 
     def get_proxy_object(
