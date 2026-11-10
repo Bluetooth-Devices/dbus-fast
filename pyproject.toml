@@ -66,6 +66,7 @@ build_command = "pip install poetry && poetry build --format sdist"
 [tool.pytest.ini_options]
 addopts = "-v --cov=dbus_fast --cov-report=term-missing:skip-covered"
 pythonpath = ["src"]
+asyncio_default_fixture_loop_scope = "function"
 filterwarnings = [
     "error",
     '''ignore:The global interpreter lock \(GIL\) has been enabled to load module 'gi\._gi'.*:RuntimeWarning''',
