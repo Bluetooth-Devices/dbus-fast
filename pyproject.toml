@@ -38,7 +38,7 @@ python = ">=3.11"
 
 # duplicated in docs/requirements.txt for readthedocs compatibility
 [tool.poetry.group.docs.dependencies]
-myst-parser = ">=0.18,<4.1"
+myst-parser = ">=0.18,<5.2"
 sphinx = ">=5.1.1,<9.0.0"
 sphinx-rtd-theme = ">=1,<4"
 sphinxcontrib-asyncio = "^0.3.0"
@@ -49,7 +49,7 @@ pytest = ">=7,<10"
 pytest-cov = ">=3,<8"
 pytest-asyncio = ">=0.19,<1.5"
 pycairo = "^1.21.0"
-PyGObject = {version = ">=3.50,<3.57", python = "<4"}
+PyGObject = {version = ">=3.50,<3.59", python = "<4"}
 Cython = ">=3,<3.4"
 setuptools = ">=65.4.1,<85.0.0"
 pytest-timeout = "^2.1.0"
@@ -66,6 +66,7 @@ build_command = "pip install poetry && poetry build --format sdist"
 [tool.pytest.ini_options]
 addopts = "-v --cov=dbus_fast --cov-report=term-missing:skip-covered"
 pythonpath = ["src"]
+asyncio_default_fixture_loop_scope = "function"
 filterwarnings = [
     "error",
     '''ignore:The global interpreter lock \(GIL\) has been enabled to load module 'gi\._gi'.*:RuntimeWarning''',
