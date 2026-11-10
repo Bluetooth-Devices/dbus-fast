@@ -741,7 +741,7 @@ class BaseMessageBus:
         self,
         msg: Message,
         callback: Callable[[Message | None, Exception | None], None] | None,
-    ) -> None:
+    ) -> Any:
         if not msg.serial:
             msg.serial = self.next_serial()
 
@@ -754,10 +754,16 @@ class BaseMessageBus:
                 self._reply_notify, msg, callback
             )
 
-        self.send(msg)
+        try:
+            send_result = self.send(msg)
+        except BaseException:
+            if reply_expected and callback is not None:
+                self._method_return_handlers.pop(msg.serial, None)
+            raise
 
         if not reply_expected and callback is not None:
             callback(None, None)
+        return send_result
 
     @staticmethod
     def _check_callback_type(callback: Callable) -> None:
