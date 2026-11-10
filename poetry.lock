@@ -646,14 +646,14 @@ windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "pygobject"
-version = "3.56.3"
+version = "3.58.1"
 description = "Python bindings for GObject Introspection"
 optional = false
 python-versions = ">=3.10"
 groups = ["dev"]
 markers = "python_version < \"4\""
 files = [
-    {file = "pygobject-3.56.3.tar.gz", hash = "sha256:12760e4a0e3d04b6eb95e06f7a27e362c826d567ea613373a92c003b6c70d2d6"},
+    {file = "pygobject-3.58.1.tar.gz", hash = "sha256:4c80598ade17fbaa7798e01a25d0bf29ce109740786026a074c5c62bb3e79d23"},
 ]
 
 [package.dependencies]
@@ -1135,7 +1135,7 @@ version = "2.8.0"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 optional = false
 python-versions = ">=3.10"
-groups = ["dev", "docs"]
+groups = ["docs"]
 files = [
     {file = "urllib3-2.8.0-py3-none-any.whl", hash = "sha256:0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3"},
     {file = "urllib3-2.8.0.tar.gz", hash = "sha256:63bf2ead4c879426ebf22ef2a781eeb4aa3b4ae798a0435506f8687fd5bb9b63"},
@@ -1150,4 +1150,4 @@ zstd = ["backports-zstd (>=1.0.0) ; python_version < \"3.14\""]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11"
-content-hash = "32ddf803f228599fc0c7f00d6e600afe3287668a25df25d791b008cdde866722"
+content-hash = "ea2253c4534889c1dd63586800c42350835b28f895a2d8e23e6970d6bbfa1243"
