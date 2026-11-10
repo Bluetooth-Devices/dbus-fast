@@ -29,14 +29,14 @@ dev = ["backports.zoneinfo ; python_version < \"3.9\"", "freezegun (>=1.0,<2.0)"
 
 [[package]]
 name = "blockbuster"
-version = "1.5.27"
+version = "1.5.28"
 description = "Utility to detect blocking calls in the async event loop"
 optional = false
 python-versions = ">=3.8"
 groups = ["dev"]
 files = [
-    {file = "blockbuster-1.5.27-py3-none-any.whl", hash = "sha256:f0acf153d22a791bf5f142935332ef8530960ec215541b48a6037e6cea0a8645"},
-    {file = "blockbuster-1.5.27.tar.gz", hash = "sha256:b8e9d988b9b91ba468c94530e219f26a00d3ff616b39ebf3da561a2a3eea9dd4"},
+    {file = "blockbuster-1.5.28-py3-none-any.whl", hash = "sha256:efd26ab08979d6ce904defa3db2b6b218a5672ad535d386a6bac781242db4e07"},
+    {file = "blockbuster-1.5.28.tar.gz", hash = "sha256:5af2ed9de6c874339a76cc831d1d11db79800a974573580e52ad827a70803482"},
 ]
 
 [package.dependencies]
