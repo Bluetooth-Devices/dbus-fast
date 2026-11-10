@@ -13,8 +13,6 @@ PACK_LITTLE_ENDIAN = "<"
 
 PACK_UINT32 = Struct(f"{PACK_LITTLE_ENDIAN}I").pack
 PACKED_UINT32_ZERO = PACK_UINT32(0)
-PACKED_BOOL_FALSE = PACK_UINT32(0)
-PACKED_BOOL_TRUE = PACK_UINT32(1)
 
 # D-Bus spec sec 4.4 caps a single marshalled array at 64 MiB. A larger array
 # yields a frame the bus rejects by disconnecting, so fail fast with a clear
@@ -57,7 +55,11 @@ class Marshaller:
 
     def _write_boolean(self, boolean: bool) -> int:
         written = self._align(4)
-        self._buf += PACKED_BOOL_TRUE if boolean else PACKED_BOOL_FALSE
+        buf = self._buf
+        buf.append(1 if boolean else 0)
+        buf.append(0)
+        buf.append(0)
+        buf.append(0)
         return written + 4
 
     def write_signature(self, signature: str, type_: SignatureType) -> int:
@@ -82,7 +84,10 @@ class Marshaller:
         value_len = len(value_bytes)
         written = self._align(4) + 4
         buf = self._buf
-        buf += PACK_UINT32(value_len)
+        buf.append(value_len & 0xFF)
+        buf.append((value_len >> 8) & 0xFF)
+        buf.append((value_len >> 16) & 0xFF)
+        buf.append(value_len >> 24)
         buf += value_bytes
         written += value_len
         buf.append(0)
@@ -94,8 +99,14 @@ class Marshaller:
 
     def _write_variant(self, variant: Variant, type_: SignatureType) -> int:
         signature = variant.signature
-        signature_bytes = signature.encode()
-        written = self._write_signature(signature_bytes)
+        if len(signature) == 1:
+            buf = self._buf
+            buf.append(1)
+            buf.append(ord(signature))
+            buf.append(0)
+            written = 3
+        else:
+            written = self._write_signature(signature.encode())
         written += self._write_single(variant.type, variant.value)
         return written
 
@@ -111,7 +122,7 @@ class Marshaller:
         # length placeholder
         buf = self._buf
         offset = len(buf)
-        written += self._align(4) + 4
+        written += 4
         buf += PACKED_UINT32_ZERO
         child_type = type_.children[0]
         token = child_type.token
@@ -130,7 +141,7 @@ class Marshaller:
             for value in array:
                 array_len += self._write_struct(value, child_type)
         else:
-            writer, packer, size = self._writers[token]
+            writer, packer, size = _WRITERS[token]
             if not writer:
                 for value in array:
                     array_len += self._align(size) + size
@@ -149,9 +160,10 @@ class Marshaller:
         if token == "y":
             buf += array  # type: ignore[arg-type]
 
-        array_len_packed = PACK_UINT32(array_len)
-        for i in range(offset, offset + 4):
-            buf[i] = array_len_packed[i - offset]
+        buf[offset] = array_len & 0xFF
+        buf[offset + 1] = (array_len >> 8) & 0xFF
+        buf[offset + 2] = (array_len >> 16) & 0xFF
+        buf[offset + 3] = array_len >> 24
 
         return written + array_len
 
@@ -169,8 +181,8 @@ class Marshaller:
 
     def _write_dict_entry_kv(self, key: Any, value: Any, type_: SignatureType) -> int:
         written = self._align(8)
-        written += self._write_single(type_.children[0], key)
-        written += self._write_single(type_.children[1], value)
+        written += self._write_single(type_._child_0, key)
+        written += self._write_single(type_._child_1, value)
         return written
 
     def _write_single(self, type_: SignatureType, body: Any) -> int:
@@ -190,7 +202,7 @@ class Marshaller:
             return self._write_variant(body, type_)
         if t == "b":
             return self._write_boolean(body)
-        writer, packer, size = self._writers[t]
+        writer, packer, size = _WRITERS[t]
         if not writer:
             written = self._align(size)
             self._buf += packer(body)  # type: ignore[misc]
@@ -216,8 +228,9 @@ class Marshaller:
     def _construct_buffer(self) -> bytearray:
         self._buf.clear()
         body = self.body
-        for i, type_ in enumerate(self.signature_tree.types):
-            self._write_single(type_, body[i])
+        types = self.signature_tree.types
+        for i in range(len(types)):
+            self._write_single(types[i], body[i])
         return self._buf
 
     _writers: dict[
@@ -246,3 +259,6 @@ class Marshaller:
         "{": (write_dict_entry, None, 0),
         "v": (write_variant, None, 0),
     }
+
+
+_WRITERS = Marshaller._writers
