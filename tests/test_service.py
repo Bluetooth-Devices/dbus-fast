@@ -9,6 +9,8 @@ are deliberately not pinned because Cython coerces those annotated
 parameters, diverging from pure Python.
 """
 
+import gc
+import weakref
 from typing import Annotated, Any
 
 import pytest
@@ -546,3 +548,29 @@ def test_enabled_handler_lookup_matches_signature_and_skips_disabled() -> None:
     assert lookup(iface, bus, "Echo", "i") is None
     assert lookup(iface, bus, "Hidden", "s") is None
     assert lookup(iface, bus, "Nonexistent", "s") is None
+
+
+def test_unexport_releases_bus() -> None:
+    """An unexported interface holds no reference to the bus."""
+
+    class _Bus(BaseMessageBus):
+        def send(self, msg: Message) -> None:
+            pass
+
+    class Iface(ServiceInterface):
+        def __init__(self) -> None:
+            super().__init__("com.example.R")
+
+        @dbus_method()
+        def Echo(self, val: DBusStr) -> DBusStr:
+            return val
+
+    iface = Iface()
+    bus = _Bus(bus_address="unix:path=/dev/null")
+    bus.export("/com/example/r", iface)
+    bus.unexport("/com/example/r", iface)
+
+    bus_ref = weakref.ref(bus)
+    del bus
+    gc.collect()
+    assert bus_ref() is None
