@@ -652,7 +652,11 @@ class MessageBus(BaseMessageBus):
         except Exception:
             _LOGGER.warning("could not remove message writer", exc_info=True)
 
-        had_handlers = bool(self._method_return_handlers or self._user_message_handlers)
+        had_handlers = bool(
+            self._method_return_handlers
+            or self._user_message_handlers
+            or self._path_signal_handlers
+        )
 
         super()._finalize(err)
 

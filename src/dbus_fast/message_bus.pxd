@@ -33,6 +33,7 @@ cdef class BaseMessageBus:
     cdef public object _serial
     cdef public cython.dict _path_exports
     cdef public cython.list _user_message_handlers
+    cdef public cython.dict _path_signal_handlers
     cdef public cython.dict _name_owners
     cdef public object _bus_address
     cdef public object _name_owner_match_rule
@@ -45,6 +46,7 @@ cdef class BaseMessageBus:
     cdef public object _stream
     cdef public object _fd
 
+    @cython.locals(path_handlers=tuple)
     cpdef void _process_message(self, Message msg) except *
 
     @cython.locals(exported_service_interface=ServiceInterface)
