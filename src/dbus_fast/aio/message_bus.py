@@ -124,6 +124,9 @@ class _MessageWriter:
                 # finished writing
                 self.buf = None
                 _future_set_result(self.fut, None)
+        except BlockingIOError:
+            # send buffer is full, wait for writable
+            return
         except Exception as e:
             if self.bus._user_disconnect:
                 _future_set_result(self.fut, None)
