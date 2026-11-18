@@ -227,7 +227,7 @@ class BaseProxyInterface:
 
             if not self._signal_handlers:
                 self.bus._add_match_rule(self._signal_match_rule)
-                self.bus.add_message_handler(self._message_handler)
+                self.bus._add_path_signal_handler(self.path, self._message_handler)
 
             if intr_signal.name not in self._signal_handlers:
                 self._signal_handlers[intr_signal.name] = []
@@ -254,7 +254,7 @@ class BaseProxyInterface:
 
             if not self._signal_handlers:
                 self.bus._remove_match_rule(self._signal_match_rule)
-                self.bus.remove_message_handler(self._message_handler)
+                self.bus._remove_path_signal_handler(self.path, self._message_handler)
 
         return on_signal_fn, off_signal_fn
 

@@ -92,7 +92,7 @@ async def test_signals():
     # the bus connection itself takes a rule on NameOwnerChange after the high
     # level client is initialized
     assert len(bus_match_rules) == 1
-    assert len(bus2._user_message_handlers) == 0
+    assert bus2._path_signal_handlers == {}
 
     interface.on_some_signal(single_handler)
     interface.on_signal_multiple(multiple_handler)
@@ -110,7 +110,7 @@ async def test_signals():
         "type='signal',interface='test.interface',path='/test/path',sender='test.signals.name'"
         in bus_match_rules
     )
-    assert len(bus2._user_message_handlers) == 1
+    assert len(bus2._path_signal_handlers["/test/path"]) == 1
 
     service_interface.SomeSignal()
     await ping()
@@ -161,7 +161,7 @@ async def test_signals():
         "type='signal',interface='test.interface',path='/test/path',sender='test.signals.name'"
         not in bus_match_rules
     )
-    assert len(bus2._user_message_handlers) == 0
+    assert bus2._path_signal_handlers == {}
 
     bus1.disconnect()
     bus2.disconnect()

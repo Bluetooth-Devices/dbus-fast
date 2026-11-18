@@ -114,6 +114,7 @@ class BaseMessageBus:
         "_name_owners",
         "_negotiate_unix_fd",
         "_path_exports",
+        "_path_signal_handlers",
         "_serial",
         "_sock",
         "_stream",
@@ -144,6 +145,13 @@ class BaseMessageBus:
         self._user_message_handlers: list[
             Callable[[Message], Message | bool | None]
         ] = []
+        # Signal handlers of the high level client, keyed by object path so a
+        # signal is only offered to the proxies at its path. The tuples are
+        # replaced, never mutated, so dispatch can iterate them while a
+        # handler subscribes or unsubscribes.
+        self._path_signal_handlers: dict[
+            str, tuple[Callable[[Message], None], ...]
+        ] = {}
         # the key is the name and the value is the unique name of the owner.
         # This cache is kept up to date by the NameOwnerChanged signal and is
         # used to route messages to the correct proxy object. (used for the
@@ -581,6 +589,28 @@ class BaseMessageBus:
                 del self._user_message_handlers[i]
                 return
 
+    def _add_path_signal_handler(
+        self, path: str, handler: Callable[[Message], None]
+    ) -> None:
+        """Add a handler for signals emitted on ``path``."""
+        self._path_signal_handlers[path] = (
+            *self._path_signal_handlers.get(path, ()),
+            handler,
+        )
+
+    def _remove_path_signal_handler(
+        self, path: str, handler: Callable[[Message], None]
+    ) -> None:
+        """Remove a handler added by :meth:`_add_path_signal_handler`."""
+        handlers = self._path_signal_handlers.get(path, ())
+        if handler not in handlers:
+            return
+        i = handlers.index(handler)
+        if remaining := handlers[:i] + handlers[i + 1 :]:
+            self._path_signal_handlers[path] = remaining
+        else:
+            del self._path_signal_handlers[path]
+
     def send(self, msg: Message) -> None:
         """Asynchronously send a message on the message bus.
 
@@ -616,6 +646,7 @@ class BaseMessageBus:
             self.unexport(path)
 
         self._user_message_handlers.clear()
+        self._path_signal_handlers.clear()
 
     def _interface_signal_notify(
         self,
@@ -824,6 +855,16 @@ class BaseMessageBus:
                     break
 
         if msg.message_type is MESSAGE_TYPE_SIGNAL:
+            if not handled and (
+                path_handlers := self._path_signal_handlers.get(msg.path)
+            ):
+                for path_handler in path_handlers:
+                    try:
+                        path_handler(msg)
+                    except Exception as e:
+                        _LOGGER.exception(
+                            "A message handler raised an exception: %s", e
+                        )
             if (
                 msg.member == "NameOwnerChanged"
                 and msg.sender == "org.freedesktop.DBus"

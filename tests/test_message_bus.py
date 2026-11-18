@@ -867,6 +867,101 @@ def test_process_message_name_owner_changed_empty_owner_unknown_name_noop() -> N
     assert bus._name_owners == {}
 
 
+def _signal(path: str) -> Message:
+    return Message(
+        message_type=MessageType.SIGNAL,
+        sender=":1.5",
+        path=path,
+        interface="com.example.Iface",
+        member="Changed",
+    )
+
+
+def test_process_message_routes_signal_to_handlers_at_its_path() -> None:
+    bus = _SendCapturingBus()
+    seen: list[tuple[str, str]] = []
+    bus._add_path_signal_handler("/a", lambda m: seen.append(("a1", m.path)))
+    bus._add_path_signal_handler("/a", lambda m: seen.append(("a2", m.path)))
+    bus._add_path_signal_handler("/b", lambda m: seen.append(("b", m.path)))
+    bus._process_message(_signal("/a"))
+    bus._process_message(_signal("/c"))
+    assert seen == [("a1", "/a"), ("a2", "/a")]
+
+
+def test_process_message_path_handler_exception_logged_and_dispatch_continues(
+    caplog,
+) -> None:
+    bus = _SendCapturingBus()
+    seen: list[Message] = []
+
+    def boom(_msg: Message) -> None:
+        raise RuntimeError("handler boom")
+
+    bus._add_path_signal_handler("/a", boom)
+    bus._add_path_signal_handler("/a", seen.append)
+    with caplog.at_level(logging.ERROR, logger="dbus_fast.message_bus"):
+        bus._process_message(_signal("/a"))
+    assert len(seen) == 1
+    assert "A message handler raised an exception: handler boom" in caplog.text
+    assert bus.sent == []
+
+
+def test_process_message_handled_signal_skips_path_handlers() -> None:
+    bus = _SendCapturingBus()
+    seen: list[Message] = []
+    bus.add_message_handler(lambda m: True)
+    bus._add_path_signal_handler("/a", seen.append)
+    bus._process_message(_signal("/a"))
+    assert seen == []
+
+
+def test_process_message_path_handler_removed_during_dispatch() -> None:
+    bus = _SendCapturingBus()
+    seen: list[str] = []
+
+    def first(_msg: Message) -> None:
+        seen.append("first")
+        bus._remove_path_signal_handler("/a", first)
+
+    bus._add_path_signal_handler("/a", first)
+    bus._add_path_signal_handler("/a", lambda m: seen.append("second"))
+    bus._process_message(_signal("/a"))
+    bus._process_message(_signal("/a"))
+    assert seen == ["first", "second", "second"]
+
+
+def test_remove_path_signal_handler_removes_single_registration() -> None:
+    bus = _offline_bus()
+
+    def handler(msg: Message) -> None:
+        return None
+
+    def other(msg: Message) -> None:
+        return None
+
+    bus._add_path_signal_handler("/a", handler)
+    bus._add_path_signal_handler("/a", other)
+    bus._add_path_signal_handler("/a", handler)
+    bus._remove_path_signal_handler("/a", handler)
+    assert bus._path_signal_handlers == {"/a": (other, handler)}
+    bus._remove_path_signal_handler("/a", other)
+    bus._remove_path_signal_handler("/a", handler)
+    assert bus._path_signal_handlers == {}
+
+
+def test_remove_path_signal_handler_absent_is_noop() -> None:
+    bus = _offline_bus()
+
+    def handler(msg: Message) -> None:
+        return None
+
+    bus._remove_path_signal_handler("/a", handler)
+    bus._add_path_signal_handler("/a", handler)
+    bus._remove_path_signal_handler("/b", handler)
+    bus._remove_path_signal_handler("/a", lambda m: None)
+    assert bus._path_signal_handlers == {"/a": (handler,)}
+
+
 def test_init_high_level_client_logs_add_match_error(caplog) -> None:
     bus = _SendCapturingBus()
     bus._init_high_level_client()
@@ -995,6 +1090,7 @@ def test_finalize_drains_return_handlers_with_error(caplog) -> None:
         raise RuntimeError("handler boom")
 
     bus._method_return_handlers[2] = _raising
+    bus._add_path_signal_handler("/a", lambda m: None)
 
     with caplog.at_level(logging.WARNING, logger="dbus_fast.message_bus"):
         bus._finalize(err)
@@ -1002,6 +1098,7 @@ def test_finalize_drains_return_handlers_with_error(caplog) -> None:
     assert received == [(None, err)]
     assert "threw an exception on shutdown" in caplog.text
     assert bus._method_return_handlers == {}
+    assert bus._path_signal_handlers == {}
     assert bus._disconnected is True
     assert bus._stream.closed is True
     assert bus._sock.closed is True
