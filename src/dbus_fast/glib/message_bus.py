@@ -134,7 +134,12 @@ class _AuthLineSource(_GLibSource):
                 callback(AuthError("auth line exceeded maximum size"))
                 return GLib.SOURCE_REMOVE
         if self.buf[-2:] == b"\r\n":
-            resp = callback(self.buf.decode()[:-2])
+            try:
+                line = self.buf[:-2].decode()
+            except UnicodeDecodeError:
+                callback(AuthError("auth line contained invalid UTF-8"))
+                return GLib.SOURCE_REMOVE
+            resp = callback(line)
             if resp:
                 return GLib.SOURCE_REMOVE
 
