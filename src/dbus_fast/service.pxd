@@ -31,7 +31,7 @@ cdef class ServiceInterface:
     cdef list __methods
     cdef list __properties
     cdef list __signals
-    cdef set __buses
+    cdef dict __buses
     cdef dict __handlers
     cdef dict __handlers_by_name_signature
 
