@@ -85,6 +85,8 @@ HEADER_ARRAY_OF_STRUCT_SIGNATURE_POSITION = 12
 # shared with the marshalling side; _MAX_MESSAGE_SIZE is the cdef unsigned int
 # form used internally per .pxd.
 _MAX_MESSAGE_SIZE = MAX_MESSAGE_SIZE
+# D-Bus spec: an array may be at most 64 MiB (2**26 bytes).
+_MAX_ARRAY_SIZE = 67_108_864
 
 # D-Bus spec sec 4.4 caps signature container nesting at 32 array + 32 struct
 # levels. Variants carry their own signature, so a variant containing a
@@ -570,13 +572,16 @@ class Unmarshaller:
         if cython.compiled:
             if self._buf_len < self._pos:
                 raise IndexError("Not enough data to read uint32")
-            self._pos += (
-                _ustr_uint32(self._buf_ustr, str_start - UINT32_SIZE, self._endian) + 1
+            str_len = _ustr_uint32(
+                self._buf_ustr, str_start - UINT32_SIZE, self._endian
             )
-            if self._buf_len < self._pos:
-                raise IndexError("Not enough data to read string")
         else:
-            self._pos += self._uint32_unpack(self._buf, str_start - UINT32_SIZE)[0] + 1
+            str_len = self._uint32_unpack(self._buf, str_start - UINT32_SIZE)[0]
+        # Compare before advancing: _pos is a C unsigned int when compiled, so
+        # adding a length near 2**32 would wrap it past any later bounds check.
+        if str_len >= self._buf_len - str_start:
+            raise InvalidMessageError("string length exceeds the message size")
+        self._pos += str_len + 1
         return self._buf_ustr[str_start : self._pos - 1].decode()
 
     def read_signature(self, type_: _SignatureType) -> str:
@@ -660,6 +665,8 @@ class Unmarshaller:
                 # Uncommon single-byte type, decode for fallback
                 signature = chr(token_as_int)
         else:
+            if signature_len == 0:
+                raise InvalidMessageError("variant has an empty signature")
             o = self._pos + 1
             self._pos = o + signature_len + 1
             if cython.compiled:
@@ -749,6 +756,10 @@ class Unmarshaller:
             )
         else:
             array_length = self._uint32_unpack(self._buf, self._pos - UINT32_SIZE)[0]
+        if array_length > _MAX_ARRAY_SIZE:
+            raise InvalidMessageError(
+                f"array length {array_length} exceeds maximum {_MAX_ARRAY_SIZE}"
+            )
         child_type = type_._child_0
         token_as_int = child_type.token_as_int
 
