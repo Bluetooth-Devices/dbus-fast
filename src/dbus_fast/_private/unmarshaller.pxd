@@ -24,6 +24,7 @@ cdef unsigned int LITTLE_ENDIAN
 cdef unsigned int BIG_ENDIAN
 cdef unsigned int PROTOCOL_VERSION
 cdef unsigned int _MAX_MESSAGE_SIZE
+cdef unsigned int _MAX_ARRAY_SIZE
 cdef unsigned int _MAX_CONTAINER_DEPTH
 cdef unsigned int _MESSAGE_TYPE_MIN
 cdef unsigned int _MESSAGE_TYPE_MAX
@@ -206,6 +207,7 @@ cdef class Unmarshaller:
 
     @cython.locals(
         str_start=cython.uint,
+        str_len=cython.uint,
     )
     cdef str _read_string_unpack(self)
 

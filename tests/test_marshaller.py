@@ -1296,6 +1296,51 @@ def test_unmarshall_rejects_body_with_missing_signature_field() -> None:
         Unmarshaller(io.BytesIO(forged)).unmarshall()
 
 
+def _forged_body_message(signature: str, body: bytes) -> bytes:
+    """Build a little-endian method call with one SIGNATURE field and a raw body."""
+    sig = signature.encode()
+    field = bytes([8, 1]) + b"g\x00" + bytes([len(sig)]) + sig + b"\x00"
+    forged = bytearray(_forged_header(body_len=len(body), header_len=len(field)))
+    forged += field
+    forged += b"\x00" * (-len(forged) & 7)  # align body to 8
+    forged += body
+    return bytes(forged)
+
+
+@pytest.mark.parametrize("length", [0xFFFFFFE3, 0xFFFFFFFF, 0x7FFFFFFF, 5])
+def test_unmarshall_rejects_string_longer_than_message(length: int) -> None:
+    """A string length that runs past the message raises InvalidMessageError.
+
+    0xFFFFFFE3 makes the compiled unsigned position wrap to exactly 0.
+    """
+    forged = _forged_body_message("s", struct.pack("<I", length))
+    with pytest.raises(InvalidMessageError, match="string length exceeds"):
+        Unmarshaller(io.BytesIO(forged)).unmarshall()
+
+
+def test_unmarshall_rejects_string_array_with_wrapping_element() -> None:
+    """A string element with a near-2**32 length inside 'as' raises, not loops."""
+    body = struct.pack("<II", 4, 0xFFFFFFFB)
+    forged = _forged_body_message("as", body)
+    with pytest.raises(InvalidMessageError, match="string length exceeds"):
+        Unmarshaller(io.BytesIO(forged)).unmarshall()
+
+
+@pytest.mark.parametrize("length", [0xFFFFFFFF, 0x04000001])
+def test_unmarshall_rejects_oversized_array_length(length: int) -> None:
+    """An array length above the 64 MiB spec limit raises InvalidMessageError."""
+    forged = _forged_body_message("ay", struct.pack("<I", length))
+    with pytest.raises(InvalidMessageError, match="array length"):
+        Unmarshaller(io.BytesIO(forged)).unmarshall()
+
+
+def test_unmarshall_rejects_variant_with_empty_signature() -> None:
+    """A variant whose signature has length 0 raises InvalidMessageError."""
+    forged = _forged_body_message("v", b"\x00\x00")
+    with pytest.raises(InvalidMessageError, match="empty signature"):
+        Unmarshaller(io.BytesIO(forged)).unmarshall()
+
+
 def test_unmarshall_rejects_body_with_empty_signature_field() -> None:
     """body_len > 0 with an empty signature header field raises InvalidMessageError."""
     # One header field: code 8 (SIGNATURE) carrying a 'g' variant of length 0.
